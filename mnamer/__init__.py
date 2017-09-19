@@ -5,4 +5,3 @@ from sys import modules as _modules
 log = _logging.getLogger(__name__)
 log.addHandler((_logging.StreamHandler()))
 log.setLevel(_logging.DEBUG if 'pydevd' in _modules else _logging.ERROR)
-_logging.getLogger('requests').setLevel(_logging.CRITICAL)
