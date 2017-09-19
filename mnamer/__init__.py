@@ -1,8 +1,8 @@
-import logging.config
-from sys import modules
+import logging as _logging
+from sys import modules as _modules
 
-# Setup logging; automatically set DEBUG-level if running in debug mode
-logging.basicConfig(
-    level=logging.DEBUG if 'pydevd' in modules else 100,
-    format='%(levelname)s:%(name)s.%(funcName)s - %(message)s'
-)
+# Set up logging
+log = _logging.getLogger(__name__)
+log.addHandler((_logging.StreamHandler()))
+log.setLevel(_logging.DEBUG if 'pydevd' in _modules else _logging.ERROR)
+_logging.getLogger('requests').setLevel(_logging.CRITICAL)
