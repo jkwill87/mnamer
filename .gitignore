@@ -1,7 +1,8 @@
-__pycache__/
+*$py.class
+*.py[cod]
 .DS_Store
 .idea
 .vscode
-*.py[cod]
-*$py.class
+__pycache__/
 playground.py
+test_files
