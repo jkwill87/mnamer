@@ -1,6 +1,7 @@
-import argparse
 import json
 from collections import MutableMapping
+
+from appdirs import user_config_dir
 
 from mnamer import log
 
@@ -10,6 +11,11 @@ class Config(MutableMapping):
     like a regular dict. Keys are case insensitive, but however trivial
     validation is used against key name and value types.
     """
+
+    CONFIG_PATHS = {
+        '.mnamer.cfg',
+        user_config_dir() + '/.mnamer.cfg'
+    }
 
     DEFAULTS = {
 
@@ -27,6 +33,7 @@ class Config(MutableMapping):
         'lower': False,
         'max_hits': 15,
         'recurse': False,
+        'verbose': False,
 
         # Movie related
         'movie_api': 'imdb',
@@ -60,7 +67,16 @@ class Config(MutableMapping):
 
     def __init__(self, **params):
         self._dict = dict()
+
+        # Config load order: defaults, config file, parameters
         self._dict.update(self.DEFAULTS)  # Skips setitem validations
+        for path in self.CONFIG_PATHS:
+            try:
+                self.deserialize(path)
+            except IOError as e:
+                log.info(f'could not load config from file: {e}')
+            except (KeyError, TypeError) as e:
+                log.error(f'could not load config from file: {e}')
         self.update(params)  # Follows setitem validations
 
     def __len__(self):
@@ -86,6 +102,7 @@ class Config(MutableMapping):
         elif not isinstance(value, type(self._dict[key])):
             raise TypeError()
         else:
+            log.debug(f"Config set '{key}' => '{value}'")
             self._dict[key] = value
 
     def deserialize(self, path: str):
@@ -99,63 +116,3 @@ class Config(MutableMapping):
         """
         with open(file=path, mode='w') as fp:
             json.dump(dict(self), fp, indent=4)
-
-    def retrieve(self):
-        parser = argparse.ArgumentParser(
-            prog='mnamer', description='a media file renaming utility',
-            epilog='visit github.com/jkwill87/mnamer for more information'
-        )
-
-        parser.add_argument(
-            '-b', '--batch', action='store_true', default=None,
-            help='batch mode; disables interactive prompts & persists on error'
-        )
-
-        parser.add_argument(
-            '-d', '--dots', action='store_true', default=None,
-            help='format using dots in place of whitespace when renaming'
-        )
-
-        parser.add_argument(
-            '-l', '--lower', action='store_true', default=None,
-            help='format using lowercase when renaming'
-        )
-        parser.add_argument(
-            '-r', '--recurse', action='store_true', default=None,
-            help='recursive file crawling and following symlinks'
-        )
-
-        parser.add_argument(
-            '--extmask', nargs='+', metavar='E', default=None,
-            help='define the extension mask used by the the file parser'
-        )
-
-        parser.add_argument(
-            '--movie_destination', nargs='?', metavar='D', default=None,
-            help='set movie relocation destination'
-        )
-
-        parser.add_argument(
-            '--movie_template', nargs='?', metavar='T', default=None,
-            help='set movie renaming template'
-        )
-
-        parser.add_argument(
-            '--tv_destination', nargs='?', metavar='D', default=None,
-            help='set television relocation destination'
-        )
-
-        parser.add_argument(
-            '--tv_template', nargs='?', metavar='T', default=None,
-            help='set television renaming template'
-        )
-
-        parser.add_argument(
-            'targets', nargs='+', default=[],
-            help='media files and/or directories'
-        )
-        args = vars(parser.parse_args())
-
-        # Update config options using cli parameters
-        params = {k: v for k, v in args.items() if v and k != 'targets'}
-        self.update(**params)
