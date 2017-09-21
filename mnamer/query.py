@@ -1,5 +1,5 @@
 from mapi.metadata import Metadata
-from mapi.providers import has_provider_support, provider_factory
+from mapi.providers import Provider, has_provider_support, provider_factory
 
 
 class Query:
@@ -11,10 +11,12 @@ class Query:
         self.register(television_api, 'television')
         self.register(movie_api, 'movie')
 
-    def register(self, provider: str, media_type: str):
-        if not has_provider_support(provider, media_type):
+    def register(self, provider: str, media: str):
+        if not has_provider_support(provider, media):
             raise ValueError
-        self._registrations[media_type] = provider_factory(provider)
+        self._registrations[media] = provider_factory(provider)
 
     def search(self, metadata: Metadata):
-        yield from self._registrations[metadata['media_type']]
+        media = metadata['media']
+        provider = self._registrations[media]
+        yield from provider.search(**metadata)
