@@ -8,37 +8,6 @@ from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
 from mnamer import log
 
 
-def _scan_tree(path: Path, recurse=False):
-    if path.is_file():
-        yield path
-    elif path.is_dir() and not path.is_symlink():
-        for child in path.iterdir():
-            if child.is_file():
-                yield child
-            elif recurse and child.is_dir() and not child.is_symlink():
-                yield from _scan_tree(child, True)
-
-
-def crawl(targets: Union[str, List[str]], **options) -> List[Path]:
-    if not isinstance(targets, (list, tuple)):
-        targets = [targets]
-    recurse = options.get('recurse', False)
-    extmask = options.get('extmask', None)
-    files = list()
-
-    for target in targets:
-        path = Path(target)
-        if not path.exists():
-            continue
-        for file in _scan_tree(path, recurse):
-            if not extmask or file.suffix.strip('.') in extmask:
-                files.append(file.resolve())
-
-    seen = set()
-    seen_add = seen.add
-    return sorted([x for x in files if not (x in seen or seen_add(x))])
-
-
 class Target:
     _path: Path = ...
     _meta: Metadata = ...
@@ -47,9 +16,16 @@ class Target:
         self.path = path
         self.parse()
 
+    def __str__(self):
+        return str(self.path.name)
+
     @property
     def path(self):
         return self._path
+
+    @property
+    def meta(self):
+        return self._meta
 
     @path.setter
     def path(self, value: Union[PurePath, str]):
@@ -123,4 +99,38 @@ class Target:
         self._path = destination / self._path
 
     def rename(self, metadata: Metadata):
-        pass
+        new_path = Path(self._path.parent / metadata.format())
+        self._path.rename(new_path)  # TODO: check option to overwrite
+        self._path = new_path
+
+
+def _scan_tree(path: Path, recurse=False):
+    if path.is_file():
+        yield path
+    elif path.is_dir() and not path.is_symlink():
+        for child in path.iterdir():
+            if child.is_file():
+                yield child
+            elif recurse and child.is_dir() and not child.is_symlink():
+                yield from _scan_tree(child, True)
+
+
+def crawl(targets: Union[str, List[str]], **options) -> List[Target]:
+    if not isinstance(targets, (list, tuple)):
+        targets = [targets]
+    recurse = options.get('recurse', False)
+    extmask = options.get('extmask', None)
+    files = list()
+
+    for target in targets:
+        path = Path(target)
+        if not path.exists():
+            continue
+        for file in _scan_tree(path, recurse):
+            if not extmask or file.suffix.strip('.') in extmask:
+                files.append(file.resolve())
+
+    seen = set()
+    seen_add = seen.add
+    files = sorted([f for f in files if not (f in seen or seen_add(f))])
+    return [Target(target) for target in files]
