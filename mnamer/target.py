@@ -133,4 +133,5 @@ def crawl(targets: Union[str, List[str]], **options) -> List[Target]:
     seen = set()
     seen_add = seen.add
     files = sorted([f for f in files if not (f in seen or seen_add(f))])
-    return [Target(target) for target in files]
+    for target in files:
+        yield Target(target)
