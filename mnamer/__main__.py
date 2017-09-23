@@ -1,9 +1,14 @@
+from textwrap import fill
 from typing import List, Optional, Union
+
+from mapi.exceptions import MapiNotFoundException
 
 from mnamer.config import Config
 from mnamer.parameters import Parameters
 from mnamer.query import Query
-from mnamer.target import Target, crawl
+from mnamer.target import crawl
+
+TEXT_WIDTH = 80
 
 
 # noinspection PyTypeChecker
@@ -67,33 +72,103 @@ def cprint(
     print(cformat(text, fg_colour, bg_colour, attribute))
 
 
-def main():
-    cprint('STARTING MNAMER', attribute='bold')
+def wprint(s: object) -> None:
+    print(fill(
+        str(s),
+        width=TEXT_WIDTH,
+        break_long_words=True,
+        subsequent_indent='    ',
+    ))
 
-    cprint('\nConfiguration:', attribute='underline')
+
+def main():
+    cprint('\nStarting mnamer', attribute='bold')
+
     parameters = Parameters()
     config = Config(**parameters.arguments)
     targets = crawl(parameters.targets, **config)
 
+    # Display config information
     for key, value in config.items():
-        key_text = cformat(key, fg_colour='yellow')
-        print(f"  {BULLET} {key_text} {ARROW} '{value}'")
+        wprint(f"  - {key}: '{value}'")
 
+    # Exit early if there are no files found
+    if not targets:
+        print('No suitable media files detected. Exiting.')
+
+    # Begin processing files
     query = Query(**config)
+    renamed_count = moved_count = 0
+
     for target in targets:
-        process(target, query)
+        print('\n', '- ' * (TEXT_WIDTH // 2), '\n')
+        cprint(f'Detected File', attribute='bold')
+        wprint(target.path.name)
 
+        # Print metadata fields
+        for field, value in target.meta.items():
+            print(f'  - {field}: {value}')
 
-def process(target: Target, query: Query):
-    cprint(f"\n\nProcessing '{target.path.name}':", attribute='bold')
-    cprint('\nDetected Fields:', attribute='underline')
-    for field in target.meta:
-        field_text = cformat(field, fg_colour='blue')
-        print(f'  {BULLET} {field_text} {ARROW} {target.meta[field]}')
-        # results = query.search(target.meta)
-        # for result in results:
-        #     print(result)
+        # Print search results
+        cprint('\nQuery Results', attribute='bold')
+        results = query.search(target.meta)
+        i = 1
+        entries = []
+        max_hits = int(config.get('max_hits', 100))
+        while i < max_hits:
+            try:
+                entry = next(results)
+                print(f"  [{i}] {entry}")
+                entries.append(entry)
+                i += 1
+            except (StopIteration, MapiNotFoundException):
+                break
 
+        # Skip entry if no hits
+        if not entries:
+            print('None found! Skipping...\n')
+            continue
+
+        # Prompt user for input
+        print('  [RETURN] for default, [s]kip, [q]uit')
+        meta = abort = skip = None
+        while not any({meta, abort, skip}):
+            selection = input('  > Your Choice? ')
+
+            # Catch default selection
+            if not selection:
+                meta = entries[0]
+                break
+
+            # Catch skip entry (just break w/o changes)
+            elif selection in ['s', 'S', 'skip', 'SKIP']:
+                skip = True
+                break
+
+            # Quit (abort and exit)
+            elif selection in ['q', 'Q', 'quit', 'QUIT']:
+                abort = True
+                break
+
+            # Catch result choice within presented range
+            elif selection.isdigit() and 0 < int(selection) < len(entries) + 1:
+                meta = entries[int(selection) - 1]
+                break
+
+            # Re-prompt if user input is invalid wrt to presented options
+            else:
+                print('\nInvalid selection, please try again.')
+
+        # Process file
+        cprint('\nProcessing File', attribute='bold')
+        destination = config[f"{target.meta['media']}_destination"]
+
+        wprint(f"  - renaming to '{meta}'")
+
+        if not destination:
+            continue
+
+        wprint(f"  - moving to '{destination}'")
 
 if __name__ == '__main__':
     main()
