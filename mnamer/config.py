@@ -36,13 +36,14 @@ class Config(MutableMapping):
         'verbose': False,
 
         # Movie related
-        'movie_api': 'imdb',
+        'movie_api': 'tmdb',
         'movie_destination': '',
         'movie_template': (
-            '<[title] >'
-            '<([year])>/'
-            '<[title] >'
-            '<([year])>'
+            '<$title >'
+            '<($year)>/'
+            '<$title >'
+            '<($year)>'
+            '<$extension>'
         ),
 
         # Television related
@@ -54,6 +55,7 @@ class Config(MutableMapping):
             '< - S$season>'
             '<E$episode - >'
             '< - $title>'
+            '<$extension>'
         ),
     }
 
