@@ -159,6 +159,18 @@ def main():
             else:
                 print('\nInvalid selection, please try again.')
 
+        if skip is True:
+            cprint(
+                '  - Skipping rename, as per user request...',
+                fg_colour='yellow')
+            continue
+
+        elif abort is True:
+            cprint(
+                '  - Exiting, as per user request...',
+                fg_colour='red')
+            exit(0)
+
         # Process file
         cprint('\nProcessing File', attribute='bold')
         destination = config[f"{target.meta['media']}_destination"]
