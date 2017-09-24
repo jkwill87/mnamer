@@ -137,7 +137,8 @@ def main():
 
             # Catch default selection
             if not selection:
-                meta = entries[0]
+                meta = target.meta
+                meta.update(entries[0])
                 break
 
             # Catch skip entry (just break w/o changes)
@@ -152,7 +153,8 @@ def main():
 
             # Catch result choice within presented range
             elif selection.isdigit() and 0 < int(selection) < len(entries) + 1:
-                meta = entries[int(selection) - 1]
+                meta = target.meta
+                meta.update(entries[int(selection) - 1])
                 break
 
             # Re-prompt if user input is invalid wrt to presented options
@@ -174,8 +176,11 @@ def main():
         # Process file
         cprint('\nProcessing File', attribute='bold')
         destination = config[f"{target.meta['media']}_destination"]
+        template = config[f"{target.meta['media']}_template"]
 
         wprint(f"  - renaming to '{meta.format(template)}'")
+        target.rename(meta, template)
+
         if destination:
             target.move(destination)
             wprint(f"  - moving to '{destination}'")
