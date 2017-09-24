@@ -98,8 +98,10 @@ class Target:
         move(str(self._path), str(destination))
         self._path = destination / self._path
 
-    def rename(self, metadata: Metadata):
-        new_path = Path(self._path.parent / metadata.format())
+    def rename(self, metadata: Metadata, template:str):
+        new_path = Path(self._path.parent / metadata.format(template))
+        if len(new_path.parents) > 1:
+            new_path.parent.mkdir(parents=True, exist_ok=True)
         self._path.rename(new_path)  # TODO: check option to overwrite
         self._path = new_path
 
