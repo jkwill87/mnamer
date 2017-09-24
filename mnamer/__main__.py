@@ -126,7 +126,7 @@ def main():
 
         # Skip entry if no hits
         if not entries:
-            print('None found! Skipping...\n')
+            cprint('  - None found! Skipping...\n', fg_colour='yellow')
             continue
 
         # Prompt user for input
@@ -175,12 +175,13 @@ def main():
         cprint('\nProcessing File', attribute='bold')
         destination = config[f"{target.meta['media']}_destination"]
 
-        wprint(f"  - renaming to '{meta}'")
+        wprint(f"  - renaming to '{meta.format(template)}'")
+        if destination:
+            target.move(destination)
+            wprint(f"  - moving to '{destination}'")
 
-        if not destination:
-            continue
+        cprint('  - Success!', fg_colour='green')
 
-        wprint(f"  - moving to '{destination}'")
 
 if __name__ == '__main__':
     main()
