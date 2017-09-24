@@ -57,6 +57,11 @@ class Config(MutableMapping):
             '< - $title>'
             '<$extension>'
         ),
+
+        # API Keys -- consider using your own or IMDb if limits are hit
+        'api_key_tmdb': 'db972a607f2760bb19ff8bb34074b4c7',
+        'api_key_tvdb': 'E69C7A2CEF2F3152'
+
     }
 
     EPILOG = 'visit https://github.com/jkwill87/mnamer for more information'
