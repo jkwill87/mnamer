@@ -99,7 +99,7 @@ def main():
 
     # Begin processing files
     query = Query(**config)
-    renamed_count = moved_count = 0
+    success_count = 0
 
     for target in targets:
         print('\n', '- ' * (TEXT_WIDTH // 2), '\n')
@@ -114,65 +114,71 @@ def main():
         cprint('\nQuery Results', attribute='bold')
         results = query.search(target.meta)
         i = 1
-        entries = []
+        hits = []
         max_hits = int(config.get('max_hits', 100))
         while i < max_hits:
             try:
-                entry = next(results)
-                print(f"  [{i}] {entry}")
-                entries.append(entry)
+                hit = next(results)
+                print(f"  [{i}] {hit}")
+                hits.append(hit)
                 i += 1
             except (StopIteration, MapiNotFoundException):
                 break
 
-        # Skip entry if no hits
-        if not entries:
+        # Skip hit if no hits
+        if not hits:
             cprint('  - None found! Skipping...\n', fg_colour='yellow')
             continue
 
+        # Select first if batch
+        if config['batch'] is True:
+            meta = target.meta
+            meta.update(hits[0])
+
         # Prompt user for input
-        print('  [RETURN] for default, [s]kip, [q]uit')
-        meta = abort = skip = None
-        while not any({meta, abort, skip}):
-            selection = input('  > Your Choice? ')
+        else:
+            print('  [RETURN] for default, [s]kip, [q]uit')
+            meta = abort = skip = None
+            while not any({meta, abort, skip}):
+                selection = input('  > Your Choice? ')
 
-            # Catch default selection
-            if not selection:
-                meta = target.meta
-                meta.update(entries[0])
-                break
+                # Catch default selection
+                if not selection:
+                    meta = target.meta
+                    meta.update(hits[0])
+                    break
 
-            # Catch skip entry (just break w/o changes)
-            elif selection in ['s', 'S', 'skip', 'SKIP']:
-                skip = True
-                break
+                # Catch skip hit (just break w/o changes)
+                elif selection in ['s', 'S', 'skip', 'SKIP']:
+                    skip = True
+                    break
 
-            # Quit (abort and exit)
-            elif selection in ['q', 'Q', 'quit', 'QUIT']:
-                abort = True
-                break
+                # Quit (abort and exit)
+                elif selection in ['q', 'Q', 'quit', 'QUIT']:
+                    abort = True
+                    break
 
-            # Catch result choice within presented range
-            elif selection.isdigit() and 0 < int(selection) < len(entries) + 1:
-                meta = target.meta
-                meta.update(entries[int(selection) - 1])
-                break
+                # Catch result choice within presented range
+                elif selection.isdigit() and 0 < int(selection) < len(hits) + 1:
+                    meta = target.meta
+                    meta.update(hits[int(selection) - 1])
+                    break
 
-            # Re-prompt if user input is invalid wrt to presented options
-            else:
-                print('\nInvalid selection, please try again.')
+                # Re-prompt if user input is invalid wrt to presented options
+                else:
+                    print('\nInvalid selection, please try again.')
 
-        if skip is True:
-            cprint(
-                '  - Skipping rename, as per user request...',
-                fg_colour='yellow')
-            continue
+            if skip is True:
+                cprint(
+                    '  - Skipping rename, as per user request...',
+                    fg_colour='yellow')
+                continue
 
-        elif abort is True:
-            cprint(
-                '  - Exiting, as per user request...',
-                fg_colour='red')
-            exit(0)
+            elif abort is True:
+                cprint(
+                    '  - Exiting, as per user request...',
+                    fg_colour='red')
+                exit(0)
 
         # Process file
         cprint('\nProcessing File', attribute='bold')
