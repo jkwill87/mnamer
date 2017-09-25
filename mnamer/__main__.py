@@ -89,8 +89,9 @@ def main():
     targets = crawl(parameters.targets, **config)
 
     # Display config information
-    for key, value in config.items():
-        wprint(f"  - {key}: '{value}'")
+    if config['debug'] is True:
+        for key, value in config.items():
+            wprint(f"  - {key}: '{value}'")
 
     # Exit early if there are no files found
     if not targets:
