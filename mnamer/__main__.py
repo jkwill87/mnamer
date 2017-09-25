@@ -178,14 +178,33 @@ def main():
         destination = config[f"{target.meta['media']}_destination"]
         template = config[f"{target.meta['media']}_template"]
 
-        wprint(f"  - renaming to '{meta.format(template)}'")
-        target.rename(meta, template)
+        # Rename file
+        try:
+            target.rename(meta, template)
+        except IOError as e:
+            cprint('  - Error renaming!', fg_colour='red')
+            if config['verbose']:
+                wprint(e)
+            continue
+        else:
+            wprint(f"  - renaming to '{meta.format(template)}'")
 
+        # Move file
         if destination:
-            target.move(destination)
-            wprint(f"  - moving to '{destination}'")
+            try:
+                target.move(destination)
+            except IOError as e:
+                cprint('  - Error moving!', fg_colour='red')
+                if config['verbose']:
+                    wprint(e)
+                continue
+            else:
+                wprint(f"  - moving to '{destination}'")
 
         cprint('  - Success!', fg_colour='green')
+        success_count += 1
+
+    print(f'Successfully processed {success_count} out of {len(targets)} files')
 
 
 if __name__ == '__main__':
