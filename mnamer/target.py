@@ -1,5 +1,5 @@
 from pathlib import Path, PurePath
-from shutil import move
+from shutil import move as shutil_move
 from typing import List, Union
 
 from guessit import guessit
@@ -83,27 +83,14 @@ class Target:
         if self._path.suffix:
             self._meta['extension'] = self._path.suffix
 
-    def move(self, destination: Path):
-
-        # Ensure destination actually exists
-        if not destination.is_dir():
-            raise ValueError('destination is not a directory')
-        destination = destination.resolve()
-
-        # Create parent directories as required
-        if len(destination.parents) > 1:
-            destination.parent.mkdir(parents=True, exist_ok=True)
-
-        # Use shutil to move file-- pathlib can't move across drives ¯\_(ツ)_/¯
-        move(str(self._path), str(destination))
-        self._path = destination / self._path
-
-    def rename(self, metadata: Metadata, template:str):
-        new_path = Path(self._path.parent / metadata.format(template))
-        if len(new_path.parents) > 1:
-            new_path.parent.mkdir(parents=True, exist_ok=True)
-        self._path.rename(new_path)  # TODO: check option to overwrite
-        self._path = new_path
+    def move(self, metadata: Metadata, template: str, destination: Union[Path, str]):
+        if isinstance(destination, str):
+            destination = Path(destination)
+        directory_path = destination or Path(self._path.parent)
+        file_path = Path(directory_path / metadata.format(template))
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil_move(str(self._path), str(file_path))
+        self._path = file_path
 
 
 def _scan_tree(path: Path, recurse=False):

@@ -183,28 +183,16 @@ def main():
         destination = config[f"{target.meta['media']}_destination"]
         template = config[f"{target.meta['media']}_template"]
 
-        # Rename file
+        # Rename and move file
         try:
-            target.rename(meta, template)
+            target.move(meta, template, destination)
         except IOError as e:
-            cprint('  - Error renaming!', fg_colour='red')
+            cprint('  - Error moving!', fg_colour='red')
             if config['verbose']:
                 wprint(e)
             continue
         else:
-            wprint(f"  - renaming to '{meta.format(template)}'")
-
-        # Move file
-        if destination:
-            try:
-                target.move(destination)
-            except IOError as e:
-                cprint('  - Error moving!', fg_colour='red')
-                if config['verbose']:
-                    wprint(e)
-                continue
-            else:
-                wprint(f"  - moving to '{destination}'")
+            wprint(f"  - moving to '{destination}'")
 
         cprint('  - Success!', fg_colour='green')
         success_count += 1
