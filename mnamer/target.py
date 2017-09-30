@@ -1,6 +1,8 @@
 from pathlib import Path, PurePath
+from re import sub
 from shutil import move as shutil_move
 from typing import List as L, Union as U
+from unicodedata import normalize
 
 from guessit import guessit
 from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
@@ -33,6 +35,27 @@ class Target:
         if not path.is_file():
             raise ValueError('path must exist and be file')
         self._path = path.resolve()
+
+    def _construct_file_path(self, template, lower=False, dots=False):
+        replacements = {'&': 'and'}
+        whitelist = r'[^ \d\w\?!\.,_\(\)\[\]\-/]'
+        whitespace = r'[\-_\[\]]'
+        text = self.meta.format(template)
+
+        # Replace or remove non-utf8 characters
+        text = normalize('NFKD', text)
+        text.encode('ascii', 'ignore')
+        text = sub(whitelist, '', text)
+        text = sub(whitespace, ' ', text)
+
+        # Replace words found in replacement list
+        for replacement in replacements:
+            text = text.replace(replacement, replacements[replacement])
+
+        # Simplify whitespace
+        text = sub(r'\s+', '.' if dots else ' ', text).strip()
+
+        return text.lower() if lower else text
 
     def parse(self) -> None:
 
@@ -83,14 +106,19 @@ class Target:
         if self._path.suffix:
             self._meta['extension'] = self._path.suffix
 
-    def move(self, meta: Metadata, template: str, destination: U[Path, str]):
+    def move(self, **options):
+        destination = options.get(f"{self.meta['media']}_destination")
+        template = options.get(f"{self.meta['media']}_template")
+        lower = options.get('lower', False)
+        dots = options.get('dots', False)
         if isinstance(destination, str):
             destination = Path(destination)
         directory_path = destination or Path(self._path.parent)
-        file_path = Path(directory_path / meta.format(template))
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        shutil_move(str(self._path), str(file_path))
-        self._path = file_path
+        file_path = self._construct_file_path(template, lower, dots)
+        destination_path = Path(directory_path / file_path)
+        destination_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil_move(str(self._path), str(destination_path))
+        self._path = destination_path
 
 
 def _scan_tree(path: Path, recurse=False):

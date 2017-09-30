@@ -185,7 +185,7 @@ def main():
 
         # Rename and move file
         try:
-            target.move(meta, template, destination)
+            target.move(**config)
         except IOError as e:
             cprint('  - Error moving!', fg_colour='red')
             if config['verbose']:
