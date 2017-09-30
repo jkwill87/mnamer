@@ -1,5 +1,5 @@
 from textwrap import fill
-from typing import List, Optional, Union
+from typing import List as L, Optional as O, Union as U
 
 from mapi.exceptions import MapiNotFoundException
 
@@ -14,9 +14,9 @@ TEXT_WIDTH = 80
 # noinspection PyTypeChecker
 def cformat(
     text,
-    fg_colour: Optional[Union[str, List[str]]] = None,
-    bg_colour: Optional[Union[str, List[str]]] = None,
-    attribute: Optional[Union[str, List[str]]] = None
+    fg_colour: O[U[str, L[str]]] = None,
+    bg_colour: O[U[str, L[str]]] = None,
+    attribute: O[U[str, L[str]]] = None
 ):
     opt_c = [
         'grey',
@@ -65,9 +65,9 @@ def cformat(
 
 def cprint(
     text,
-    fg_colour: Optional[Union[str, List[str]]] = None,
-    bg_colour: Optional[Union[str, List[str]]] = None,
-    attribute: Optional[Union[str, List[str]]] = None
+    fg_colour: O[U[str, L[str]]] = None,
+    bg_colour: O[U[str, L[str]]] = None,
+    attribute: O[U[str, L[str]]] = None
 ):
     print(cformat(text, fg_colour, bg_colour, attribute))
 

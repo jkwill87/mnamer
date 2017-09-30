@@ -1,6 +1,6 @@
 from pathlib import Path, PurePath
 from shutil import move as shutil_move
-from typing import List, Union
+from typing import List as L, Union as U
 
 from guessit import guessit
 from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
@@ -12,7 +12,7 @@ class Target:
     _path: Path = ...
     _meta: Metadata = ...
 
-    def __init__(self, path: Union[PurePath, str]):
+    def __init__(self, path: U[PurePath, str]):
         self.path = path
         self.parse()
 
@@ -28,7 +28,7 @@ class Target:
         return self._meta
 
     @path.setter
-    def path(self, value: Union[PurePath, str]):
+    def path(self, value: U[PurePath, str]):
         path = Path(value)
         if not path.is_file():
             raise ValueError('path must exist and be file')
@@ -83,11 +83,11 @@ class Target:
         if self._path.suffix:
             self._meta['extension'] = self._path.suffix
 
-    def move(self, metadata: Metadata, template: str, destination: Union[Path, str]):
+    def move(self, meta: Metadata, template: str, destination: U[Path, str]):
         if isinstance(destination, str):
             destination = Path(destination)
         directory_path = destination or Path(self._path.parent)
-        file_path = Path(directory_path / metadata.format(template))
+        file_path = Path(directory_path / meta.format(template))
         file_path.parent.mkdir(parents=True, exist_ok=True)
         shutil_move(str(self._path), str(file_path))
         self._path = file_path
@@ -104,7 +104,7 @@ def _scan_tree(path: Path, recurse=False):
                 yield from _scan_tree(child, True)
 
 
-def crawl(targets: Union[str, List[str]], **options) -> List[Target]:
+def crawl(targets: U[str, L[str]], **options) -> L[Target]:
     if not isinstance(targets, (list, tuple)):
         targets = [targets]
     recurse = options.get('recurse', False)

@@ -1,6 +1,5 @@
 import argparse
-from typing import Any, Dict, List
-
+from typing import Any as A, Dict as D, List as L
 
 class Parameters:
     def __init__(self):
@@ -91,9 +90,9 @@ class Parameters:
         self._arguments = {k: v for k, v in args.items() if v}
 
     @property
-    def targets(self) -> List[str]:
+    def targets(self) -> L[str]:
         return self._targets
 
     @property
-    def arguments(self) -> Dict[str, Any]:
+    def arguments(self) -> D[str, A]:
         return self._arguments
