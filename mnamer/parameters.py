@@ -31,6 +31,11 @@ class Parameters:
         )
 
         self._parser.add_argument(
+            '-v', '--verbose', action='store_true', default=None,
+            help='increases output verbosity'
+        )
+
+        self._parser.add_argument(
             '--extmask', nargs='+', metavar='E', default=None,
             help='define the extension mask used by the the file parser'
         )
