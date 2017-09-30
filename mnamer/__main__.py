@@ -192,7 +192,7 @@ def main():
                 wprint(e)
             continue
         else:
-            wprint(f"  - moving to '{destination}'")
+            wprint(f"  - moving to '{destination}/{meta.format(template)}'")
 
         cprint('  - Success!', fg_colour='green')
         success_count += 1
