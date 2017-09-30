@@ -93,18 +93,16 @@ def main():
         for key, value in config.items():
             wprint(f"  - {key}: '{value}'")
 
-    # Exit early if there are no files found
-    if not targets:
-        print('No suitable media files detected. Exiting.')
-
     # Begin processing files
     query = Query(**config)
+    detection_count = 0
     success_count = 0
 
     for target in targets:
         print('\n', '- ' * (TEXT_WIDTH // 2), '\n')
         cprint(f'Detected File', attribute='bold')
         wprint(target.path.name)
+        detection_count += 1
 
         # Print metadata fields
         for field, value in target.meta.items():
@@ -211,7 +209,13 @@ def main():
         cprint('  - Success!', fg_colour='green')
         success_count += 1
 
-    print(f'Successfully processed {success_count} out of {len(targets)} files')
+    if not detection_count:
+        print('No suitable media files detected. Exiting.')
+    else:
+        print(
+            f'Successfully processed {success_count}'
+            f' out of {detection_count} files'
+        )
 
 
 if __name__ == '__main__':
