@@ -24,6 +24,7 @@ class Parameters:
             '-l', '--lower', action='store_true', default=None,
             help='format using lowercase when renaming'
         )
+
         self._parser.add_argument(
             '-r', '--recurse', action='store_true', default=None,
             help='recursive file crawling and following symlinks'
@@ -34,11 +35,21 @@ class Parameters:
             help='define the extension mask used by the the file parser'
         )
 
+        self._parser.add_argument(
+            '--max_hits', nargs='?', metavar='M', type=int, default=None,
+            help='limits the maximum number of hits for each query'
+        )
+
         # if find_spec('PyQt5'):
         #     self._parser.add_argument(
         #         '--ui', action='store_true', default=None,
         #         help='set user interface mode'
         #     )
+
+        self._parser.add_argument(
+            '--movie_api', nargs='?', metavar='MA', choices=['imdb', 'tmdb'],
+            default=None, help='set movie api provider'
+        )
 
         self._parser.add_argument(
             '--movie_destination', nargs='?', metavar='D', default=None,
@@ -48,6 +59,11 @@ class Parameters:
         self._parser.add_argument(
             '--movie_template', nargs='?', metavar='T', default=None,
             help='set movie renaming template'
+        )
+
+        self._parser.add_argument(
+            '--tv_api', nargs='?', metavar='TA', choices=['tvdb'],
+            default=None, help='set television api provider'
         )
 
         self._parser.add_argument(
