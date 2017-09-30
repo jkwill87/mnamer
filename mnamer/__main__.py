@@ -89,7 +89,7 @@ def main():
     targets = crawl(parameters.targets, **config)
 
     # Display config information
-    if config['debug'] is True:
+    if config['verbose'] is True:
         for key, value in config.items():
             wprint(f"  - {key}: '{value}'")
 
