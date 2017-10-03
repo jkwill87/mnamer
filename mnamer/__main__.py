@@ -1,8 +1,8 @@
 from textwrap import fill
-from typing import List as L, Optional as O, Union as U
 
 from mapi.exceptions import MapiNotFoundException
 
+from mnamer import *
 from mnamer.config import Config
 from mnamer.parameters import Parameters
 from mnamer.query import Query

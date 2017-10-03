@@ -1,13 +1,12 @@
 from pathlib import Path, PurePath
 from re import sub
 from shutil import move as shutil_move
-from typing import List as L, Union as U
 from unicodedata import normalize
 
 from guessit import guessit
 from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
 
-from mnamer import log
+from mnamer import *
 
 
 class Target:

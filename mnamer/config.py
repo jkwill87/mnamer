@@ -3,6 +3,7 @@ from collections import MutableMapping
 
 from appdirs import user_config_dir
 
+from mnamer import *
 from mnamer import log
 
 

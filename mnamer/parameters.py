@@ -1,6 +1,6 @@
 import argparse
-from typing import Any as A, Dict as D, List as L
 
+from mnamer import *
 class Parameters:
     def __init__(self):
         self._parser = argparse.ArgumentParser(
