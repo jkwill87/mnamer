@@ -1,7 +1,8 @@
 import json
 from collections import MutableMapping
-
-from appdirs import user_config_dir
+from os import environ
+from pathlib import Path
+from string import Template
 
 from mnamer import *
 from mnamer import log
@@ -14,8 +15,8 @@ class Config(MutableMapping):
     """
 
     CONFIG_PATHS = {
-        '.mnamer.cfg',
-        user_config_dir() + '/.mnamer.cfg'
+        '.mnamer.json',
+        config_file
     }
 
     DEFAULTS = {
@@ -38,7 +39,7 @@ class Config(MutableMapping):
 
         # Movie related
         'movie_api': 'tmdb',
-        'movie_destination': '',
+        'movie_destination': None,
         'movie_template': (
             '<$title >'
             '<($year)>/'
@@ -49,7 +50,7 @@ class Config(MutableMapping):
 
         # Television related
         'television_api': 'tvdb',
-        'television_destination': '',
+        'television_destination': None,
         'television_template': (
             '<$series />'
             '<$series - >'
@@ -108,11 +109,13 @@ class Config(MutableMapping):
     def deserialize(self, path: str):
         """ Reads JSON file and overlays parsed values over current configs
         """
-        with open(file=path, mode='r') as fp:
+        t = Template(path).substitute(environ)
+        with open(file=t, mode='r') as fp:
             self.update(json.load(fp))
 
     def serialize(self, path: str):
         """ Serializes Config object as a JSON file
         """
-        with open(file=path, mode='w') as fp:
+        t = Template(path).substitute(environ)
+        with open(file=t, mode='w') as fp:
             json.dump(dict(self), fp, indent=4)
