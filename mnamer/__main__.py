@@ -101,6 +101,30 @@ def main():
         for key, value in config.items():
             wprint(f"  - {key}: {value}")
 
+    # Load config from additional files if requested
+    if parameters.load_config:
+        cprint(f'\nLoading Config File', attribute='bold')
+        print(f'  - Loading from {parameters.load_config}')
+        try:
+            config.deserialize(parameters.load_config)
+            cprint('  - Success!', fg_colour='green')
+        except IOError as e:
+            cprint('  - Error!', fg_colour='red')
+            if config['verbose']:
+                wprint(e)
+
+    # Save config to file if requested
+    if parameters.save_config:
+        cprint(f'\nSaving Config File', attribute='bold')
+        print(f'  - Saving to {parameters.save_config}')
+        try:
+            config.serialize(parameters.save_config)
+            cprint('  - Success!', fg_colour='green')
+        except IOError as e:
+            cprint('  - Error!', fg_colour='red')
+            if config['verbose']:
+                wprint(e)
+
     # Begin processing files
     query = Query(**config)
     detection_count = 0

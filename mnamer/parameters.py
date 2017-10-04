@@ -98,9 +98,21 @@ class Parameters:
             help='media files and/or directories'
         )
 
-        args = vars(self._parser.parse_args())
+        parser.add_argument(
+            '--save_config', nargs='?', metavar='C', const=config_file,
+            help=f'save configuration to file; defaults to {config_file}'
+        )
+
+        parser.add_argument(
+            '--load_config', nargs='?', metavar='C', default=None,
+            help='load configuration from file'
+        )
+
+        args = vars(parser.parse_args())
+        self._save_config = args.pop('save_config', None)
+        self._load_config = args.pop('load_config', None)
         self._targets = args.pop('targets')
-        self._arguments = {k: v for k, v in args.items() if v}
+        self._arguments = {k: v for k, v in args.items() if v is not None}
 
     @staticmethod
     def _bool_parse(s: O[str]):
@@ -118,3 +130,12 @@ class Parameters:
     @property
     def arguments(self) -> D[str, A]:
         return self._arguments
+
+    @property
+    def save_config(self) -> O[str]:
+        return self._save_config
+
+    @property
+    def load_config(self) -> O[str]:
+        if self._load_config:
+            return self._load_config
