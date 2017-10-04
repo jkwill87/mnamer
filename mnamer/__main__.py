@@ -89,7 +89,11 @@ def main():
     # Initialize; load configuration and detect file(s)
     cprint('\nStarting mnamer', attribute='bold')
     parameters = Parameters()
-    config = Config(**parameters.arguments)
+    try:
+        config = Config(**parameters.arguments)
+    except ValueError:
+        cprint('Could not load configuration. Exiting.', fg_colour='red')
+        return
     targets = crawl(parameters.targets, **config)
 
     # Display config information
