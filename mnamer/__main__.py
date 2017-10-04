@@ -46,20 +46,25 @@ def cformat(
         fg_colour = [fg_colour]
     elif not fg_colour:
         fg_colour = []
-    for x in fg_colour: styles.append(fg_colour_ids.get(x.lower() if x else ''))
+    for x in fg_colour:
+        styles.append(fg_colour_ids.get(x.lower() if x else ''))
     if isinstance(bg_colour, str):
         bg_colour = [bg_colour]
     elif not bg_colour:
         bg_colour = []
-    for x in bg_colour: styles.append(bg_colour_ids.get(x.lower() if x else ''))
+    for x in bg_colour:
+        styles.append(bg_colour_ids.get(x.lower() if x else ''))
     if isinstance(attribute, str):
         attribute = [attribute]
     elif not attribute:
         attribute = []
-    for x in attribute: styles.append(attr_ids.get(x.lower() if x else ''))
+    for x in attribute:
+        styles.append(attr_ids.get(x.lower() if x else ''))
     for style in styles:
-        if style: text = '\033[%dm%s' % (style, text)
-    if any(styles): text += '\033[0m'
+        if style:
+            text = '\033[%dm%s' % (style, text)
+    if any(styles):
+        text += '\033[0m'
     return text
 
 
