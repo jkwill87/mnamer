@@ -8,8 +8,6 @@ from mnamer.parameters import Parameters
 from mnamer.query import Query
 from mnamer.target import crawl
 
-TEXT_WIDTH = 80
-
 
 # noinspection PyTypeChecker
 def cformat(
@@ -77,10 +75,10 @@ def cprint(
     print(cformat(text, fg_colour, bg_colour, attribute))
 
 
-def wprint(s: object) -> None:
+def wprint(s: object, width=80) -> None:
     print(fill(
         str(s),
-        width=TEXT_WIDTH,
+        width=width,
         break_long_words=True,
         subsequent_indent='    ',
     ))
@@ -104,7 +102,6 @@ def main():
     success_count = 0
 
     for target in targets:
-        print('\n', '- ' * (TEXT_WIDTH // 2), '\n')
         cprint(f'Detected File', attribute='bold')
         wprint(target.path.name)
         detection_count += 1
