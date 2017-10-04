@@ -65,14 +65,6 @@ class Config(MutableMapping):
 
     }
 
-    EPILOG = 'visit https://github.com/jkwill87/mnamer for more information'
-
-    USAGE = """
-    mnamer  [file [files...]] [-t | -m]
-            [-b] [-p] [-c] [-g] [-h]
-            [--template T] [--extmask E [E...]] [--saveconf [C]] [--loadconf C]
-    """
-
     def __init__(self, **params):
         self._dict = dict()
 
