@@ -1,12 +1,25 @@
 import argparse
 
 from mnamer import *
+
+DESCRIPTION = 'a media file renaming utility'
+
+EPILOG = 'visit https://github.com/jkwill87/mnamer for more information'
+
+USAGE = """
+mnamer  [file [files...]] [-t | -m]
+        [-b] [-p] [-c] [-g] [-h]
+        [--template T] [--extmask E [E...]] [--saveconf [C]] [--loadconf C]
+"""
+
+
 class Parameters:
     def __init__(self):
-        self._parser = argparse.ArgumentParser(
-            prog='mnamer', description='a media file renaming utility',
-            epilog='visit https://github.com/jkwill87/mnamer/wiki '
-                   'for more information'
+        parser = argparse.ArgumentParser(
+            prog='mnamer',
+            description=DESCRIPTION,
+            epilog=EPILOG,
+            # usage=USAGE
         )
 
         self._parser.add_argument(
