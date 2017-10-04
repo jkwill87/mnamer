@@ -85,8 +85,9 @@ def wprint(s: object, width=80) -> None:
 
 
 def main():
-    cprint('\nStarting mnamer', attribute='bold')
 
+    # Initialize; load configuration and detect file(s)
+    cprint('\nStarting mnamer', attribute='bold')
     parameters = Parameters()
     config = Config(**parameters.arguments)
     targets = crawl(parameters.targets, **config)
@@ -94,7 +95,7 @@ def main():
     # Display config information
     if config['verbose'] is True:
         for key, value in config.items():
-            wprint(f"  - {key}: '{value}'")
+            wprint(f"  - {key}: {value}")
 
     # Begin processing files
     query = Query(**config)
@@ -168,24 +169,27 @@ def main():
                 else:
                     print('\nInvalid selection, please try again.')
 
+            # User requested to skip file...
             if skip is True:
                 cprint(
                     '  - Skipping rename, as per user request...',
                     fg_colour='yellow')
                 continue
 
+            # User requested to exit...
             elif abort is True:
                 cprint(
                     '  - Exiting, as per user request...',
-                    fg_colour='red')
-                exit(0)
+                    fg_colour='yellow'
+                )
+                return
 
-        # Process file
+        # Attempt to process file
         cprint('\nProcessing File', attribute='bold')
         destination = config[f"{target.meta['media']}_destination"]
         template = config[f"{target.meta['media']}_template"]
 
-        # Rename and move file
+        # Rename and move
         try:
             target.move(**config)
         except IOError as e:
@@ -199,12 +203,17 @@ def main():
         cprint('  - Success!', fg_colour='green')
         success_count += 1
 
+    # Summarize session outcome
     if not detection_count:
-        print('No suitable media files detected. Exiting.')
+        cprint(
+            '\nNo suitable media files detected. Exiting.',
+            fg_colour='yellow'
+        )
     else:
-        print(
-            f'Successfully processed {success_count}'
-            f' out of {detection_count} files'
+        cprint(
+            f'\nSuccessfully processed {success_count}'
+            f' out of {detection_count} files',
+            fg_colour='green'
         )
 
 
