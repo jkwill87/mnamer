@@ -130,12 +130,13 @@ class Parameters:
 
     @staticmethod
     def _bool_parse(s: O[str]):
-        if s.lower() in ('yes', 'true', 't', 'y', '1'):
-            return True
-        elif s.lower() in ('no', 'false', 'f', 'n', '0'):
-            return False
-        else:
-            raise argparse.ArgumentTypeError(f'Expected bool, got {type(s)}.')
+        try:
+            return {
+                'yes': True, 'true': True, 't': True, 'y': True, '1': True,
+                'no': False, 'false': False, 'f': False, 'n': False, '0': False
+            }[s.lower()]
+        except KeyError:
+            raise argparse.ArgumentTypeError(f"Can't cast {s} to True/False")
 
     @property
     def targets(self) -> L[str]:
