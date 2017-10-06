@@ -99,7 +99,7 @@ def main():
     # Display config information
     if config['verbose'] is True:
         for key, value in config.items():
-            wprint(f"  - {key}: {value}")
+            wprint(f"  - {key}: {value if value else None}")
 
     # Load config from additional files if requested
     if parameters.load_config:
@@ -131,7 +131,7 @@ def main():
     success_count = 0
 
     for target in targets:
-        cprint(f'Detected File', attribute='bold')
+        cprint(f'\nDetected File', attribute='bold')
         wprint(target.path.name)
         detection_count += 1
 
