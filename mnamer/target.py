@@ -135,7 +135,7 @@ def crawl(targets: U[str, L[str]], **options) -> L[Target]:
     if not isinstance(targets, (list, tuple)):
         targets = [targets]
     recurse = options.get('recurse', False)
-    extmask = options.get('extmask', None)
+    ext_mask = options.get('ext_mask', None)
     files = list()
 
     for target in targets:

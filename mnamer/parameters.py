@@ -19,77 +19,89 @@ class Parameters:
             prog='mnamer',
             description=DESCRIPTION,
             epilog=EPILOG,
-            # usage=USAGE
         )
 
         parser.add_argument(
-            '-b', '--batch', nargs='?', type=self._bool_parse, const=True,
+            '-b', '--batch',
+            dest='batch', nargs='?', type=self._bool_parse, const=True,
             help='batch mode; disables interactive prompts & persists on error'
         )
 
         parser.add_argument(
-            '-d', '--dots', nargs='?', type=self._bool_parse, const=True,
+            '-d', '--dots',
+            dest='dots', nargs='?', type=self._bool_parse, const=True,
             help='format using dots in place of whitespace when renaming'
         )
 
         parser.add_argument(
-            '-l', '--lower', nargs='?', type=self._bool_parse, const=True,
+            '-l', '--lower',
+            dest='lower', nargs='?', type=self._bool_parse, const=True,
             help='format using lowercase when renaming'
         )
 
         parser.add_argument(
-            '-r', '--recurse', nargs='?', type=self._bool_parse, const=True,
+            '-r', '--recurse',
+            dest='recurse', nargs='?', type=self._bool_parse, const=True,
             help='recursive file crawling and following symlinks'
         )
 
         parser.add_argument(
-            '-v', '--verbose', nargs='?', type=self._bool_parse, const=True,
+            '-v', '--verbose',
+            dest='verbose', nargs='?', type=self._bool_parse, const=True,
             help='increases output verbosity'
         )
 
         parser.add_argument(
-            '--extmask', nargs='+', metavar='E', default=None,
+            '--extmask',
+            dest='ext_mask', nargs='+', metavar='E', default=None,
             help='define the extension mask used by the the file parser'
         )
 
         parser.add_argument(
-            '--max_hits', nargs='?', metavar='M', type=int, default=None,
+            '--maxhits',
+            dest='max_hits', nargs='?', metavar='M', type=int, default=None,
             help='limits the maximum number of hits for each query'
         )
 
-        # if find_spec('PyQt5'):
-        #     parser.add_argument(
-        #         '--ui',  nargs='?', type=self._str2bool, const=True,
-        #         help='set user interface mode'
-        #     )
-
         parser.add_argument(
-            '--movie_api', nargs='?', metavar='MA', choices=['imdb', 'tmdb'],
+            '--dryrun',
+            dest='dry_run', nargs='?', metavar='MA', choices=['imdb', 'tmdb'],
             default=None, help='set movie api provider'
         )
 
         parser.add_argument(
-            '--movie_destination', nargs='?', metavar='D', default=None,
+            '--mapi',
+            dest='movie_api', nargs='?', metavar='MA', choices=['imdb', 'tmdb'],
+            default=None, help='set movie api provider'
+        )
+
+        parser.add_argument(
+            '--mdest',
+            dest='movie_destination', nargs='?', metavar='D', default=None,
             help='set movie relocation destination'
         )
 
         parser.add_argument(
-            '--movie_template', nargs='?', metavar='T', default=None,
+            '--mtemp',
+            dest='movie_template', nargs='?', metavar='T', default=None,
             help='set movie renaming template'
         )
 
         parser.add_argument(
-            '--tv_api', nargs='?', metavar='TA', choices=['tvdb'],
+            '--tapi',
+            dest='television_api', nargs='?', metavar='TA', choices=['tvdb'],
             default=None, help='set television api provider'
         )
 
         parser.add_argument(
-            '--tv_destination', nargs='?', metavar='D', default=None,
+            '--tdest',
+            dest='television_destination', nargs='?', metavar='D', default=None,
             help='set television relocation destination'
         )
 
         parser.add_argument(
-            '--tv_template', nargs='?', metavar='T', default=None,
+            '--ttemp',
+            dest='television_template', nargs='?', metavar='T', default=None,
             help='set television renaming template'
         )
 
@@ -99,12 +111,14 @@ class Parameters:
         )
 
         parser.add_argument(
-            '--save_config', nargs='?', metavar='C', const=config_file,
+            '--sconf',
+            dest='save_config', nargs='?', metavar='C', const=config_file,
             help=f'save configuration to file; defaults to {config_file}'
         )
 
         parser.add_argument(
-            '--load_config', nargs='?', metavar='C', default=None,
+            '--lconf',
+            dest='load_config', nargs='?', metavar='C', default=None,
             help='load configuration from file'
         )
 

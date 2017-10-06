@@ -1,7 +1,6 @@
 import json
 from collections import MutableMapping
 from os import environ
-from pathlib import Path
 from string import Template
 
 from mnamer import *
@@ -24,7 +23,8 @@ class Config(MutableMapping):
         # General Options
         'batch': False,
         'dots': False,
-        'extmask': [
+        'dry_run': False,
+        'ext_mask': [
             'avi',
             'm4v',
             'mp4',
@@ -39,7 +39,7 @@ class Config(MutableMapping):
 
         # Movie related
         'movie_api': 'tmdb',
-        'movie_destination': None,
+        'movie_destination': '',
         'movie_template': (
             '<$title >'
             '<($year)>/'
@@ -50,7 +50,7 @@ class Config(MutableMapping):
 
         # Television related
         'television_api': 'tvdb',
-        'television_destination': None,
+        'television_destination': '',
         'television_template': (
             '<$series />'
             '<$series - >'
