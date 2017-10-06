@@ -136,6 +136,7 @@ def crawl(targets: U[str, L[str]], **options) -> L[Target]:
         targets = [targets]
     recurse = options.get('recurse', False)
     ext_mask = options.get('ext_mask', None)
+    blacklist = options.get('blacklist', {'sample', 'rarbg'})
     files = list()
 
     for target in targets:
@@ -143,8 +144,11 @@ def crawl(targets: U[str, L[str]], **options) -> L[Target]:
         if not path.exists():
             continue
         for file in _scan_tree(path, recurse):
-            if not extmask or file.suffix.strip('.') in extmask:
-                files.append(file.resolve())
+            if ext_mask and file.suffix.strip('.') not in ext_mask:
+                continue
+            if any(word in file.stem for word in blacklist):
+                continue
+            files.append(file.resolve())
 
     seen = set()
     seen_add = seen.add
