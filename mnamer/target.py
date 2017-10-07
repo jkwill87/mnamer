@@ -60,10 +60,7 @@ class Target:
 
         # Use 'Guessit' library to parse fields
         abs_path_str = str(self.path.resolve())
-        log.debug(f"parsing '{abs_path_str}'")
         data = dict(guessit(abs_path_str))
-        for key, value in data.items():
-            log.debug(f"'{key}':'{value}'")
 
         # Parse movie metadata
         if data.get('type') == 'movie':

@@ -4,7 +4,6 @@ from os import environ
 from string import Template
 
 from mnamer import *
-from mnamer import log
 
 
 class Config(MutableMapping):
@@ -72,12 +71,7 @@ class Config(MutableMapping):
         # Config load order: defaults, config file, parameters
         self._dict.update(self.DEFAULTS)  # Skips setitem validations
         for path in self.CONFIG_PATHS:
-            try:
-                self.deserialize(path)
-            except IOError as e:
-                log.info(f'could not load config from file: {e}')
-            except (KeyError, TypeError) as e:
-                log.error(f'could not load config from file: {e}')
+            self.deserialize(path)
         self.update(params)  # Follows setitem validations
 
     def __len__(self):
@@ -90,7 +84,7 @@ class Config(MutableMapping):
         return self._dict.__getitem__(key.lower())
 
     def __delitem__(self, key: str):
-        raise NotImplementedError('values can be modified but keys are static')
+        raise NotImplementedError('values can be modified but keys cannot')
 
     def __setitem__(self, key: str, value: str):
         if key == 'television_api' and value not in ['tvdb']:
@@ -98,12 +92,10 @@ class Config(MutableMapping):
         elif key == 'movie_api' and value not in ['imdb', 'tmdb']:
             raise ValueError()
         elif key not in self.DEFAULTS:
-            log.error('attempt to set value with an invalid key (%s)' % key)
-            raise KeyError()
+            raise KeyError(f'attempted to set invalid key ({key})')
         elif not isinstance(value, type(self._dict[key])):
-            raise TypeError()
+            raise TypeError(f'attempted to set invalid type ({key})')
         else:
-            log.debug(f"Config set '{key}' => '{value}'")
             self._dict[key] = value
 
     def deserialize(self, path: str):

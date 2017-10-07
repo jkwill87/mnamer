@@ -85,9 +85,8 @@ def wprint(s: object, width=80) -> None:
 
 
 def main():
-
     # Initialize; load configuration and detect file(s)
-    cprint('\nStarting mnamer', attribute='bold')
+    cprint('Starting mnamer...', attribute='bold')
     parameters = Parameters()
     try:
         config = Config(**parameters.arguments)
@@ -99,7 +98,7 @@ def main():
     # Display config information
     if config['verbose'] is True:
         for key, value in config.items():
-            wprint(f"  - {key}: {value if value else None}")
+            wprint(f"  - {key}: {None if value == '' else value}")
 
     # Load config from additional files if requested
     if parameters.load_config:
@@ -219,7 +218,8 @@ def main():
 
         # Rename and move
         try:
-            target.move(**config)
+            if not config['dry_run']:
+                target.move(**config)
         except IOError as e:
             cprint('  - Error moving!', fg_colour='red')
             if config['verbose']:
