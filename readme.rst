@@ -1,5 +1,6 @@
 |licence| |pypi|
 
+
 mnamer
 ======
 
@@ -14,10 +15,17 @@ Installation
 - `$ pip3 install mnamer`
 - **Note:** requires python 3.6+
 
+
 Examples
 ========
 
+
 Coming Soon
+
+License
+=======
+
+MIT. See license.txt for details.
 
 .. |licence| image:: https://img.shields.io/github/license/jkwill87/mnamer.svg
    :target: https://en.wikipedia.org/wiki/MIT_License
