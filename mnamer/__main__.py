@@ -219,7 +219,7 @@ def main():
 
         # Rename and move
         try:
-            if not config['dry_run']:
+            if not config['test_run']:
                 target.move(**config)
         except IOError as e:
             cprint('  - Error moving!', fg_colour='red')

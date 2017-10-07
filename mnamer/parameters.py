@@ -2,17 +2,21 @@ import argparse
 
 from mnamer import *
 
-DESCRIPTION = 'a media file renaming utility'
-
 EPILOG = 'visit https://github.com/jkwill87/mnamer for more information'
+
+USAGE = """mnamer target [targets ...]
+  [-b, --batch] [-d, --dots] [-l, --lower] [-r, --recurse] [-v --verbose]
+  [-h, --help] [--extmask E] [--maxhits M] [--testrun] [--mapi MA] [--mdest MD]
+  [--mtemp MT] [--tapi TA] [--tdest TD] [--ttemp TT] [--sconf C] [--lconf]
+"""
 
 
 class Parameters:
     def __init__(self):
         parser = argparse.ArgumentParser(
             prog='mnamer',
-            description=DESCRIPTION,
             epilog=EPILOG,
+            usage=USAGE
         )
 
         parser.add_argument(
@@ -46,6 +50,11 @@ class Parameters:
         )
 
         parser.add_argument(
+            '-t', '--testrun', dest='test_run', action='store_true',
+            help='set movie api provider'
+        )
+
+        self._parser.add_argument(
             '--extmask',
             dest='ext_mask', nargs='+', metavar='E', default=None,
             help='define the extension mask used by the the file parser'
@@ -55,12 +64,6 @@ class Parameters:
             '--maxhits',
             dest='max_hits', nargs='?', metavar='M', type=int, default=None,
             help='limits the maximum number of hits for each query'
-        )
-
-        parser.add_argument(
-            '--dryrun',
-            dest='dry_run', nargs='?', metavar='MA', choices=['imdb', 'tmdb'],
-            default=None, help='set movie api provider'
         )
 
         parser.add_argument(
