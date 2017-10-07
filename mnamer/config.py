@@ -51,7 +51,7 @@ class Config(MutableMapping):
         'television_api': 'tvdb',
         'television_destination': '',
         'television_template': (
-            '<$series />'
+            '<$series/>'
             '<$series - >'
             '< - S$season>'
             '<E$episode - >'
