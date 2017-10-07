@@ -17,11 +17,12 @@ setup(
             'mnamer=mnamer.__main__:main'
         ]
     },
+    install_requires=REQUIREMENTS,
     license='MIT',
     long_description=LONG_DESCRIPTION,
     name='mnamer',
     packages=['mnamer'],
-    install_requires=REQUIREMENTS,
+    python_requires='>=3.6',
     url='https://github.com/jkwill87/mnamer',
     version='0.2'
 )
