@@ -86,12 +86,13 @@ def wprint(s: object, width=80) -> None:
 
 def main():
     # Initialize; load configuration and detect file(s)
-    cprint('Starting mnamer...', attribute='bold')
     parameters = Parameters()
     try:
+        cprint('Starting mnamer', attribute='bold')
         config = Config(**parameters.arguments)
-    except ValueError:
+    except (KeyError, ValueError) as e:
         cprint('Could not load configuration. Exiting.', fg_colour='red')
+        print(f'  - {e}')
         return
     targets = crawl(parameters.targets, **config)
 
@@ -155,7 +156,7 @@ def main():
 
         # Skip hit if no hits
         if not hits:
-            cprint('  - None found! Skipping...\n', fg_colour='yellow')
+            cprint('  - None found! Skipping...', fg_colour='yellow')
             continue
 
         # Select first if batch
@@ -234,15 +235,22 @@ def main():
     # Summarize session outcome
     if not detection_count:
         cprint(
-            '\nNo suitable media files detected. Exiting.',
+            'No media files detected. Run "mnamer --help" for usage. Exiting.',
             fg_colour='yellow'
         )
+        return
+
+    if success_count == 0:
+        outcome_colour = 'red'
+    elif success_count < detection_count:
+        outcome_colour = 'yellow'
     else:
-        cprint(
-            f'\nSuccessfully processed {success_count}'
-            f' out of {detection_count} files',
-            fg_colour='green'
-        )
+        outcome_colour = 'green'
+    cprint(
+        f'Successfully processed {success_count}'
+        f' out of {detection_count} files',
+        fg_colour=outcome_colour
+    )
 
 
 if __name__ == '__main__':
