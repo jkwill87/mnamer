@@ -79,7 +79,10 @@ class Target:
             if 'season' in data:  # TODO: parse airdate
                 self._meta['season'] = str(data['season'])
             if 'episode' in data:
-                self._meta['episode'] = str(data['episode'])
+                if isinstance(data['episode'], (list, tuple)):
+                    self._meta['episode'] = str(sorted(data['episode'])[0])
+                else:
+                    self._meta['episode'] = str(data['episode'])
         else:
             raise ValueError('Could not determine media type')
 
