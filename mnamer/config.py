@@ -71,7 +71,10 @@ class Config(MutableMapping):
         # Config load order: defaults, config file, parameters
         self._dict.update(self.DEFAULTS)  # Skips setitem validations
         for path in self.CONFIG_PATHS:
-            self.deserialize(path)
+            try:
+                self.deserialize(path)
+            except IOError:
+                pass
         self.update(params)  # Follows setitem validations
 
     def __len__(self):
