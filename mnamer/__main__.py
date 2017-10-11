@@ -136,8 +136,9 @@ def main():
         detection_count += 1
 
         # Print metadata fields
-        for field, value in target.meta.items():
-            print(f'  - {field}: {value}')
+        if config['verbose'] is True:
+            for field, value in target.meta.items():
+                print(f'  - {field}: {value}')
 
         # Print search results
         cprint('\nQuery Results', attribute='bold')
@@ -200,14 +201,14 @@ def main():
             # User requested to skip file...
             if skip is True:
                 cprint(
-                    '  - Skipping rename, as per user request...',
+                    '  - Skipping rename, as per user request.',
                     fg_colour='yellow')
                 continue
 
             # User requested to exit...
             elif abort is True:
                 cprint(
-                    '  - Exiting, as per user request...',
+                    '  - Exiting, as per user request.',
                     fg_colour='yellow'
                 )
                 return
