@@ -13,9 +13,15 @@ class Target:
     _path: Path = ...
     _meta: Metadata = ...
 
-    def __init__(self, path: U[PurePath, str]):
+    def __init__(self, path: U[PurePath, str], **options):
         self.path = path
         self.parse()
+        self._id = options.get('id')
+        self._media = {
+            'television':'episode',
+            'movie':'movie',
+            None: None
+        }.get(options.get('media'))
 
     def __str__(self):
         return str(self.path.name)
@@ -60,7 +66,7 @@ class Target:
 
         # Use 'Guessit' library to parse fields
         abs_path_str = str(self.path.resolve())
-        data = dict(guessit(abs_path_str))
+        data = dict(guessit(abs_path_str, type=self._media))
 
         # Parse movie metadata
         if data.get('type') == 'movie':
@@ -116,6 +122,10 @@ class Target:
         file_path = self._construct_file_path(template, lower, dots)
         destination_path = Path(directory_path / file_path)
         destination_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Perform move using shutil so that 1) the move can span drives, and so
+        # that 2) renaming and moving happen in one step so if one fails they
+        # both fail.
         shutil_move(str(self._path), str(destination_path))
         self._path = destination_path
 
@@ -154,4 +164,4 @@ def crawl(targets: U[str, L[str]], **options) -> L[Target]:
     seen_add = seen.add
     files = sorted([f for f in files if not (f in seen or seen_add(f))])
     for target in files:
-        yield Target(target)
+        yield Target(target, options)
