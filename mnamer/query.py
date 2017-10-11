@@ -3,20 +3,20 @@ from mapi.providers import has_provider_support, provider_factory
 
 
 class Query:
-    _registrations = {}
-
     def __init__(self, **options):
-        television_api = options.get('television_api')
-        movie_api = options.get('movie_api')
+        self._registrations = {}
         self._keys = {
             'tmdb': options.get('api_key_tmdb'),
             'tvdb': options.get('api_key_tvdb'),
             'imdb': None
         }
-        self.register(television_api, 'television')
-        self.register(movie_api, 'movie')
+        self._apis = {
+            'television': options.get('television_api'),
+            'movie': options.get('movie_api')
+        }
 
-    def register(self, provider: str, media: str):
+    def register(self, media: str):
+        provider = self._apis.get(media)
         if not has_provider_support(provider, media):
             raise ValueError
         self._registrations[media] = provider_factory(
@@ -25,5 +25,11 @@ class Query:
 
     def search(self, metadata: Metadata):
         media = metadata['media']
-        provider = self._registrations[media]
+
+        # Lazily register providers as needed
+        try:
+            provider = self._registrations[media]
+        except KeyError:
+            self.register(media)
+            provider = self._registrations[media]
         yield from provider.search(**metadata)
