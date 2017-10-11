@@ -22,7 +22,6 @@ class Config(MutableMapping):
         # General Options
         'batch': False,
         'dots': False,
-        'test_run': False,
         'ext_mask': [
             'avi',
             'm4v',
