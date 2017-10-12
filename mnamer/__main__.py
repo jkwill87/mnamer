@@ -90,40 +90,34 @@ def main():
     try:
         cprint('Starting mnamer', attribute='bold')
         config = Config(**parameters.arguments)
-    except (KeyError, ValueError) as e:
+    except (IOError, KeyError, ValueError) as e:
         cprint('Could not load configuration. Exiting.', fg_colour='red')
         print(f'  - {e}')
         return
     targets = crawl(parameters.targets, **config)
 
+    # Load config from additional files if requested
+    if parameters.directives.get('config_load'):
+        print(f"Importing {parameters.directives['config_load']}: ", end='')
+        try:
+            config.deserialize(parameters.directives['config_load'])
+            cprint('success!', fg_colour='green')
+        except (IOError, KeyError, ValueError) as e:
+            cprint(e, fg_colour='red')
+
+    # Save config to file if requested
+    elif parameters.directives.get('config_save'):
+        print(f"Exporting {parameters.directives['config_save']}: ", end='')
+        try:
+            config.serialize(parameters.directives['config_save'])
+            cprint('success!', fg_colour='green')
+        except (IOError, KeyError, ValueError) as e:
+            cprint(e, fg_colour='red')
+
     # Display config information
     if config['verbose'] is True:
         for key, value in config.items():
             wprint(f"  - {key}: {None if value == '' else value}")
-
-    # Load config from additional files if requested
-    if parameters.load_config:
-        cprint(f'\nLoading Config File', attribute='bold')
-        print(f'  - Loading from {parameters.load_config}')
-        try:
-            config.deserialize(parameters.load_config)
-            cprint('  - Success!', fg_colour='green')
-        except IOError as e:
-            cprint('  - Error!', fg_colour='red')
-            if config['verbose']:
-                wprint(e)
-
-    # Save config to file if requested
-    if parameters.save_config:
-        cprint(f'\nSaving Config File', attribute='bold')
-        print(f'  - Saving to {parameters.save_config}')
-        try:
-            config.serialize(parameters.save_config)
-            cprint('  - Success!', fg_colour='green')
-        except IOError as e:
-            cprint('  - Error!', fg_colour='red')
-            if config['verbose']:
-                wprint(e)
 
     # Begin processing files
     query = Query(**config)
@@ -157,7 +151,7 @@ def main():
 
         # Skip hit if no hits
         if not hits:
-            cprint('  - None found! Skipping...', fg_colour='yellow')
+            cprint('  - None found! Skipping.', fg_colour='yellow')
             continue
 
         # Select first if batch
@@ -220,7 +214,7 @@ def main():
 
         # Rename and move
         try:
-            if not config['test_run']:
+            if not parameters.directives['test_run'] is True:
                 target.move(**config)
         except IOError as e:
             cprint('  - Error moving!', fg_colour='red')
@@ -236,7 +230,7 @@ def main():
     # Summarize session outcome
     if not detection_count:
         cprint(
-            'No media files detected. Run "mnamer --help" for usage. Exiting.',
+            '\nNo media files detected. Run "mnamer --help" for usage. Exiting.',
             fg_colour='yellow'
         )
         return
@@ -248,7 +242,7 @@ def main():
     else:
         outcome_colour = 'green'
     cprint(
-        f'Successfully processed {success_count}'
+        f'\nSuccessfully processed {success_count}'
         f' out of {detection_count} files',
         fg_colour=outcome_colour
     )

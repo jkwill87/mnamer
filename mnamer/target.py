@@ -15,13 +15,12 @@ class Target:
 
     def __init__(self, path: U[PurePath, str], **options):
         self.path = path
-        self.parse()
         self._id = options.get('id')
         self._media = {
             'television':'episode',
             'movie':'movie',
-            None: None
         }.get(options.get('media'))
+        self.parse()
 
     def __str__(self):
         return str(self.path.name)
@@ -66,7 +65,7 @@ class Target:
 
         # Use 'Guessit' library to parse fields
         abs_path_str = str(self.path.resolve())
-        data = dict(guessit(abs_path_str, type=self._media))
+        data = dict(guessit(abs_path_str, {'type': self._media}))
 
         # Parse movie metadata
         if data.get('type') == 'movie':
@@ -145,7 +144,7 @@ def crawl(targets: U[str, L[str]], **options) -> L[Target]:
     if not isinstance(targets, (list, tuple)):
         targets = [targets]
     recurse = options.get('recurse', False)
-    ext_mask = options.get('ext_mask', None)
+    extension_mask = options.get('extension_mask', None)
     blacklist = options.get('blacklist', {'sample', 'rarbg'})
     files = list()
 
@@ -154,7 +153,7 @@ def crawl(targets: U[str, L[str]], **options) -> L[Target]:
         if not path.exists():
             continue
         for file in _scan_tree(path, recurse):
-            if ext_mask and file.suffix.strip('.') not in ext_mask:
+            if extension_mask and file.suffix.strip('.') not in extension_mask:
                 continue
             if any(word in file.stem.lower() for word in blacklist):
                 continue
@@ -164,4 +163,4 @@ def crawl(targets: U[str, L[str]], **options) -> L[Target]:
     seen_add = seen.add
     files = sorted([f for f in files if not (f in seen or seen_add(f))])
     for target in files:
-        yield Target(target, options)
+        yield Target(target, **options)

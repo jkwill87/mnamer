@@ -12,17 +12,12 @@ class Config(MutableMapping):
     validation is used against key name and value types.
     """
 
-    CONFIG_PATHS = {
-        '.mnamer.json',
-        config_file
-    }
-
     DEFAULTS = {
 
         # General Options
         'batch': False,
         'dots': False,
-        'ext_mask': [
+        'extension_mask': [
             'avi',
             'm4v',
             'mp4',
@@ -69,7 +64,7 @@ class Config(MutableMapping):
 
         # Config load order: defaults, config file, parameters
         self._dict.update(self.DEFAULTS)  # Skips setitem validations
-        for path in self.CONFIG_PATHS:
+        for path in ('.mnamer.json', config_path):
             try:
                 self.deserialize(path)
             except IOError:

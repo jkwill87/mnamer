@@ -4,12 +4,27 @@ from mnamer import *
 
 
 class Parameters:
+    _DIRECTIVE_KEYS = {
+        'id',
+        'media',
+        'config_save',
+        'config_load',
+        'test_run'
+    }
+
     def __init__(self):
         self._parser = argparse.ArgumentParser(
             prog='mnamer',
             epilog='visit https://github.com/jkwill87/mnamer for more info',
         )
 
+        # Target Parameter
+        self._parser.add_argument(
+            'targets', nargs='*', default=[],
+            help='media files and/or directories'
+        )
+
+        # Configuration Parameters
         self._parser.add_argument(
             '-b', '--batch', action='store_true',
             help='batch mode; disables interactive prompts'
@@ -36,74 +51,52 @@ class Parameters:
         )
 
         self._parser.add_argument(
-            '--testrun', dest='test_run', action='store_true',
-            help='set movie api provider'
-        )
-
-        self._parser.add_argument(
-            '--extmask', metavar='E', dest='ext_mask', nargs='+', default=None,
-            help='define the extension mask used by the the file parser'
-        )
-
-        self._parser.add_argument(
-            '--maxhits', metavar='#',
-            dest='max_hits', nargs=1, type=int, default=None,
+            '--max_hits', metavar='#', type=int, default=None,
             help='limits the maximum number of hits for each query'
         )
 
         self._parser.add_argument(
-            '--mapi',
-            dest='movie_api', nargs=1, choices=['imdb', 'tmdb'],
+            '--ext', metavar='E', dest='extension_mask', nargs='+', default=None,
+            help='define the extension mask used by the the file parser'
+        )
+
+        self._parser.add_argument(
+            '--m_api',
+            dest='movie_api', choices=['imdb', 'tmdb'],
             default=None, help='set movie api provider'
         )
 
         self._parser.add_argument(
-            '--mdest', metavar='DEST',
-            dest='movie_destination', nargs=1, default=None,
+            '--m_dest', metavar='DEST',
+            dest='movie_destination', default=None,
             help='set movie relocation destination'
         )
 
         self._parser.add_argument(
-            '--mtemp', metavar='TEMPLATE',
-            dest='movie_template', nargs=1, default=None,
+            '--m_temp', metavar='TEMPLATE',
+            dest='movie_template', default=None,
             help='set movie renaming template'
         )
 
         self._parser.add_argument(
-            '--tapi',
-            dest='television_api', nargs=1, choices=['tvdb'],
+            '--t_api',
+            dest='television_api', choices=['tvdb'],
             default=None, help='set television api provider'
         )
 
         self._parser.add_argument(
-            '--tdest', metavar='DEST',
-            dest='television_destination', nargs=1, default=None,
+            '--t_dest', metavar='DEST',
+            dest='television_destination', default=None,
             help='set television relocation destination'
         )
 
         self._parser.add_argument(
-            '--ttemp', metavar='TEMPLATE',
-            dest='television_template', nargs=1, default=None,
+            '--t_temp', metavar='TEMPLATE',
+            dest='television_template', default=None,
             help='set television renaming template'
         )
 
-        self._parser.add_argument(
-            'targets', nargs='*', default=[],
-            help='media files and/or directories'
-        )
-
-        self._parser.add_argument(
-            '--saveconfig', metavar='CONF',
-            dest='save_config', nargs='?', const=config_file,
-            help=f'save configuration to file'
-        )
-
-        self._parser.add_argument(
-            '--loadconfig', metavar='CONF',
-            dest='load_config', nargs=1, default=None,
-            help='load configuration from file'
-        )
-
+        # Directive Parameters
         self._parser.add_argument(
             '--id', nargs=1,
             help='explicitly specify movie or series id'
@@ -114,14 +107,27 @@ class Parameters:
             help='override media detection; either movie or television'
         )
 
+        self._parser.add_argument(
+            '--config_save', nargs='?', metavar='CONF', const=config_path,
+            help=f"save configuration to file; defaults to '{config_path}'"
+        )
+
+        self._parser.add_argument(
+            '--config_load', metavar='CONF', default=None,
+            help='import configuration from file'
+        )
+
+        self._parser.add_argument(
+            '--test_run', action='store_true',
+            help='set movie api provider'
+        )
+
         args = vars(self._parser.parse_args())
-        self._overrides = {
-            'id': args.pop('id', None),
-            'media': args.pop('media', None)
-        }
-        self._save_config = args.pop('save_config', None)
-        self._load_config = args.pop('load_config', None)
         self._targets = args.pop('targets')
+        self._directives = {
+            key: args.pop(key, None)
+            for key in self._DIRECTIVE_KEYS
+        }
         self._arguments = {k: v for k, v in args.items() if v is not None}
 
     @property
@@ -129,21 +135,12 @@ class Parameters:
         return self._targets
 
     @property
-    def arguments(self) -> D[str, A]:
+    def arguments(self) -> D[str, str]:
         return self._arguments
 
     @property
-    def save_config(self) -> O[str]:
-        return self._save_config
-
-    @property
-    def load_config(self) -> O[str]:
-        if self._load_config:
-            return self._load_config
-
-    @property
-    def overrides(self) -> D[str, str]:
-        return self._overrides
+    def directives(self) -> D[str, A]:
+        return self._directives
 
     def print_help(self):
         self._parser.print_help()

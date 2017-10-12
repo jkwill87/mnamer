@@ -18,5 +18,8 @@ from typing import (
     Set as S,
     Union as U,
 )
+from appdirs import user_config_dir as _user_config_dir
 
-__all__ = ['A', 'D', 'L', 'O', 'S', 'U']
+config_path = f'{_user_config_dir()}mnamer.json'
+
+__all__ = ['A', 'D', 'L', 'O', 'S', 'U', 'config_path']
