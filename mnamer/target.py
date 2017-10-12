@@ -156,7 +156,7 @@ def crawl(targets: U[str, L[str]], **options) -> L[Target]:
         for file in _scan_tree(path, recurse):
             if ext_mask and file.suffix.strip('.') not in ext_mask:
                 continue
-            if any(word in file.stem for word in blacklist):
+            if any(word in file.stem.lower() for word in blacklist):
                 continue
             files.append(file.resolve())
 
