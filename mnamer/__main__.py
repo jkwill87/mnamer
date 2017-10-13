@@ -98,7 +98,7 @@ def main():
 
     # Load config from additional files if requested
     if parameters.directives.get('config_load'):
-        print(f"Importing {parameters.directives['config_load']}: ", end='')
+        print(f"Loading {parameters.directives['config_load']}... ", end='')
         try:
             config.deserialize(parameters.directives['config_load'])
             cprint('success!', fg_colour='green')
@@ -107,7 +107,7 @@ def main():
 
     # Save config to file if requested
     elif parameters.directives.get('config_save'):
-        print(f"Exporting {parameters.directives['config_save']}: ", end='')
+        print(f"Saving to {parameters.directives['config_save']}... ", end='')
         try:
             config.serialize(parameters.directives['config_save'])
             cprint('success!', fg_colour='green')
@@ -209,20 +209,22 @@ def main():
 
         # Attempt to process file
         cprint('\nProcessing File', attribute='bold')
-        destination = config[f"{target.meta['media']}_destination"]
-        template = config[f"{target.meta['media']}_template"]
-
-        # Rename and move
+        media = target.meta['media']
+        destination = config[f'{media}_destination']
+        action = 'moving' if destination else 'renaming'
+        template = config[f'{media}_template']
+        reformat = meta.format(template)
+        new_path = f'{destination}/{reformat}' if destination else reformat
         try:
             if not parameters.directives['test_run'] is True:
                 target.move(**config)
         except IOError as e:
-            cprint('  - Error moving!', fg_colour='red')
+            cprint(f'  - Error {action}!', fg_colour='red')
             if config['verbose']:
                 wprint(e)
             continue
         else:
-            wprint(f"  - moving to '{destination}/{meta.format(template)}'")
+            wprint(f"  - {action} to '{new_path}'")
 
         cprint('  - Success!', fg_colour='green')
         success_count += 1
