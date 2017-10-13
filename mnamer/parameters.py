@@ -26,27 +26,27 @@ class Parameters:
 
         # Configuration Parameters
         self._parser.add_argument(
-            '-b', '--batch', action='store_true',
+            '-b', '--batch', action='store_true', default=None,
             help='batch mode; disables interactive prompts'
         )
 
         self._parser.add_argument(
-            '-d', '--dots', action='store_true',
+            '-d', '--dots', action='store_true', default=None,
             help='format using dots in place of whitespace when renaming'
         )
 
         self._parser.add_argument(
-            '-l', '--lower', dest='lower', action='store_true',
+            '-l', '--lower', dest='lower', action='store_true', default=None,
             help='format using lowercase when renaming'
         )
 
         self._parser.add_argument(
-            '-r', '--recurse', action='store_true',
+            '-r', '--recurse', action='store_true', default=None,
             help='recursive file crawling and following symlinks'
         )
 
         self._parser.add_argument(
-            '-v', '--verbose', action='store_true',
+            '-v', '--verbose', action='store_true', default=None,
             help='increases output verbosity'
         )
 
