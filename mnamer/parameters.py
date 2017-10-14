@@ -36,7 +36,7 @@ class Parameters:
         )
 
         self._parser.add_argument(
-            '-l', '--lower', dest='lower', action='store_true', default=None,
+            '-l', '--lower', action='store_true', default=None,
             help='format using lowercase when renaming'
         )
 
@@ -56,43 +56,37 @@ class Parameters:
         )
 
         self._parser.add_argument(
-            '--ext', metavar='E', dest='extension_mask', nargs='+', default=None,
+            '--extension_mask', metavar='E', nargs='+', default=None,
             help='define the extension mask used by the the file parser'
         )
 
         self._parser.add_argument(
-            '--m_api',
-            dest='movie_api', choices=['imdb', 'tmdb'],
+            '--movie_api', choices=['imdb', 'tmdb'],
             default=None, help='set movie api provider'
         )
 
         self._parser.add_argument(
-            '--m_dest', metavar='DEST',
-            dest='movie_destination', default=None,
+            '--movie_destination', metavar='DEST', default=None,
             help='set movie relocation destination'
         )
 
         self._parser.add_argument(
-            '--m_temp', metavar='TEMPLATE',
-            dest='movie_template', default=None,
+            '--movie_template', metavar='TEMPLATE', default=None,
             help='set movie renaming template'
         )
 
         self._parser.add_argument(
-            '--t_api',
-            dest='television_api', choices=['tvdb'],
+            '--television_api', choices=['tvdb'],
             default=None, help='set television api provider'
         )
 
         self._parser.add_argument(
-            '--t_dest', metavar='DEST',
-            dest='television_destination', default=None,
+            '--television_destination', metavar='DEST', default=None,
             help='set television relocation destination'
         )
 
         self._parser.add_argument(
-            '--t_temp', metavar='TEMPLATE',
-            dest='television_template', default=None,
+            '--television_template', metavar='TEMPLATE', default=None,
             help='set television renaming template'
         )
 
