@@ -12,7 +12,7 @@ setup(
     description='A media file organiser',
     entry_points={
         'console_scripts': [
-            'mnamer=mnamer.__main__:main'
+            'mnamer=mnamer.__init__:main'
         ]
     },
     install_requires=REQUIREMENTS,
@@ -22,5 +22,5 @@ setup(
     packages=['mnamer'],
     python_requires='>=3.6',
     url='https://github.com/jkwill87/mnamer',
-    version='0.3'
+    version='1.0'
 )
