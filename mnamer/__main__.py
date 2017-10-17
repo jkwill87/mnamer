@@ -177,7 +177,8 @@ def config_load(path: str):
     """
     templated_path = Template(path).substitute(environ)
     with open(file=templated_path, mode='r') as file_pointer:
-        return json.load(file_pointer)
+        data = json.load(file_pointer)
+    return {k: v for k, v in data.items() if v is not None}
 
 
 def config_save(path: str, options: Dict[str, Any]):
