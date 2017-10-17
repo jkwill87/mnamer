@@ -174,20 +174,36 @@ DIRECTIVES:
 def config_load(path: str):
     """ Reads JSON file and overlays parsed values over current configs
     """
-    t = Template(path).substitute(environ)
-    with open(file=t, mode='r') as fp:
-        return json.load(fp)
+    templated_path = Template(path).substitute(environ)
+    with open(file=templated_path, mode='r') as file_pointer:
+        return json.load(file_pointer)
 
 
 def config_save(path: str, options: Dict[str, Any]):
     """ Serializes Config object as a JSON file
     """
-    t = Template(path).substitute(environ)
-    with open(file=t, mode='w') as fp:
-        json.dump(options, fp, indent=4)
+    templated_path = Template(path).substitute(environ)
+    with open(file=templated_path, mode='w') as file_pointer:
+        json.dump(options, file_pointer, indent=4)
 
 
 def dir_crawl(targets: Union[str, List[str]], **options) -> List[Path]:
+    """ Crawls a directory, searching for files
+    """
+
+    def dir_iter(path: Path, recurse=False):
+        """ Iterates through a directory, yielding each file found
+        """
+        assert path.is_dir
+        if path.is_file():
+            yield path
+        elif path.is_dir() and not path.is_symlink():
+            for child in path.iterdir():
+                if child.is_file():
+                    yield child
+                elif recurse and child.is_dir() and not child.is_symlink():
+                    yield from dir_iter(child, True)
+
     if not isinstance(targets, (list, tuple)):
         targets = [targets]
     recurse = options.get('recurse', False)
@@ -198,7 +214,7 @@ def dir_crawl(targets: Union[str, List[str]], **options) -> List[Path]:
         path = Path(target)
         if not path.exists():
             continue
-        for file in dir_scan(path, recurse):
+        for file in dir_iter(path, recurse):
             if ext_mask and file.suffix.strip('.') not in ext_mask:
                 continue
             if any(word in file.stem.lower() for word in blacklist):
@@ -209,22 +225,13 @@ def dir_crawl(targets: Union[str, List[str]], **options) -> List[Path]:
     return [Path(f).absolute() for f in files if not (f in seen or seen_add(f))]
 
 
-def dir_scan(path: Path, recurse=False):
-    if path.is_file():
-        yield path
-    elif path.is_dir() and not path.is_symlink():
-        for child in path.iterdir():
-            if child.is_file():
-                yield child
-            elif recurse and child.is_dir() and not child.is_symlink():
-                yield from dir_scan(child, True)
-
-
-def search(metadata: Metadata, **options) -> Metadata:
+def provider_search(metadata: Metadata, **options) -> Metadata:
+    """ An adapter for mapi's Provider classes
+    """
     media = metadata['media']
-    if not hasattr(search, "providers"):
-        search.providers: List[Provider] = {}
-    if media not in search.providers:
+    if not hasattr(provider_search, "providers"):
+        provider_search.providers: List[Provider] = {}
+    if media not in provider_search.providers:
         api = {
             'television': options.get('television_api'),
             'movie': options.get('movie_api')
@@ -234,11 +241,15 @@ def search(metadata: Metadata, **options) -> Metadata:
             'tvdb': options.get('api_key_tvdb'),
             'imdb': None
         }
-        search.providers[media] = provider_factory(api, api_key=keys.get(api))
-    yield from search.providers[media].search(**metadata)
+        provider_search.providers[media] = provider_factory(
+            api, api_key=keys.get(api)
+        )
+    yield from provider_search.providers[media].search(**metadata)
 
 
 def meta_parse(path: Path, media: Optional[str] = None) -> Metadata:
+    """ Uses guessit to parse metadata from a filename
+    """
     abs_path_str = str(path.resolve())
     data = dict(guessit(abs_path_str, {'type': media}))
 
@@ -287,44 +298,44 @@ def meta_parse(path: Path, media: Optional[str] = None) -> Metadata:
     return meta
 
 
-def create_path(meta: Metadata, template: str, lower=False, dots=False) -> str:
+def file_move(path: Path, meta: Metadata, **options) -> Path:
+    """ Performs rename and moving of files based upon updated metadata
+    """
     replacements = {'&': 'and'}
     whitelist = r'[^ \d\w\?!\.,_\(\)\[\]\-/]'
     whitespace = r'[\-_\[\]]'
-    text = meta.format(template)
+    destination = options.get(f"{meta['media']}_destination")
+    template = f"{meta['media']}_template"
+    new_fname = meta.format(options.get(template))
+    if options.get('lower'):
+        new_fname = new_fname.lower()
 
     # Replace or remove non-utf8 characters
-    text = normalize('NFKD', text)
-    text.encode('ascii', 'ignore')
-    text = sub(whitelist, '', text)
-    text = sub(whitespace, ' ', text)
+    new_fname = normalize('NFKD', new_fname)
+    new_fname.encode('ascii', 'ignore')
+    new_fname = sub(whitelist, '', new_fname)
+    new_fname = sub(whitespace, ' ', new_fname)
 
     # Replace words found in replacement list
     for replacement in replacements:
-        text = text.replace(replacement, replacements[replacement])
+        new_fname = new_fname.replace(replacement, replacements[replacement])
 
     # Simplify whitespace
-    text = sub(r'\s+', '.' if dots else ' ', text).strip()
+    new_fname = sub(r'\s+', '.' if options.get('dots') else ' ', new_fname)
+    new_fname = new_fname.strip()
 
-    return text.lower() if lower else text
-
-
-def move(path: Path, meta: Metadata, **options) -> Path:
-    destination = options.get(f"{meta['media']}_destination")
-    template = options.get(f"{meta['media']}_template")
-    lower = options.get('lower', False)
-    dots = options.get('dots', False)
     if isinstance(destination, str):
         destination = Path(destination)
     directory_path = destination or Path(path.parent)
-    file_path = create_path(meta, template, lower, dots)
-    destination_path = Path(directory_path / file_path)
+    destination_path = Path(directory_path / new_fname)
     destination_path.parent.mkdir(parents=True, exist_ok=True)
     shutil_move(str(path), str(destination_path))
     return destination_path
 
 
 def main():
+    """ Program entry point
+    """
     # Initialize; load configuration and detect file(s)
     cprint('Starting mnamer', attrs=['bold'])
     targets, options, directives = get_parameters()
@@ -376,7 +387,7 @@ def main():
 
         # Print search results
         cprint('\nQuery Results', attrs=['bold'])
-        results = search(meta, **options)
+        results = provider_search(meta, **options)
         i = 1
         hits = []
         max_hits = int(options.get('max_hits'))
@@ -449,11 +460,11 @@ def main():
         new_path = f'{destination}/{reformat}' if destination else reformat
         try:
             if not directives['test_run'] is True:
-                move(file, meta, **options)
-        except IOError as e:
+                file_move(file, meta, **options)
+        except IOError as err:
             cprint(f'  - Error {action}!', 'red')
             if options['verbose']:
-                print(e)
+                print(err)
             continue
         else:
             print(f"  - {action} to '{new_path}'")
