@@ -12,7 +12,7 @@ setup(
     description='A media file organiser',
     entry_points={
         'console_scripts': [
-            'mnamer=mnamer.__init__:main'
+            'mnamer=mnamer.__main__:main'
         ]
     },
     install_requires=REQUIREMENTS,
