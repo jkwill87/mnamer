@@ -192,19 +192,6 @@ def dir_crawl(targets: Union[str, List[str]], **options) -> List[Path]:
     """ Crawls a directory, searching for files
     """
 
-    def dir_iter(path: Path, recurse=False):
-        """ Iterates through a directory, yielding each file found
-        """
-        assert path.is_dir
-        if path.is_file():
-            yield path
-        elif path.is_dir() and not path.is_symlink():
-            for child in path.iterdir():
-                if child.is_file():
-                    yield child
-                elif recurse and child.is_dir() and not child.is_symlink():
-                    yield from dir_iter(child, True)
-
     if not isinstance(targets, (list, tuple)):
         targets = [targets]
     recurse = options.get('recurse', False)
@@ -224,6 +211,20 @@ def dir_crawl(targets: Union[str, List[str]], **options) -> List[Path]:
     seen = set()
     seen_add = seen.add
     return [Path(f).absolute() for f in files if not (f in seen or seen_add(f))]
+
+
+def dir_iter(path: Path, recurse=False):
+    """ Iterates through a directory, yielding each file found
+    """
+    assert path.is_dir
+    if path.is_file():
+        yield path
+    elif path.is_dir() and not path.is_symlink():
+        for child in path.iterdir():
+            if child.is_file():
+                yield child
+            elif recurse and child.is_dir() and not child.is_symlink():
+                yield from dir_iter(child, True)
 
 
 def provider_search(metadata: Metadata, **options) -> Metadata:
