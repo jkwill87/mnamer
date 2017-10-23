@@ -158,17 +158,16 @@ DIRECTIVES:
     arguments = vars(parser.parse_args())
     targets = arguments.pop('targets')
     directives = {key: arguments.pop(key, None) for key in directive_keys}
-    options = {
-        **defaults,
-        **{k: v for k, v in arguments.items() if v is not None}
-    }
+    config = {k: v for k, v in arguments.items() if v is not None}
 
     # Exit early if user ask for usage help
     if 'help' in arguments:
-        print(f'\nUSAGE:\n    {help_usage}\n{help_options}\n{help_directives}')
+        print(
+            '\nUSAGE:\n    %s\n%s\n%s',
+            (help_usage, help_options, help_directives)
+        )
         exit(0)
-
-    return targets, options, directives
+    return targets, config, directives
 
 
 def config_load(path: str):
@@ -180,12 +179,12 @@ def config_load(path: str):
     return {k: v for k, v in data.items() if v is not None}
 
 
-def config_save(path: str, options: Dict[str, Any]):
+def config_save(path: str, config: Dict[str, Any]):
     """ Serializes Config object as a JSON file
     """
     templated_path = Template(path).substitute(environ)
     with open(file=templated_path, mode='w') as file_pointer:
-        json.dump(options, file_pointer, indent=4)
+        json.dump(config, file_pointer, indent=4)
 
 
 def dir_crawl(targets: Union[str, List[str]], **options) -> List[Path]:
@@ -261,7 +260,7 @@ def meta_parse(path: Path, media: Optional[str] = None) -> Metadata:
         if 'title' in data:
             meta['title'] = data['title']
         if 'year' in data:
-            meta['date'] = f"{data['year']}-01-01"
+            meta['date'] = '%s-01-01' % data['year']
         meta['media'] = 'movie'
 
     # Parse television metadata
@@ -306,8 +305,8 @@ def file_move(path: Path, meta: Metadata, **options) -> Path:
     replacements = {'&': 'and'}
     whitelist = r'[^ \d\w\?!\.,_\(\)\[\]\-/]'
     whitespace = r'[\-_\[\]]'
-    destination = options.get(f"{meta['media']}_destination")
-    template = f"{meta['media']}_template"
+    destination = options.get('%s_destination' % meta['media'])
+    template = '%s_template' % meta['media']
     new_fname = meta.format(options.get(template))
     if options.get('lower'):
         new_fname = new_fname.lower()
@@ -364,50 +363,41 @@ def main():
             config_save(file, config)
             print("success saving to %s" % directives['config_save'])
         except IOError:
-            if options.get('verbose') is True:
-                print(f'error loading config from {file} (file error)')
-        except ValueError:
-            if options.get('verbose') is True:
-                print(f'error loading config from {file} (value error)')
-
-    # # Save config to file if requested
-    # if directives.get('config_save'):
-    #     print(f"Saving to {directives['config_save']}... ", end='')
-    #     try:
-    #         config_save(directives['config_save'], options)
-    #         cprint('success!', 'green')
-    #     except (IOError, KeyError, ValueError) as e:
-    #         cprint(e, 'red')
+            if config.get('verbose') is True:
+                print('error loading config from %s (file error)' % file)
+        except (KeyError, ValueError):
+            if config.get('verbose') is True:
+                print('error loading config from %s (value error)' % file)
 
     # Display config information
-    if options['verbose'] is True:
-        for key, value in options.items():
-            print(f"  - {key}: {None if value == '' else value}")
+    if config['verbose'] is True:
+        for key, value in config.items():
+            print("  - %s: %s" % (key, None if value == '' else value))
 
     # Begin processing files
     detection_count = 0
     success_count = 0
-    for file in dir_crawl(targets, **options):
-        meta = meta_parse(file, options.get('media'))
-        cprint(f'\nDetected File', attrs=['bold'])
+    for file in dir_crawl(targets, **config):
+        meta = meta_parse(file, config.get('media'))
+        cprint('\nDetected File', attrs=['bold'])
         print(file.name)
         detection_count += 1
 
         # Print metadata fields
-        if options['verbose'] is True:
+        if config['verbose'] is True:
             for field, value in meta.items():
-                print(f'  - {field}: {value}')
+                print('  - %s: %s' % (field, value))
 
         # Print search results
         cprint('\nQuery Results', attrs=['bold'])
-        results = provider_search(meta, **options)
+        results = provider_search(meta, **config)
         i = 1
         hits = []
-        max_hits = int(options.get('max_hits'))
+        max_hits = int(config.get('max_hits'))
         while i < max_hits:
             try:
                 hit = next(results)
-                print(f"  [{i}] {hit}")
+                print("  [%s] %s" % (i, hit))
                 hits.append(hit)
                 i += 1
             except (StopIteration, MapiNotFoundException):
@@ -419,7 +409,7 @@ def main():
             continue
 
         # Select first if batch
-        if options['batch'] is True:
+        if config['batch'] is True:
             meta.update(hits[0])
 
         # Prompt user for input
@@ -466,21 +456,21 @@ def main():
         # Attempt to process file
         cprint('\nProcessing File', attrs=['bold'])
         media = meta['media']
-        destination = options[f'{media}_destination']
+        destination = config['%s_destination' % media]
         action = 'moving' if destination else 'renaming'
-        template = options[f'{media}_template']
+        template = config['%s_template' % media]
         reformat = meta.format(template)
-        new_path = f'{destination}/{reformat}' if destination else reformat
+        new_path = '%s/%s' % (destination, format) if destination else reformat
         try:
             if not directives['test_run'] is True:
-                file_move(file, meta, **options)
+                file_move(file, meta, **config)
         except IOError as err:
-            cprint(f'  - Error {action}!', 'red')
-            if options['verbose']:
+            cprint('  - Error %s!' % action, 'red')
+            if config['verbose']:
                 print(err)
             continue
         else:
-            print(f"  - {action} to '{new_path}'")
+            print("  - %s to '%s'" % (action, new_path))
 
         cprint('  - Success!', 'green')
         success_count += 1
@@ -497,8 +487,8 @@ def main():
     else:
         outcome_colour = 'green'
     cprint(
-        f'\nSuccessfully processed {success_count}'
-        f' out of {detection_count} files',
+        '\nSuccessfully processed %s out of %s files' %
+        (success_count, detection_count),
         outcome_colour
     )
 
