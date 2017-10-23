@@ -1,5 +1,3 @@
-# coding=utf-8
-
 from distutils.core import setup
 
 with open('requirements.txt', 'r') as fp:
@@ -24,5 +22,5 @@ setup(
     packages=['mnamer'],
     python_requires='>=3.6',
     url='https://github.com/jkwill87/mnamer',
-    version='0.2'
+    version='1.0'
 )

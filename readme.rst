@@ -4,7 +4,7 @@
 mnamer
 ======
 
-.. image:: _images/mnamer.png
+.. image:: _assets/mnamer.png
 
 mnamer (**m**\ edia re\ **namer**) is an intelligent and highly configurable media organization utility. It parses media filenames for metadata, searches the web to fill in the blanks, and then renames and moves them.
 

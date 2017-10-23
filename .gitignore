@@ -7,4 +7,4 @@ __pycache__/
 dist/
 MANIFEST
 playground.py
-test_*/
+testing/test_files_*
