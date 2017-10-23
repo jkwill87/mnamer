@@ -12,7 +12,6 @@ to fill in the blanks, and then renames and moves them.
 See https://github.com/jkwill87/mnamer for more information.
 """
 
-
 import json
 from argparse import ArgumentParser
 from os import environ
@@ -29,6 +28,52 @@ from mapi.exceptions import MapiNotFoundException
 from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
 from mapi.providers import Provider, provider_factory
 from termcolor import cprint
+
+CONFIG_DEFAULTS = {
+
+    # General Options
+    'batch': False,
+    'dots': False,  # TODO: test
+    'extension_mask': (
+        'avi',
+        'm4v',
+        'mp4',
+        'mkv',
+        'ts',
+        'wmv',
+    ),
+    'lower': False,  # TODO: test
+    'max_hits': 15,
+    'recurse': False,
+    'verbose': False,
+
+    # Movie related
+    'movie_api': 'tmdb',
+    'movie_destination': '',
+    'movie_template': (
+        '<$title >'
+        '<($year)>/'
+        '<$title >'
+        '<($year)>'
+        '<$extension>'
+    ),
+
+    # Television related
+    'television_api': 'tvdb',
+    'television_destination': '',
+    'television_template': (
+        '<$series/>'
+        '<$series - >'
+        '< - S$season>'
+        '<E$episode - >'
+        '< - $title>'
+        '<$extension>'
+    ),
+
+    # API Keys -- consider using your own or IMDb if limits are hit
+    'api_key_tmdb': 'db972a607f2760bb19ff8bb34074b4c7',
+    'api_key_tvdb': 'E69C7A2CEF2F3152'
+}
 
 
 def get_parameters():
@@ -76,52 +121,6 @@ DIRECTIVES:
         'config_save',
         'config_load',
         'test_run'
-    }
-
-    defaults = {
-
-        # General Options
-        'batch': False,
-        'dots': False,  # TODO: test
-        'extension_mask': [
-            'avi',
-            'm4v',
-            'mp4',
-            'mkv',
-            'ts',
-            'wmv',
-        ],
-        'lower': False,  # TODO: test
-        'max_hits': 15,
-        'recurse': False,
-        'verbose': False,
-
-        # Movie related
-        'movie_api': 'tmdb',
-        'movie_destination': '',
-        'movie_template': (
-            '<$title >'
-            '<($year)>/'
-            '<$title >'
-            '<($year)>'
-            '<$extension>'
-        ),
-
-        # Television related
-        'television_api': 'tvdb',
-        'television_destination': '',
-        'television_template': (
-            '<$series/>'
-            '<$series - >'
-            '< - S$season>'
-            '<E$episode - >'
-            '< - $title>'
-            '<$extension>'
-        ),
-
-        # API Keys -- consider using your own or IMDb if limits are hit
-        'api_key_tmdb': 'db972a607f2760bb19ff8bb34074b4c7',
-        'api_key_tvdb': 'E69C7A2CEF2F3152'
     }
 
     parser = ArgumentParser(
@@ -341,18 +340,29 @@ def main():
     """
     # Initialize; load configuration and detect file(s)
     cprint('Starting mnamer', attrs=['bold'])
-    targets, options, directives = get_parameters()
-    config_file_paths = [
-        user_config_dir() + 'mnamer.json',
+    targets, config, directives = get_parameters()
+    config = {**CONFIG_DEFAULTS, **config}
+    for file in [
         '.mnamer.conf',
-
-    ]
-    if directives.get('config_load'):
-        config_file_paths.append(directives['config_load'])
-    for file in config_file_paths:
+                user_config_dir() + 'mnamer.json',
+        directives['config_load']
+    ]:
         try:
-            options = {**config_load(file), **options}
-            print(f'success loading config from {file}')
+            config = {**config_load(file), **config}
+            print('success loading config from %s' % file)
+        except IOError:
+            if config.get('verbose') is True:
+                print('error loading config from %s (file error)' % file)
+        except (KeyError, ValueError):
+            if config.get('verbose') is True:
+                print('error loading config from %s (value error)' % file)
+
+    # Save config to file if requested
+    if directives.get('config_save'):
+        file = directives['config_save']
+        try:
+            config_save(file, config)
+            print("success saving to %s" % directives['config_save'])
         except IOError:
             if options.get('verbose') is True:
                 print(f'error loading config from {file} (file error)')
