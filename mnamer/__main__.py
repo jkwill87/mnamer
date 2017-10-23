@@ -231,7 +231,7 @@ def provider_search(metadata: Metadata, **options) -> Metadata:
     """
     media = metadata['media']
     if not hasattr(provider_search, "providers"):
-        provider_search.providers: List[Provider] = {}
+        provider_search.providers = {}
     if media not in provider_search.providers:
         api = {
             'television': options.get('television_api'),
@@ -343,7 +343,7 @@ def main():
     config = {**CONFIG_DEFAULTS, **config}
     for file in [
         '.mnamer.conf',
-                user_config_dir() + 'mnamer.json',
+        '%smnamer.json' % user_config_dir(),
         directives['config_load']
     ]:
         try:
