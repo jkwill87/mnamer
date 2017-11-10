@@ -27,8 +27,7 @@ Options
 mnamer attempts to load options from ``mnamer.json`` in the user's configuration directory, ``.mnamer.json`` in the current working directory, and then from the command line-- overriding each other also in that order.
 
 - **-b, --batch**: batch mode; disables interactive prompts
-- **-d, --dots**: format using dots in place of whitespace when renaming
-- **-d, --lower**: format using lowercase when renaming
+- **-s, --scene**: scene mode; use dots in place of whitespace and non-ascii characters
 - **-r, --recurse**: show this help message and exit
 - **-v, --verbose**: increases output verbosity
 

@@ -88,7 +88,7 @@ OPTIONS:
     command line-- overriding each other also in that order.
 
     -b, --batch: batch mode; disables interactive prompts
-    -s, --scene: use dots in place of whitespace and non-ascii characters
+    -s, --scene: scene mode; use dots in place of whitespace and non-ascii chars
     -r, --recurse: show this help message and exit
     -v, --verbose: increases output verbosity
     --max_hits <number>: limits the maximum number of hits for each query
