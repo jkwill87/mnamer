@@ -148,7 +148,7 @@ DIRECTIVES:
     parser.add_argument('--television_template', default=None)
 
     # Directive Parameters
-    # parser.add_argument('--help', action='store_true')
+    parser.add_argument('--help', action='store_true')
     parser.add_argument('--id')
     parser.add_argument('--media', choices=['movie', 'television'])
     parser.add_argument('--config_save', default=None)
@@ -161,9 +161,9 @@ DIRECTIVES:
     config = {k: v for k, v in arguments.items() if v is not None}
 
     # Exit early if user ask for usage help
-    if 'help' in arguments:
+    if arguments['help'] is True:
         print(
-            '\nUSAGE:\n    %s\n%s\n%s',
+            '\nUSAGE:\n    %s\n%s\n%s' %
             (help_usage, help_options, help_directives)
         )
         exit(0)
