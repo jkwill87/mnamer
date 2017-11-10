@@ -33,7 +33,6 @@ CONFIG_DEFAULTS = {
 
     # General Options
     'batch': False,
-    'dots': False,  # TODO: test
     'extension_mask': (
         'avi',
         'm4v',
@@ -42,9 +41,9 @@ CONFIG_DEFAULTS = {
         'ts',
         'wmv',
     ),
-    'lower': False,  # TODO: test
     'max_hits': 15,
     'recurse': False,
+    'scene': False,
     'verbose': False,
 
     # Movie related
@@ -89,8 +88,7 @@ OPTIONS:
     command line-- overriding each other also in that order.
 
     -b, --batch: batch mode; disables interactive prompts
-    -d, --dots: format using dots in place of whitespace when renaming
-    -d, --lower: format using lowercase when renaming
+    -s, --scene: use dots in place of whitespace and non-ascii characters
     -r, --recurse: show this help message and exit
     -v, --verbose: increases output verbosity
     --max_hits <number>: limits the maximum number of hits for each query
@@ -134,8 +132,7 @@ DIRECTIVES:
 
     # Configuration Parameters
     parser.add_argument('-b', '--batch', action='store_true', default=None)
-    parser.add_argument('-d', '--dots', action='store_true', default=None)
-    parser.add_argument('-l', '--lower', action='store_true', default=None)
+    parser.add_argument('-s', '--scene', action='store_true', default=None)
     parser.add_argument('-r', '--recurse', action='store_true', default=None)
     parser.add_argument('-v', '--verbose', action='store_true', default=None)
     parser.add_argument('--max_hits', type=int, default=None)
@@ -299,36 +296,33 @@ def meta_parse(path: Path, media: Optional[str] = None) -> Metadata:
     return meta
 
 
+def sanitize_name(filename: str, scene_mode: bool = False) -> str:
+    replacements = {'&': 'and', '@': 'at'}
+    for replacement in replacements:
+        filename = filename.replace(replacement, replacements[replacement])
+    if scene_mode is True:
+        filename = normalize('NFKD', filename)
+        filename.encode('ascii', 'ignore')
+        filename = sub(r'\s+', '.', filename)
+        filename = sub(r'[^.\d\w/]', '', filename)
+        filename = filename.lower()
+    else:
+        filename = sub(r'\s+', ' ', filename)
+        filename = sub(r'[^ \d\w?!.,_()\[\]\-/]', '', filename)
+    return filename.strip()
+
+
 def file_move(path: Path, meta: Metadata, **options) -> Path:
     """ Performs rename and moving of files based upon updated metadata
     """
-    replacements = {'&': 'and'}
-    whitelist = r'[^ \d\w\?!\.,_\(\)\[\]\-/]'
-    whitespace = r'[\-_\[\]]'
     destination = options.get('%s_destination' % meta['media'])
     template = '%s_template' % meta['media']
-    new_fname = meta.format(options.get(template))
-    if options.get('lower'):
-        new_fname = new_fname.lower()
-
-    # Replace or remove non-utf8 characters
-    new_fname = normalize('NFKD', new_fname)
-    new_fname.encode('ascii', 'ignore')
-    new_fname = sub(whitelist, '', new_fname)
-    new_fname = sub(whitespace, ' ', new_fname)
-
-    # Replace words found in replacement list
-    for replacement in replacements:
-        new_fname = new_fname.replace(replacement, replacements[replacement])
-
-    # Simplify whitespace
-    new_fname = sub(r'\s+', '.' if options.get('dots') else ' ', new_fname)
-    new_fname = new_fname.strip()
-
+    filename = meta.format(options.get(template))
+    filename = sanitize_name(filename, options.get('scene'))
     if isinstance(destination, str):
         destination = Path(destination)
     directory_path = destination or Path(path.parent)
-    destination_path = Path(directory_path / new_fname)
+    destination_path = Path(directory_path / filename)
     destination_path.parent.mkdir(parents=True, exist_ok=True)
     shutil_move(str(path), str(destination_path))
     return destination_path
