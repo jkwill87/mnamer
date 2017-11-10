@@ -26,7 +26,7 @@ from appdirs import user_config_dir
 from guessit import guessit
 from mapi.exceptions import MapiNotFoundException
 from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
-from mapi.providers import Provider, provider_factory
+from mapi.providers import provider_factory
 from termcolor import cprint
 
 CONFIG_DEFAULTS = {
@@ -340,21 +340,19 @@ def main():
     # Initialize; load configuration and detect file(s)
     cprint('Starting mnamer', attrs=['bold'])
     targets, config, directives = get_parameters()
-    config = {**CONFIG_DEFAULTS, **config}
     for file in [
-        '.mnamer.conf',
+        '.mnamer.json',
         '%smnamer.json' % user_config_dir(),
         directives['config_load']
     ]:
         try:
             config = {**config_load(file), **config}
             print('success loading config from %s' % file)
-        except IOError:
-            if config.get('verbose') is True:
-                print('error loading config from %s (file error)' % file)
-        except (KeyError, ValueError):
-            if config.get('verbose') is True:
-                print('error loading config from %s (value error)' % file)
+        except (TypeError, IOError):
+            continue
+
+    # Backfill configuration with defaults
+    config = {**CONFIG_DEFAULTS, **config}
 
     # Save config to file if requested
     if directives.get('config_save'):
