@@ -8,3 +8,5 @@ dist/
 MANIFEST
 playground.py
 testing/test_files_*
+*.json
+*.cfg
