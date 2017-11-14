@@ -31,6 +31,7 @@ mnamer attempts to load options from ``mnamer.json`` in the user's configuration
 - **-r, --recurse**: show this help message and exit
 - **-v, --verbose**: increases output verbosity
 
+- **--blacklist < word, ... >**: ignore files including these words
 - **--max_hits < number >**: limits the maximum number of hits for each query
 - **--extension_mask < ext, ext, ... >**: define the extension mask used by the the file parser
 

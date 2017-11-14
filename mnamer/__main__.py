@@ -19,7 +19,7 @@ from pathlib import Path
 from re import sub
 from shutil import move as shutil_move
 from string import Template
-from typing import List, Union, Optional, Dict, Any
+from typing import Any, Dict, Optional, Union, List
 from unicodedata import normalize
 
 from appdirs import user_config_dir
@@ -33,6 +33,10 @@ CONFIG_DEFAULTS = {
 
     # General Options
     'batch': False,
+    'blacklist': (
+        'sample',
+        'rarbg'
+    ),
     'extension_mask': (
         'avi',
         'm4v',
@@ -91,6 +95,7 @@ OPTIONS:
     -s, --scene: scene mode; use dots in place of whitespace and non-ascii chars
     -r, --recurse: show this help message and exit
     -v, --verbose: increases output verbosity
+    --blacklist <word,...>: ignore files including these words
     --max_hits <number>: limits the maximum number of hits for each query
     --extension_mask <ext,...>: define extension mask used by the file parser
     --movie_api {imdb,tmdb}: set movie api provider
@@ -135,6 +140,7 @@ DIRECTIVES:
     parser.add_argument('-s', '--scene', action='store_true', default=None)
     parser.add_argument('-r', '--recurse', action='store_true', default=None)
     parser.add_argument('-v', '--verbose', action='store_true', default=None)
+    parser.add_argument('--blacklist', nargs='+', default=None)
     parser.add_argument('--max_hits', type=int, default=None)
     parser.add_argument('--extension_mask', nargs='+', default=None)
     parser.add_argument('--movie_api', choices=['imdb', 'tmdb'], default=None)
@@ -167,7 +173,7 @@ DIRECTIVES:
     return targets, config, directives
 
 
-def config_load(path: str):
+def config_load(path: str) -> Dict[str, str]:
     """ Reads JSON file and overlays parsed values over current configs
     """
     templated_path = Template(path).substitute(environ)
@@ -192,7 +198,7 @@ def dir_crawl(targets: Union[str, List[str]], **options) -> List[Path]:
         targets = [targets]
     recurse = options.get('recurse', False)
     ext_mask = options.get('extension_mask', None)
-    blacklist = options.get('blacklist', {'sample', 'rarbg'})
+    blacklist = options.get('blacklist', None)
     files = list()
     for target in targets:
         path = Path(target)
