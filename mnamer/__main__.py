@@ -302,7 +302,9 @@ def meta_parse(path: Path, media: Optional[str] = None) -> Metadata:
     return meta
 
 
-def sanitize_name(filename: str, scene_mode: bool = False) -> str:
+def sanitize_filename(filename: str, scene_mode: bool = False) -> str:
+    """ Removes illegal filename characters and condenses whitespace
+    """
     replacements = {'&': 'and', '@': 'at'}
     for replacement in replacements:
         filename = filename.replace(replacement, replacements[replacement])
@@ -324,7 +326,7 @@ def file_move(path: Path, meta: Metadata, **options) -> Path:
     destination = options.get('%s_destination' % meta['media'])
     template = '%s_template' % meta['media']
     filename = meta.format(options.get(template))
-    filename = sanitize_name(filename, options.get('scene'))
+    filename = sanitize_filename(filename, options.get('scene'))
     if isinstance(destination, str):
         destination = Path(destination)
     directory_path = destination or Path(path.parent)
