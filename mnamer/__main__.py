@@ -330,36 +330,20 @@ def sanitize_filename(
     return filename.strip()
 
 
-def file_move(path: Path, meta: Metadata, **options) -> Path:
-    """ Performs rename and moving of files based upon updated metadata
-    """
-    destination = options.get('%s_destination' % meta['media'])
-    template = '%s_template' % meta['media']
-    filename = meta.format(options.get(template))
-    filename = sanitize_filename(filename, options.get('scene'))
-    if isinstance(destination, str):
-        destination = Path(destination)
-    directory_path = destination or Path(path.parent)
-    destination_path = Path(directory_path / filename)
-    destination_path.parent.mkdir(parents=True, exist_ok=True)
-    shutil_move(str(path), str(destination_path))
-    return destination_path
-
-
 def main():
     """ Program entry point
     """
     # Initialize; load configuration and detect file(s)
     cprint('Starting mnamer', attrs=['bold'])
     targets, config, directives = get_parameters()
-    for file in [
+    for path in [
         '.mnamer.json',
         '%smnamer.json' % user_config_dir(),
         directives['config_load']
     ]:
         try:
-            config = {**config_load(file), **config}
-            print('success loading config from %s' % file)
+            config = {**config_load(path), **config}
+            print('success loading config from %s' % path)
         except (TypeError, IOError):
             continue
 
@@ -368,16 +352,16 @@ def main():
 
     # Save config to file if requested
     if directives.get('config_save'):
-        file = directives['config_save']
+        path = directives['config_save']
         try:
-            config_save(file, config)
+            config_save(path, config)
             print("success saving to %s" % directives['config_save'])
         except IOError:
             if config.get('verbose') is True:
-                print('error loading config from %s (file error)' % file)
+                print('error loading config from %s (file error)' % path)
         except (KeyError, ValueError):
             if config.get('verbose') is True:
-                print('error loading config from %s (value error)' % file)
+                print('error loading config from %s (value error)' % path)
 
     # Display config information
     if config['verbose'] is True:
@@ -387,10 +371,10 @@ def main():
     # Begin processing files
     detection_count = 0
     success_count = 0
-    for file in dir_crawl(targets, **config):
-        meta = meta_parse(file, config.get('media'))
+    for path in dir_crawl(targets, **config):
+        meta = meta_parse(path, config.get('media'))
         cprint('\nDetected File', attrs=['bold'])
-        print(file.name)
+        print(path.name)
         detection_count += 1
 
         # Print metadata fields
@@ -465,15 +449,21 @@ def main():
 
         # Attempt to process file
         cprint('\nProcessing File', attrs=['bold'])
+
         media = meta['media']
         destination = config['%s_destination' % media]
         action = 'moving' if destination else 'renaming'
         template = config['%s_template' % media]
-        reformat = meta.format(template)
-        new_path = '%s/%s' % (destination, format) if destination else reformat
+        file = sanitize_filename(
+            meta.format(template),
+            config.get('scene'),
+            config.get('replacements')
+        )
+        new_path = Path('%s/%s' % (destination, file) if destination else file)
         try:
             if not directives['test_run'] is True:
-                file_move(file, meta, **config)
+                new_path.parent.mkdir(parents=True, exist_ok=True)
+                shutil_move(str(path), str(new_path))
         except IOError as err:
             cprint('  - Error %s!' % action, 'red')
             if config['verbose']:
