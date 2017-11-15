@@ -47,6 +47,12 @@ CONFIG_DEFAULTS = {
     ),
     'max_hits': 15,
     'recurse': False,
+    'replacements': {
+        '&': 'and',
+        '@': 'at',
+        ':': ',',
+        ';': ','
+    },
     'scene': False,
     'verbose': False,
 
@@ -304,10 +310,12 @@ def meta_parse(path: Path, media: Optional[str] = None) -> Metadata:
     return meta
 
 
-def sanitize_filename(filename: str, scene_mode: bool = False) -> str:
+def sanitize_filename(
+    filename: str, scene_mode: bool = False,
+    replacements: Optional[Dict[str, str]] = None
+) -> str:
     """ Removes illegal filename characters and condenses whitespace
     """
-    replacements = {'&': 'and', '@': 'at'}
     for replacement in replacements:
         filename = filename.replace(replacement, replacements[replacement])
     if scene_mode is True:
