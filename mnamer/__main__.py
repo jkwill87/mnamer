@@ -112,7 +112,7 @@ DIRECTIVES:
     current option set to a file.
 
     --help: print this message and exit
-    --test_run: set movie api provider
+    --test_run: mocks the renaming and moving of files
     --config_load < path >: import configuration from file
     --config_save < path >: save configuration to file
     --id < id >: explicitly specify movie or series id

@@ -55,7 +55,7 @@ Whereas options configure how mnamer works, directives are one-off parameters th
 - **--id < id >**: explicitly specify movie or series id
 - **--media { movie, television }**: override media detection; either movie or television
 
-- **--test_run**: set movie api provider
+- **--test_run**: mocks the renaming and moving of files
 
 
 More Information
