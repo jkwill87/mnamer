@@ -271,8 +271,10 @@ def meta_parse(path: Path, media: Optional[str] = None) -> Metadata:
         meta = MetadataTelevision()
         if 'title' in data:
             meta['series'] = data['title']
-        if 'season' in data:  # TODO: parse airdate
+        if 'season' in data:
             meta['season'] = str(data['season'])
+        if 'date' in data:
+            meta['date'] = str(data['date'])
         if 'episode' in data:
             if isinstance(data['episode'], (list, tuple)):
                 meta['episode'] = str(sorted(data['episode'])[0])
