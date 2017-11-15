@@ -12,7 +12,7 @@ mnamer (**m**\ edia re\ **namer**) is an intelligent and highly configurable med
 Installation
 ============
 
-``$ pip3 install mnamer``
+``$ [sudo] pip3 install mnamer``
 
 
 Usage
