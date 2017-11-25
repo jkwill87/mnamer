@@ -405,7 +405,10 @@ def main():
     detection_count = 0
     success_count = 0
     for path in dir_crawl(
-        targets, config['recurse'], config['ext_mast'], config['blacklist']
+        targets,
+        config.get('recurse'),
+        config.get('extension_mask'),
+        config.get('blacklist')
     ):
         meta = meta_parse(path, config.get('media'))
         cprint('\nDetected File', attrs=['bold'])
