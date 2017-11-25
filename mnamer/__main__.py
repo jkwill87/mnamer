@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+# coding=utf-8
 
 """
   _  _  _    _  _    __,   _  _  _    _   ,_
@@ -12,6 +13,9 @@ to fill in the blanks, and then renames and moves them.
 See https://github.com/jkwill87/mnamer for more information.
 """
 
+# noinspection PyUnresolvedReferences
+from builtins import input
+
 import json
 from argparse import ArgumentParser
 from os import environ
@@ -19,7 +23,6 @@ from pathlib import Path
 from re import sub
 from shutil import move as shutil_move
 from string import Template
-from typing import Any, Dict, Optional, Union, List
 from unicodedata import normalize
 
 from appdirs import user_config_dir
@@ -179,8 +182,11 @@ DIRECTIVES:
     return targets, config, directives
 
 
-def config_load(path: str) -> Dict[str, str]:
+def config_load(path):
     """ Reads JSON file and overlays parsed values over current configs
+    :param str path: the path of the config file to load from
+    :return: key-value option pairs as loaded from file
+    :rtype: dict
     """
     templated_path = Template(path).substitute(environ)
     with open(file=templated_path, mode='r') as file_pointer:
@@ -188,18 +194,21 @@ def config_load(path: str) -> Dict[str, str]:
     return {k: v for k, v in data.items() if v is not None}
 
 
-def config_save(path: str, config: Dict[str, Any]):
+def config_save(path, config):
     """ Serializes Config object as a JSON file
+    :param str path: the path of the config file to save to
+    :param dict config: key-value options pairs to serialize
     """
     templated_path = Template(path).substitute(environ)
     with open(file=templated_path, mode='w') as file_pointer:
         json.dump(config, file_pointer, indent=4)
 
 
-def dir_crawl(targets: Union[str, List[str]], **options) -> List[Path]:
+def dir_crawl(targets, **options):
     """ Crawls a directory, searching for files
+    :param str or list targets: paths (file or directory) to crawl through
+    :rtype: list of Path
     """
-
     if not isinstance(targets, (list, tuple)):
         targets = [targets]
     recurse = options.get('recurse', False)
@@ -210,19 +219,21 @@ def dir_crawl(targets: Union[str, List[str]], **options) -> List[Path]:
         path = Path(target)
         if not path.exists():
             continue
-        for file in dir_iter(path, recurse):
-            if ext_mask and file.suffix.strip('.') not in ext_mask:
+        for found_file in dir_iter(path, recurse):
+            if ext_mask and found_file.suffix.strip('.') not in ext_mask:
                 continue
-            if any(word in file.stem.lower() for word in blacklist):
+            if any(word in found_file.stem.lower() for word in blacklist):
                 continue
-            files.append(file.resolve())
+            files.append(found_file.resolve())
     seen = set()
     seen_add = seen.add
     return [Path(f).absolute() for f in files if not (f in seen or seen_add(f))]
 
 
-def dir_iter(path: Path, recurse=False):
+def dir_iter(path, recurse=False):
     """ Iterates through a directory, yielding each file found
+    :param Path path: directory path to iterate through
+    :param bool recurse: will iterate through nested directories if true
     """
     assert path.is_dir
     if path.is_file():
@@ -232,11 +243,15 @@ def dir_iter(path: Path, recurse=False):
             if child.is_file():
                 yield child
             elif recurse and child.is_dir() and not child.is_symlink():
-                yield from dir_iter(child, True)
+                for d in dir_iter(child, True):
+                    yield d
 
 
-def provider_search(metadata: Metadata, **options) -> Metadata:
+def provider_search(metadata, **options):
     """ An adapter for mapi's Provider classes
+    :param Metadata metadata: metadata to use as the basis of search criteria
+    :param dict options:
+    :rtype: Metadata (yields)
     """
     media = metadata['media']
     if not hasattr(provider_search, "providers"):
@@ -254,11 +269,15 @@ def provider_search(metadata: Metadata, **options) -> Metadata:
         provider_search.providers[media] = provider_factory(
             api, api_key=keys.get(api)
         )
-    yield from provider_search.providers[media].search(**metadata)
+    for result in provider_search.providers[media].search(**metadata):
+        yield result
 
 
-def meta_parse(path: Path, media: Optional[str] = None) -> Metadata:
+def meta_parse(path, media=None):
     """ Uses guessit to parse metadata from a filename
+    :param Path path: the path to the file to parse
+    :param optional Media media: overrides media detection
+    :rtype: Metadata
     """
     abs_path_str = str(path.resolve())
     data = dict(guessit(abs_path_str, {'type': media}))
@@ -310,11 +329,24 @@ def meta_parse(path: Path, media: Optional[str] = None) -> Metadata:
     return meta
 
 
-def sanitize_filename(
-    filename: str, scene_mode: bool = False,
-    replacements: Optional[Dict[str, str]] = None
-) -> str:
+def merge_dicts(d1, d2):
+    """ Merges two dictionaries
+    :param d1: Base dictionary
+    :param d2: Overlaying dictionary
+    :rtype dict:
+    """
+    d3 = d1.copy()
+    d3.update(d2)
+    return d3
+
+
+def sanitize_filename(filename, scene_mode=False, replacements=None):
     """ Removes illegal filename characters and condenses whitespace
+    :param str filename: the filename to sanitize
+    :param bool scene_mode: replace non-ascii and whitespace characters with
+    dots if true
+    :param optional dict replacements: words to replace prior to processing
+    :rtype: str
     """
     for replacement in replacements:
         filename = filename.replace(replacement, replacements[replacement])
@@ -342,13 +374,13 @@ def main():
         directives['config_load']
     ]:
         try:
-            config = {**config_load(path), **config}
+            config = merge_dicts(config_load(path), config)
             print('success loading config from %s' % path)
         except (TypeError, IOError):
             continue
 
     # Backfill configuration with defaults
-    config = {**CONFIG_DEFAULTS, **config}
+    config = merge_dicts(CONFIG_DEFAULTS, config)
 
     # Save config to file if requested
     if directives.get('config_save'):
@@ -451,15 +483,15 @@ def main():
         cprint('\nProcessing File', attrs=['bold'])
 
         media = meta['media']
-        destination = config['%s_destination' % media]
-        action = 'moving' if destination else 'renaming'
+        dest = config['%s_destination' % media]
+        action = 'moving' if dest else 'renaming'
         template = config['%s_template' % media]
-        file = sanitize_filename(
+        file_ = sanitize_filename(
             meta.format(template),
             config.get('scene'),
             config.get('replacements')
         )
-        new_path = Path('%s/%s' % (destination, file) if destination else file)
+        new_path = Path('%s/%s' % (dest, file_) if dest else file_)
         try:
             if not directives['test_run'] is True:
                 new_path.parent.mkdir(parents=True, exist_ok=True)

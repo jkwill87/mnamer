@@ -2,3 +2,5 @@ appdirs
 guessit
 mapi
 termcolor
+future;python_version<"3"
+pathlib;python_version<"3"
