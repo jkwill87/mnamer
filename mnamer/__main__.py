@@ -204,16 +204,17 @@ def config_save(path, config):
         json.dump(config, file_pointer, indent=4)
 
 
-def dir_crawl(targets, **options):
+def dir_crawl(targets, recurse=False, ext_mask=None, blacklist=None):
     """ Crawls a directory, searching for files
+    :param bool recurse: will iterate through nested directories if true
+    :param optional list ext_mask: only matches files with provided extensions
+        if set
+    :param optional list blacklist: will exclude files containing these words
     :param str or list targets: paths (file or directory) to crawl through
     :rtype: list of Path
     """
     if not isinstance(targets, (list, tuple)):
         targets = [targets]
-    recurse = options.get('recurse', False)
-    ext_mask = options.get('extension_mask', None)
-    blacklist = options.get('blacklist', None)
     files = list()
     for target in targets:
         path = Path(target)
@@ -403,7 +404,9 @@ def main():
     # Begin processing files
     detection_count = 0
     success_count = 0
-    for path in dir_crawl(targets, **config):
+    for path in dir_crawl(
+        targets, config['recurse'], config['ext_mast'], config['blacklist']
+    ):
         meta = meta_parse(path, config.get('media'))
         cprint('\nDetected File', attrs=['bold'])
         print(path.name)
