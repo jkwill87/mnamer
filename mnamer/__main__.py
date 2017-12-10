@@ -19,6 +19,8 @@ from builtins import input
 import json
 from argparse import ArgumentParser
 from os import environ
+from os.path import normpath
+
 from pathlib import Path
 from re import sub
 from shutil import move as shutil_move
@@ -371,7 +373,7 @@ def main():
     targets, config, directives = get_parameters()
     for path in [
         '.mnamer.json',
-        '%smnamer.json' % user_config_dir(),
+        normpath('%smnamer.json' % user_config_dir()),
         directives['config_load']
     ]:
         try:
