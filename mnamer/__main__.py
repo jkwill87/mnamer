@@ -373,11 +373,14 @@ def main():
         normpath('%smnamer.json' % user_config_dir()),
         directives['config_load']
     ]:
+        if not path:
+            continue
         try:
             config = merge_dicts(config_load(path), config)
-            print('success loading config from %s' % path)
+            cprint('  - success loading config from %s' % path, color='green')
         except (TypeError, IOError):
-            continue
+            if config.get('verbose'):
+                cprint('  - failed loading config from %s' % path, color='red')
 
     # Backfill configuration with defaults
     config = merge_dicts(CONFIG_DEFAULTS, config)
@@ -387,16 +390,14 @@ def main():
         path = directives['config_save']
         try:
             config_save(path, config)
-            print("success saving to %s" % directives['config_save'])
-        except IOError:
+            print('success saving to %s' % directives['config_save'])
+        except (TypeError, IOError):
             if config.get('verbose') is True:
-                print('error loading config from %s (file error)' % path)
-        except (KeyError, ValueError):
-            if config.get('verbose') is True:
-                print('error loading config from %s (value error)' % path)
+                print('error saving config to %s' % path)
 
     # Display config information
     if config['verbose'] is True:
+        cprint('\nConfiguration', attrs=['bold'])
         for key, value in config.items():
             print("  - %s: %s" % (key, None if value == '' else value))
 
