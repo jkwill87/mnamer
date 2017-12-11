@@ -13,25 +13,24 @@ to fill in the blanks, and then renames and moves them.
 See https://github.com/jkwill87/mnamer for more information.
 """
 
-# noinspection PyUnresolvedReferences
-from builtins import input
-
 import json
 from argparse import ArgumentParser
 from os import environ
 from os.path import normpath
-
-from pathlib import Path
 from re import sub, match
 from shutil import move as shutil_move
 from string import Template
+from sys import platform
 from unicodedata import normalize
 
 from appdirs import user_config_dir
+# noinspection PyUnresolvedReferences
+from builtins import input
 from guessit import guessit
 from mapi.exceptions import MapiNotFoundException
 from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
 from mapi.providers import provider_factory
+from pathlib import Path
 from termcolor import cprint
 
 CONFIG_DEFAULTS = {
@@ -88,6 +87,13 @@ CONFIG_DEFAULTS = {
     'api_key_tmdb': 'db972a607f2760bb19ff8bb34074b4c7',
     'api_key_tvdb': 'E69C7A2CEF2F3152'
 }
+
+
+def notify(text):
+    if platform == 'win32':
+        cprint(text, color='yellow')
+    else:
+        cprint(text, attrs=['dark'])
 
 
 def get_parameters():
@@ -378,9 +384,9 @@ def main():
         try:
             config = merge_dicts(config_load(path), config)
             cprint('  - success loading config from %s' % path, color='green')
-        except (TypeError, IOError):
+        except (TypeError, IOError) as e:
             if config.get('verbose'):
-                cprint('  - failed loading config from %s' % path, color='red')
+                notify('  - skipped loading config from %s' % path)
 
     # Backfill configuration with defaults
     config = merge_dicts(CONFIG_DEFAULTS, config)
@@ -441,7 +447,7 @@ def main():
 
         # Skip hit if no hits
         if not hits:
-            cprint('  - None found! Skipping.', 'yellow')
+            notify('  - None found! Skipping.')
             continue
 
         # Select first if batch
@@ -481,12 +487,12 @@ def main():
 
             # User requested to skip file...
             if skip is True:
-                cprint('  - Skipping rename, as per user request.', 'yellow')
+                notify('  - Skipping rename, as per user request.')
                 continue
 
             # User requested to exit...
             elif abort is True:
-                cprint('  - Exiting, as per user request.', 'yellow')
+                notify('\nAborting, as per user request.')
                 return
 
         # Attempt to process file
@@ -519,7 +525,7 @@ def main():
 
     # Summarize session outcome
     if not detection_count:
-        cprint('\nNo media files found. "mnamer --help" for usage.', 'yellow')
+        notify('\nNo media files found. "mnamer --help" for usage.')
         return
 
     if success_count == 0:
