@@ -22,7 +22,7 @@ from os import environ
 from os.path import normpath
 
 from pathlib import Path
-from re import sub
+from re import sub, match
 from shutil import move as shutil_move
 from string import Template
 from unicodedata import normalize
@@ -39,8 +39,8 @@ CONFIG_DEFAULTS = {
     # General Options
     'batch': False,
     'blacklist': (
-        'sample',
-        'rarbg'
+        '.*sample.*',
+        '^RARBG.*'
     ),
     'extension_mask': (
         'avi',
@@ -106,7 +106,7 @@ OPTIONS:
     -s, --scene: scene mode; use dots in place of whitespace and non-ascii chars
     -r, --recurse: show this help message and exit
     -v, --verbose: increases output verbosity
-    --blacklist <word,...>: ignore files including these words
+    --blacklist <word,...>: ignores files matching these regular expressions
     --max_hits <number>: limits the maximum number of hits for each query
     --extension_mask <ext,...>: define extension mask used by the file parser
     --movie_api {imdb,tmdb}: set movie api provider
@@ -206,12 +206,11 @@ def config_save(path, config):
         json.dump(config, file_pointer, indent=4)
 
 
-def dir_crawl(targets, recurse=False, ext_mask=None, blacklist=None):
+def dir_crawl(targets, recurse=False, ext_mask=None):
     """ Crawls a directory, searching for files
     :param bool recurse: will iterate through nested directories if true
     :param optional list ext_mask: only matches files with provided extensions
         if set
-    :param optional list blacklist: will exclude files containing these words
     :param str or list targets: paths (file or directory) to crawl through
     :rtype: list of Path
     """
@@ -224,8 +223,6 @@ def dir_crawl(targets, recurse=False, ext_mask=None, blacklist=None):
             continue
         for found_file in dir_iter(path, recurse):
             if ext_mask and found_file.suffix.strip('.') not in ext_mask:
-                continue
-            if any(word in found_file.stem.lower() for word in blacklist):
                 continue
             files.append(found_file.resolve())
     seen = set()
@@ -409,20 +406,24 @@ def main():
     for path in dir_crawl(
         targets,
         config.get('recurse'),
-        config.get('extension_mask'),
-        config.get('blacklist')
+        config.get('extension_mask')
     ):
-        meta = meta_parse(path, config.get('media'))
         cprint('\nDetected File', attrs=['bold'])
-        print(path.name)
-        detection_count += 1
+
+        if any(match(b, path.stem.lower()) for b in config['blacklist']):
+            cprint('%s (blacklisted)' % path, attrs=['dark'])
+            continue
+        else:
+            print(path.name)
 
         # Print metadata fields
+        meta = meta_parse(path, config.get('media'))
         if config['verbose'] is True:
             for field, value in meta.items():
                 print('  - %s: %s' % (field, value))
 
         # Print search results
+        detection_count += 1
         cprint('\nQuery Results', attrs=['bold'])
         results = provider_search(meta, **config)
         i = 1
