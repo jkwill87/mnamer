@@ -384,7 +384,7 @@ def main():
         try:
             config = merge_dicts(config_load(path), config)
             cprint('  - success loading config from %s' % path, color='green')
-        except (TypeError, IOError) as e:
+        except (TypeError, IOError):
             if config.get('verbose'):
                 notify('  - skipped loading config from %s' % path)
 
@@ -424,7 +424,7 @@ def main():
             print(path.name)
 
         # Print metadata fields
-        meta = meta_parse(path, config.get('media'))
+        meta = meta_parse(path, directives.get('media'))
         if config['verbose'] is True:
             for field, value in meta.items():
                 print('  - %s: %s' % (field, value))
