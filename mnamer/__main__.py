@@ -65,8 +65,6 @@ CONFIG_DEFAULTS = {
     'movie_destination': '',
     'movie_template': (
         '<$title >'
-        '<($year)>/'
-        '<$title >'
         '<($year)>'
         '<$extension>'
     ),
@@ -75,7 +73,6 @@ CONFIG_DEFAULTS = {
     'television_api': 'tvdb',
     'television_destination': '',
     'television_template': (
-        '<$series/>'
         '<$series - >'
         '< - S$season>'
         '<E$episode - >'
