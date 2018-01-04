@@ -112,7 +112,7 @@ OPTIONS:
     --blacklist <word,...>: ignores files matching these regular expressions
     --max_hits <number>: limits the maximum number of hits for each query
     --extension_mask <ext,...>: define extension mask used by the file parser
-    --movie_api {imdb,tmdb}: set movie api provider
+    --movie_api {tmdb}: set movie api provider
     --movie_destination <path>: set movie relocation destination
     --movie_template <template>: set movie renaming template
     --television_api {tvdb}: set television api provider
@@ -157,7 +157,7 @@ DIRECTIVES:
     parser.add_argument('--blacklist', nargs='+', default=None)
     parser.add_argument('--max_hits', type=int, default=None)
     parser.add_argument('--extension_mask', nargs='+', default=None)
-    parser.add_argument('--movie_api', choices=['imdb', 'tmdb'], default=None)
+    parser.add_argument('--movie_api', choices=['tmdb'], default=None)
     parser.add_argument('--movie_destination', default=None)
     parser.add_argument('--movie_template', default=None)
     parser.add_argument('--television_api', choices=['tvdb'], default=None)
