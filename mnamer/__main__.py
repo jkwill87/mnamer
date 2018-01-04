@@ -286,6 +286,11 @@ def meta_parse(path, media=None):
     :rtype: Metadata
     """
     abs_path_str = str(path.resolve())
+    media = {
+        'television': 'episode',
+        'tv': 'episode',
+        'movie': 'movie'
+    }.get(media)
     data = dict(guessit(abs_path_str, {'type': media}))
 
     # Parse movie metadata
