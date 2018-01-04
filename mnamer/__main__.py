@@ -16,7 +16,7 @@ See https://github.com/jkwill87/mnamer for more information.
 import json
 from argparse import ArgumentParser
 from os import environ
-from os.path import normpath
+from os.path import normpath, exists
 from re import sub, match
 from shutil import move as shutil_move
 from string import Template
@@ -510,9 +510,10 @@ def main():
             config.get('replacements')
         )
         new_path = Path('%s/%s' % (dest, file_) if dest else file_)
+        parent_path = str(new_path.parent)
         try:
-            if not directives['test_run'] is True:
-                new_path.parent.mkdir(parents=True, exist_ok=True)
+            if not (directives['test_run'] is True or exists(parent_path)):
+                new_path.parent.mkdir(parents=True)
                 shutil_move(str(path), str(new_path))
         except IOError as err:
             cprint('  - Error %s!' % action, 'red')
