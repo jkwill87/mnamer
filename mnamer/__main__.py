@@ -502,7 +502,7 @@ def main():
         cprint('\nProcessing File', attrs=['bold'])
 
         media = meta['media']
-        dest = config['%s_destination' % media]
+        dest = meta.format(config['%s_destination' % media])
         action = 'moving' if dest else 'renaming'
         template = config['%s_template' % media]
         file_ = sanitize_filename(
