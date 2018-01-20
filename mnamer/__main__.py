@@ -16,7 +16,7 @@ See https://github.com/jkwill87/mnamer for more information.
 import json
 from argparse import ArgumentParser
 from os import environ
-from os.path import normpath, exists
+from os.path import normpath, exists, expanduser
 from re import sub, match
 from shutil import move as shutil_move
 from string import Template
@@ -378,7 +378,8 @@ def main():
     targets, config, directives = get_parameters()
     for path in [
         '.mnamer.json',
-        normpath('%smnamer.json' % user_config_dir()),
+        normpath('%s/mnamer.json' % user_config_dir()),
+        normpath('%s/.mnamer.json' % expanduser('~')),
         directives['config_load']
     ]:
         if not path:
