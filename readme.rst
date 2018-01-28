@@ -74,7 +74,7 @@ Protip: ``--config_save`` can be used to export your current config file.
 Templating
 ==========
 
-By using either the relevant template option parameters or config file options, you have complete control of how media files are renamed using templates.
+You have complete control of how media files are renamed using mnamer's template options:
 
 - you can use templating with the following options: **television_destination**, **television_template**, **movie_destination**, **movie_template**
 - metadata fields prefixed with a sigil ``$`` found inside angle brackets with the result of a match
@@ -82,33 +82,51 @@ By using either the relevant template option parameters or config file options, 
 - if a field can't be matched, the entire contents of the bracket are disregared
 
 
-SxE Episodes Format
--------------------
+Example: SxE Episodes Format
+----------------------------
 
-- **television_template:** ``<$series - >< - $seasonx><$episode - >< - $title><$extension>``
-- **target:** ``~/Downloads/Rick.and.Morty.S02E01.WEBRip.x264-RARBG.mp4``
-- **result:** ``~/Downloads/Rick and Morty - 02x01 - A Rickle in Time.mp4``
+- television_template: ``<$series - >< - $seasonx><$episode - >< - $title><$extension>``
+- target: ``~/Downloads/Rick.and.Morty.S02E01.WEBRip.x264-RARBG.mp4``
+- result: ``~/Downloads/Rick and Morty - 02x01 - A Rickle in Time.mp4``
 
 
-Missing Metadata
-----------------
+Example: Missing Metadata
+-------------------------
 
 *Note: Target file is missing group metadata field in title and will be omitted gracefully*
 
-- **television_template:** ``<$series - >< - S$season><E$episode - >< - $group - >< - $title><$extension>``,
-- **target:** ``~/Downloads/The.Orville.S01E01.1080p.WEB-DL.DD5.1.H264-RARBG.mkv``
-- **result:** ``~/Downloads/The Orville - S01E01 - Old Wounds.mkv``
+- television_template: ``<$series - >< - S$season><E$episode - >< - $group - >< - $title><$extension>``
+- target: ``~/Downloads/The.Orville.S01E01.1080p.WEB-DL.DD5.1.H264-RARBG.mkv``
+- result: ``~/Downloads/The Orville - S01E01 - Old Wounds.mkv``
 
 
-Subdirectories
---------------
+Example: Subdirectories
+-----------------------
 
 *Note: If the subdirectory doesn't exist, mnamer will create it*
 
-- **movie_template:** ``<$title ><($year)><$extension>``
-- **movie_destination:** ``/media/movies/<$title ><($year)>``
-- **target:** ``~/Downloads/The.Goonies.1985.720p.BluRay.x264-SiNNERS.mkv``
-- **result:** ``/media/movies/The Goonies (1985)/The Goonies (1985).mkv``
+- movie_template: ``<$title ><($year)><$extension>``
+- movie_destination: ``/media/movies/<$title ><($year)>``
+- target: ``~/Downloads/The.Goonies.1985.720p.BluRay.x264-SiNNERS.mkv``
+- result: ``/media/movies/The Goonies (1985)/The Goonies (1985).mkv``
+
+
+Metadata Fields
+---------------
+
++---------+----------------------------------+
+| Field   | Description                      |
++=========+==================================+
+| title   | movie or episode title           |
++---------+----------------------------------+
+| year    | movie release year               |
++---------+----------------------------------+
+| series  | tv series' name                  |
++---------+----------------------------------+
+| season  | tv series' airing season number  |
++---------+----------------------------------+
+| episode | tv series' airing episode number |
++---------+----------------------------------+
 
 
 License
