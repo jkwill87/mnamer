@@ -58,10 +58,57 @@ Whereas options configure how mnamer works, directives are one-off parameters th
 - **--test_run**: mocks the renaming and moving of files
 
 
-More Information
+Configuration Files
+===================
+
+In addition to the option argument flags listed above, mnamer can also be configured via JSON configuration file(s). These are loaded and applied from the following locations, in the following order:
+
+1. As **.mnamer.json** within the current working directory (*i.e. ./.mnamer.json*)
+2. As **mnamer.json** from within the user config directory (*i.e. ~/.config/mnamer.json*)
+3. As **.mnamer.json** from the user home directory (*i.e. ~/.mnamer.json*)
+4. Any path explicitly passed using the ``--load_config`` directive
+
+Protip: ``--config_save`` can be used to export your current config file.
+
+
+Templating
+==========
+
+By using either the relevant template option parameters or config file options, you have complete control of how media files are renamed using templates.
+
+- you can use templating with the following options: **television_destination**, **television_template**, **movie_destination**, **movie_template**
+- metadata fields prefixed with a sigil ``$`` found inside angle brackets with the result of a match
+- any leading or trailing whitespace will be trimmed
+- if a field can't be matched, the entire contents of the bracket are disregared
+
+
+SxE Episodes Format
+-------------------
+
+- **television_template:** ``<$series - >< - $seasonx><$episode - >< - $title><$extension>``
+- **target:** ``~/Downloads/Rick.and.Morty.S02E01.WEBRip.x264-RARBG.mp4``
+- **result:** ``~/Downloads/Rick and Morty - 02x01 - A Rickle in Time.mp4``
+
+
+Missing Metadata
 ----------------
 
-`Check out the project wiki <https://github.com/jkwill87/mnamer/wiki>`_ for examples, use cases, help, and more!
+*Note: Target file is missing group metadata field in title and will be omitted gracefully*
+
+- **television_template:** ``<$series - >< - S$season><E$episode - >< - $group - >< - $title><$extension>``,
+- **target:** ``~/Downloads/The.Orville.S01E01.1080p.WEB-DL.DD5.1.H264-RARBG.mkv``
+- **result:** ``~/Downloads/The Orville - S01E01 - Old Wounds.mkv``
+
+
+Subdirectories
+--------------
+
+*Note: If the subdirectory doesn't exist, mnamer will create it*
+
+- **movie_template:** ``<$title ><($year)><$extension>``
+- **movie_destination:** ``/media/movies/<$title ><($year)>``
+- **target:** ``~/Downloads/The.Goonies.1985.720p.BluRay.x264-SiNNERS.mkv``
+- **result:** ``/media/movies/The Goonies (1985)/The Goonies (1985).mkv``
 
 
 License
