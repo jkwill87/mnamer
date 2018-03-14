@@ -15,8 +15,11 @@ See https://github.com/jkwill87/mnamer for more information.
 
 import json
 from argparse import ArgumentParser
+# noinspection PyUnresolvedReferences
+from builtins import input
 from os import environ
 from os.path import normpath, exists, expanduser
+from pathlib import Path
 from re import sub, match
 from shutil import move as shutil_move
 from string import Template
@@ -24,13 +27,10 @@ from sys import platform
 from unicodedata import normalize
 
 from appdirs import user_config_dir
-# noinspection PyUnresolvedReferences
-from builtins import input
 from guessit import guessit
 from mapi.exceptions import MapiNotFoundException
 from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
 from mapi.providers import provider_factory
-from pathlib import Path
 from termcolor import cprint
 
 CONFIG_DEFAULTS = {
@@ -341,7 +341,7 @@ def merge_dicts(d1, d2):
     """ Merges two dictionaries
     :param d1: Base dictionary
     :param d2: Overlaying dictionary
-    :rtype dict:
+    :rtype: dict
     """
     d3 = d1.copy()
     d3.update(d2)
@@ -370,39 +370,53 @@ def sanitize_filename(filename, scene_mode=False, replacements=None):
     return filename.strip()
 
 
+def relocate(src_path, dest_path, test_run=False):
+    """ Relocates a file to its new location
+    :param Path src_path: File path to relocate
+    :param Path dest_path: Path to relocate to; directories created if missing
+    :param bool test_run: Noop if True
+    """
+    if test_run:
+        return
+    if exists(str(dest_path.parent)) is False:
+        dest_path.parent.mkdir(parents=True)
+    shutil_move(str(src_path), str(dest_path))
+
+
 def main():
     """ Program entry point
     """
     # Initialize; load configuration and detect file(s)
     cprint('Starting mnamer', attrs=['bold'])
     targets, config, directives = get_parameters()
-    for path in [
+    for file_path in [
         '.mnamer.json',
         normpath('%s/mnamer.json' % user_config_dir()),
         normpath('%s/.mnamer.json' % expanduser('~')),
         directives['config_load']
     ]:
-        if not path:
+        if not file_path:
             continue
         try:
-            config = merge_dicts(config_load(path), config)
-            cprint('  - success loading config from %s' % path, color='green')
+            config = merge_dicts(config_load(file_path), config)
+            cprint('  - success loading config from %s' % file_path,
+                   color='green')
         except (TypeError, IOError):
             if config.get('verbose'):
-                notify('  - skipped loading config from %s' % path)
+                notify('  - skipped loading config from %s' % file_path)
 
     # Backfill configuration with defaults
     config = merge_dicts(CONFIG_DEFAULTS, config)
 
     # Save config to file if requested
     if directives.get('config_save'):
-        path = directives['config_save']
+        file_path = directives['config_save']
         try:
-            config_save(path, config)
+            config_save(file_path, config)
             print('success saving to %s' % directives['config_save'])
         except (TypeError, IOError):
             if config.get('verbose') is True:
-                print('error saving config to %s' % path)
+                print('error saving config to %s' % file_path)
 
     # Display config information
     if config['verbose'] is True:
@@ -413,21 +427,21 @@ def main():
     # Begin processing files
     detection_count = 0
     success_count = 0
-    for path in dir_crawl(
-        targets,
-        config.get('recurse'),
-        config.get('extension_mask')
+    for file_path in dir_crawl(
+            targets,
+            config.get('recurse'),
+            config.get('extension_mask')
     ):
         cprint('\nDetected File', attrs=['bold'])
 
-        if any(match(b, path.stem.lower()) for b in config['blacklist']):
-            cprint('%s (blacklisted)' % path, attrs=['dark'])
+        if any(match(b, file_path.stem.lower()) for b in config['blacklist']):
+            cprint('%s (blacklisted)' % file_path, attrs=['dark'])
             continue
         else:
-            print(path.name)
+            print(file_path.name)
 
         # Print metadata fields
-        meta = meta_parse(path, directives.get('media'))
+        meta = meta_parse(file_path, directives.get('media'))
         if config['verbose'] is True:
             for field, value in meta.items():
                 print('  - %s: %s' % (field, value))
@@ -500,32 +514,25 @@ def main():
 
         # Attempt to process file
         cprint('\nProcessing File', attrs=['bold'])
-
         media = meta['media']
-        dest = meta.format(config['%s_destination' % media])
-        action = 'moving' if dest else 'renaming'
         template = config['%s_template' % media]
-        file_ = sanitize_filename(
+        dest_path = sanitize_filename(
             meta.format(template),
             config.get('scene'),
             config.get('replacements')
         )
-        new_path = Path('%s/%s' % (dest, file_) if dest else file_)
-        parent_path = str(new_path.parent)
+        if config['%s_destination' % media]:
+            dest_dir = meta.format(config['%s_destination' % media])
+            dest_path = '%s/%s' % (dest_dir, dest_path)
+        dest_path = Path(dest_path)
         try:
-            if not (directives['test_run'] is True or exists(parent_path)):
-                new_path.parent.mkdir(parents=True)
-                shutil_move(str(path), str(new_path))
-        except IOError as err:
-            cprint('  - Error %s!' % action, 'red')
-            if config['verbose']:
-                print(err)
-            continue
+            relocate(file_path, dest_path, directives['test_run'])
+            print("  - Relocating file to '%s'" % dest_path)
+        except IOError:
+            cprint('  - Failed!', 'red')
         else:
-            print("  - %s to '%s'" % (action, new_path))
-
-        cprint('  - Success!', 'green')
-        success_count += 1
+            cprint('  - Success!', 'green')
+            success_count += 1
 
     # Summarize session outcome
     if not detection_count:
