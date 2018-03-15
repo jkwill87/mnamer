@@ -15,7 +15,6 @@ See https://github.com/jkwill87/mnamer for more information.
 
 import json
 from argparse import ArgumentParser
-# noinspection PyUnresolvedReferences
 from builtins import input
 from os import environ
 from os.path import normpath, exists, expanduser
@@ -219,12 +218,12 @@ def dir_crawl(targets, recurse=False, ext_mask=None):
     """
     if not isinstance(targets, (list, tuple)):
         targets = [targets]
-    files = list()
+    files = []
     for target in targets:
         path = Path(target)
         if not path.exists():
             continue
-        for found_file in dir_iter(path, recurse):
+        for found_file in dir_iter(path, recurse=recurse):
             if ext_mask and found_file.suffix.strip('.') not in ext_mask:
                 continue
             files.append(found_file.resolve())
@@ -233,21 +232,24 @@ def dir_crawl(targets, recurse=False, ext_mask=None):
     return [Path(f).absolute() for f in files if not (f in seen or seen_add(f))]
 
 
-def dir_iter(path, recurse=False):
+def dir_iter(path, recurse=False, depth=0):
     """ Iterates through a directory, yielding each file found
     :param Path path: directory path to iterate through
     :param bool recurse: will iterate through nested directories if true
+    :param int depth: recursion count
     """
-    assert path.is_dir
     if path.is_file():
         yield path
-    elif path.is_dir() and not path.is_symlink():
+    elif path.is_dir():
         for child in path.iterdir():
             if child.is_file():
                 yield child
-            elif recurse and child.is_dir() and not child.is_symlink():
-                for d in dir_iter(child, True):
-                    yield d
+            elif not recurse:
+                continue
+            elif child.is_symlink() and depth != 0:
+                continue
+            for d in dir_iter(child, True, depth + 1):
+                yield d
 
 
 def provider_search(metadata, **options):
