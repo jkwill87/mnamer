@@ -25,5 +25,5 @@ setup(
     packages=['mnamer'],
     python_requires='>=3.5',
     url='https://github.com/jkwill87/mnamer',
-    version='1.1'
+    version='1.2'
 )
