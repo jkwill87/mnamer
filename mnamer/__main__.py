@@ -514,19 +514,22 @@ def main():
                 notify('\nAborting, as per user request.')
                 return
 
-        # Attempt to process file
+        # Create file path
         cprint('\nProcessing File', attrs=['bold'])
         media = meta['media']
         template = config['%s_template' % media]
-        dest_path = sanitize_filename(
-            meta.format(template),
-            config.get('scene'),
-            config.get('replacements')
-        )
+        dest_path = meta.format(template)
         if config['%s_destination' % media]:
             dest_dir = meta.format(config['%s_destination' % media])
             dest_path = '%s/%s' % (dest_dir, dest_path)
+        dest_path = sanitize_filename(
+            dest_path,
+            config.get('scene'),
+            config.get('replacements')
+        )
         dest_path = Path(dest_path)
+
+        # Attempt to process file
         try:
             relocate(file_path, dest_path, directives['test_run'])
             print("  - Relocating file to '%s'" % dest_path)
