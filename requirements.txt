@@ -1,6 +1,0 @@
-appdirs>=1.4
-guessit>=2.1
-mapi==3.0.1
-termcolor>=1
-future>=0.16;python_version<"3"
-pathlib>=1;python_version<"3"
