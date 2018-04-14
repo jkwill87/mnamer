@@ -78,14 +78,17 @@ DIRECTIVES:
     --config_load < path >: import configuration from file
     --config_save < path >: save configuration to file
     --id < id >: explicitly specify movie or series id
-    --media { movie, television }: override media detection'''
+    --media { movie, television }: override media detection
+    --version: display mnamer version information and quit
+    '''
 
     directive_keys = {
         'id',
         'media',
         'config_save',
         'config_load',
-        'test_run'
+        'test_run',
+        'version'
     }
 
     parser = ArgumentParser(
@@ -119,6 +122,7 @@ DIRECTIVES:
     parser.add_argument('--config_save', default=None)
     parser.add_argument('--config_load', default=None)
     parser.add_argument('--test_run', action='store_true')
+    parser.add_argument('--version', action='store_true')
 
     arguments = vars(parser.parse_args())
     targets = arguments.pop('targets')
@@ -337,44 +341,6 @@ def relocate(src_path, dest_path, test_run=False):
 def main():
     """ Program entry point
     """
-    # Initialize; load configuration and detect file(s)
-    cprint('Starting mnamer', attrs=['bold'])
-    targets, config, directives = get_parameters()
-    for file_path in [
-        '.mnamer.json',
-        normpath('%s/mnamer.json' % user_config_dir()),
-        normpath('%s/.mnamer.json' % expanduser('~')),
-        directives['config_load']
-    ]:
-        if not file_path:
-            continue
-        try:
-            config = merge_dicts(config_load(file_path), config)
-            cprint('  - success loading config from %s' % file_path,
-                   color='green')
-        except (TypeError, IOError):
-            if config.get('verbose'):
-                notify('  - skipped loading config from %s' % file_path)
-
-    # Backfill configuration with defaults
-    config = merge_dicts(CONFIG_DEFAULTS, config)
-
-    # Save config to file if requested
-    if directives.get('config_save'):
-        file_path = directives['config_save']
-        try:
-            config_save(file_path, config)
-            print('success saving to %s' % directives['config_save'])
-        except (TypeError, IOError):
-            if config.get('verbose') is True:
-                print('error saving config to %s' % file_path)
-
-    # Display config information
-    if config['verbose'] is True:
-        cprint('\nConfiguration', attrs=['bold'])
-        for key, value in config.items():
-            print("  - %s: %s" % (key, None if value == '' else value))
-
     # Begin processing files
     detection_count = 0
     success_count = 0
