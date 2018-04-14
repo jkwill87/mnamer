@@ -325,40 +325,34 @@ def sanitize_filename(filename, scene_mode=False, replacements=None):
     return filename.strip()
 
 
-def relocate(src_path, dest_path, test_run=False):
-    """ Relocates a file to its new location
-    :param Path src_path: File path to relocate
-    :param Path dest_path: Path to relocate to; directories created if missing
-    :param bool test_run: Noop if True
-    """
-    if test_run:
-        return
-    if exists(str(dest_path.parent)) is False:
-        dest_path.parent.mkdir(parents=True)
-    shutil_move(str(src_path), str(dest_path))
+def process_files(targets, media=None, test_run=False, **config):
+    """ Processes targets, relocating them as needed
 
-
-def main():
-    """ Program entry point
+    :param list of str targets: files to process
+    :param str media: overrides automatic media detection if set
+    :param bool test_run: mocks relocation operation if True
+    :param dict config: optional configuration kwargs
+    :return:
     """
     # Begin processing files
     detection_count = 0
     success_count = 0
     for file_path in dir_crawl(
             targets,
-            config.get('recurse'),
+            config.get('recurse', False),
             config.get('extension_mask')
     ):
         cprint('\nDetected File', attrs=['bold'])
 
-        if any(match(b, file_path.stem.lower()) for b in config['blacklist']):
+        blacklist = config.get('blacklist', ())
+        if any(match(b, file_path.stem.lower()) for b in blacklist):
             cprint('%s (blacklisted)' % file_path, attrs=['dark'])
             continue
         else:
             print(file_path.name)
 
         # Print metadata fields
-        meta = meta_parse(file_path, directives.get('media'))
+        meta = meta_parse(file_path, media)
         if config['verbose'] is True:
             for field, value in meta.items():
                 print('  - %s: %s' % (field, value))
@@ -369,7 +363,7 @@ def main():
         results = provider_search(meta, **config)
         i = 1
         hits = []
-        max_hits = int(config.get('max_hits'))
+        max_hits = int(config.get('max_hits', 15))
         while i < max_hits:
             try:
                 hit = next(results)
@@ -385,7 +379,7 @@ def main():
             continue
 
         # Select first if batch
-        if config['batch'] is True:
+        if config.get('batch') is True:
             meta.update(hits[0])
 
         # Prompt user for input
@@ -411,7 +405,8 @@ def main():
                     break
 
                 # Catch result choice within presented range
-                elif selection.isdigit() and 0 < int(selection) < len(hits) + 1:
+                elif selection.isdigit() and 0 < int(selection) < len(
+                        hits) + 1:
                     meta.update(hits[int(selection) - 1])
                     break
 
@@ -432,21 +427,24 @@ def main():
         # Create file path
         cprint('\nProcessing File', attrs=['bold'])
         media = meta['media']
-        template = config['%s_template' % media]
+        template = config.get('%s_template' % media)
         dest_path = meta.format(template)
-        if config['%s_destination' % media]:
-            dest_dir = meta.format(config['%s_destination' % media])
+        if config.get('%s_destination' % media):
+            dest_dir = meta.format(config.get('%s_destination' % media, ''))
             dest_path = '%s/%s' % (dest_dir, dest_path)
         dest_path = sanitize_filename(
             dest_path,
-            config.get('scene'),
+            config.get('scene', False),
             config.get('replacements')
         )
         dest_path = Path(dest_path)
 
         # Attempt to process file
         try:
-            relocate(file_path, dest_path, directives['test_run'])
+            if not test_run:
+                if exists(str(dest_path.parent)) is False:
+                    dest_path.parent.mkdir(parents=True)
+                shutil_move(str(file_path), str(dest_path))
             print("  - Relocating file to '%s'" % dest_path)
         except IOError:
             cprint('  - Failed!', 'red')
@@ -470,6 +468,61 @@ def main():
         (success_count, detection_count),
         outcome_colour
     )
+
+
+def main():
+    """ Program entry point
+    """
+
+    # Process parameters
+    targets, config, directives = get_parameters()
+
+    # Display version information and exit if requested
+    if directives.get('version') is True:
+        print('mnamer v%s' % VERSION)
+        return
+
+    # Detect file(s)
+    cprint('Starting mnamer', attrs=['bold'])
+    for file_path in [
+        '.mnamer.json',
+        normpath('%s/mnamer.json' % user_config_dir()),
+        normpath('%s/.mnamer.json' % expanduser('~')),
+        directives['config_load']
+    ]:
+        if not file_path:
+            continue
+        try:
+            config = merge_dicts(config_load(file_path), config)
+            cprint('  - success loading config from %s' % file_path,
+                   color='green')
+        except (TypeError, IOError):
+            if config.get('verbose'):
+                notify('  - skipped loading config from %s' % file_path)
+
+    # Backfill configuration with defaults
+    config = merge_dicts(CONFIG_DEFAULTS, config)
+
+    # Save config to file if requested
+    if directives.get('config_save'):
+        file_path = directives['config_save']
+        try:
+            config_save(file_path, config)
+            print('success saving to %s' % directives['config_save'])
+        except (TypeError, IOError):
+            if config.get('verbose') is True:
+                print('error saving config to %s' % file_path)
+
+    # Display config information
+    if config.get('verbose') is True:
+        cprint('\nConfiguration', attrs=['bold'])
+        for key, value in config.items():
+            print("  - %s: %s" % (key, None if value == '' else value))
+
+    # Process Files
+    media = directives.get('media')
+    test_run = directives.get('test_run')
+    process_files(targets, media, test_run, **config)
 
 
 if __name__ == '__main__':
