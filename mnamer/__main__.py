@@ -477,6 +477,11 @@ def main():
     # Process parameters
     targets, config, directives = get_parameters()
 
+    # Allow colour printing to cmd and PowerShell
+    if IS_WINDOWS:
+        from colorama import init as ascii_colour_init
+        ascii_colour_init(autoreset=True)
+
     # Display version information and exit if requested
     if directives.get('version') is True:
         print('mnamer v%s' % VERSION)
