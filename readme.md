@@ -25,7 +25,7 @@ mnamer attempts to load options from mnamer.json in the user's configuration dir
 
 
 | Option                  | Arguments      | Description                                                 |
-|-------------------------|----------------|-------------------------------------------------------------|
+|:------------------------|:---------------|:------------------------------------------------------------|
 |-b, --batch              |                | batch mode; disables interactive prompts                    |
 |-s, --scene              |                | scene mode; replace whitespace, non-ascii characters w/ `.` |
 |-r, --recurse            |                | show this help message and exit                             |
@@ -46,7 +46,7 @@ mnamer attempts to load options from mnamer.json in the user's configuration dir
 Whereas options configure how mnamer works, directives are one-off parameters that are used to perform secondary tasks like exporting the current option set to a file.
 
 | Option           | Arguments             | Description                                          |
-|------------------|-----------------------|------------------------------------------------------|
+|:-----------------|:----------------------|:-----------------------------------------------------|
 | --config_load    | < path >              | import configuration from file                       |
 | --config_save    | < path >              | save configuration to file                           |
 | --id             | < id >                | explicitly specify movie or series id                |
@@ -105,7 +105,7 @@ You have complete control of how media files are renamed using mnamer's template
 # Metadata Fields
 
 | Field   | Description                      |
-|---------|----------------------------------|
+|:--------|:---------------------------------|
 | title   | movie or episode title           |
 | year    | movie release year               |
 | series  | tv series' name                  |
