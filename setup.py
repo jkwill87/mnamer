@@ -5,7 +5,7 @@ from setuptools import setup
 
 from mnamer import *
 
-with open('readme.rst', 'r') as fp:
+with open('readme.md', 'r') as fp:
     LONG_DESCRIPTION = fp.read()
 
 requirements = [
