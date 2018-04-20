@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-from distutils.core import setup
+from setuptools import setup
 
 from mnamer import *
 
@@ -31,9 +31,11 @@ setup(
             'mnamer=mnamer.__main__:main'
         ]
     },
+    include_package_data=True,
     install_requires=requirements,
     license='MIT',
     long_description=LONG_DESCRIPTION,
+    long_description_content_type="text/markdown",
     name='mnamer',
     packages=['mnamer'],
     python_requires='>=3.5',
