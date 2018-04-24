@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-from distutils.core import setup
+from setuptools import setup
 
 from mnamer import *
 
-with open('readme.rst', 'r') as fp:
+with open('readme.md', 'r') as fp:
     LONG_DESCRIPTION = fp.read()
 
 requirements = [
@@ -31,9 +31,11 @@ setup(
             'mnamer=mnamer.__main__:main'
         ]
     },
+    include_package_data=True,
     install_requires=requirements,
     license='MIT',
     long_description=LONG_DESCRIPTION,
+    long_description_content_type="text/markdown",
     name='mnamer',
     packages=['mnamer'],
     python_requires='>=3.5',
