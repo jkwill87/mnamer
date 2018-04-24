@@ -8,7 +8,7 @@
 mnamer (**m**edia re**namer**) is an intelligent and highly configurable media organization utility. It parses media filenames for metadata, searches the web to fill in the blanks, and then renames and moves them.
 
 
-# installation
+# Installation
 
 `$ [sudo -H] pip install mnamer`
 
@@ -20,37 +20,37 @@ mnamer (**m**edia re**namer**) is an intelligent and highly configurable media o
 
 # Options
 
-mnamer attempts to load options from mnamer.json in the user's configuration directory, .mnamer.json in the current working directory, and then from the command line-- overriding each other also in that order.
+mnamer attempts to load options from mnamer.json in the user's configuration directory, .mnamer.json in the current working directory, and then from the command line, also overriding each other in that order.
 
 
-| Option                  | Arguments        | Description                                                 |
-|:------------------------|:-----------------|:------------------------------------------------------------|
-|-b, --batch              |                  | batch mode; disables interactive prompts                    |
-|-s, --scene              |                  | scene mode; replace whitespace, non-ascii characters w/ `.` |
-|-r, --recurse            |                  | show this help message and exit                             |
-|-v, --verbose            |                  | increases output verbosity                                  |
-|--blacklist              | pattern          | ignore files including these words                          |
-|--max_hits               | number           | limits the maximum number of hits for each query            |
-|--extension_mask         | extention(s)     | define the extension mask used by the the file parser       |
-|--movie_api              | `imdb` or `tmdb` | set movie api provider                                      |
-|--movie_destination      | path             | set movie relocation destination                            |
-|--movie_template         | template         | set movie renaming template                                 |
-|--television_api         | `tvdb`           | set television api provider                                 |
-|--television_destination | path             | set television relocation destination                       |
-|--television_template    | template         | set television renaming template                            |
+| Option                  | Arguments        | Description                                           |
+|:------------------------|:-----------------|:------------------------------------------------------|
+|-b, --batch              |                  | batch mode; disables interactive prompts              |
+|-s, --scene              |                  | scene mode; replace non ascii-alphanumerics with `.`  |
+|-r, --recurse            |                  | show this help message and exit                       |
+|-v, --verbose            |                  | increases output verbosity                            |
+|--blacklist              | pattern          | ignore files including these words                    |
+|--max_hits               | number           | limits the maximum number of hits for each query      |
+|--extension_mask         | extention(s)     | define the extension mask used by the the file parser |
+|--movie_api              | `imdb` or `tmdb` | set movie api provider                                |
+|--movie_destination      | path             | set movie relocation destination                      |
+|--movie_template         | template         | set movie renaming template                           |
+|--television_api         | `tvdb`           | set television api provider                           |
+|--television_destination | path             | set television relocation destination                 |
+|--television_template    | template         | set television renaming template                      |
 
 
 # Directives
 
 Whereas options configure how mnamer works, directives are one-off parameters that are used to perform secondary tasks like exporting the current option set to a file.
 
-| Option           | Arguments               | Description                                          |
-|:-----------------|:------------------------|:-----------------------------------------------------|
-| --config_load    | path                    | import configuration from file                       |
-| --config_save    | path                    | save configuration to file                           |
-| --id             | id                      | explicitly specify movie or series id                |
-| --media          | `movie` or `television` | override media detection; either movie or television |
-| --test_run       |                         | mocks the renaming and moving of files               |
+| Option           | Arguments               | Description                            |
+|:-----------------|:------------------------|:---------------------------------------|
+| --config_load    | path                    | import configuration from file         |
+| --config_save    | path                    | save configuration to file             |
+| --id             | id                      | explicitly specify movie or series id  |
+| --media          | `movie` or `television` | override media detection               |
+| --test_run       |                         | mocks the renaming and moving of files |
 
 
 # Configuration Files
