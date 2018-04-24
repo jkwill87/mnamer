@@ -11,7 +11,7 @@ with open('readme.md', 'r') as fp:
 requirements = [
     'appdirs>=1.4',
     'guessit>=2.1',
-    'mapi==3.0.1',
+    'mapi==3.1.1',
     'termcolor>=1'
 ]
 
