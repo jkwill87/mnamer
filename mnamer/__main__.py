@@ -17,6 +17,7 @@ import json
 from argparse import ArgumentParser
 from builtins import input
 from os import environ
+from os.path import normpath, exists, expanduser
 from pathlib import Path
 from re import sub, match
 from shutil import move as shutil_move
@@ -28,7 +29,6 @@ from guessit import guessit
 from mapi.exceptions import MapiNotFoundException
 from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
 from mapi.providers import provider_factory
-from os.path import normpath, exists, expanduser
 from termcolor import cprint
 
 from mnamer import *
@@ -205,9 +205,10 @@ def dir_iter(path, recurse=False, depth=0):
                 yield d
 
 
-def provider_search(metadata, **options):
+def provider_search(metadata, id_key=None, **options):
     """ An adapter for mapi's Provider classes
     :param Metadata metadata: metadata to use as the basis of search criteria
+    :param id_key: overriding id key
     :param dict options:
     :rtype: Metadata (yields)
     """
@@ -227,7 +228,7 @@ def provider_search(metadata, **options):
         provider_search.providers[media] = provider_factory(
             api, api_key=keys.get(api)
         )
-    for result in provider_search.providers[media].search(**metadata):
+    for result in provider_search.providers[media].search(id_key, **metadata):
         yield result
 
 
@@ -325,12 +326,13 @@ def sanitize_filename(filename, scene_mode=False, replacements=None):
     return filename.strip()
 
 
-def process_files(targets, media=None, test_run=False, **config):
+def process_files(targets, media=None, test_run=False, id_key=None, **config):
     """ Processes targets, relocating them as needed
 
     :param list of str targets: files to process
     :param str media: overrides automatic media detection if set
     :param bool test_run: mocks relocation operation if True
+    :param optional str id_key: overriding id key
     :param dict config: optional configuration kwargs
     :return:
     """
@@ -360,7 +362,7 @@ def process_files(targets, media=None, test_run=False, **config):
         # Print search results
         detection_count += 1
         cprint('\nQuery Results', attrs=['bold'])
-        results = provider_search(meta, **config)
+        results = provider_search(meta, id_key, **config)
         i = 1
         hits = []
         max_hits = int(config.get('max_hits', 15))
@@ -527,7 +529,8 @@ def main():
     # Process Files
     media = directives.get('media')
     test_run = directives.get('test_run')
-    process_files(targets, media, test_run, **config)
+    id_key = directives.get('id')
+    process_files(targets, media, test_run, id_key, **config)
 
 
 if __name__ == '__main__':
