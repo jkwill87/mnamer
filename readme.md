@@ -1,7 +1,7 @@
 [![licence](https://img.shields.io/github/license/jkwill87/mnamer.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![pypi](https://img.shields.io/pypi/v/mnamer.svg)](https://pypi.python.org/pypi/mnamer)
 
-![manmer logo](_assets/mnamer.png)
+![manmer logo](https://github.com/jkwill87/mnamer/raw/develop/_assets/mnamer.png)
 
 # mnamer
 
