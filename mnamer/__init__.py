@@ -56,4 +56,4 @@ IS_PY2 = _version_info[0] == 2
 
 IS_WINDOWS = _platform.startswith('win')
 
-VERSION = 1.2
+VERSION = 1.3
