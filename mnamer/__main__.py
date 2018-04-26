@@ -13,6 +13,9 @@ to fill in the blanks, and then renames and moves them.
 See https://github.com/jkwill87/mnamer for more information.
 """
 
+# noinspection PyCompatibility
+from builtins import input
+
 import json
 from argparse import ArgumentParser
 from os import environ, walk
@@ -27,8 +30,6 @@ from sys import platform
 from unicodedata import normalize
 
 from appdirs import user_config_dir
-# noinspection PyCompatibility
-from builtins import input
 from guessit import guessit
 from mapi.exceptions import MapiNotFoundException
 from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
