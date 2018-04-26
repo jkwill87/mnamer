@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 # coding=utf-8
 
+from sys import version_info, platform
+
 from setuptools import setup
 
-from mnamer import *
+from mnamer.__version__ import VERSION
+
+IS_PY2 = version_info[0] == 2
+IS_WINDOWS = platform.startswith('win')
 
 with open('readme.md', 'r') as fp:
     LONG_DESCRIPTION = fp.read()

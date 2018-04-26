@@ -22,6 +22,7 @@ from pathlib import Path
 from re import sub, match
 from shutil import move as shutil_move
 from string import Template
+from sys import platform
 from unicodedata import normalize
 
 from appdirs import user_config_dir
@@ -31,7 +32,61 @@ from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
 from mapi.providers import provider_factory
 from termcolor import cprint
 
-from mnamer import *
+from mnamer.__version__ import VERSION
+
+CONFIG_DEFAULTS = {
+
+    # General Options
+    'batch': False,
+    'blacklist': (
+        '.*sample.*',
+        '^RARBG.*'
+    ),
+    'extension_mask': (
+        'avi',
+        'm4v',
+        'mp4',
+        'mkv',
+        'ts',
+        'wmv',
+    ),
+    'max_hits': 15,
+    'recurse': False,
+    'replacements': {
+        '&': 'and',
+        '@': 'at',
+        ':': ',',
+        ';': ','
+    },
+    'scene': False,
+    'verbose': False,
+
+    # Movie related
+    'movie_api': 'tmdb',
+    'movie_destination': '',
+    'movie_template': (
+        '<$title >'
+        '<($year)>'
+        '<$extension>'
+    ),
+
+    # Television related
+    'television_api': 'tvdb',
+    'television_destination': '',
+    'television_template': (
+        '<$series - >'
+        '< - S$season>'
+        '<E$episode - >'
+        '< - $title>'
+        '<$extension>'
+    ),
+
+    # API Keys -- consider using your own or IMDb if limits are hit
+    'api_key_tmdb': 'db972a607f2760bb19ff8bb34074b4c7',
+    'api_key_tvdb': 'E69C7A2CEF2F3152'
+}
+
+IS_WINDOWS = platform.startswith('win')
 
 
 def notify(text):
