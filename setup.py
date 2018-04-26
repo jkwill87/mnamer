@@ -25,7 +25,6 @@ if IS_WINDOWS:
 
 if IS_PY2:
     requirements.append('future>=0.16')
-    requirements.append('pathlib>=1')
 
 setup(
     author='Jessy Williams',

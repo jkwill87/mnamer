@@ -15,10 +15,11 @@ See https://github.com/jkwill87/mnamer for more information.
 
 import json
 from argparse import ArgumentParser
-from builtins import input
-from os import environ
-from os.path import normpath, exists, expanduser
-from pathlib import Path
+from os import environ, walk
+from os.path import (
+    basename, expanduser, exists, isdir, isfile, join, normpath, realpath,
+    splitext
+)
 from re import sub, match
 from shutil import move as shutil_move
 from string import Template
@@ -26,6 +27,8 @@ from sys import platform
 from unicodedata import normalize
 
 from appdirs import user_config_dir
+# noinspection PyCompatibility
+from builtins import input
 from guessit import guessit
 from mapi.exceptions import MapiNotFoundException
 from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
@@ -216,48 +219,59 @@ def config_save(path, config):
         json.dump(config, file_pointer, indent=4)
 
 
+def file_stem(path):
+    """ Gets the filename for a path with any extension removed
+    :param str path: the path for which to get a stem
+    :rtype str:
+    """
+    return splitext(basename(path))[0]
+
+
+def file_extension(path):
+    """ Gets the extension for a path; period omitted
+    :param str path: the path for which to get an extension
+    :rtype str:
+    """
+    return splitext(path)[1].lstrip('.')
+
+
+def extension_match(path, valid_extensions):
+    """ Returns True if path's extension is in valid_extensions else False
+    :param str path: the path to compare
+    :param list or set valid_extensions: collection of extensions to check
+        against (leading dots omitted)
+    :rtype bool:
+    """
+    return not valid_extensions or file_extension(path) in valid_extensions
+
+
 def dir_crawl(targets, recurse=False, ext_mask=None):
     """ Crawls a directory, searching for files
     :param bool recurse: will iterate through nested directories if true
     :param optional list ext_mask: only matches files with provided extensions
         if set
     :param str or list targets: paths (file or directory) to crawl through
-    :rtype: list of Path
+    :rtype: set of str
     """
     if not isinstance(targets, (list, tuple)):
         targets = [targets]
-    files = []
+    found_files = set()
     for target in targets:
-        path = Path(target)
-        if not path.exists():
+        path = realpath(target)
+        if not exists(path):
             continue
-        for found_file in dir_iter(path, recurse=recurse):
-            if ext_mask and found_file.suffix.strip('.') not in ext_mask:
-                continue
-            files.append(found_file.resolve())
-    seen = set()
-    seen_add = seen.add
-    return [Path(f).absolute() for f in files if not (f in seen or seen_add(f))]
-
-
-def dir_iter(path, recurse=False, depth=0):
-    """ Iterates through a directory, yielding each file found
-    :param Path path: directory path to iterate through
-    :param bool recurse: will iterate through nested directories if true
-    :param int depth: recursion count
-    """
-    if path.is_file():
-        yield path
-    elif path.is_dir():
-        for child in path.iterdir():
-            if child.is_file():
-                yield child
-            elif not recurse:
-                continue
-            elif child.is_symlink() and depth != 0:
-                continue
-            for d in dir_iter(child, True, depth + 1):
-                yield d
+        if isfile(target) and extension_match(target, ext_mask):
+            found_files.add(realpath(target))
+            continue
+        if not isdir(target):
+            continue
+        for root, dirs, files in walk(path):
+            for f in files:
+                if extension_match(f, ext_mask):
+                    found_files.add(join(root, f))
+            if not recurse:
+                break
+    return found_files
 
 
 def provider_search(metadata, id_key=None, **options):
@@ -293,13 +307,12 @@ def meta_parse(path, media=None):
     :param optional Media media: overrides media detection
     :rtype: Metadata
     """
-    abs_path_str = str(path.resolve())
     media = {
         'television': 'episode',
         'tv': 'episode',
         'movie': 'movie'
     }.get(media)
-    data = dict(guessit(abs_path_str, {'type': media}))
+    data = dict(guessit(path, {'type': media}))
 
     # Parse movie metadata
     if data.get('type') == 'movie':
@@ -343,8 +356,7 @@ def meta_parse(path, media=None):
             meta['quality'] += ' ' + data[field]
     if 'release_group' in data:
         meta['group'] = data['release_group']
-    if path.suffix:
-        meta['extension'] = path.suffix
+    meta['extension'] = file_extension(path)
     return meta
 
 
@@ -389,7 +401,6 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
     :param bool test_run: mocks relocation operation if True
     :param optional str id_key: overriding id key
     :param dict config: optional configuration kwargs
-    :return:
     """
     # Begin processing files
     detection_count = 0
@@ -402,11 +413,11 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
         cprint('\nDetected File', attrs=['bold'])
 
         blacklist = config.get('blacklist', ())
-        if any(match(b, file_path.stem.lower()) for b in blacklist):
+        if any(match(b, file_stem(file_path)) for b in blacklist):
             cprint('%s (blacklisted)' % file_path, attrs=['dark'])
             continue
         else:
-            print(file_path.name)
+            print(file_stem(file_path))
 
         # Print metadata fields
         meta = meta_parse(file_path, media)
@@ -494,13 +505,11 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
             config.get('scene', False),
             config.get('replacements')
         )
-        dest_path = Path(dest_path)
 
         # Attempt to process file
         try:
             if not test_run:
-                if exists(str(dest_path.parent)) is False:
-                    dest_path.parent.mkdir(parents=True)
+                # TODO: create parent paths
                 shutil_move(str(file_path), str(dest_path))
             print("  - Relocating file to '%s'" % dest_path)
         except IOError:
