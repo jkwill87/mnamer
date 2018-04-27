@@ -15,13 +15,11 @@ with open('readme.md', 'r') as fp:
 
 requirements = [
     'appdirs>=1.4',
+    'colorama>=0.3.9',
     'guessit>=2.1',
     'mapi==3.1.1',
     'termcolor>=1'
 ]
-
-if IS_WINDOWS:
-    requirements.append('colorama>=0.3.9')
 
 if IS_PY2:
     requirements.append('future>=0.16')

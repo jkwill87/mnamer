@@ -30,6 +30,7 @@ from sys import platform
 from unicodedata import normalize
 
 from appdirs import user_config_dir
+from colorama import init as ascii_colour_init
 from guessit import guessit
 from mapi.exceptions import MapiNotFoundException
 from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
@@ -545,8 +546,6 @@ def main():
     targets, config, directives = get_parameters()
 
     # Allow colour printing to cmd and PowerShell
-    if IS_WINDOWS:
-        from colorama import init as ascii_colour_init
         ascii_colour_init(autoreset=True)
 
     # Display version information and exit if requested
