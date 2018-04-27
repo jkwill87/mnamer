@@ -13,7 +13,6 @@ to fill in the blanks, and then renames and moves them.
 See https://github.com/jkwill87/mnamer for more information.
 """
 
-# noinspection PyCompatibility
 from builtins import input
 
 import json
@@ -33,7 +32,7 @@ from appdirs import user_config_dir
 from colorama import init as ascii_colour_init
 from guessit import guessit
 from mapi.exceptions import MapiNotFoundException
-from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
+from mapi.metadata import MetadataMovie, MetadataTelevision
 from mapi.providers import provider_factory
 from termcolor import cprint
 
@@ -267,7 +266,7 @@ def dir_crawl(targets, recurse=False, ext_mask=None):
             continue
         if not isdir(target):
             continue
-        for root, dirs, files in walk(path):
+        for root, _dirs, files in walk(path):
             for f in files:
                 if extension_match(f, ext_mask):
                     found_files.add(join(root, f))
@@ -546,7 +545,7 @@ def main():
     targets, config, directives = get_parameters()
 
     # Allow colour printing to cmd and PowerShell
-        ascii_colour_init(autoreset=True)
+    ascii_colour_init(autoreset=True)
 
     # Display version information and exit if requested
     if directives.get('version') is True:
