@@ -1,5 +1,4 @@
 *$py.class
-*.cfg
 *.egg-info/
 *.json
 *.py[cod]
