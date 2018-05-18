@@ -7,22 +7,11 @@ from setuptools import setup
 
 from mnamer.__version__ import VERSION
 
-IS_PY2 = version_info[0] == 2
-IS_WINDOWS = platform.startswith('win')
-
 with open('readme.md', 'r') as fp:
     LONG_DESCRIPTION = fp.read()
 
-requirements = [
-    'appdirs>=1.4',
-    'colorama>=0.3.9',
-    'guessit>=2.1,<3',
-    'mapi>=3.1,<4',
-    'termcolor>=1'
-]
-
-if IS_PY2:
-    requirements.append('future>=0.16')
+with open('requirements.txt', 'r') as fp:
+    REQUIREMENTS = fp.read().splitlines()
 
 setup(
     author='Jessy Williams',
@@ -34,10 +23,10 @@ setup(
         ]
     },
     include_package_data=True,
-    install_requires=requirements,
+    install_requires=REQUIREMENTS,
     license='MIT',
     long_description=LONG_DESCRIPTION,
-    long_description_content_type="text/markdown",
+    long_description_content_type='text/markdown',
     name='mnamer',
     packages=['mnamer'],
     url='https://github.com/jkwill87/mnamer',
