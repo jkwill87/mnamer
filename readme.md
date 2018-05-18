@@ -10,7 +10,11 @@ mnamer (**m**edia re**namer**) is an intelligent and highly configurable media o
 
 # Installation
 
-`$ [sudo -H] pip install mnamer`
+`$ pip install mnamer`
+
+**Notes:**
+- If you're brave you can install the latest development version with `pip install https://github.com/jkwill87/mnamer/archive/develop.zip`.
+- If you want to install it using system python (e.g. the one that comes with your OS, not really recommended) and get a permission error you need to use either `sudo -H pip ...` or `pip install --user ...`.
 
 
 # Usage
