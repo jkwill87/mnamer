@@ -200,9 +200,6 @@ DIRECTIVES:
 
 def config_load(path):
     """ Reads JSON file and overlays parsed values over current configs
-    :param str path: the path of the config file to load from
-    :return: key-value option pairs as loaded from file
-    :rtype: dict
     """
     templated_path = Template(path).substitute(environ)
     with open(templated_path, mode='r') as file_pointer:
@@ -212,8 +209,6 @@ def config_load(path):
 
 def config_save(path, config):
     """ Serializes Config object as a JSON file
-    :param str path: the path of the config file to save to
-    :param dict config: key-value options pairs to serialize
     """
     templated_path = Template(path).substitute(environ)
     with open(templated_path, mode='w') as file_pointer:
@@ -222,37 +217,24 @@ def config_save(path, config):
 
 def file_stem(path):
     """ Gets the filename for a path with any extension removed
-    :param str path: the path for which to get a stem
-    :rtype str:
     """
     return splitext(basename(path))[0]
 
 
 def file_extension(path):
     """ Gets the extension for a path; period omitted
-    :param str path: the path for which to get an extension
-    :rtype str:
     """
     return splitext(path)[1].lstrip('.')
 
 
 def extension_match(path, valid_extensions):
     """ Returns True if path's extension is in valid_extensions else False
-    :param str path: the path to compare
-    :param list or set valid_extensions: collection of extensions to check
-        against (leading dots omitted)
-    :rtype bool:
     """
     return not valid_extensions or file_extension(path) in valid_extensions
 
 
 def dir_crawl(targets, recurse=False, ext_mask=None):
     """ Crawls a directory, searching for files
-    :param bool recurse: will iterate through nested directories if true
-    :param optional list ext_mask: only matches files with provided extensions
-        if set
-    :param str or list targets: paths (file or directory) to crawl through
-    :rtype: set of str
     """
     if not isinstance(targets, (list, tuple)):
         targets = [targets]
@@ -277,10 +259,6 @@ def dir_crawl(targets, recurse=False, ext_mask=None):
 
 def provider_search(metadata, id_key=None, **options):
     """ An adapter for mapi's Provider classes
-    :param Metadata metadata: metadata to use as the basis of search criteria
-    :param id_key: overriding id key
-    :param dict options:
-    :rtype: Metadata (yields)
     """
     media = metadata['media']
     if not hasattr(provider_search, "providers"):
@@ -304,9 +282,6 @@ def provider_search(metadata, id_key=None, **options):
 
 def meta_parse(path, media=None):
     """ Uses guessit to parse metadata from a filename
-    :param Path path: the path to the file to parse
-    :param optional Media media: overrides media detection
-    :rtype: Metadata
     """
     media = {
         'television': 'episode',
@@ -363,9 +338,6 @@ def meta_parse(path, media=None):
 
 def merge_dicts(d1, d2):
     """ Merges two dictionaries
-    :param d1: Base dictionary
-    :param d2: Overlaying dictionary
-    :rtype: dict
     """
     d3 = d1.copy()
     d3.update(d2)
@@ -374,11 +346,6 @@ def merge_dicts(d1, d2):
 
 def sanitize_filename(filename, scene_mode=False, replacements=None):
     """ Removes illegal filename characters and condenses whitespace
-    :param str filename: the filename to sanitize
-    :param bool scene_mode: replace non-ascii and whitespace characters with
-    dots if true
-    :param optional dict replacements: words to replace prior to processing
-    :rtype: str
     """
     for replacement in replacements:
         filename = filename.replace(replacement, replacements[replacement])
@@ -395,13 +362,7 @@ def sanitize_filename(filename, scene_mode=False, replacements=None):
 
 
 def process_files(targets, media=None, test_run=False, id_key=None, **config):
-    """ Processes targets, relocating them as needed
-
-    :param list of str targets: files to process
-    :param str media: overrides automatic media detection if set
-    :param bool test_run: mocks relocation operation if True
-    :param optional str id_key: overriding id key
-    :param dict config: optional configuration kwargs
+    """ Processes targets, relocating them as needed]
     """
     # Begin processing files
     detection_count = 0
