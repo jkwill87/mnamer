@@ -17,87 +17,65 @@ from builtins import input
 
 import json
 from argparse import ArgumentParser
-from os import environ, walk
-from os.path import (
-    basename, expanduser, exists, isdir, isfile, join, normpath, realpath,
-    splitext
-)
-from re import sub, match
+from logging import Logger, log, INFO, ERROR, DEBUG
+from os.path import expanduser, normpath
+from re import match
 from shutil import move as shutil_move
 from string import Template
 from sys import platform
-from unicodedata import normalize
 
 from appdirs import user_config_dir
 from colorama import init as ascii_colour_init
-from guessit import guessit
 from mapi.exceptions import MapiNotFoundException
-from mapi.metadata import MetadataMovie, MetadataTelevision
-from mapi.providers import provider_factory
 from termcolor import cprint
 
+from mnamer import *
 from mnamer.__version__ import VERSION
 
-CONFIG_DEFAULTS = {
 
-    # General Options
-    'batch': False,
-    'blacklist': (
-        '.*sample.*',
-        '^RARBG.*'
-    ),
-    'extension_mask': (
-        'avi',
-        'm4v',
-        'mp4',
-        'mkv',
-        'ts',
-        'wmv',
-    ),
-    'max_hits': 15,
-    'recurse': False,
-    'replacements': {
-        '&': 'and',
-        '@': 'at',
-        ':': ',',
-        ';': ','
-    },
-    'scene': False,
-    'verbose': False,
+class Notify():
+    """ A collection of methods used to format, log, and display text
+    """
 
-    # Movie related
-    'movie_api': 'tmdb',
-    'movie_destination': '',
-    'movie_template': (
-        '<$title >'
-        '<($year)>'
-        '<$extension>'
-    ),
+    def __init__(self, colour=True, log=False, debug=False):
+        self.colour = colour
+        self.debug = debug
+        self.log = log
 
-    # Television related
-    'television_api': 'tvdb',
-    'television_destination': '',
-    'television_template': (
-        '<$series - >'
-        '< - S$season>'
-        '<E$episode - >'
-        '< - $title>'
-        '<$extension>'
-    ),
+    def _log(self, text, level):
+        if self.log:
+            log(level, text)
+    
+    def _print(self, text, **style):
+        if self.colour:
+            cprint(text, style)
 
-    # API Keys -- consider using your own or IMDb if limits are hit
-    'api_key_tmdb': 'db972a607f2760bb19ff8bb34074b4c7',
-    'api_key_tvdb': 'E69C7A2CEF2F3152'
-}
+    def heading(self, text):
+        self._log('\n' + text, INFO)
+        self._print(text, attrs=['bold'])
 
-IS_WINDOWS = platform.startswith('win')
+    def info(self, text):
+        self._log(text, INFO)
+        self._print(text, color='')
 
+    def verbose(self, text):
+        self._log(text, DEBUG)
+        if self.verbose:
+            is_windows = platform.startswith('win')
+            style = {'attrs': ['dark']} if is_windows else {'color': 'yellow'}
+            self._print(text, **style)
 
-def notify(text):
-    if IS_WINDOWS:
-        cprint(text, color='yellow')
-    else:
-        cprint(text, attrs=['dark'])
+    def success(self, text):
+        self._log(text, INFO)
+        self._print(text, color='green')
+
+    def alert(self, text):
+        self._log(text, INFO)
+        self._print(text, color='yellow')
+
+    def error(self, text):
+        self._log(text, ERROR)
+        self._print(text, color='red')
 
 
 def get_parameters():
@@ -198,171 +176,8 @@ DIRECTIVES:
     return targets, config, directives
 
 
-def config_load(path):
-    """ Reads JSON file and overlays parsed values over current configs
-    """
-    templated_path = Template(path).substitute(environ)
-    with open(templated_path, mode='r') as file_pointer:
-        data = json.load(file_pointer)
-    return {k: v for k, v in data.items() if v is not None}
-
-
-def config_save(path, config):
-    """ Serializes Config object as a JSON file
-    """
-    templated_path = Template(path).substitute(environ)
-    with open(templated_path, mode='w') as file_pointer:
-        json.dump(config, file_pointer, indent=4)
-
-
-def file_stem(path):
-    """ Gets the filename for a path with any extension removed
-    """
-    return splitext(basename(path))[0]
-
-
-def file_extension(path):
-    """ Gets the extension for a path; period omitted
-    """
-    return splitext(path)[1].lstrip('.')
-
-
-def extension_match(path, valid_extensions):
-    """ Returns True if path's extension is in valid_extensions else False
-    """
-    return not valid_extensions or file_extension(path) in valid_extensions
-
-
-def dir_crawl(targets, recurse=False, ext_mask=None):
-    """ Crawls a directory, searching for files
-    """
-    if not isinstance(targets, (list, tuple)):
-        targets = [targets]
-    found_files = set()
-    for target in targets:
-        path = realpath(target)
-        if not exists(path):
-            continue
-        if isfile(target) and extension_match(target, ext_mask):
-            found_files.add(realpath(target))
-            continue
-        if not isdir(target):
-            continue
-        for root, _dirs, files in walk(path):
-            for f in files:
-                if extension_match(f, ext_mask):
-                    found_files.add(join(root, f))
-            if not recurse:
-                break
-    return found_files
-
-
-def provider_search(metadata, id_key=None, **options):
-    """ An adapter for mapi's Provider classes
-    """
-    media = metadata['media']
-    if not hasattr(provider_search, "providers"):
-        provider_search.providers = {}
-    if media not in provider_search.providers:
-        api = {
-            'television': options.get('television_api'),
-            'movie': options.get('movie_api')
-        }.get(media)
-        keys = {
-            'tmdb': options.get('api_key_tmdb'),
-            'tvdb': options.get('api_key_tvdb'),
-            'imdb': None
-        }
-        provider_search.providers[media] = provider_factory(
-            api, api_key=keys.get(api)
-        )
-    for result in provider_search.providers[media].search(id_key, **metadata):
-        yield result
-
-
-def meta_parse(path, media=None):
-    """ Uses guessit to parse metadata from a filename
-    """
-    media = {
-        'television': 'episode',
-        'tv': 'episode',
-        'movie': 'movie'
-    }.get(media)
-    data = dict(guessit(path, {'type': media}))
-
-    # Parse movie metadata
-    if data.get('type') == 'movie':
-        meta = MetadataMovie()
-        if 'title' in data:
-            meta['title'] = data['title']
-        if 'year' in data:
-            meta['date'] = '%s-01-01' % data['year']
-        meta['media'] = 'movie'
-
-    # Parse television metadata
-    elif data.get('type') == 'episode':
-        meta = MetadataTelevision()
-        if 'title' in data:
-            meta['series'] = data['title']
-        if 'season' in data:
-            meta['season'] = str(data['season'])
-        if 'date' in data:
-            meta['date'] = str(data['date'])
-        if 'episode' in data:
-            if isinstance(data['episode'], (list, tuple)):
-                meta['episode'] = str(sorted(data['episode'])[0])
-            else:
-                meta['episode'] = str(data['episode'])
-    else:
-        raise ValueError('Could not determine media type')
-
-    # Parse non-media specific fields
-    quality_fields = [
-        field for field in data if field in [
-            'audio_profile',
-            'screen_size',
-            'video_codec',
-            'video_profile'
-        ]
-    ]
-    for field in quality_fields:
-        if 'quality' not in meta:
-            meta['quality'] = data[field]
-        else:
-            meta['quality'] += ' ' + data[field]
-    if 'release_group' in data:
-        meta['group'] = data['release_group']
-    meta['extension'] = file_extension(path)
-    return meta
-
-
-def merge_dicts(d1, d2):
-    """ Merges two dictionaries
-    """
-    d3 = d1.copy()
-    d3.update(d2)
-    return d3
-
-
-def sanitize_filename(filename, scene_mode=False, replacements=None):
-    """ Removes illegal filename characters and condenses whitespace
-    """
-    for replacement in replacements:
-        filename = filename.replace(replacement, replacements[replacement])
-    if scene_mode is True:
-        filename = normalize('NFKD', filename)
-        filename.encode('ascii', 'ignore')
-        filename = sub(r'\s+', '.', filename)
-        filename = sub(r'[^.\d\w/]', '', filename)
-        filename = filename.lower()
-    else:
-        filename = sub(r'\s+', ' ', filename)
-        filename = sub(r'[^ \d\w?!.,_()\[\]\-/]', '', filename)
-    return filename.strip()
-
-
 def process_files(targets, media=None, test_run=False, id_key=None, **config):
-    """ Processes targets, relocating them as needed]
+    """ Processes targets, relocating them as needed
     """
     # Begin processing files
     detection_count = 0
@@ -372,11 +187,12 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
             config.get('recurse', False),
             config.get('extension_mask')
     ):
-        cprint('\nDetected File', attrs=['bold'])
+        notify = Notify()
+        notify.heading('Detected File')
 
         blacklist = config.get('blacklist', ())
         if any(match(b, file_stem(file_path)) for b in blacklist):
-            cprint('%s (blacklisted)' % file_path, attrs=['dark'])
+            notify.info('%s (blacklisted)' % file_path)
             continue
         else:
             print(file_stem(file_path))
@@ -389,12 +205,11 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
 
         # Print search results
         detection_count += 1
-        cprint('\nQuery Results', attrs=['bold'])
+        notify.heading('Query Results')
         results = provider_search(meta, id_key, **config)
         i = 1
         hits = []
-        max_hits = int(config.get('max_hits', 15))
-        while i < max_hits:
+        while i < int(config.get('max_hits', 15)):
             try:
                 hit = next(results)
                 print("  [%s] %s" % (i, hit))
@@ -405,7 +220,7 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
 
         # Skip hit if no hits
         if not hits:
-            notify('  - None found! Skipping.')
+            notify.info('  - None found! Skipping.')
             continue
 
         # Select first if batch
@@ -446,16 +261,16 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
 
             # User requested to skip file...
             if skip is True:
-                notify('  - Skipping rename, as per user request.')
+                notify.info('  - Skipping rename, as per user request.')
                 continue
 
             # User requested to exit...
             elif abort is True:
-                notify('\nAborting, as per user request.')
+                notify.info('\nAborting, as per user request.')
                 return
 
         # Create file path
-        cprint('\nProcessing File', attrs=['bold'])
+        notify.heading('Processing File')
         media = meta['media']
         template = config.get('%s_template' % media)
         dest_path = meta.format(template)
@@ -475,14 +290,14 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
                 shutil_move(str(file_path), str(dest_path))
             print("  - Relocating file to '%s'" % dest_path)
         except IOError:
-            cprint('  - Failed!', 'red')
+            notify.error('  - Failed!')
         else:
-            cprint('  - Success!', 'green')
+            notify.success('  - Success!')
             success_count += 1
 
     # Summarize session outcome
     if not detection_count:
-        notify('\nNo media files found. "mnamer --help" for usage.')
+        notify.info('\nNo media files found. "mnamer --help" for usage.')
         return
 
     if success_count == 0:
@@ -501,6 +316,7 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
 def main():
     """ Program entry point
     """
+    notify = Notify()
 
     # Process parameters
     targets, config, directives = get_parameters()
@@ -514,41 +330,37 @@ def main():
         return
 
     # Detect file(s)
-    cprint('Starting mnamer', attrs=['bold'])
-    for file_path in [
+    notify.heading('Starting mnamer')
+    for path in [
         '.mnamer.json',
         normpath('%s/mnamer.json' % user_config_dir()),
         normpath('%s/.mnamer.json' % expanduser('~')),
         directives['config_load']
     ]:
-        if not file_path:
+        if not path:
             continue
         try:
-            config = merge_dicts(config_load(file_path), config)
-            cprint('  - success loading config from %s' % file_path,
-                   color='green')
+            config = merge_dicts(config_load(path), config)
+            notify.success('  - success loading config from %s' % path)
         except (TypeError, IOError):
-            if config.get('verbose'):
-                notify('  - skipped loading config from %s' % file_path)
+            notify.verbose('  - skipped loading config from %s' % path)
 
     # Backfill configuration with defaults
     config = merge_dicts(CONFIG_DEFAULTS, config)
 
     # Save config to file if requested
     if directives.get('config_save'):
-        file_path = directives['config_save']
+        path = directives['config_save']
         try:
-            config_save(file_path, config)
-            print('success saving to %s' % directives['config_save'])
+            config_save(path, config)
+            notify.success('success saving to %s' % directives['config_save'])
         except (TypeError, IOError):
-            if config.get('verbose') is True:
-                print('error saving config to %s' % file_path)
+            notify.error('error saving config to %s' % path)
 
     # Display config information
-    if config.get('verbose') is True:
-        cprint('\nConfiguration', attrs=['bold'])
-        for key, value in config.items():
-            print("  - %s: %s" % (key, None if value == '' else value))
+    notify.verbose('Configuration')
+    for key, value in config.items():
+        notify.verbose("  - %s: %s" % (key, None if value == '' else value))
 
     # Process Files
     media = directives.get('media')
