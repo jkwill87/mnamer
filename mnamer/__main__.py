@@ -37,45 +37,50 @@ class Notify():
     """ A collection of methods used to format, log, and display text
     """
 
-    def __init__(self, colour=True, log=False, debug=False):
-        self.colour = colour
-        self.debug = debug
+    def __init__(self, style=True, log=False, debug=False):
+        self.style = style
         self.log = log
+
+    @property
+    def bullet_text(self):
+        return u'  • ' if self.style is True else '  - '
 
     def _log(self, text, level):
         if self.log:
             log(level, text)
     
-    def _print(self, text, **style):
-        if self.colour:
-            cprint(text, style)
+    def _print(self, text, bullet, **args):
+        if bullet is True:
+            text = self.bullet_text + text
+        if self.style:
+            cprint(text, **args)
 
     def heading(self, text):
         self._log('\n' + text, INFO)
-        self._print(text, attrs=['bold'])
+        self._print(text, False, attrs=['bold'])
 
-    def info(self, text):
+    def info(self, text, bullet=False):
         self._log(text, INFO)
-        self._print(text, color='')
+        print(self.bullet_text + text if bullet else text)
 
-    def verbose(self, text):
+    def verbose(self, text, bullet=False):
         self._log(text, DEBUG)
-        if self.verbose:
-            is_windows = platform.startswith('win')
-            style = {'attrs': ['dark']} if is_windows else {'color': 'yellow'}
-            self._print(text, **style)
+        if platform.startswith('win'):
+            print(self.bullet_text + text if bullet else text)
+        else:
+            self._print(text, bullet, attrs=['dark'])
 
-    def success(self, text):
+    def success(self, text, bullet=False):
         self._log(text, INFO)
-        self._print(text, color='green')
+        self._print(text, bullet, color='green')
 
-    def alert(self, text):
+    def alert(self, text, bullet=False):
         self._log(text, INFO)
-        self._print(text, color='yellow')
+        self._print(text, bullet, color='yellow')
 
-    def error(self, text):
+    def error(self, text, bullet=False):
         self._log(text, ERROR)
-        self._print(text, color='red')
+        self._print(text, bullet, color='red')
 
 
 def get_parameters():
@@ -179,6 +184,8 @@ DIRECTIVES:
 def process_files(targets, media=None, test_run=False, id_key=None, **config):
     """ Processes targets, relocating them as needed
     """
+    notify = Notify()
+
     # Begin processing files
     detection_count = 0
     success_count = 0
@@ -187,7 +194,6 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
             config.get('recurse', False),
             config.get('extension_mask')
     ):
-        notify = Notify()
         notify.heading('Detected File')
 
         blacklist = config.get('blacklist', ())
@@ -201,7 +207,7 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
         meta = meta_parse(file_path, media)
         if config['verbose'] is True:
             for field, value in meta.items():
-                print('  - %s: %s' % (field, value))
+                notify.verbose('%s: %s' % (field, value), True)
 
         # Print search results
         detection_count += 1
@@ -220,7 +226,7 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
 
         # Skip hit if no hits
         if not hits:
-            notify.info('  - None found! Skipping.')
+            notify.info('None found! Skipping.', True)
             continue
 
         # Select first if batch
@@ -261,7 +267,7 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
 
             # User requested to skip file...
             if skip is True:
-                notify.info('  - Skipping rename, as per user request.')
+                notify.info('Skipping rename, as per user request.', True)
                 continue
 
             # User requested to exit...
@@ -288,16 +294,17 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
             if not test_run:
                 # TODO: create parent paths
                 shutil_move(str(file_path), str(dest_path))
-            print("  - Relocating file to '%s'" % dest_path)
+            notify.info("Relocating file to '%s'" % dest_path, True)
         except IOError:
-            notify.error('  - Failed!')
+            notify.error(' Failed!', True)
         else:
-            notify.success('  - Success!')
+            notify.success('Success!', True)
             success_count += 1
 
     # Summarize session outcome
     if not detection_count:
-        notify.info('\nNo media files found. "mnamer --help" for usage.')
+        print('')
+        notify.alert('No media files found. "mnamer --help" for usage.')
         return
 
     if success_count == 0:
@@ -341,9 +348,9 @@ def main():
             continue
         try:
             config = merge_dicts(config_load(path), config)
-            notify.success('  - success loading config from %s' % path)
+            notify.success('success loading config from %s' % path, True)
         except (TypeError, IOError):
-            notify.verbose('  - skipped loading config from %s' % path)
+            notify.verbose('skipped loading config from %s' % path, True)
 
     # Backfill configuration with defaults
     config = merge_dicts(CONFIG_DEFAULTS, config)
@@ -358,9 +365,10 @@ def main():
             notify.error('error saving config to %s' % path)
 
     # Display config information
-    notify.verbose('Configuration')
+    if config['verbose']:
+        print('\nConfiguration')
     for key, value in config.items():
-        notify.verbose("  - %s: %s" % (key, None if value == '' else value))
+            notify.info("%s: %s" % (key, None if value == '' else value), True)
 
     # Process Files
     media = directives.get('media')
