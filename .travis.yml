@@ -6,4 +6,6 @@ python:
 install: pip install -r requirements.txt -r requirements-dev.txt
 dist: trusty
 os: linux
-script: python -m unittest discover -v
+script: coverage run --source=mnamer -m unittest discover -v
+after_success:
+  - coveralls
