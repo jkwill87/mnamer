@@ -9,5 +9,5 @@ MANIFEST
 __pycache__/
 build
 dist/
-playground.py
+playground*
 testing/test_files_*
