@@ -8,4 +8,4 @@ dist: trusty
 os: linux
 script: coverage run --source=mnamer -m unittest discover -v
 after_success:
-  - coveralls
+  - codecov

@@ -1,7 +1,7 @@
-[![pypi](https://img.shields.io/pypi/v/mnamer.svg)](https://pypi.python.org/pypi/mnamer)
-[![travis\_ci](https://img.shields.io/travis/jkwill87/mnamer/develop.svg)](https://travis-ci.org/jkwill87/mnamer)
-[![coverage](https://img.shields.io/coveralls/jkwill87/mnamer/develop.svg)](https://coveralls.io/github/jkwill87/mapi?branch=develop)
-[![licence](https://img.shields.io/github/license/jkwill87/mnamer.svg)](https://en.wikipedia.org/wiki/MIT_License)
+[![pypi](https://img.shields.io/pypi/v/mnamer.svg?style=for-the-badge)](https://pypi.python.org/pypi/mnamer)
+[![travis\_ci](https://img.shields.io/travis/jkwill87/mnamer/develop.svg?style=for-the-badge)](https://travis-ci.org/jkwill87/mnamer)
+[![coverage](https://img.shields.io/codecov/c/github/jkwill87/mnamer/develop.svg?style=for-the-badge)](https://codecov.io/gh/jkwill87/mnamer)
+[![licence](https://img.shields.io/github/license/jkwill87/mnamer.svg?style=for-the-badge)](https://en.wikipedia.org/wiki/MIT_License)
 
 ![manmer logo](https://github.com/jkwill87/mnamer/raw/develop/_assets/mnamer.png)
 
