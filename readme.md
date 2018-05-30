@@ -1,5 +1,6 @@
 [![licence](https://img.shields.io/github/license/jkwill87/mnamer.svg)](https://en.wikipedia.org/wiki/MIT_License)
 [![pypi](https://img.shields.io/pypi/v/mnamer.svg)](https://pypi.python.org/pypi/mnamer)
+[![travis\_ci](https://img.shields.io/travis/jkwill87/mnamer/develop.svg)](https://travis-ci.org/jkwill87/mnamer)
 
 ![manmer logo](https://github.com/jkwill87/mnamer/raw/develop/_assets/mnamer.png)
 
@@ -12,7 +13,9 @@ mnamer (**m**edia re**namer**) is an intelligent and highly configurable media o
 
 `$ pip install mnamer`
 
-**Notes:**
+
+## Notes
+
 - If you're brave you can install the latest development version with `pip install https://github.com/jkwill87/mnamer/archive/develop.zip`.
 - If you want to install it using system python (e.g. the one that comes with your OS, not really recommended) and get a permission error you need to use either `sudo -H pip ...` or `pip install --user ...`.
 
