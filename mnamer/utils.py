@@ -1,9 +1,10 @@
+# coding=utf-8
+
 import json
 from os import environ, walk
 from os.path import basename, exists, isdir, isfile, join, realpath, splitext
-from re import match, sub
+from re import sub
 from string import Template
-from sys import platform
 from unicodedata import normalize
 
 from guessit import guessit
