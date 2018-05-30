@@ -13,15 +13,14 @@ to fill in the blanks, and then renames and moves them.
 See https://github.com/jkwill87/mnamer for more information.
 """
 
-from builtins import input
+from __future__ import print_function
 
-import json
 from argparse import ArgumentParser
-from logging import Logger, log, INFO, ERROR, DEBUG
+from builtins import input
+from logging import DEBUG, ERROR, INFO, log
 from os.path import expanduser, normpath
 from re import match
 from shutil import move as shutil_move
-from string import Template
 from sys import platform
 
 from appdirs import user_config_dir
@@ -29,24 +28,25 @@ from colorama import init as ascii_colour_init
 from mapi.exceptions import MapiNotFoundException
 from termcolor import cprint
 
-from mnamer import *
+from mnamer import CONFIG_DEFAULTS
 from mnamer.__version__ import VERSION
+from mnamer.utils import *
 
 
-class Notify():
+class Notify:
     """ A collection of methods used to format, log, and display text
     """
 
-    def __init__(self, style=True, log=False, debug=False):
+    def __init__(self, style=True, logging=False):
         self.style = style
-        self.log = log
+        self.logging = logging
 
     @property
     def bullet_text(self):
         return u'  • ' if self.style is True else '  - '
 
     def _log(self, text, level):
-        if self.log:
+        if self.logging:
             log(level, text)
     
     def _print(self, text, bullet, **args):
@@ -56,8 +56,8 @@ class Notify():
             cprint(text, **args)
 
     def heading(self, text):
-        self._log('\n' + text, INFO)
-        self._print(text, False, attrs=['bold'])
+        self._log(text, INFO)
+        self._print('\n' + text, False, attrs=['bold'])
 
     def info(self, text, bullet=False):
         self._log(text, INFO)
@@ -82,6 +82,11 @@ class Notify():
         self._log(text, ERROR)
         self._print(text, bullet, color='red')
 
+    def prompt(self, text):
+        print('   > %s? ' % text, end='')
+        user_input = input()
+        self._log('%s=%s' % (text, user_input), INFO)
+        return user_input
 
 def get_parameters():
     """ Retrieves program arguments from CLI parameters
@@ -238,7 +243,7 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
             print('  [RETURN] for default, [s]kip, [q]uit')
             abort = skip = None
             while True:
-                selection = input('  > Your Choice? ')
+                selection = notify.prompt('Your Choice')
 
                 # Catch default selection
                 if not selection:
@@ -295,8 +300,10 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
                 # TODO: create parent paths
                 shutil_move(str(file_path), str(dest_path))
             notify.info("Relocating file to '%s'" % dest_path, True)
-        except IOError:
+        except IOError as e:
             notify.error(' Failed!', True)
+            if config.get('verbose') is True:
+                notify.verbose(e)
         else:
             notify.success('Success!', True)
             success_count += 1
