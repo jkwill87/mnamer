@@ -1,13 +1,15 @@
+# coding=utf-8
+
 import json
 from os import environ
-from unittest import TestCase
 
 from mnamer.exceptions import MnamerConfigException
-from mnamer.utils import *
-from mock import mock_open, patch
+from mnamer.utils import config_load
+from . import *
 
 
 class TestConfigLoad(TestCase):
+    OPEN_TARGET = 'mnamer.utils.open'
 
     def __init__(self, *args, **kwargs):
         super(TestConfigLoad, self).__init__(*args, **kwargs)
@@ -19,32 +21,35 @@ class TestConfigLoad(TestCase):
     def test_environ_substitution(self):
         user_home = '/SOME_MADE_UP_DIR'
         environ['HOME'] = user_home
-        with patch("mnamer.open", mock_open(read_data="{}")) as mock_file:
+        with patch(self.OPEN_TARGET, mock_open(read_data="{}")) as mock_file:
             config_load('$HOME/config.json')
             mock_file.assert_called_with(user_home + '/config.json', mode='r')
 
     def test_load_success(self):
         data = {'dots': True}
-        with patch("mnamer.open", mock_open(read_data=json.dumps(data))) as _:
+        mocked_open = mock_open(read_data=json.dumps(data))
+        with patch(self.OPEN_TARGET, mocked_open) as _:
             self.assertDictEqual(data, config_load('some_file'))
 
     def test_load_success__skips_none(self):
         data = {'dots': True, 'scene': None}
-        with patch("mnamer.open", mock_open(read_data=json.dumps(data))) as _:
+        mocked_open = mock_open(read_data=json.dumps(data))
+        with patch(self.OPEN_TARGET, mocked_open) as _:
             self.assertDictEqual({'dots': True}, config_load('some_file'))
 
     def test_load_fail__io(self):
-        with patch("mnamer.open", mock_open()) as mock:
-            mock.side_effect = IOError
+        mocked_open = mock_open()
+        with patch(self.OPEN_TARGET, mocked_open) as patched_open:
+            patched_open.side_effect = IOError
             with self.assertRaises(MnamerConfigException):
                 config_load('some_file')
 
     def test_load_fail__invalid_json(self):
-        with patch("mnamer.open", mock_open(read_data='not json')) as mock:
-            mock.side_effect = TypeError
+        mocked_open = mock_open(read_data='not json')
+        with patch(self.OPEN_TARGET, mocked_open) as patched_open:
+            patched_open.side_effect = TypeError
             with self.assertRaises(MnamerConfigException):
                 config_load('some_file')
-
 
 # class TestConfigSave(TestCase):
 
