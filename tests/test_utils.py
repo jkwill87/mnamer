@@ -4,12 +4,12 @@ import json
 from os import environ
 
 from mnamer.exceptions import MnamerConfigException
-from mnamer.utils import config_load
+from mnamer.utils import config_load, config_save
 from . import *
 
 
+
 class TestConfigLoad(TestCase):
-    OPEN_TARGET = 'mnamer.utils.open'
 
     def __init__(self, *args, **kwargs):
         super(TestConfigLoad, self).__init__(*args, **kwargs)
@@ -19,37 +19,36 @@ class TestConfigLoad(TestCase):
         environ = self.environ_backup
 
     def test_environ_substitution(self):
-        user_home = '/SOME_MADE_UP_DIR'
-        environ['HOME'] = user_home
-        with patch(self.OPEN_TARGET, mock_open(read_data="{}")) as mock_file:
+        environ['HOME'] = DUMMY_DIR
+        with patch(OPEN_TARGET, mock_open(read_data="{}")) as mock_file:
             config_load('$HOME/config.json')
-            mock_file.assert_called_with(user_home + '/config.json', mode='r')
+            mock_file.assert_called_with(DUMMY_DIR + '/config.json', mode='r')
 
     def test_load_success(self):
         data = {'dots': True}
         mocked_open = mock_open(read_data=json.dumps(data))
-        with patch(self.OPEN_TARGET, mocked_open) as _:
-            self.assertDictEqual(data, config_load('some_file'))
+        with patch(OPEN_TARGET, mocked_open) as _:
+            self.assertDictEqual(data, config_load(DUMMY_FILE))
 
     def test_load_success__skips_none(self):
         data = {'dots': True, 'scene': None}
         mocked_open = mock_open(read_data=json.dumps(data))
-        with patch(self.OPEN_TARGET, mocked_open) as _:
-            self.assertDictEqual({'dots': True}, config_load('some_file'))
+        with patch(OPEN_TARGET, mocked_open) as _:
+            self.assertDictEqual({'dots': True}, config_load(DUMMY_FILE))
 
     def test_load_fail__io(self):
         mocked_open = mock_open()
-        with patch(self.OPEN_TARGET, mocked_open) as patched_open:
+        with patch(OPEN_TARGET, mocked_open) as patched_open:
             patched_open.side_effect = IOError
             with self.assertRaises(MnamerConfigException):
-                config_load('some_file')
+                config_load(DUMMY_FILE)
 
     def test_load_fail__invalid_json(self):
         mocked_open = mock_open(read_data='not json')
-        with patch(self.OPEN_TARGET, mocked_open) as patched_open:
+        with patch(OPEN_TARGET, mocked_open) as patched_open:
             patched_open.side_effect = TypeError
             with self.assertRaises(MnamerConfigException):
-                config_load('some_file')
+                config_load(DUMMY_FILE)
 
 # class TestConfigSave(TestCase):
 
