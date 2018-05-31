@@ -22,12 +22,10 @@ def config_load(path):
         with open(templated_path, mode='r') as file_pointer:
             data = json.load(file_pointer)
         return {k: v for k, v in data.items() if v is not None}
-    except IOError as e:
+    except IOError as e:  # e.g. permission error, file doesn't exist
         error_msg = e.strerror
-    except TypeError:
+    except TypeError:  # e.g. not a properly formatted JSON file
         error_msg = 'Invalid configuration data'
-    except Exception as e:
-        error_msg = e.message
     raise MnamerConfigException(error_msg)
 
 
@@ -39,12 +37,10 @@ def config_save(path, config):
         with open(templated_path, mode='w') as file_pointer:
             json.dump(config, file_pointer, indent=4)
         return
-    except IOError as e:
+    except IOError as e:  # e.g. permission error
         error_msg = e.strerror
-    except TypeError:
+    except TypeError:  # e.g. config object isn't JSON serializable
         error_msg = 'Invalid configuration data'
-    except Exception as e:
-        error_msg = e.message
     raise MnamerConfigException(error_msg)
 
 
