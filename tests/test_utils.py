@@ -7,6 +7,10 @@ from mnamer.exceptions import MnamerConfigException
 from mnamer.utils import config_load, config_save
 from . import *
 
+DUMMY_DIR = 'some_dir'
+DUMMY_FILE = 'some_file'
+BAD_JSON = "{'some_key':True"
+OPEN_TARGET = 'mnamer.utils.open'
 
 
 class TestConfigLoad(TestCase):
@@ -44,19 +48,41 @@ class TestConfigLoad(TestCase):
                 config_load(DUMMY_FILE)
 
     def test_load_fail__invalid_json(self):
-        mocked_open = mock_open(read_data='not json')
+        mocked_open = mock_open(read_data=BAD_JSON)
         with patch(OPEN_TARGET, mocked_open) as patched_open:
             patched_open.side_effect = TypeError
             with self.assertRaises(MnamerConfigException):
                 config_load(DUMMY_FILE)
 
-# class TestConfigSave(TestCase):
 
-#     def test_save_success(self):
-#         pass
+class TestConfigSave(TestCase):
 
-#     def test_save_fail__permission_denied(self):
-#         pass
+    def __init__(self, *args, **kwargs):
+        super(TestConfigSave, self).__init__(*args, **kwargs)
+        self.environ_backup = environ
+
+    def tearDown(self):
+        environ = self.environ_backup
+
+    def test_environ_substitution(self):
+        environ['HOME'] = DUMMY_DIR
+        data = {'dots': True}
+        with patch(OPEN_TARGET, mock_open()) as patched_open:
+            config_save('$HOME/config.json', data)
+            patched_open.assert_called_with(DUMMY_DIR + '/config.json', mode='w')
+
+    def test_save_success(self):
+        mocked_open = mock_open()
+        with patch(OPEN_TARGET, mocked_open) as _:
+            config_save(DUMMY_FILE, {'dots': True})
+            mocked_open.assert_called()
+
+    def test_save_fail__io(self):
+        mocked_open = mock_open()
+        with patch(OPEN_TARGET, mocked_open) as patched_open:
+            patched_open.side_effect = IOError
+            with self.assertRaises(MnamerConfigException):
+                config_save(DUMMY_FILE, {'dots': True})
 
 
 # class TestFileStem(TestCase):

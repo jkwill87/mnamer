@@ -39,8 +39,6 @@ def config_save(path, config):
         return
     except IOError as e:  # e.g. permission error
         error_msg = e.strerror
-    except TypeError:  # e.g. config object isn't JSON serializable
-        error_msg = 'Invalid configuration data'
     raise MnamerConfigException(error_msg)
 
 
