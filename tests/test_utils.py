@@ -4,13 +4,18 @@ import json
 from os import environ
 
 from mnamer.exceptions import MnamerConfigException
-from mnamer.utils import config_load, config_save
+from mnamer.utils import config_load, config_save, file_stem
 from . import *
 
+BAD_JSON = "{'some_key':True"
 DUMMY_DIR = 'some_dir'
 DUMMY_FILE = 'some_file'
-BAD_JSON = "{'some_key':True"
 OPEN_TARGET = 'mnamer.utils.open'
+
+MOVIE_DIR_UNIX = '/movies/'
+MOVIE_DIR_WINDOWS = 'C:\\Movies\\'
+MOVIE_FILE_STEM = 'Spaceballs.1987'
+MOVIE_FILE_EXTENSION = '.mkv'
 
 
 class TestConfigLoad(TestCase):
@@ -85,16 +90,23 @@ class TestConfigSave(TestCase):
                 config_save(DUMMY_FILE, {'dots': True})
 
 
-# class TestFileStem(TestCase):
+class TestFileStem(TestCase):
 
-#     def test_abs_path(self):
-#         pass
+    def test_abs_path_unix(self):
+        path = MOVIE_DIR_UNIX + MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
+        self.assertEqual(file_stem(path), MOVIE_FILE_STEM)
 
-#     def test_rel_path(self):
-#         pass
+    def test_abs_path_windows(self):
+        path = MOVIE_DIR_WINDOWS + MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
+        self.assertEqual(file_stem(path), MOVIE_FILE_STEM)
 
-#     def test_dir_only(self):
-#         pass
+    def test_rel_path(self):
+        path = MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
+        self.assertEqual(file_stem(path), MOVIE_FILE_STEM)
+
+    def test_dir_only(self):
+        path = MOVIE_DIR_UNIX
+        self.assertEqual(file_stem(path), '')
 
 
 # class TestFileExtension(TestCase):
