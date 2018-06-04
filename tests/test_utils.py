@@ -12,8 +12,7 @@ DUMMY_DIR = 'some_dir'
 DUMMY_FILE = 'some_file'
 OPEN_TARGET = 'mnamer.utils.open'
 
-MOVIE_DIR_UNIX = '/movies/'
-MOVIE_DIR_WINDOWS = 'C:\\Movies\\'
+MOVIE_DIR = 'C:\\Movies\\' if IS_WINDOWS else '/movies/'
 MOVIE_FILE_STEM = 'Spaceballs.1987'
 MOVIE_FILE_EXTENSION = '.mkv'
 
@@ -72,9 +71,10 @@ class TestConfigSave(TestCase):
     def test_environ_substitution(self):
         environ['HOME'] = DUMMY_DIR
         data = {'dots': True}
+        path = DUMMY_DIR + '/config.json'
         with patch(OPEN_TARGET, mock_open()) as patched_open:
             config_save('$HOME/config.json', data)
-            patched_open.assert_called_with(DUMMY_DIR + '/config.json', mode='w')
+            patched_open.assert_called_with(path, mode='w')
 
     def test_save_success(self):
         mocked_open = mock_open()
@@ -92,12 +92,8 @@ class TestConfigSave(TestCase):
 
 class TestFileStem(TestCase):
 
-    def test_abs_path_unix(self):
-        path = MOVIE_DIR_UNIX + MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
-        self.assertEqual(file_stem(path), MOVIE_FILE_STEM)
-
-    def test_abs_path_windows(self):
-        path = MOVIE_DIR_WINDOWS + MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
+    def test_abs_path(self):
+        path = MOVIE_DIR + MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
         self.assertEqual(file_stem(path), MOVIE_FILE_STEM)
 
     def test_rel_path(self):
@@ -105,7 +101,7 @@ class TestFileStem(TestCase):
         self.assertEqual(file_stem(path), MOVIE_FILE_STEM)
 
     def test_dir_only(self):
-        path = MOVIE_DIR_UNIX
+        path = MOVIE_DIR
         self.assertEqual(file_stem(path), '')
 
 
