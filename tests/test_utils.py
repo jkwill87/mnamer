@@ -13,7 +13,7 @@ DUMMY_FILE = 'some_file'
 OPEN_TARGET = 'mnamer.utils.open'
 
 MOVIE_DIR = 'C:\\Movies\\' if IS_WINDOWS else '/movies/'
-MOVIE_FILE_STEM = 'Spaceballs.1987'
+MOVIE_FILE_STEM = 'Spaceballs 1987'
 MOVIE_FILE_EXTENSION = '.mkv'
 
 
@@ -33,16 +33,19 @@ class TestConfigLoad(TestCase):
             mock_file.assert_called_with(DUMMY_DIR + '/config.json', mode='r')
 
     def test_load_success(self):
-        data = {'dots': True}
+        data = expected = {'dots': True}
         mocked_open = mock_open(read_data=json.dumps(data))
         with patch(OPEN_TARGET, mocked_open) as _:
-            self.assertDictEqual(data, config_load(DUMMY_FILE))
+            actual = config_load(DUMMY_FILE)
+            self.assertDictEqual(expected, actual)
 
     def test_load_success__skips_none(self):
         data = {'dots': True, 'scene': None}
+        expected = {'dots': True}
         mocked_open = mock_open(read_data=json.dumps(data))
         with patch(OPEN_TARGET, mocked_open) as _:
-            self.assertDictEqual({'dots': True}, config_load(DUMMY_FILE))
+            actual = config_load(DUMMY_FILE)
+            self.assertDictEqual(expected, actual)
 
     def test_load_fail__io(self):
         mocked_open = mock_open()
@@ -94,15 +97,23 @@ class TestFileStem(TestCase):
 
     def test_abs_path(self):
         path = MOVIE_DIR + MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
-        self.assertEqual(file_stem(path), MOVIE_FILE_STEM)
+        expected = MOVIE_FILE_STEM
+        actual = file_stem(path)
+        self.assertEqual(expected, actual)
 
     def test_rel_path(self):
         path = MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
         self.assertEqual(file_stem(path), MOVIE_FILE_STEM)
 
+        expected = MOVIE_FILE_STEM
+        actual = file_stem(path)
+        self.assertEqual(expected, actual)
+
     def test_dir_only(self):
         path = MOVIE_DIR
-        self.assertEqual(file_stem(path), '')
+        expected = ''
+        actual = file_stem(path)
+        self.assertEqual(expected, actual)
 
 
 # class TestFileExtension(TestCase):
