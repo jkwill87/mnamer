@@ -4,7 +4,7 @@ import json
 from os import environ
 
 from mnamer.exceptions import MnamerConfigException
-from mnamer.utils import config_load, config_save, file_stem
+from mnamer.utils import config_load, config_save, file_stem, file_extension
 from . import *
 
 BAD_JSON = "{'some_key':True"
@@ -103,8 +103,6 @@ class TestFileStem(TestCase):
 
     def test_rel_path(self):
         path = MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
-        self.assertEqual(file_stem(path), MOVIE_FILE_STEM)
-
         expected = MOVIE_FILE_STEM
         actual = file_stem(path)
         self.assertEqual(expected, actual)
@@ -116,20 +114,31 @@ class TestFileStem(TestCase):
         self.assertEqual(expected, actual)
 
 
-# class TestFileExtension(TestCase):
+class TestFileExtension(TestCase):
 
-#     def test_abs_path(self):
-#         pass
+    def test_abs_path(self):
+        path = MOVIE_DIR + MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
+        expected = MOVIE_FILE_EXTENSION.lstrip('.')
+        actual = file_extension(path)
+        self.assertEqual(expected, actual)
 
-#     def test_rel_path(self):
-#         pass
+    def test_rel_path(self):
+        path = MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
+        expected = MOVIE_FILE_EXTENSION.lstrip('.')
+        actual = file_extension(path)
+        self.assertEqual(expected, actual)
 
-#     def test_no_extension(self):
-#         pass
+    def test_no_extension(self):
+        path = MOVIE_FILE_STEM
+        expected = ''
+        actual = file_extension(path)
+        self.assertEqual(expected, actual)
 
-#     def test_multiple_extensions(self):
-#         pass
-
+    def test_multiple_extensions(self):
+        path = MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION + MOVIE_FILE_EXTENSION
+        expected = MOVIE_FILE_EXTENSION.lstrip('.')
+        actual = file_extension(path)
+        self.assertEqual(expected, actual)
 
 # class TestExtensionMatch(TestCase):
 
