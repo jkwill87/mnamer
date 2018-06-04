@@ -71,7 +71,8 @@ def test():
 
 
 def version():
-    print('%s version %s ' % (PROJECT, VERSION))
+    print('%s %s' % (PROJECT, VERSION))
+    sh('python --version')
 
 
 # Determine available tasks (e.g. defined function not prefixed by an underscore)
