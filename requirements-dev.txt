@@ -1,3 +1,4 @@
+autopep8
 codecov
 coverage
 mock;python_version<"3"
