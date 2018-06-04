@@ -67,7 +67,7 @@ def uninstall():
 
 
 def test():
-    sh('python -m unittest discover -v')
+    sh('coverage run --source=mnamer -m unittest discover -v')
 
 
 def version():
