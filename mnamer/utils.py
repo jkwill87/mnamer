@@ -57,7 +57,7 @@ def file_extension(path):
 def dir_crawl(targets, recurse=False, ext_mask=None):
     """ Crawls a directory, searching for files
     """
-    if not isinstance(targets, (list, tuple)):
+    if not isinstance(targets, (list, tuple, set)):
         targets = [targets]
     found_files = set()
     for target in targets:
