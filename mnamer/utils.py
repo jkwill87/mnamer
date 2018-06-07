@@ -89,12 +89,13 @@ def file_extension(path):
     return splitext(path)[1].lstrip('.')
 
 
-def merge_dicts(d1, d2):
-    """ Merges two dictionaries
+def merge_dicts(d1, *dn):
+    """ Merges two or more dictionaries
     """
-    d3 = d1.copy()
-    d3.update(d2)
-    return d3
+    res = d1.copy()
+    for d in dn:
+        res.update(d)
+    return res
 
 
 def meta_parse(path, media=None):

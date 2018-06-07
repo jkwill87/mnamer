@@ -14,6 +14,7 @@ from mnamer.utils import (
     extension_match,
     file_stem,
     file_extension,
+    merge_dicts
 )
 from . import *
 
@@ -246,3 +247,29 @@ class TestFileExtension(TestCase):
         expected = MOVIE_FILE_EXTENSION.lstrip('.')
         actual = file_extension(path)
         self.assertEqual(expected, actual)
+
+
+class TestMergeDicts(TestCase):
+
+    def test_two(self):
+        d1 = {'a': 1, 'b': 2}
+        d2 = {'c': 3}
+        expected = {'a': 1, 'b': 2, 'c': 3}
+        actual = merge_dicts(d1, d2)
+        self.assertDictEqual(expected, actual)
+
+    def test_many(self):
+        d1 = {'a': 1, 'b': 2}
+        d2 = {'c': 3}
+        d3 = {'d': 4, 'e': 5, 'f': 6}
+        d4 = {'g': 7}
+        expected = {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5, 'f': 6, 'g': 7}
+        actual = merge_dicts(d1, d2, d3, d4)
+        self.assertDictEqual(expected, actual)
+
+    def test_overwrite(self):
+        d1 = {'a': 1, 'b': 2, 'c': 3}
+        d2 = {'a': 10, 'b': 20}
+        expected = {'a': 10, 'b': 20, 'c': 3}
+        actual = merge_dicts(d1, d2)
+        self.assertDictEqual(expected, actual)
