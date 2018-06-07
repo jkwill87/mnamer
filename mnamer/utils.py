@@ -42,18 +42,6 @@ def config_save(path, config):
     raise MnamerConfigException(error_msg)
 
 
-def file_stem(path):
-    """ Gets the filename for a path with any extension removed
-    """
-    return splitext(basename(path))[0]
-
-
-def file_extension(path):
-    """ Gets the extension for a path; period omitted
-    """
-    return splitext(path)[1].lstrip('.')
-
-
 def dir_crawl(targets, recurse=False, ext_mask=None):
     """ Crawls a directory, searching for files
     """
@@ -81,7 +69,24 @@ def dir_crawl(targets, recurse=False, ext_mask=None):
 def extension_match(path, valid_extensions):
     """ Returns True if path's extension is in valid_extensions else False
     """
-    return not valid_extensions or file_extension(path) in valid_extensions
+    if not valid_extensions:
+        return True
+    if isinstance(valid_extensions, str):
+        valid_extensions = {valid_extensions}
+    valid_extensions = {e.lstrip('.') for e in valid_extensions}
+    return file_extension(path) in {e.lstrip('.') for e in valid_extensions}
+
+
+def file_stem(path):
+    """ Gets the filename for a path with any extension removed
+    """
+    return splitext(basename(path))[0]
+
+
+def file_extension(path):
+    """ Gets the extension for a path; period omitted
+    """
+    return splitext(path)[1].lstrip('.')
 
 
 def merge_dicts(d1, d2):
