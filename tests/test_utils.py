@@ -47,15 +47,12 @@ def tmp_path(*paths):
 
 class TestConfigLoad(TestCase):
 
-    def __init__(self, *args, **kwargs):
-        super(TestConfigLoad, self).__init__(*args, **kwargs)
-        self.environ_backup = environ
-
-    def tearDown(self):
-        environ = self.environ_backup
+    @classmethod
+    def tearDownClass(cls):
+        os.environ = deepcopy(ENVIRON_BACKUP)
 
     def test_environ_substitution(self):
-        environ['HOME'] = DUMMY_DIR
+        os.environ['HOME'] = DUMMY_DIR
         with patch(OPEN_TARGET, mock_open(read_data="{}")) as mock_file:
             config_load('$HOME/config.json')
             mock_file.assert_called_with(DUMMY_DIR + '/config.json', mode='r')
@@ -92,15 +89,12 @@ class TestConfigLoad(TestCase):
 
 class TestConfigSave(TestCase):
 
-    def __init__(self, *args, **kwargs):
-        super(TestConfigSave, self).__init__(*args, **kwargs)
-        self.environ_backup = environ
-
-    def tearDown(self):
-        environ = self.environ_backup
+    @classmethod
+    def tearDownClass(cls):
+        os.environ = deepcopy(ENVIRON_BACKUP)
 
     def test_environ_substitution(self):
-        environ['HOME'] = DUMMY_DIR
+        os.environ['HOME'] = DUMMY_DIR
         data = {'dots': True}
         path = DUMMY_DIR + '/config.json'
         with patch(OPEN_TARGET, mock_open()) as patched_open:
