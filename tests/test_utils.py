@@ -11,6 +11,7 @@ from mnamer.utils import (
     config_load,
     config_save,
     dir_crawl,
+    extension_match,
     file_stem,
     file_extension,
 )
@@ -171,6 +172,32 @@ class TestDirCrawl(TestCase):
         expected = tmp_path('f1.mkv', 'f2.mkv')
         actual = dir_crawl(data, ext_mask='mkv')
         self.assertSetEqual(expected, actual)
+
+
+class TestExtensionMatch(TestCase):
+
+    def setUp(self):
+        self.path = MOVIE_DIR + MOVIE_FILE_STEM + '.mkv'
+
+    def test_pass__dot(self):
+        valid_extensions = ['.mkv']
+        actual = extension_match(self.path, valid_extensions)
+        self.assertTrue(actual)
+
+    def test_pass__bare(self):
+        valid_extensions = ['mkv']
+        actual = extension_match(self.path, valid_extensions)
+        self.assertTrue(actual)
+
+    def test_pass__string(self):
+        valid_extensions = '.mkv'
+        actual = extension_match(self.path, valid_extensions)
+        self.assertTrue(actual)
+
+    def test_fail(self):
+        valid_extensions = ['.mp4']
+        actual = extension_match(self.path, valid_extensions)
+        self.assertFalse(actual)
 
 
 class TestFileStem(TestCase):
