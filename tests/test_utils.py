@@ -1,10 +1,19 @@
 # coding=utf-8
-
 import json
-from os import environ
+import os
+from copy import deepcopy
+from os.path import isdir, join, realpath, split
+from shutil import rmtree
+from tempfile import gettempdir
 
 from mnamer.exceptions import MnamerConfigException
-from mnamer.utils import config_load, config_save, file_stem, file_extension
+from mnamer.utils import (
+    config_load,
+    config_save,
+    dir_crawl,
+    file_stem,
+    file_extension,
+)
 from . import *
 
 BAD_JSON = "{'some_key':True"
@@ -15,6 +24,25 @@ OPEN_TARGET = 'mnamer.utils.open'
 MOVIE_DIR = 'C:\\Movies\\' if IS_WINDOWS else '/movies/'
 MOVIE_FILE_STEM = 'Spaceballs 1987'
 MOVIE_FILE_EXTENSION = '.mkv'
+
+ENVIRON_BACKUP = deepcopy(os.environ)
+
+TEMP_DIR = realpath(gettempdir() + '/mnamer')
+TEST_FILES = (
+    'f1.mkv',
+    'f2.mkv',
+    'f3.tiff',
+    'd1a/f4.mp4',
+    'd1a/f5.mkv',
+    'd1b/f6.tiff',
+    'd1b/d2a/f7.mp4',
+    'd1b/d2b/f8.mkv',
+    'd1b/d2b/f9.tiff'
+)
+
+
+def tmp_path(*paths):
+    return {join(TEMP_DIR, path) for path in paths}
 
 
 class TestConfigLoad(TestCase):
@@ -93,6 +121,64 @@ class TestConfigSave(TestCase):
                 config_save(DUMMY_FILE, {'dots': True})
 
 
+class TestDirCrawl(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        for test_file in TEST_FILES:
+            path = join(TEMP_DIR, test_file)
+            directory, filename = split(path)
+            if directory and not isdir(directory):
+                os.makedirs(directory)
+            open(path, 'a').close()
+
+    @classmethod
+    def tearDownClass(cls):
+        rmtree(TEMP_DIR)
+
+    def test_files__none(self):
+        data = join(TEMP_DIR, DUMMY_DIR)
+        expected = set()
+        actual = dir_crawl(data)
+        self.assertSetEqual(expected, actual)
+
+    def test_files__flat(self):
+        data = tmp_path('f1.mkv', 'f2.mkv', 'f3.tiff')
+        expected = data
+        actual = dir_crawl(data)
+        self.assertSetEqual(expected, actual)
+
+    def test_files__extmask(self):
+        data = tmp_path('f1.mkv', 'f2.mkv', 'f3.tiff')
+        expected = tmp_path('f1.mkv', 'f2.mkv')
+        actual = dir_crawl(data, ext_mask={'mkv'})
+        self.assertSetEqual(expected, actual)
+
+    def test_dirs__single(self):
+        data = TEMP_DIR
+        expected = tmp_path('f1.mkv', 'f2.mkv', 'f3.tiff')
+        actual = dir_crawl(data)
+        self.assertSetEqual(expected, actual)
+
+    def test_dirs__multiple(self):
+        data = tmp_path('d1a', 'd1b')
+        expected = tmp_path('d1a/f4.mp4', 'd1a/f5.mkv', 'd1b/f6.tiff')
+        actual = dir_crawl(data)
+        self.assertSetEqual(expected, actual)
+
+    def test_dirs__recurse(self):
+        data = TEMP_DIR
+        expected = tmp_path(*TEST_FILES)
+        actual = dir_crawl(data, recurse=True)
+        self.assertSetEqual(expected, actual)
+
+    def test_dirs_extmask(self):
+        data = TEMP_DIR
+        expected = tmp_path('f1.mkv', 'f2.mkv')
+        actual = dir_crawl(data, ext_mask='mkv')
+        self.assertSetEqual(expected, actual)
+
+
 class TestFileStem(TestCase):
 
     def test_abs_path(self):
@@ -139,41 +225,3 @@ class TestFileExtension(TestCase):
         expected = MOVIE_FILE_EXTENSION.lstrip('.')
         actual = file_extension(path)
         self.assertEqual(expected, actual)
-
-# class TestExtensionMatch(TestCase):
-
-#     def test_extension_found(self):
-#         pass
-
-#     def test_extension_not_found(self):
-#         pass
-
-#     def test_no_valid_extensions(self):
-#         pass
-
-
-# class TestDirCrawl(TestCase):
-
-#     def test_no_files(self):
-#         pass
-
-#     def test_recursion(self):
-#         pass
-
-#     def test_ext_mask_match(self):
-#         pass
-
-#     def test_ext_mask_miss(self):
-#         pass
-
-
-# class TestMergeDicts(TestCase):
-
-#     def test_one_dict(self):
-#         pass
-
-#     def test_two_dicts(self):
-#         pass
-
-#     def test_three_dicts(self):
-#         pass
