@@ -356,7 +356,7 @@ def main():
         try:
             config = merge_dicts(config_load(path), config)
             notify.success('success loading config from %s' % path, True)
-        except (TypeError, IOError):
+        except MnamerConfigException:
             notify.verbose('skipped loading config from %s' % path, True)
 
     # Backfill configuration with defaults
