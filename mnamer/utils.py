@@ -122,6 +122,8 @@ def meta_parse(path, media=None):
         meta = MetadataTelevision()
         if 'title' in data:
             meta['series'] = data['title']
+            if 'year' in data:
+                meta['series'] += ' (%d)' % data['year']
         if 'season' in data:
             meta['season'] = str(data['season'])
         if 'date' in data:
