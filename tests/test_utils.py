@@ -392,9 +392,9 @@ class TestMetaParse(TestCase):
 
     def test_quality__provided_multiple(self):
         path = MOVIE_TITLE + '1080P ac3' + MEDIA_EXTENSION
-        expected = '1080p Dolby Digital'
         actual = meta_parse(path).get('quality')
-        self.assertEqual(expected, actual)
+        self.assertIn('1080p', actual)
+        self.assertIn('Dolby Digital', actual)
 
     def test_quality__omitted(self):
         path = MOVIE_TITLE + MEDIA_EXTENSION
