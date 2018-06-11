@@ -101,6 +101,13 @@ def merge_dicts(d1, *dn):
 def meta_parse(path, media=None):
     """ Uses guessit to parse metadata from a filename
     """
+    common_country_codes = {
+        'AU',
+        'RUS',
+        'UK',
+        'US'
+    }
+
     media = {
         'television': 'episode',
         'tv': 'episode',
@@ -154,7 +161,13 @@ def meta_parse(path, media=None):
         else:
             meta['quality'] += ' ' + data[field]
     if 'release_group' in data:
-        meta['group'] = data['release_group']
+        release_group = data['release_group']
+
+        # Sometimes country codes can get incorrectly detected as a scene group
+        if 'series' in meta and release_group.upper() in common_country_codes:
+            meta['series'] += ' (%s)' % release_group.upper()
+        else:
+            meta['group'] = data['release_group']
     meta['extension'] = file_extension(path)
     return meta
 
