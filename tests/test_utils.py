@@ -2,11 +2,11 @@
 import json
 import os
 from copy import deepcopy
-from os.path import isdir, join, realpath, split
+from os.path import isdir, join, realpath, relpath, split
 from shutil import rmtree
 from tempfile import gettempdir
 
-from mnamer.exceptions import MnamerConfigException
+from mnamer.exceptions import MnamerException, MnamerConfigException
 from mnamer.utils import (
     config_load,
     config_save,
@@ -14,7 +14,8 @@ from mnamer.utils import (
     extension_match,
     file_stem,
     file_extension,
-    merge_dicts
+    merge_dicts,
+    meta_parse
 )
 from . import *
 
@@ -23,14 +24,25 @@ DUMMY_DIR = 'some_dir'
 DUMMY_FILE = 'some_file'
 OPEN_TARGET = 'mnamer.utils.open'
 
+MEDIA_EXTENSION = '.mkv'
+MEDIA_GROUP = 'EZTV'
+MEDIA_EPISODE = '01x01'
+MEDIA_JUNK = 'Who Let the Dogs Out?'
+
 MOVIE_DIR = 'C:\\Movies\\' if IS_WINDOWS else '/movies/'
-MOVIE_FILE_STEM = 'Spaceballs 1987'
-MOVIE_FILE_EXTENSION = '.mkv'
+MOVIE_TITLE = 'Spaceballs (1987)'
+
+TELEVISION_DIR = 'C:\\Television\\' if IS_WINDOWS else '/telelvision/'
+TELEVISION_SERIES = 'Adventure Time'
+TELEVISION_EPISODE_A = 'S01E01'
+TELEVISION_EPISODE_B = '01x01'
+TELEVISION_EPISODE_MULTI = 'S01E01E02'
+TELEVISION_FILENAME = '%s %s' % (TELEVISION_SERIES, TELEVISION_EPISODE_A)
 
 ENVIRON_BACKUP = deepcopy(os.environ)
 
 TEMP_DIR = realpath(gettempdir() + '/mnamer')
-TEST_FILES = (
+TEST_FILES = {relpath(path) for path in {
     'f1.mkv',
     'f2.mkv',
     'f3.tiff',
@@ -40,7 +52,7 @@ TEST_FILES = (
     'd1b/d2a/f7.mp4',
     'd1b/d2b/f8.mkv',
     'd1b/d2b/f9.tiff'
-)
+}}
 
 
 def tmp_path(*paths):
@@ -158,7 +170,11 @@ class TestDirCrawl(TestCase):
 
     def test_dirs__multiple(self):
         data = tmp_path('d1a', 'd1b')
-        expected = tmp_path('d1a/f4.mp4', 'd1a/f5.mkv', 'd1b/f6.tiff')
+        expected = tmp_path(*{
+            relpath(path) for path in {
+                'd1a/f4.mp4', 'd1a/f5.mkv', 'd1b/f6.tiff'
+            }
+        })
         actual = dir_crawl(data)
         self.assertSetEqual(expected, actual)
 
@@ -178,7 +194,7 @@ class TestDirCrawl(TestCase):
 class TestExtensionMatch(TestCase):
 
     def setUp(self):
-        self.path = MOVIE_DIR + MOVIE_FILE_STEM + '.mkv'
+        self.path = MOVIE_DIR + MOVIE_TITLE + '.mkv'
 
     def test_pass__dot(self):
         valid_extensions = ['.mkv']
@@ -204,14 +220,14 @@ class TestExtensionMatch(TestCase):
 class TestFileStem(TestCase):
 
     def test_abs_path(self):
-        path = MOVIE_DIR + MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
-        expected = MOVIE_FILE_STEM
+        path = MOVIE_DIR + MOVIE_TITLE + MEDIA_EXTENSION
+        expected = MOVIE_TITLE
         actual = file_stem(path)
         self.assertEqual(expected, actual)
 
     def test_rel_path(self):
-        path = MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
-        expected = MOVIE_FILE_STEM
+        path = MOVIE_TITLE + MEDIA_EXTENSION
+        expected = MOVIE_TITLE
         actual = file_stem(path)
         self.assertEqual(expected, actual)
 
@@ -225,26 +241,26 @@ class TestFileStem(TestCase):
 class TestFileExtension(TestCase):
 
     def test_abs_path(self):
-        path = MOVIE_DIR + MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
-        expected = MOVIE_FILE_EXTENSION.lstrip('.')
+        path = MOVIE_DIR + MOVIE_TITLE + MEDIA_EXTENSION
+        expected = MEDIA_EXTENSION.lstrip('.')
         actual = file_extension(path)
         self.assertEqual(expected, actual)
 
     def test_rel_path(self):
-        path = MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION
-        expected = MOVIE_FILE_EXTENSION.lstrip('.')
+        path = MOVIE_TITLE + MEDIA_EXTENSION
+        expected = MEDIA_EXTENSION.lstrip('.')
         actual = file_extension(path)
         self.assertEqual(expected, actual)
 
     def test_no_extension(self):
-        path = MOVIE_FILE_STEM
+        path = MOVIE_TITLE
         expected = ''
         actual = file_extension(path)
         self.assertEqual(expected, actual)
 
     def test_multiple_extensions(self):
-        path = MOVIE_FILE_STEM + MOVIE_FILE_EXTENSION + MOVIE_FILE_EXTENSION
-        expected = MOVIE_FILE_EXTENSION.lstrip('.')
+        path = MOVIE_TITLE + MEDIA_EXTENSION + MEDIA_EXTENSION
+        expected = MEDIA_EXTENSION.lstrip('.')
         actual = file_extension(path)
         self.assertEqual(expected, actual)
 
@@ -273,3 +289,141 @@ class TestMergeDicts(TestCase):
         expected = {'a': 10, 'b': 20, 'c': 3}
         actual = merge_dicts(d1, d2)
         self.assertDictEqual(expected, actual)
+
+
+class TestMetaParse(TestCase):
+
+    def test_television__filename_only(self):
+        path = TELEVISION_FILENAME
+        expected = {
+            'episode': '1',
+            'media': 'television',
+            'season': '1',
+            'series': TELEVISION_SERIES
+        }
+        actual = dict(meta_parse(path))
+        self.assertDictEqual(expected, actual)
+
+    def test_television__full_path(self):
+        path = TELEVISION_DIR + TELEVISION_FILENAME
+        expected = {
+            'episode': '1',
+            'media': 'television',
+            'season': '1',
+            'series': TELEVISION_SERIES
+        }
+        actual = dict(meta_parse(path))
+        self.assertDictEqual(expected, actual)
+
+    def test_television__multi(self):
+        path = TELEVISION_FILENAME + 'E02'
+        expected = {
+            'episode': '1',
+            'media': 'television',
+            'season': '1',
+            'series': TELEVISION_SERIES
+        }
+        actual = dict(meta_parse(path))
+        self.assertDictEqual(expected, actual)
+
+    def test_television__series_with_year(self):
+        path = 'Deception (2008) 01x01' + MEDIA_EXTENSION
+        expected = 'Deception (2008)'
+        actual = meta_parse(path).get('series')
+        self.assertEqual(expected, actual)
+
+    def test_television__series_with_country_code_1(self):
+        path = TELEVISION_FILENAME + ' (UK)'
+        expected = TELEVISION_SERIES + ' (UK)'
+        actual = meta_parse(path).get('series')
+        self.assertEqual(expected, actual)
+
+    def test_television__series_with_country_code_2(self):
+        path = TELEVISION_FILENAME + ' [us]'
+        expected = TELEVISION_SERIES + ' (US)'
+        actual = meta_parse(path).get('series')
+        self.assertEqual(expected, actual)
+
+    def test_television__series_with_date(self):
+        path = "The Daily Show 2017.11.01" + MEDIA_EXTENSION
+        expected = "The Daily Show"
+        actual = meta_parse(path)['series']
+        self.assertEqual(expected, actual)
+
+    def test_television__media_override(self):
+        path = 'Lost (2004)' + MEDIA_EXTENSION
+        expected = 'television'
+        actual = meta_parse(path, media='television')['media']
+        self.assertEqual(expected, actual)
+
+    def test_movie__filename_only(self):
+        path = MOVIE_TITLE + MEDIA_EXTENSION
+        expected = {
+            'title': 'Spaceballs',
+            'date': '1987-01-01',
+            'media': 'movie',
+            'extension': 'mkv'
+        }
+        actual = dict(meta_parse(path))
+        self.assertDictEqual(expected, actual)
+
+    def test_movie__full_path(self):
+        path = MOVIE_DIR + MOVIE_TITLE + MEDIA_EXTENSION
+        expected = {
+            'title': 'Spaceballs',
+            'date': '1987-01-01',
+            'media': 'movie',
+            'extension': 'mkv'
+        }
+        actual = dict(meta_parse(path))
+        self.assertDictEqual(expected, actual)
+
+    def test_movie__media_overide(self):
+        path = 'Deception (2008) 01x01' + MEDIA_EXTENSION
+        expected = 'movie'
+        actual = meta_parse(path, media='movie')['media']
+        self.assertEqual(expected, actual)
+
+    def test_quality__provided_single(self):
+        path = MOVIE_TITLE + '4k' + MEDIA_EXTENSION
+        expected = '2160p'
+        actual = meta_parse(path).get('quality')
+        self.assertEqual(expected, actual)
+
+    def test_quality__provided_multiple(self):
+        path = MOVIE_TITLE + '1080P ac3' + MEDIA_EXTENSION
+        expected = '1080p Dolby Digital'
+        actual = meta_parse(path).get('quality')
+        self.assertEqual(expected, actual)
+
+    def test_quality__omitted(self):
+        path = MOVIE_TITLE + MEDIA_EXTENSION
+        actual = meta_parse(path).get('quality')
+        self.assertIsNone(actual)
+
+    def test_release_group__provided(self):
+        path = '%s%s [%s]' % (MOVIE_TITLE, MEDIA_EXTENSION, MEDIA_GROUP)
+        expected = MEDIA_GROUP
+        actual = meta_parse(path).get('group')
+        self.assertEqual(actual, expected)
+
+    def test_release_group_omitted(self):
+        path = MOVIE_TITLE + MEDIA_EXTENSION
+        actual = meta_parse(path)
+        self.assertNotIn('group', actual)
+
+    def test_extension__provided(self):
+        path = MOVIE_TITLE + MEDIA_EXTENSION
+        expected = MEDIA_EXTENSION.lstrip('.')
+        actual = meta_parse(path).get('extension')
+        self.assertEqual(expected, actual)
+
+    def test_extension__omitted(self):
+        path = MOVIE_TITLE
+        actual = meta_parse(path).get('extension')
+        self.assertIsNone(actual)
+
+    def test_unknown(self):
+        path = ''
+        with self.assertRaises(MnamerException):
+            meta_parse(path)
