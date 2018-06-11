@@ -149,6 +149,7 @@ def meta_parse(path, media=None):
     # Parse non-media specific fields
     quality_fields = [
         field for field in data if field in [
+            'audio_codec',
             'audio_profile',
             'screen_size',
             'video_codec',
