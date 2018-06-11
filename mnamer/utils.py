@@ -11,7 +11,7 @@ from guessit import guessit
 from mapi.metadata import MetadataMovie, MetadataTelevision
 from mapi.providers import provider_factory
 
-from mnamer.exceptions import MnamerConfigException
+from mnamer.exceptions import MnamerException, MnamerConfigException
 
 
 def config_load(path):
@@ -107,9 +107,10 @@ def meta_parse(path, media=None):
         'movie': 'movie'
     }.get(media)
     data = dict(guessit(path, {'type': media}))
+    media_type = data.get('type') if path else 'unknown'
 
     # Parse movie metadata
-    if data.get('type') == 'movie':
+    if media_type == 'movie':
         meta = MetadataMovie()
         if 'title' in data:
             meta['title'] = data['title']
@@ -118,7 +119,7 @@ def meta_parse(path, media=None):
         meta['media'] = 'movie'
 
     # Parse television metadata
-    elif data.get('type') == 'episode':
+    elif media_type == 'episode':
         meta = MetadataTelevision()
         if 'title' in data:
             meta['series'] = data['title']
@@ -133,8 +134,10 @@ def meta_parse(path, media=None):
                 meta['episode'] = str(sorted(data['episode'])[0])
             else:
                 meta['episode'] = str(data['episode'])
+
+    # Exit early if media type cannot be determined
     else:
-        raise ValueError('Could not determine media type')
+        raise MnamerException('Could not determine media type')
 
     # Parse non-media specific fields
     quality_fields = [
