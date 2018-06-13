@@ -88,6 +88,7 @@ class Notify:
         self._log('%s=%s' % (text, user_input), INFO)
         return user_input
 
+
 def get_parameters():
     """ Retrieves program arguments from CLI parameters
     """
@@ -373,7 +374,7 @@ def main():
 
     # Display config information
     if config['verbose']:
-        print('\nConfiguration')
+        notify.heading('Configuration')
     for key, value in config.items():
             notify.info("%s: %s" % (key, None if value == '' else value), True)
 
