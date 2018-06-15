@@ -3,13 +3,14 @@
 *.json
 *.py[cod]
 .DS_Store
+.coverage
 .idea
 .python-version
 .vscode
+MANIFEST
 __pycache__/
 build
 dist/
-MANIFEST
 playground*
 testing/test_files_*
 venv*
