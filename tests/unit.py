@@ -178,11 +178,11 @@ class TestDirCrawl(TestCase):
 
     def test_dirs__multiple(self):
         data = tmp_path('d1a', 'd1b')
-        expected = tmp_path(*{
-            relpath(path) for path in {
-            'd1a/f4.mp4', 'd1a/f5.mkv', 'd1b/f6.tiff'
-        }
-        })
+        expected = tmp_path(
+            *{relpath(path) for path in {
+                'd1a/f4.mp4', 'd1a/f5.mkv', 'd1b/f6.tiff'
+            }}
+        )
         actual = dir_crawl(data)
         self.assertSetEqual(expected, actual)
 
