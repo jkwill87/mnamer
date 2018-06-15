@@ -5,7 +5,9 @@ from os import environ, walk
 from os.path import basename, exists, isdir, isfile, join, realpath, relpath, splitext
 from re import sub, IGNORECASE
 from string import Template
+from sys import version_info
 from unicodedata import normalize
+from warnings import catch_warnings, filterwarnings
 
 from guessit import guessit
 from mapi.metadata import MetadataMovie, MetadataTelevision
@@ -142,7 +144,9 @@ def meta_parse(path, media=None):
         'tv': 'episode',
         'movie': 'movie'
     }.get(media)
-    data = dict(guessit(path, {'type': media}))
+    with catch_warnings():
+        filterwarnings('ignore', category=Warning)
+        data = dict(guessit(path, {'type': media}))
     media_type = data.get('type') if path else 'unknown'
 
     # Parse movie metadata
