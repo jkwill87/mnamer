@@ -1,10 +1,13 @@
 # coding=utf-8
+
 import json
 import os
 from copy import deepcopy
 from os.path import isdir, join, realpath, relpath, split
 from shutil import rmtree
 from tempfile import gettempdir
+
+from mapi.metadata import MetadataMovie, MetadataTelevision
 
 from mnamer.exceptions import MnamerException, MnamerConfigException
 from mnamer.utils import (
@@ -15,7 +18,8 @@ from mnamer.utils import (
     file_stem,
     file_extension,
     merge_dicts,
-    meta_parse
+    meta_parse,
+    provider_search
 )
 from . import *
 
@@ -172,8 +176,8 @@ class TestDirCrawl(TestCase):
         data = tmp_path('d1a', 'd1b')
         expected = tmp_path(*{
             relpath(path) for path in {
-                'd1a/f4.mp4', 'd1a/f5.mkv', 'd1b/f6.tiff'
-            }
+            'd1a/f4.mp4', 'd1a/f5.mkv', 'd1b/f6.tiff'
+        }
         })
         actual = dir_crawl(data)
         self.assertSetEqual(expected, actual)
@@ -427,3 +431,38 @@ class TestMetaParse(TestCase):
         path = ''
         with self.assertRaises(MnamerException):
             meta_parse(path)
+
+
+class TestProviderSearch(TestCase):
+
+    def setUp(self):
+        self.metadata_television = MetadataTelevision(
+            series='Lost',
+            season=1,
+            episode=1
+        )
+        self.metadata_movie = MetadataMovie(
+            title='Pulp Fiction'
+        )
+
+    @patch('mapi.providers.TMDb')
+    def test_call_tmdb(self, mock_tmdb):
+        list(provider_search(
+            self.metadata_movie,
+            movie_api='tmdb',
+            api_key_tmdb='yolo'
+        ))
+        mock_tmdb.assert_called_once_with(api_key='yolo')
+
+    @patch('mapi.providers.TVDb')
+    def test_call_tvdb(self, mock_tvdb):
+        list(provider_search(
+            self.metadata_television,
+            television_api='tvdb',
+            api_key_tvdb='yolo'
+        ))
+        mock_tvdb.assert_called_once_with(api_key='yolo')
+
+    def test_call_missing_api(self):
+        with self.assertRaises(MnamerException):
+            list(provider_search(self.metadata_television))

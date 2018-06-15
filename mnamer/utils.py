@@ -184,16 +184,19 @@ def provider_search(metadata, id_key=None, **options):
             'television': options.get('television_api'),
             'movie': options.get('movie_api')
         }.get(media)
+
+        if api is None:
+            raise MnamerException('No provider specified for %s type' % media)
         keys = {
             'tmdb': options.get('api_key_tmdb'),
-            'tvdb': options.get('api_key_tvdb'),
-            'imdb': None
+            'tvdb': options.get('api_key_tvdb')
         }
+
         provider_search.providers[media] = provider_factory(
             api, api_key=keys.get(api)
         )
     for result in provider_search.providers[media].search(id_key, **metadata):
-        yield result
+        yield result  # pragma: no cover
 
 
 def sanitize_filename(filename, scene_mode=False, replacements=None):
