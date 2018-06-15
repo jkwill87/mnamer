@@ -1,11 +1,12 @@
-__pycache__/
-.DS_Store
-.idea
-.vscode
+*$py.class
 *.egg-info/
 *.json
 *.py[cod]
-*$py.class
+.DS_Store
+.idea
+.python-version
+.vscode
+__pycache__/
 build
 dist/
 MANIFEST
