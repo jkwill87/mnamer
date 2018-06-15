@@ -103,7 +103,10 @@ def filename_replace(filename, replacements):
 def filename_scenify(filename):
     """ Replaces non ascii-alphanumerics with .
     """
-    filename = normalize('NFKD', filename)
+    if version_info[0] == 2:
+        filename = normalize('NFKD', filename.decode('utf-8', 'strict'))
+    else:
+        filename = normalize('NFKD', filename)
     filename.encode('ascii', 'ignore')
     filename = sub(r'\s+', '.', filename)
     filename = sub(r'[^.\d\w/]', '', filename)
