@@ -289,11 +289,10 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
         if config.get('%s_destination' % media):
             dest_dir = meta.format(config.get('%s_destination' % media, ''))
             dest_path = '%s/%s' % (dest_dir, dest_path)
-        dest_path = sanitize_filename(
-            dest_path,
-            config.get('scene', False),
-            config.get('replacements')
-        )
+        dest_path = filename_sanitize(dest_path)
+        dest_path = filename_replace(dest_path, config.get('replacements'))
+        if config.get('scene') is True:
+            dest_path = filename_scenify(dest_path)
 
         # Attempt to process file
         try:

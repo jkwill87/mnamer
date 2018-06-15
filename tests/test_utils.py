@@ -3,7 +3,7 @@
 import json
 import os
 from copy import deepcopy
-from os.path import isdir, join, realpath, relpath, split
+from os.path import isdir, join, realpath, relpath, sep, split
 from shutil import rmtree
 from tempfile import gettempdir
 
@@ -15,8 +15,11 @@ from mnamer.utils import (
     config_save,
     dir_crawl,
     extension_match,
-    file_stem,
     file_extension,
+    file_stem,
+    filename_replace,
+    filename_sanitize,
+    filename_scenify,
     merge_dicts,
     meta_parse,
     provider_search
@@ -266,6 +269,85 @@ class TestFileExtension(TestCase):
         path = MOVIE_TITLE + MEDIA_EXTENSION + MEDIA_EXTENSION
         expected = MEDIA_EXTENSION.lstrip('.')
         actual = file_extension(path)
+        self.assertEqual(expected, actual)
+
+
+class FilenameReplace(TestCase):
+
+    def setUp(self):
+        self.filename = 'The quick brown fox jumps over the lazy dog'
+
+    def test_no_change(self):
+        replacements = {}
+        expected = self.filename
+        actual = filename_replace(self.filename, replacements)
+        self.assertEqual(expected, actual)
+
+    def test_single_replacement(self):
+        replacements = {'brown': 'red'}
+        expected = 'The quick red fox jumps over the lazy dog'
+        actual = filename_replace(self.filename, replacements)
+        self.assertEqual(expected, actual)
+
+    def test_multiple_replacement(self):
+        replacements = {'the': 'a', 'lazy': 'misunderstood', 'dog': 'cat'}
+        expected = 'a quick brown fox jumps over a misunderstood cat'
+        actual = filename_replace(self.filename, replacements)
+        self.assertEqual(expected, actual)
+
+    def test_only_replaces_whole_words(self):
+        filename = '_the the theater the'
+        replacements = {'the': '_'}
+        expected = '_the _ theater _'
+        actual = filename_replace(filename, replacements)
+        self.assertEqual(expected, actual)
+
+
+class TestFilenameSanitize(TestCase):
+
+    def test_condense_whitespace(self):
+        filename = 'fix  these    spaces\tplease '
+        expected = 'fix these spaces please'
+        actual = filename_sanitize(filename)
+        self.assertEqual(expected, actual)
+
+    def test_remove_illegal_chars(self):
+        filename = '<:*sup*:>'
+        expected = 'sup'
+        actual = filename_sanitize(filename)
+        self.assertEqual(expected, actual)
+
+    def test_dir_concat(self):
+        filename = 'somedir%s%ssomefile' % (sep, sep)
+        expected = 'somedir%ssomefile' % sep
+        actual = filename_sanitize(filename)
+        self.assertEqual(expected, actual)
+
+
+class TestFilenameScenify(TestCase):
+
+    def test_dot_concat(self):
+        filename = 'some  file..name'
+        expected = 'some.file.name'
+        actual = filename_scenify(filename)
+        self.assertEqual(expected, actual)
+
+    def test_remove_non_alpanum_chars(self):
+        filename = 'who let the dogs out!? (1999)'
+        expected = 'who.let.the.dogs.out.1999'
+        actual = filename_scenify(filename)
+        self.assertEqual(expected, actual)
+
+    def test_spaces_to_dots(self):
+        filename = ' Space Jam '
+        expected = 'space.jam'
+        actual = filename_scenify(filename)
+        self.assertEqual(expected, actual)
+
+    def test_utf8_to_ascii(self):
+        filename = 'Amélie'
+        expected = 'amelie'
+        actual = filename_scenify(filename)
         self.assertEqual(expected, actual)
 
 

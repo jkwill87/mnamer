@@ -2,8 +2,8 @@
 
 import json
 from os import environ, walk
-from os.path import basename, exists, isdir, isfile, join, realpath, splitext
-from re import sub
+from os.path import basename, exists, isdir, isfile, join, realpath, relpath, splitext
+from re import sub, IGNORECASE
 from string import Template
 from unicodedata import normalize
 
@@ -87,6 +87,35 @@ def file_extension(path):
     """ Gets the extension for a path; period omitted
     """
     return splitext(path)[1].lstrip('.')
+
+
+def filename_replace(filename, replacements):
+    """ Replaces keys in replacements dict with their values
+    """
+    for word, replacement in replacements.items():
+        pattern = r'((?<=[^\w])|^)%s((?=[^\w])|$)' % word
+        filename = sub(pattern, replacement, filename, flags=IGNORECASE)
+    return filename
+
+
+def filename_scenify(filename):
+    """ Replaces non ascii-alphanumerics with .
+    """
+    filename = normalize('NFKD', filename)
+    filename.encode('ascii', 'ignore')
+    filename = sub(r'\s+', '.', filename)
+    filename = sub(r'[^.\d\w/]', '', filename)
+    filename = sub(r'\.+', '.', filename)
+    filename = filename.lower().strip('.')
+    return filename
+
+
+def filename_sanitize(filename):
+    """ Removes illegal filename characters and condenses whitespace
+    """
+    filename = sub(r'\s+', ' ', filename)
+    filename = sub(r'[<>:"|?*&%=+@#^.]', '', filename)
+    return relpath(filename.strip())
 
 
 def merge_dicts(d1, *dn):
@@ -197,20 +226,3 @@ def provider_search(metadata, id_key=None, **options):
         )
     for result in provider_search.providers[media].search(id_key, **metadata):
         yield result  # pragma: no cover
-
-
-def sanitize_filename(filename, scene_mode=False, replacements=None):
-    """ Removes illegal filename characters and condenses whitespace
-    """
-    for replacement in replacements:
-        filename = filename.replace(replacement, replacements[replacement])
-    if scene_mode is True:
-        filename = normalize('NFKD', filename)
-        filename.encode('ascii', 'ignore')
-        filename = sub(r'\s+', '.', filename)
-        filename = sub(r'[^.\d\w/]', '', filename)
-        filename = filename.lower()
-    else:
-        filename = sub(r'\s+', ' ', filename)
-        filename = sub(r'[^ \d\w?!.,_()\[\]\-/]', '', filename)
-    return filename.strip()
