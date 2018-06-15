@@ -9,8 +9,7 @@ from tempfile import gettempdir
 
 from mapi.metadata import MetadataMovie, MetadataTelevision
 
-from mnamer.exceptions import MnamerException, MnamerConfigException
-from mnamer.utils import (
+from mnamer import (
     config_load,
     config_save,
     dir_crawl,
@@ -22,6 +21,8 @@ from mnamer.utils import (
     filename_scenify,
     merge_dicts,
     meta_parse,
+    MnamerConfigException,
+    MnamerException,
     provider_search
 )
 from . import *
@@ -29,7 +30,7 @@ from . import *
 BAD_JSON = "{'some_key':True"
 DUMMY_DIR = 'some_dir'
 DUMMY_FILE = 'some_file'
-OPEN_TARGET = 'mnamer.utils.open'
+OPEN_TARGET = 'mnamer.open'
 
 MEDIA_EXTENSION = '.mkv'
 MEDIA_GROUP = 'EZTV'

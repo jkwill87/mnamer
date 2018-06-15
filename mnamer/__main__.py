@@ -28,9 +28,8 @@ from colorama import init as ascii_colour_init
 from mapi.exceptions import MapiNotFoundException
 from termcolor import cprint
 
-from mnamer import CONFIG_DEFAULTS
+from mnamer import *
 from mnamer.__version__ import VERSION
-from mnamer.utils import *
 
 
 class Notify:
