@@ -6,5 +6,7 @@ mock;python_version<"3"
 pylint
 pypandoc
 rope
+setuptools>=38.6.0
+twine>=1.11.0
 unittest2;python_version<"3"
-wheel
+wheel>=0.31.0
