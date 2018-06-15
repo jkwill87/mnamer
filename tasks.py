@@ -20,7 +20,7 @@ except (IOError, TypeError):
 
 
 def help():
-    print("usage: ./tasks.py " + '|'.join(sorted(TASKS)))
+    print("usage: ./tasks.py " + '|'.join(sorted(_get_available_tasks())))
 
 
 def clean():
@@ -35,13 +35,42 @@ def clean():
     sh('rm -rvf %s' % ' '.join(garbage))
 
 
+def bump_major():
+    _bump(1.0)
+
+
+def bump_minor():
+    _bump(0.1)
+
+
+def install():
+    sh('pip install -q .')
+
+
+def install_deps():
+    sh('pip install -q -U requirements-dev.txt')
+
+
+def uninstall():
+    sh('sudo -H pip -q uninstall -y %s' % PROJECT)
+
+
+def test():
+    sh('coverage run --source=%s -m unittest discover -v' % PROJECT)
+
+
+def version():
+    print('%s %s' % (PROJECT, VERSION))
+    sh('python --version')
+
+
 def _bump(increment):
     new_version = "%0.1f" % (VERSION + increment)
     response = input('Bump from %s to %s? (y/n) ' % (VERSION, new_version))
     if not response.lower().strip().startswith('y'):
         print('aborting')
         return
-    sh('pip install -q -U -r requirements-dev.txt')
+    install_deps()
 
     with open(VERSION_PATH, 'w') as version_txt:
         version_txt.write('VERSION = %s\n' % new_version)
@@ -56,42 +85,20 @@ def _bump(increment):
     clean()
 
 
-def bump_major():
-    _bump(1.0)
+def _get_available_tasks():
+    def _fx(): pass
+
+    return {
+        f.__name__: f for f in globals().values()
+        if type(f) == type(_fx) and f.__name__[0] != '_'
+    }
 
 
-def bump_minor():
-    _bump(0.1)
-
-
-def install():
-    sh('pip install -q .')
-
-
-def uninstall():
-    sh('sudo -H pip -q uninstall -y mapi')
-
-
-def test():
-    sh('coverage run --source=mnamer -m unittest discover -v')
-
-
-def version():
-    print('%s %s' % (PROJECT, VERSION))
-    sh('python --version')
-
-
-# Determine available tasks (e.g. defined function not prefixed by an underscore)
-def _fx(): pass
-
-
-TASKS = {
-    f.__name__: f for f in globals().values() 
-    if type(f) == type(_fx) and f.__name__[0] != '_'
-}
-
-# Determine arguments
-task_name = argv[1] if len(argv) == 2 else None
-
-# Run task (defaulting to help in undefined)
-TASKS.get(task_name, help)()
+# Program entry point
+if __name__ == '__main__':
+    tasks = {
+        task_fn for task_name, task_fn in _get_available_tasks().items()
+        if task_name in argv[1:]
+    }
+    if tasks: [task() for task in tasks]
+    else: help()
