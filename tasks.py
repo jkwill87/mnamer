@@ -2,16 +2,18 @@
 # Jessy Williams (jessy@jessywilliams.com) 2018
 
 from __future__ import print_function
+
 from builtins import input
 from os import system as sh, getcwd, sep
 from sys import argv
 
 PROJECT = getcwd().split(sep)[-1].lower()
 VERSION = 0
+VERSION_PATH = "%s/%s" % (PROJECT, '__version__.py')
 
 try:
     # Load VERSION from __version__.py
-    exec(open("%s/%s" % (PROJECT, '__version__.py')).read(), globals())
+    exec(open(VERSION_PATH).read(), globals())
 except (IOError, TypeError):
     print('Could not determine version!')
     exit()
@@ -34,20 +36,24 @@ def clean():
 
 
 def _bump(increment):
-    new_version = VERSION + increment
+    new_version = "%0.1f" % (VERSION + increment)
     response = input('Bump from %s to %s? (y/n) ' % (VERSION, new_version))
     if not response.lower().strip().startswith('y'):
         print('aborting')
         return
-    sh('pip install -q -r requirements-dev.txt')
-    with open('version.txt', 'w') as version_txt:
-        version_txt.write(str(new_version))
-    sh('git commit -am "Minor version bump"')
+    sh('pip install -q -U -r requirements-dev.txt')
+
+    with open(VERSION_PATH, 'w') as version_txt:
+        version_txt.write('VERSION = %s\n' % new_version)
+    sh('git reset HEAD -- .')  # unstage all changes
+    sh('git add %s/__version__.py' % PROJECT)
+    sh('git commit -m "Version bump"')
     sh('git tag %s' % new_version)
+    sh('git push')
     sh('git push --tags')
     sh('./setup.py sdist bdist_wheel')
-    sh('python -m twine upload dis/%s-%s*.whl' % (PROJECT, new_version))
-    sh('rm -r *.egg-info')
+    sh('python -m twine upload dist/%s-%s*' % (PROJECT, new_version))
+    clean()
 
 
 def bump_major():
