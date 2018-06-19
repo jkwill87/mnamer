@@ -56,7 +56,7 @@ def uninstall():
 
 
 def test():
-    sh('coverage run --source=%s -m unittest tests/*.py -v' % PROJECT)
+    sh('coverage run --source=%s -m unittest discover -v' % PROJECT)
 
 
 def version():

@@ -449,7 +449,7 @@ class TestMetaParse(TestCase):
             'title': 'Spaceballs',
             'date': '1987-01-01',
             'media': 'movie',
-            'extension': 'mkv'
+            'extension': '.mkv'
         }
         actual = dict(meta_parse(path))
         self.assertDictEqual(expected, actual)
@@ -460,7 +460,7 @@ class TestMetaParse(TestCase):
             'title': 'Spaceballs',
             'date': '1987-01-01',
             'media': 'movie',
-            'extension': 'mkv'
+            'extension': '.mkv'
         }
         actual = dict(meta_parse(path))
         self.assertDictEqual(expected, actual)
@@ -501,7 +501,7 @@ class TestMetaParse(TestCase):
 
     def test_extension__provided(self):
         path = MOVIE_TITLE + MEDIA_EXTENSION
-        expected = MEDIA_EXTENSION.lstrip('.')
+        expected = MEDIA_EXTENSION
         actual = meta_parse(path).get('extension')
         self.assertEqual(expected, actual)
 
