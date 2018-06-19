@@ -2,9 +2,9 @@
 # coding=utf-8
 
 from __future__ import print_function
+from builtins import input
 
 from argparse import ArgumentParser
-from builtins import input
 from logging import DEBUG, ERROR, INFO, log
 from os.path import expanduser, normpath
 from re import match
