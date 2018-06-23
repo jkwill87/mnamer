@@ -2,9 +2,11 @@
 # Jessy Williams (jessy@jessywilliams.com) 2018
 
 from __future__ import print_function
-
 from builtins import input
-from os import system as sh, getcwd, sep
+
+from fnmatch import fnmatch
+from os import system as sh, getcwd, sep, walk
+from os.path import join
 from sys import argv
 
 PROJECT = getcwd().split(sep)[-1].lower()
@@ -24,15 +26,29 @@ def help():
 
 
 def clean():
-    garbage = [
-        '__pycache__',
-        '.pyc',
-        '.sqlite',
-        '*egg-info',
-        'build',
-        'dist'
+    garbage_patterns = [
+        '*/__pycache__',
+        '**/*.pyc',
+        '*.sqlite',
+        './*egg-info',
+        './build',
+        './dist'
     ]
-    sh('rm -rvf %s' % ' '.join(garbage))
+    paths = set()
+
+    for root, dirs, files in walk('.'):
+        for dir_ in dirs:
+            paths.add(join(root, dir_))
+            for file in files:
+                paths.add(join(root, dir_, file))
+        else:
+            for file in files:
+                paths.add(join(root, file))
+
+    for pattern in garbage_patterns:
+        for path in paths:
+            if fnmatch(path, pattern):
+                sh('rm -rvf %s' % path)
 
 
 def bump_major():
