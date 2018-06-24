@@ -6,7 +6,7 @@ from builtins import input
 
 from argparse import ArgumentParser
 from logging import DEBUG, ERROR, INFO, log
-from os.path import expanduser, normpath
+from os.path import expanduser, normpath, realpath
 from re import match
 from shutil import move as shutil_move
 from sys import platform
@@ -17,8 +17,19 @@ from mapi.exceptions import MapiNotFoundException
 from termcolor import cprint
 
 from mnamer import CONFIG_DEFAULTS, VERSION
-from mnamer.utils import *
 from mnamer.exceptions import MnamerConfigException
+from mnamer.utils import (
+    config_load,
+    config_save,
+    dir_crawl,
+    file_stem,
+    filename_replace,
+    filename_sanitize,
+    filename_scenify,
+    merge_dicts,
+    meta_parse,
+    provider_search
+)
 
 
 class Notify:
@@ -281,6 +292,7 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
         dest_path = filename_replace(dest_path, config.get('replacements'))
         if config.get('scene') is True:
             dest_path = filename_scenify(dest_path)
+        dest_path = realpath(dest_path)
 
         # Attempt to process file
         try:
