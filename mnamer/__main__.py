@@ -16,8 +16,9 @@ from colorama import init as ascii_colour_init
 from mapi.exceptions import MapiNotFoundException
 from termcolor import cprint
 
-from mnamer import *
-from mnamer.__version__ import VERSION
+from mnamer import CONFIG_DEFAULTS, VERSION
+from mnamer.utils import *
+from mnamer.exceptions import MnamerConfigException
 
 
 class Notify:
@@ -35,7 +36,7 @@ class Notify:
     def _log(self, text, level):
         if self.logging:
             log(level, text)
-    
+
     def _print(self, text, bullet, **args):
         if bullet is True:
             text = self.bullet_text + text
@@ -362,7 +363,7 @@ def main():
     if config['verbose']:
         notify.heading('Configuration')
     for key, value in config.items():
-            notify.info("%s: %s" % (key, None if value == '' else value), True)
+        notify.info("%s: %s" % (key, None if value == '' else value), True)
 
     # Process Files
     media = directives.get('media')
