@@ -345,7 +345,8 @@ def main():
             config = merge_dicts(config_load(path), config)
             notify.success('success loading config from %s' % path, True)
         except MnamerConfigException:
-            notify.verbose('skipped loading config from %s' % path, True)
+            if config.get('verbose') is True:
+                notify.verbose('skipped loading config from %s' % path, True)
 
     # Backfill configuration with defaults
     config = merge_dicts(CONFIG_DEFAULTS, config)
@@ -362,8 +363,8 @@ def main():
     # Display config information
     if config['verbose']:
         notify.heading('Configuration')
-    for key, value in config.items():
-        notify.info("%s: %s" % (key, None if value == '' else value), True)
+        for key, value in config.items():
+            notify.info("%s: %s" % (key, None if value == '' else value), True)
 
     # Process Files
     media = directives.get('media')
