@@ -186,7 +186,8 @@ DIRECTIVES:
     return targets, config, directives
 
 
-def process_files(targets, media=None, test_run=False, id_key=None, **config):
+def process_files(targets, user_media=None, test_run=False, id_key=None,
+        **config):
     """ Processes targets, relocating them as needed
     """
     notify = Notify()
@@ -209,7 +210,7 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
             print(file_stem(file_path))
 
         # Print metadata fields
-        meta = meta_parse(file_path, media)
+        meta = meta_parse(file_path, user_media)
         if config['verbose'] is True:
             for field, value in meta.items():
                 notify.verbose('%s: %s' % (field, value), True)
@@ -379,10 +380,10 @@ def main():
             notify.info("%s: %s" % (key, None if value == '' else value), True)
 
     # Process Files
-    media = directives.get('media')
+    user_media = directives.get('media')
     test_run = directives.get('test_run')
     id_key = directives.get('id')
-    process_files(targets, media, test_run, id_key, **config)
+    process_files(targets, user_media, test_run, id_key, **config)
 
 
 if __name__ == '__main__':
