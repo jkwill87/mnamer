@@ -3,11 +3,13 @@
 [![coverage](https://img.shields.io/codecov/c/github/jkwill87/mnamer/develop.svg?style=for-the-badge)](https://codecov.io/gh/jkwill87/mnamer)
 [![licence](https://img.shields.io/github/license/jkwill87/mnamer.svg?style=for-the-badge)](https://en.wikipedia.org/wiki/MIT_License)
 
-![manmer logo](https://github.com/jkwill87/mnamer/raw/develop/_assets/mnamer.png)
+![mnamer logo](https://github.com/jkwill87/mnamer/raw/develop/_assets/logo.png)
 
 # mnamer
 
 mnamer (**m**edia re**namer**) is an intelligent and highly configurable media organization utility. It parses media filenames for metadata, searches the web to fill in the blanks, and then renames and moves them.
+
+![mnamer terminal recording](https://github.com/jkwill87/mnamer/blob/develop/_assets/terminal-rec.svg)
 
 
 # Installation
