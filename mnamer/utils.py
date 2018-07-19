@@ -146,6 +146,12 @@ def filename_sanitize(filename):
     return relpath(base.strip() + ext)
 
 
+def filter_blacklist(paths, blacklist):
+    return {
+        p for p in paths if not any(match(b, file_stem(p)) for b in blacklist)
+    }
+
+
 def merge_dicts(d1, *dn):
     """ Merges two or more dictionaries
     """
