@@ -1,9 +1,17 @@
 import json
-from os import environ, walk
+from os import environ, getcwd, walk
 from os.path import (
-    basename, exists, isdir, isfile, join, realpath, relpath, splitext
+    basename,
+    exists,
+    expanduser,
+    isdir,
+    isfile,
+    join,
+    realpath,
+    relpath,
+    splitext,
 )
-from re import sub, IGNORECASE
+from re import IGNORECASE, match, sub
 from string import Template
 from sys import version_info
 from unicodedata import normalize
@@ -13,7 +21,24 @@ from guessit import guessit
 from mapi.metadata import MetadataMovie, MetadataTelevision
 from mapi.providers import provider_factory
 
-from mnamer.exceptions import MnamerException, MnamerConfigException
+from mnamer.exceptions import MnamerConfigException, MnamerException
+
+
+def config_find():
+    """ Looks for a .mnamer.json file from the cwd upwards
+    """
+    working_dir = getcwd()
+    parent_dir = None
+    while True:
+        parent_dir = realpath(join(working_dir, ".."))
+        if parent_dir == working_dir:  # e.g. fs root or error
+            break
+        target = join(working_dir, ".mnamer.json")
+        if isfile(target):
+            return target
+        working_dir = parent_dir
+    target = join(expanduser("~"), ".mnamer.json")
+    return target if isfile(target) else ""
 
 
 def config_load(path):
