@@ -1,7 +1,10 @@
 -r requirements.txt
 autopep8
+black;python_version>"2"
 codecov
 coverage
+ipdb
+ipython
 mock;python_version<"3"
 pylint
 pypandoc
