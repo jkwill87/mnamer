@@ -61,4 +61,4 @@ class Arguments:
 
     @property
     def configuration(self):
-        return merge_dicts(self.configuration, self.directives)
+        return merge_dicts(self.preferences, self.directives)
