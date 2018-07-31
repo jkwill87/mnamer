@@ -1,14 +1,16 @@
 from __future__ import print_function
 
 from argparse import ArgumentParser
+from builtins import input
 from enum import Enum
 from typing import Mapping, Sequence
+
 from colorama import init
 from termcolor import cprint
 
 from mnamer.utils import merge_dicts
 
-_styled = True
+init(autoreset=True)
 
 
 class Style(Enum):
@@ -41,16 +43,10 @@ def print_listing(header, listing):
     msg("\n%s:" % header, Style.BOLD)
     if isinstance(listing, Mapping):
         for key, value in listing.items():
-            if value is not None:
                 msg("%s: %r" % (key, value), bullet=True)
     else:
         for value in listing:
-            if value is not None:
                 msg("%s" % value, bullet=True)
+    if not listing:
+        msg("None", bullet=True)
 
-
-try:
-    initialized
-except NameError:
-    init(autoreset=True)
-    initialized = True
