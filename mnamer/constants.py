@@ -28,6 +28,8 @@ PREFERENCE_DEFAULTS = {
     "api_key_tvdb": "E69C7A2CEF2F3152",
 }
 
+PREFERENCE_KEYS = set(PREFERENCE_DEFAULTS.keys())
+
 DIRECTIVE_KEYS = {"help", "version", "media", "test", "id"}
 
 CONFIGURATION_KEYS = PREFERENCE_KEYS | DIRECTIVE_KEYS
