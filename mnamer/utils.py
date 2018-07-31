@@ -49,10 +49,10 @@ def config_load(path):
         with open(templated_path, mode="r") as file_pointer:
             data = json.load(file_pointer)
         return {k: v for k, v in data.items() if v is not None}
-    except IOError as e:  # e.g. permission error, file doesn't exist
+    except IOError as e:
         error_msg = str(e.strerror).lower()
-    except TypeError:  # e.g. not a properly formatted JSON file
-        error_msg = "invalid configuration data"
+    except (TypeError, json.decoder.JSONDecodeError):
+        error_msg = "invalid configuration file"
     raise MnamerConfigException(error_msg)
 
 
