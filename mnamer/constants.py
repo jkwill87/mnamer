@@ -1,23 +1,36 @@
-PREFERENCE_KEYS = {
-    "api_key_tmdb",
-    "api_key_tvdb",
-    "batch",
-    "blacklist",
-    "extmask",
-    "hits",
-    "movie_api",
-    "movie_destination",
-    "movie_template",
-    "recurse",
-    "replacements",
-    "scene",
-    "television_api",
-    "television_destination",
-    "television_template",
-    "verbose",
+PREFERENCE_DEFAULTS = {
+    # General Options
+    "batch": False,
+    "blacklist": (".*sample.*", "^RARBG.*"),
+    "cache": True,
+    "extmask": ("avi", "m4v", "mp4", "mkv", "ts", "wmv"),
+    "hits": 15,
+    "recurse": False,
+    "replacements": {"&": "and", "@": "at", ":": ",", ";": ","},
+    "scene": False,
+    "verbose": False,
+    # Movie related
+    "movie_api": "tmdb",
+    "movie_directory": "",
+    "movie_template": "<$title ><($year)><$extension>",
+    # Television related
+    "television_api": "tvdb",
+    "television_directory": "",
+    "television_template": (
+        "<$series - >"
+        "< - S$season>"
+        "<E$episode - >"
+        "< - $title>"
+        "<$extension>"
+    ),
+    # API Keys -- consider using your own or IMDb if limits are hit
+    "api_key_tmdb": "db972a607f2760bb19ff8bb34074b4c7",
+    "api_key_tvdb": "E69C7A2CEF2F3152",
 }
 
 DIRECTIVE_KEYS = {"help", "version", "media", "test", "id"}
+
+CONFIGURATION_KEYS = PREFERENCE_KEYS | DIRECTIVE_KEYS
 
 USAGE = "mnamer target [targets ...] [options] [directives]"
 
