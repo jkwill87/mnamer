@@ -143,7 +143,7 @@ class TestDirCrawl(TestCase):
     def setUpClass(cls):
         for test_file in TEST_FILES:
             path = join(TEMP_DIR, test_file)
-            directory, filename = split(path)
+            directory, _ = split(path)
             if directory and not isdir(directory):
                 os.makedirs(directory)
             open(path, "a").close()
