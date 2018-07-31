@@ -50,14 +50,15 @@ PREFERENCES:
     --extmask <ext,...>: define extension mask used by the file parser
     --hits <number>: limits the maximum number of hits for each query
     --movie_api {tmdb}: set movie api provider
-    --movie_destination <path>: set movie relocation destination
+    --movie_directory <path>: set movie relocation directory
     --movie_template <template>: set movie renaming template
     --television_api {tvdb}: set television api provider
-    --television_destination <path>: set television relocation destination
+    --television_directory <path>: set television relocation directory
     --television_template <template>: set television renaming template
 
 DIRECTIVES:
-    Directives are one-off parameters that are used to perform secondary tasks like overriding media detection.
+    Directives are one-off parameters that are used to perform secondary tasks
+    like overriding media detection.
 
     --config: prints current config JSON to stdout then exits
     --help: prints this message then exits

@@ -25,10 +25,10 @@ class Arguments:
         p.add_argument("--hits", type=int, default=None)
         p.add_argument("--extmask", nargs="+", default=None)
         p.add_argument("--movie_api", choices=["tmdb"], default=None)
-        p.add_argument("--movie_destination", default=None)
+        p.add_argument("--movie_directory", default=None)
         p.add_argument("--movie_template", default=None)
         p.add_argument("--television_api", choices=["tvdb"], default=None)
-        p.add_argument("--television_destination", default=None)
+        p.add_argument("--television_directory", default=None)
         p.add_argument("--television_template", default=None)
 
         # Directive Parameters

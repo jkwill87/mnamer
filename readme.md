@@ -5,6 +5,7 @@
 
 ![mnamer logo](https://github.com/jkwill87/mnamer/raw/develop/_assets/logo.png)
 
+
 # mnamer
 
 mnamer (**m**edia re**namer**) is an intelligent and highly configurable media organization utility. It parses media filenames for metadata, searches the web to fill in the blanks, and then renames and moves them.
@@ -43,14 +44,14 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 |-s, --scene              |                  | scene mode; replace non ascii-alphanumerics with `.`  |
 |-r, --recurse            |                  | show this help message and exit                       |
 |-v, --verbose            |                  | increases output verbosity                            |
-|--blacklist              | pattern          | ignore files including these words                     |
+|--blacklist              | pattern          | ignore files including these words                    |
 |--hits                   | number           | limits the maximum number of hits for each query      |
-|--extmask                | extention(s)     | define the extension mask used by the the file parser   |
+|--extmask                | extention(s)     | define the extension mask used by the the file parser |
 |--movie_api              | `imdb` or `tmdb` | set movie api provider                                |
-|--movie_destination      | path             | set movie relocation destination                      |
+|--movie_directory        | path             | set movie relocation directory                        |
 |--movie_template         | template         | set movie renaming template                           |
 |--television_api         | `tvdb`           | set television api provider                           |
-|--television_destination | path             | set television relocation destination                 |
+|--television_directory   | path             | set television relocation directory                   |
 |--television_template    | template         | set television renaming template                      |
 
 
@@ -58,12 +59,12 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 
 Whereas preferences configure how mnamer works, directives are one-off parameters that are used to perform secondary tasks like exporting the current option set to a file.
 
-| Option           | Arguments               | Description                            |
-|:-----------------|:------------------------|:---------------------------------------|
-| --config          | path                    | prints config JSON to stdout then exits |
-| --id             | id                      | explicitly specify movie or series id  |
-| --media          | `movie` or `television` | override media detection               |
-| --test           |                         | mocks the renaming and moving of files  |
+| Option           | Arguments               | Description                              |
+|:-----------------|:------------------------|:-----------------------------------------|
+| --config         | path                    | prints config JSON to stdout then exits  |
+| --id             | id                      | explicitly specify movie or series id    |
+| --media          | `movie` or `television` | override media detection                 |
+| --test           |                         | mocks the renaming and moving of files   |
 
 
 # Templating
@@ -71,7 +72,7 @@ Whereas preferences configure how mnamer works, directives are one-off parameter
 
 You have complete control of how media files are renamed using mnamer's template options:
 
-- you can use templating with the following options: **television_destination**, **television_template**, **movie_destination**, **movie_template**
+- you can use templating with the following options: **television_directory**, **television_template**, **movie_directory**, **movie_template**
 - metadata fields prefixed with a sigil `$` found inside angle brackets with the result of a match
 - any leading or trailing whitespace will be trimmed
 - if a field can't be matched, the entire contents of the bracket are disregared
@@ -99,7 +100,7 @@ You have complete control of how media files are renamed using mnamer's template
 *Note: If the subdirectory doesn't exist, mnamer will create it*
 
 - movie_template: `<$title ><($year)><$extension>`
-- movie_destination: `/media/movies/<$title ><($year)>`
+- movie_directory: `/media/movies/<$title ><($year)>`
 - target: `~/Downloads/The.Goonies.1985.720p.BluRay.x264-SiNNERS.mkv`
 - result: `/media/movies/The Goonies (1985)/The Goonies (1985).mkv`
 
