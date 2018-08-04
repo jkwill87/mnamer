@@ -11,6 +11,7 @@ from termcolor import cprint
 from mnamer.utils import dict_merge
 
 init(autoreset=True)
+_styled = True
 
 
 class Style(Enum):
@@ -30,7 +31,7 @@ def msg(text, *styles, bullet=False, **kwargs):
     if bullet:
         text = " - " + text
     if _styled:
-        kwargs = merge_dicts(
+        kwargs = dict_merge(
             kwargs,
             *[style.value for style in styles if isinstance(style, Style)]
         )
@@ -39,7 +40,8 @@ def msg(text, *styles, bullet=False, **kwargs):
         print(text, kwargs)
 
 
-def print_listing(header, listing):
+def print_listing(listing, header=None):
+    if header:
     msg("\n%s:" % header, Style.BOLD)
     if isinstance(listing, Mapping):
         for key, value in listing.items():
