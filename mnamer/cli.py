@@ -3,7 +3,7 @@ from __future__ import print_function
 from argparse import ArgumentParser
 from builtins import input
 from enum import Enum
-from typing import Mapping, Sequence
+from collections import Mapping, Sequence
 
 from colorama import init
 from termcolor import colored
@@ -37,7 +37,9 @@ def set_verbosity(level):
     _verbosity = Verbosity(level)
 
 
-def msg(text="", *styles, verbosity=Verbosity.NORMAL, bullet=False, **kwargs):
+def msg(text="", *styles, **kwargs):
+    verbosity = kwargs.pop("verbosity", Verbosity.NORMAL)
+    bullet = kwargs.pop("bullet", False)
     if _verbosity.value < verbosity.value:
         return
     if bullet:

@@ -54,7 +54,7 @@ if __name__ == "__main__":
     )
     print_listing(config.preference_dict, Verbosity.DEBUG, "Preferences")
     print_listing(config.directive_dict, Verbosity.DEBUG, "Directives")
-    # print_listing(targets, Verbosity.DEBUG, "Targets")
+    print_listing(targets, Verbosity.DEBUG, "Targets")
 
     # Main program loop
     success_count = 0
