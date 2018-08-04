@@ -25,7 +25,7 @@ PREFERENCE_DEFAULTS = {
     "recurse": False,
     "replacements": {"&": "and", "@": "at", ":": ",", ";": ","},
     "scene": False,
-    "verbose": False,
+    "verbosity": 1,
     # Movie related
     "movie_api": "tmdb",
     "movie_directory": "",
@@ -64,12 +64,12 @@ PREFERENCES:
     -b, --batch: batch mode; disables interactive prompts
     -s, --scene: scene mode; use dots in place of alphanumeric chars
     -r, --recurse: show this help message and exit
-    -v, --verbose: increases output verbosity
     --nocolor: print to stdout without color or styling
     --nocache: disable request caching
-    --blacklist <word,...>: ignores files matching these regular expressions
+    --blacklist <word,...>: ignore files matching these regular expressions
     --extmask <ext,...>: define extension mask used by the file parser
-    --hits <number>: limits the maximum number of hits for each query
+    --hits <number>: limit the maximum number of hits for each query
+    --verbosity {0,1,2}: set verbosity level; 0=quiet, 1=normal, 2=debug
     --movie_api {tmdb}: set movie api provider
     --movie_directory <path>: set movie relocation directory
     --movie_template <template>: set movie renaming template
@@ -83,7 +83,7 @@ DIRECTIVES:
 
     --config: prints current config JSON to stdout then exits
     --help: prints this message then exits
-    --id < id >: explicitly specify movie or series id
+    --id <id>: explicitly specify movie or series id
     --media { movie, television }: override media detection
     --test: mocks the renaming and moving of files
     --version: display running mnamer version number then exits

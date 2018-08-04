@@ -5,7 +5,14 @@ from __future__ import print_function
 
 from mnamer import VERSION
 from mnamer.args import Arguments
-from mnamer.cli import Style, get_choice, msg, print_listing, style_enabled
+from mnamer.cli import (
+    Style,
+    Verbosity,
+    msg,
+    print_listing,
+    set_style,
+    set_verbosity,
+)
 from mnamer.config import Configuration
 from mnamer.exceptions import (
     MnamerConfigException,
@@ -22,7 +29,8 @@ if __name__ == "__main__":
     except MnamerConfigException:
         pass
     targets = Target.populate_paths(args.targets, **config)
-    style_enabled(config.get("nocolor") == False)
+    set_style(config.get("nocolor") == False)
+    set_verbosity(config.get("verbosity"))
 
     # Handle directives and configuration
     if config.get("version"):
@@ -38,43 +46,56 @@ if __name__ == "__main__":
         exit(0)
 
     # Print configuration details
-    if config.get("verbose"):
-        print_listing(config.preference_dict, "Preferences")
-        print_listing(config.directive_dict, "Directives")
-        print_listing(targets, "Targets")
+    msg(
+        "Starting mnamer\n",
+        Style.BOLD,
+        Style.UNDERLINE,
+        verbosity=Verbosity.DEBUG,
+    )
+    print_listing(config.preference_dict, Verbosity.DEBUG, "Preferences")
+    print_listing(config.directive_dict, Verbosity.DEBUG, "Directives")
+    # print_listing(targets, Verbosity.DEBUG, "Targets")
 
     # Main program loop
     success_count = 0
-    msg("Starting mnamer", Style.BOLD, Style.UNDERLINE)
     for target in targets:
-
-        # Print target metadata
-        if config.get("debug"):
-            print_listing(target)
 
         # Process current target
         media = target.metadata["media"].title()
         filename = target.source.filename
-        msg('\nProcessing %s "%s"' % (media, filename), Style.BOLD)
+        msg('Processing %s "%s"' % (media, filename), Style.BOLD)
+        print_listing(target.metadata, Verbosity.DEBUG)
         try:
-            get_choice(target)
+            # get_choice(target)
             msg("moving to %s" % target.destination.full, bullet=True)
             if not config.get("test"):
                 target.relocate()
-            msg("OK!", Style.GREEN, bullet=True)
+            msg("OK!\n", Style.GREEN, bullet=True)
             success_count += 1
         except MnamerQuitException:
-            msg("EXITING as per user request", Style.RED, bullet=True)
+            msg("EXITING as per user request\n", Style.RED, bullet=True)
             break
         except MnamerQuitException:
-            msg("SKIPPING as per user request", Style.YELLOW, bullet=True)
+            msg("SKIPPING as per user request\n", Style.YELLOW, bullet=True)
             continue
 
     # Display results
-    summary = "\n%d out of %d files moved successfully"
+    summary = "%d out of %d files moved successfully"
     if success_count == 0:
-        msg(summary % (success_count, total_count), Style.RED)
+        msg(
+            summary % (success_count, total_count),
+            Style.RED,
+            verbosity=Verbosity.QUIET,
+        )
     elif success_count == total_count:
-        msg(summary % (success_count, total_count), Style.GREEN)
+        msg(
+            summary % (success_count, total_count),
+            Style.GREEN,
+            verbosity=Verbosity.QUIET,
+        )
     else:
-        msg(summary % (success_count, total_count), Style.YELLOW)
+        msg(
+            summary % (success_count, total_count),
+            Style.YELLOW,
+            verbosity=Verbosity.QUIET,
+        )

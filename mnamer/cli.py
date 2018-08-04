@@ -6,53 +6,69 @@ from enum import Enum
 from typing import Mapping, Sequence
 
 from colorama import init
-from termcolor import cprint
+from termcolor import colored
 
 from mnamer.utils import dict_merge
-
-init(autoreset=True)
-_styled = True
 
 
 class Style(Enum):
     BOLD = ("attr", "bold")
     DARK = ("attr", "dark")
     UNDERLINE = ("attr", "underline")
+    CYAN = ("color", "cyan")
     GREEN = ("color", "green")
     RED = ("color", "red")
     YELLOW = ("color", "yellow")
 
 
-def style_enabled(enabled=True):
-    global _styled
-    _styled = True if enabled else False
+class Verbosity(Enum):
+    QUIET = 0
+    NORMAL = 1
+    DEBUG = 2
 
 
-def msg(text, *styles, bullet=False, **kwargs):
+def set_style(is_enabled):
+    global _style
+    _style = True if is_enabled else False
+
+
+def set_verbosity(level):
+    global _verbosity
+    _verbosity = Verbosity(level)
+
+
+def msg(text="", *styles, verbosity=Verbosity.NORMAL, bullet=False, **kwargs):
+    if _verbosity.value < verbosity.value:
+        return
     if bullet:
         text = " - " + text
-    if _styled:
-        style_dict = {"color": None, "attrs": []}
+    if _style:
+        color = None
+        attrs = []
         for style in styles:
             key, value = style.value
             if key == "color":
-                style_dict["color"] = value
+                color = value
             else:
-                style_dict["attrs"].append(value)
-        cprint(text, **dict_merge(kwargs, style_dict))
-    else:
-        print(text, **kwargs)
+                attrs.append(value)
+        text = colored(text, color, None, attrs)
+    print(text, **kwargs)
 
 
-def print_listing(listing, header=None):
+def print_listing(listing, verbosity=Verbosity.NORMAL, header=None):
     if header:
-    msg("\n%s:" % header, Style.BOLD)
+        msg("%s:" % header, Style.BOLD, verbosity=verbosity)
     if isinstance(listing, Mapping):
         for key, value in listing.items():
-                msg("%s: %r" % (key, value), bullet=True)
+            msg("%s: %r" % (key, value), verbosity=verbosity, bullet=True)
     else:
         for value in listing:
-                msg("%s" % value, bullet=True)
+            msg("%s" % value, verbosity=verbosity, bullet=True)
     if not listing:
-        msg("None", bullet=True)
+        msg("None", verbosity=verbosity, bullet=True)
+    msg(verbosity=verbosity)
 
+
+_style = True
+_verbosity = Verbosity.NORMAL
+init(autoreset=True)
