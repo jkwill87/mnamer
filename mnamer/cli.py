@@ -15,11 +15,12 @@ _styled = True
 
 
 class Style(Enum):
-    BOLD = {"attrs": ["bold"]}
-    DARK = {"attrs": ["dark"]}
-    GREEN = {"color": "green"}
-    RED = {"color": "red"}
-    YELLOW = {"color": "yellow"}
+    BOLD = ("attr", "bold")
+    DARK = ("attr", "dark")
+    UNDERLINE = ("attr", "underline")
+    GREEN = ("color", "green")
+    RED = ("color", "red")
+    YELLOW = ("color", "yellow")
 
 
 def enable_styling(enabled=True):
@@ -31,11 +32,14 @@ def msg(text, *styles, bullet=False, **kwargs):
     if bullet:
         text = " - " + text
     if _styled:
-        kwargs = dict_merge(
-            kwargs,
-            *[style.value for style in styles if isinstance(style, Style)]
-        )
-        cprint(text, **kwargs)
+        style_dict = {"color": None, "attrs": []}
+        for style in styles:
+            key, value = style.value
+            if key == "color":
+                style_dict["color"] = value
+            else:
+                style_dict["attrs"].append(value)
+        cprint(text, **dict_merge(kwargs, style_dict))
     else:
         print(text, kwargs)
 
