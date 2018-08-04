@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
-from mnamer.constants import DIRECTIVE_KEYS, HELP, PREFERENCE_KEYS, USAGE
-from mnamer.utils import merge_dicts
+from mnamer import DIRECTIVE_KEYS, HELP, PREFERENCE_KEYS, USAGE
+from mnamer.utils import dict_merge
 
 
 class Arguments:
@@ -61,4 +61,4 @@ class Arguments:
 
     @property
     def configuration(self):
-        return merge_dicts(self.preferences, self.directives)
+        return dict_merge(self.preferences, self.directives)

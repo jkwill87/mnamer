@@ -1,19 +1,14 @@
 from collections.abc import Mapping
 from copy import deepcopy
-from json import dumps
 
-from mnamer.constants import (
+from mnamer import (
     CONFIGURATION_KEYS,
     DIRECTIVE_KEYS,
     PREFERENCE_DEFAULTS,
     PREFERENCE_KEYS,
 )
 from mnamer.exceptions import MnamerConfigException
-from mnamer.utils import config_find, config_load, merge_dicts
-
-
-def _to_json(d):
-    return dumps(d, sort_keys=True, skipkeys=True, allow_nan=False)
+from mnamer.utils import crawl_out, json_read, dict_to_json, dict_merge
 
 
 class Configuration(Mapping):
@@ -35,8 +30,11 @@ class Configuration(Mapping):
         return self._dict.__len__()
 
     def load_file(self):
-        json_file = config_find()
-        json_data = config_load(json_file)
+        json_file = crawl_out(".mnamer.json")
+        try:
+            json_data = json_read(json_file)
+        except RuntimeError as e:
+            raise MnamerConfigException(e)
         for key, value in json_data.items():
             value = json_data.get(key)
             if key not in PREFERENCE_KEYS:
@@ -51,7 +49,7 @@ class Configuration(Mapping):
 
     @property
     def preference_json(self):
-        return _to_json(self.preference_dict)
+        return dict_to_json(self.preference_dict)
 
     @property
     def directive_dict(self):
@@ -59,8 +57,8 @@ class Configuration(Mapping):
 
     @property
     def directive_json(self):
-        return _to_json(self.directive_dict)
+        return dict_to_json(self.directive_dict)
 
     @property
     def config_json(self):
-        return _to_json(self._dict)
+        return dict_to_json(self._dict)

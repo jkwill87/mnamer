@@ -8,7 +8,7 @@ from typing import Mapping, Sequence
 from colorama import init
 from termcolor import cprint
 
-from mnamer.utils import merge_dicts
+from mnamer.utils import dict_merge
 
 init(autoreset=True)
 
