@@ -1,6 +1,6 @@
 -r requirements.txt
 autopep8
-black;python_version>"2"
+black;python_version>"3"
 codecov
 coverage
 ipdb
