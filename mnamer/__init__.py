@@ -18,7 +18,8 @@ PREFERENCE_DEFAULTS = {
     # General Options
     "batch": False,
     "blacklist": (".*sample.*", "^RARBG.*"),
-    "cache": True,
+    "nocache": False,
+    "nocolor": False,
     "extmask": ("avi", "m4v", "mp4", "mkv", "ts", "wmv"),
     "hits": 15,
     "recurse": False,
@@ -64,6 +65,8 @@ PREFERENCES:
     -s, --scene: scene mode; use dots in place of alphanumeric chars
     -r, --recurse: show this help message and exit
     -v, --verbose: increases output verbosity
+    --nocolor: print to stdout without color or styling
+    --nocache: disable request caching
     --blacklist <word,...>: ignores files matching these regular expressions
     --extmask <ext,...>: define extension mask used by the file parser
     --hits <number>: limits the maximum number of hits for each query

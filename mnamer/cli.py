@@ -23,7 +23,7 @@ class Style(Enum):
     YELLOW = ("color", "yellow")
 
 
-def enable_styling(enabled=True):
+def style_enabled(enabled=True):
     global _styled
     _styled = True if enabled else False
 
@@ -41,7 +41,7 @@ def msg(text, *styles, bullet=False, **kwargs):
                 style_dict["attrs"].append(value)
         cprint(text, **dict_merge(kwargs, style_dict))
     else:
-        print(text, kwargs)
+        print(text, **kwargs)
 
 
 def print_listing(listing, header=None):
