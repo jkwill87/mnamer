@@ -1,14 +1,17 @@
 from __future__ import print_function
 
-from argparse import ArgumentParser
-from builtins import input
 from enum import Enum
-from collections import Mapping, Sequence
 
-from colorama import init
-from termcolor import colored
+from teletype.components import SelectOne
+from teletype.io import style_format
 
+from mnamer.exceptions import MnamerQuitException, MnamerSkipException
 from mnamer.utils import dict_merge
+
+try:
+    from collections.abc import Mapping, Sequence
+except ImportError:
+    from collections import Mapping, Sequence
 
 
 class Style(Enum):
@@ -21,10 +24,8 @@ class Style(Enum):
     YELLOW = ("color", "yellow")
 
 
-class Verbosity(Enum):
-    QUIET = 0
-    NORMAL = 1
-    DEBUG = 2
+_style = True
+_verbose = False
 
 
 def set_style(is_enabled):
@@ -32,45 +33,33 @@ def set_style(is_enabled):
     _style = True if is_enabled else False
 
 
-def set_verbosity(level):
-    global _verbosity
-    _verbosity = Verbosity(level)
+def set_verbose(is_enabled):
+    global _verbose
+    _verbose = True if is_enabled else False
 
 
-def msg(text="", *styles, **kwargs):
-    verbosity = kwargs.pop("verbosity", Verbosity.NORMAL)
-    bullet = kwargs.pop("bullet", False)
-    if _verbosity.value < verbosity.value:
+def msg(text, style=None, bullet=False, debug=False):
+    if debug and not _verbose:
         return
     if bullet:
         text = " - " + text
-    if _style:
-        color = None
-        attrs = []
-        for style in styles:
-            key, value = style.value
-            if key == "color":
-                color = value
-            else:
-                attrs.append(value)
-        text = colored(text, color, None, attrs)
-    print(text, **kwargs)
+    if _style and style:
+        text = style_format(text, style)
+    print(text)
 
 
-def print_listing(listing, verbosity=Verbosity.NORMAL, header=None):
+def print_listing(listing, header=None, debug=False):
+    if debug and not _verbose:
+        return
     if header:
-        msg("%s:" % header, Style.BOLD, verbosity=verbosity)
+        msg("%s:" % header, "bold")
     if isinstance(listing, Mapping):
         for key, value in listing.items():
-            msg("%s: %r" % (key, value), verbosity=verbosity, bullet=True)
+            msg("%s: %r" % (key, value), bullet=True)
     else:
         for value in listing:
-            msg("%s" % value, verbosity=verbosity, bullet=True)
+            msg("%s" % value, bullet=True)
     if not listing:
-        msg("None", verbosity=verbosity, bullet=True)
-    msg(verbosity=verbosity)
+        msg("None", bullet=True)
+    print()
 
-
-_style = True
-_verbosity = Verbosity.NORMAL
-init(autoreset=True)
