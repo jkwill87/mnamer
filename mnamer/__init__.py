@@ -25,7 +25,7 @@ PREFERENCE_DEFAULTS = {
     "recurse": False,
     "replacements": {"&": "and", "@": "at", ":": ",", ";": ","},
     "scene": False,
-    "verbosity": 1,
+    "verbose": False,
     # Movie related
     "movie_api": "tmdb",
     "movie_directory": "",
@@ -64,12 +64,12 @@ PREFERENCES:
     -b, --batch: batch mode; disables interactive prompts
     -s, --scene: scene mode; use dots in place of alphanumeric chars
     -r, --recurse: show this help message and exit
+    --v, --verbose: increases output verbosity
     --nocolor: print to stdout without color or styling
     --nocache: disable request caching
     --blacklist <word,...>: ignore files matching these regular expressions
     --extmask <ext,...>: define extension mask used by the file parser
     --hits <number>: limit the maximum number of hits for each query
-    --verbosity {0,1,2}: set verbosity level; 0=quiet, 1=normal, 2=debug
     --movie_api {tmdb}: set movie api provider
     --movie_directory <path>: set movie relocation directory
     --movie_template <template>: set movie renaming template

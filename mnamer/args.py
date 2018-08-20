@@ -20,6 +20,7 @@ class Arguments:
         p.add_argument("-b", "--batch", action="store_true", default=None)
         p.add_argument("-s", "--scene", action="store_true", default=None)
         p.add_argument("-r", "--recurse", action="store_true", default=None)
+        p.add_argument("-v", "--verbose", action="store_true", default=None)
         p.add_argument("--blacklist", nargs="+", default=None)
         p.add_argument("--hits", type=int, default=None)
         p.add_argument("--extmask", nargs="+", default=None)
@@ -38,7 +39,6 @@ class Arguments:
         p.add_argument("--media", choices=["movie", "television"])
         p.add_argument("--test", action="store_true")
         p.add_argument("--version", action="store_true")
-        p.add_argument("--verbosity", type=int, default=None)
 
         args = vars(p.parse_args())
 
