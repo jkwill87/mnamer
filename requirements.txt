@@ -1,6 +1,5 @@
 appdirs>=1.4
 attrs>=18.1
-enum34;python_version<"3.4"
 future;python_version<"3"
 guessit>=3
 mapi>=3.4.3,<4

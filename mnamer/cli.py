@@ -1,7 +1,5 @@
 from __future__ import print_function
 
-from enum import Enum
-
 from teletype.components import SelectOne
 from teletype.io import style_format
 
@@ -12,16 +10,6 @@ try:
     from collections.abc import Mapping, Sequence
 except ImportError:
     from collections import Mapping, Sequence
-
-
-class Style(Enum):
-    BOLD = ("attr", "bold")
-    DARK = ("attr", "dark")
-    UNDERLINE = ("attr", "underline")
-    CYAN = ("color", "cyan")
-    GREEN = ("color", "green")
-    RED = ("color", "red")
-    YELLOW = ("color", "yellow")
 
 
 _style = True
