@@ -101,12 +101,13 @@ class Target:
         self.metadata = _meta_parse(path, config.get("media"))
         media = self.metadata.get("media", "unknown")
         self.api = config.get(media + "_api")
-        self.api_key = config.get("api_key_" + media)
+        self.api_key = config.get("api_key_" + self.api)
         self.directory = config.get(media + "_directory")
         self.template = config.get(media + "_template")
         self.is_renamed = False
         self.is_moved = False
         self.id_key = config.get("id")
+        self.hits = config.get("hits")
 
     def __hash__(self):
         return self.source.full.__hash__() + self.destination.full.__hash__()
@@ -137,7 +138,7 @@ class Target:
         return {Target(path, **config) for path in paths}
 
     def query(self):
-        media = self.metadata.media
+        media = self.metadata.get("media")
         if self.api is None:
             raise MnamerException("No provider specified for %s type" % media)
         if media not in self._providers:
@@ -145,7 +146,11 @@ class Target:
             self._providers[media] = provider
         else:
             provider = self._providers[media]
+        hit = 0
         for result in provider.search(self.id_key, **self.metadata):
+            hit += 1
+            if hit == self.hits:
+                break
             yield result
 
     def relocate(self):

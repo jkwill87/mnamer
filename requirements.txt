@@ -2,5 +2,5 @@ appdirs>=1.4
 attrs>=18.1
 future;python_version<"3"
 guessit>=3
-mapi>=3.4.3,<4
+mapi>=3.5,<4
 teletype

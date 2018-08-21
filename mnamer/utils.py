@@ -46,7 +46,7 @@ def crawl_in(paths, recurse=False, extmask=None):
 
 
 def crawl_out(filename):
-    """ Looks for a file in the home directory and each directory up from the cwd
+    """ Looks for a file in the home directory and each directory up from cwd
     """
     working_dir = getcwd()
     parent_dir = None
