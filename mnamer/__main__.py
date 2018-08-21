@@ -7,12 +7,19 @@ from teletype.exceptions import TeletypeQuitException, TeletypeSkipException
 
 from mnamer import VERSION
 from mnamer.args import Arguments
-from mnamer.cli import get_choice, msg, print_listing, enable_style, enable_verbose
+from mnamer.cli import (
+    enable_style,
+    enable_verbose,
+    get_choice,
+    msg,
+    print_listing,
+)
 from mnamer.config import Configuration
 from mnamer.exceptions import MnamerConfigException
 from mnamer.target import Target
 
-if __name__ == "__main__":
+
+def main():
     args = Arguments()
     config = Configuration(**args.configuration)
     try:
@@ -71,3 +78,7 @@ if __name__ == "__main__":
         msg(summary % (success_count, total_count), "green")
     else:
         msg(summary % (success_count, total_count), "yellow")
+
+
+if __name__ == "__main__":
+    main()
