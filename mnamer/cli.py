@@ -1,9 +1,10 @@
 from __future__ import print_function
 
 from teletype.components import SelectOne
+from teletype.components.config import set_style
+from teletype.exceptions import TeletypeQuitException, TeletypeSkipException
 from teletype.io import style_format
 
-from mnamer.exceptions import MnamerQuitException, MnamerSkipException
 from mnamer.utils import dict_merge
 
 try:
@@ -11,17 +12,18 @@ try:
 except ImportError:
     from collections import Mapping, Sequence
 
+set_style(secondary="magenta")
 
 _style = True
 _verbose = False
 
 
-def set_style(is_enabled):
+def enable_style(is_enabled):
     global _style
     _style = True if is_enabled else False
 
 
-def set_verbose(is_enabled):
+def enable_verbose(is_enabled):
     global _verbose
     _verbose = True if is_enabled else False
 
@@ -51,3 +53,10 @@ def print_listing(listing, header=None, debug=False):
         msg("None", bullet=True)
     print()
 
+
+def get_choice(target):
+    media = target.metadata["media"].title()
+    filename = target.source.filename
+    heading = style_format('Processing %s "%s"' % (media, filename), "bold")
+    choices = target.query()
+    return SelectOne(choices, heading, skip=True, quit=True).prompt()

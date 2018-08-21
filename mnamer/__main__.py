@@ -3,15 +3,13 @@
 
 from __future__ import print_function
 
+from teletype.exceptions import TeletypeQuitException, TeletypeSkipException
+
 from mnamer import VERSION
 from mnamer.args import Arguments
-from mnamer.cli import msg, print_listing, set_style, set_verbose
+from mnamer.cli import get_choice, msg, print_listing, enable_style, enable_verbose
 from mnamer.config import Configuration
-from mnamer.exceptions import (
-    MnamerConfigException,
-    MnamerQuitException,
-    MnamerSkipException,
-)
+from mnamer.exceptions import MnamerConfigException
 from mnamer.target import Target
 
 if __name__ == "__main__":
@@ -22,8 +20,8 @@ if __name__ == "__main__":
     except MnamerConfigException:
         pass
     targets = Target.populate_paths(args.targets, **config)
-    set_style(config.get("nocolor") == False)
-    set_verbose(config.get("verbose") == True)
+    enable_style(config.get("nocolor") == False)
+    enable_verbose(config.get("verbose") == True)
 
     # Handle directives and configuration
     if config.get("version"):
@@ -49,22 +47,19 @@ if __name__ == "__main__":
     for target in targets:
 
         # Process current target
-        media = target.metadata["media"].title()
-        filename = target.source.filename
-        msg('Processing %s "%s"' % (media, filename), "bold")
         if config.get("verbose"):
             print_listing(target.metadata)
         try:
-            # get_choice(target)
+            get_choice(target)
             msg("moving to %s" % target.destination.full, bullet=True)
             if not config.get("test"):
                 target.relocate()
             msg("OK!\n", "green", True)
             success_count += 1
-        except MnamerQuitException:
+        except TeletypeQuitException:
             msg("EXITING as per user request\n", "red", True)
             break
-        except MnamerQuitException:
+        except TeletypeSkipException:
             msg("SKIPPING as per user request\n", "yellow", True)
             continue
 
