@@ -2,7 +2,6 @@
 [![travis\_ci](https://img.shields.io/travis/jkwill87/mnamer/develop.svg?style=for-the-badge)](https://travis-ci.org/jkwill87/mnamer)
 [![coverage](https://img.shields.io/codecov/c/github/jkwill87/mnamer/develop.svg?style=for-the-badge)](https://codecov.io/gh/jkwill87/mnamer)
 [![licence](https://img.shields.io/github/license/jkwill87/mnamer.svg?style=for-the-badge)](https://en.wikipedia.org/wiki/MIT_License)
-[![code style black](https://img.shields.io/badge/Code%20Style-Black-black.svg?style=for-the-badge)](https://github.com/ambv/black)
 
 ![mnamer logo](https://github.com/jkwill87/mnamer/raw/develop/_assets/logo.png)
 

@@ -11,32 +11,32 @@ from sys import argv
 
 PROJECT = getcwd().split(sep)[-1].lower()
 VERSION = 0
-VERSION_PATH = "%s/%s" % (PROJECT, "__version__.py")
+VERSION_PATH = "%s/%s" % (PROJECT, '__version__.py')
 
 try:
     # Load VERSION from __version__.py
     exec(open(VERSION_PATH).read(), globals())
 except (IOError, TypeError):
-    print("Could not determine version!")
+    print('Could not determine version!')
     exit()
 
 
 def help():
-    print("usage: ./tasks.py " + "|".join(sorted(_get_available_tasks())))
+    print("usage: ./tasks.py " + '|'.join(sorted(_get_available_tasks())))
 
 
 def clean():
     garbage_patterns = [
-        "*/__pycache__",
-        "**/*.pyc",
-        "*.sqlite",
-        "./*egg-info",
-        "./build",
-        "./dist",
+        '*/__pycache__',
+        '**/*.pyc',
+        '*.sqlite',
+        './*egg-info',
+        './build',
+        './dist'
     ]
     paths = set()
 
-    for root, dirs, files in walk("."):
+    for root, dirs, files in walk('.'):
         for dir_ in dirs:
             paths.add(join(root, dir_))
             for file in files:
@@ -48,7 +48,7 @@ def clean():
     for pattern in garbage_patterns:
         for path in paths:
             if fnmatch(path, pattern):
-                sh("rm -rvf %s" % path)
+                sh('rm -rvf %s' % path)
 
 
 def bump_major():
@@ -60,66 +60,61 @@ def bump_minor():
 
 
 def install():
-    sh("pip install -q .")
+    sh('pip install -q .')
 
 
 def install_deps():
-    sh("pip install -q -U requirements-dev.txt")
+    sh('pip install -q -U requirements-dev.txt')
 
 
 def uninstall():
-    sh("sudo -H pip -q uninstall -y %s" % PROJECT)
+    sh('sudo -H pip -q uninstall -y %s' % PROJECT)
 
 
 def test():
-    sh("coverage run --source=%s -m unittest discover -v" % PROJECT)
+    sh('coverage run --source=%s -m unittest discover -v' % PROJECT)
 
 
 def version():
-    print("%s %s" % (PROJECT, VERSION))
-    sh("python --version")
+    print('%s %s' % (PROJECT, VERSION))
+    sh('python --version')
 
 
 def _bump(increment):
     new_version = "%0.1f" % (VERSION + increment)
-    response = input("Bump from %s to %s? (y/n) " % (VERSION, new_version))
-    if not response.lower().strip().startswith("y"):
-        print("aborting")
+    response = input('Bump from %s to %s? (y/n) ' % (VERSION, new_version))
+    if not response.lower().strip().startswith('y'):
+        print('aborting')
         return
     install_deps()
 
-    with open(VERSION_PATH, "w") as version_txt:
-        version_txt.write("VERSION = %s\n" % new_version)
-    sh("git reset HEAD -- .")  # unstage all changes
-    sh("git add %s/__version__.py" % PROJECT)
+    with open(VERSION_PATH, 'w') as version_txt:
+        version_txt.write('VERSION = %s\n' % new_version)
+    sh('git reset HEAD -- .')  # unstage all changes
+    sh('git add %s/__version__.py' % PROJECT)
     sh('git commit -m "Version bump"')
-    sh("git tag %s" % new_version)
-    sh("git push")
-    sh("git push --tags")
-    sh("./setup.py sdist bdist_wheel")
-    sh("python -m twine upload dist/%s-%s*" % (PROJECT, new_version))
+    sh('git tag %s' % new_version)
+    sh('git push')
+    sh('git push --tags')
+    sh('./setup.py sdist bdist_wheel')
+    sh('python -m twine upload dist/%s-%s*' % (PROJECT, new_version))
     clean()
 
 
 def _get_available_tasks():
-    def _fx():
-        pass
+    def _fx(): pass
 
     return {
-        f.__name__: f
-        for f in globals().values()
-        if type(f) == type(_fx) and f.__name__[0] != "_"
+        f.__name__: f for f in globals().values()
+        if type(f) == type(_fx) and f.__name__[0] != '_'
     }
 
 
 # Program entry point
-if __name__ == "__main__":
+if __name__ == '__main__':
     tasks = {
-        task_fn
-        for task_name, task_fn in _get_available_tasks().items()
+        task_fn for task_name, task_fn in _get_available_tasks().items()
         if task_name in argv[1:]
     }
-    if tasks:
-        [task() for task in tasks]
-    else:
-        help()
+    if tasks: [task() for task in tasks]
+    else: help()
