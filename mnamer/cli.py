@@ -59,4 +59,6 @@ def get_choice(target):
     filename = target.source.filename
     heading = style_format('Processing %s "%s"' % (media, filename), "bold")
     choices = target.query()
-    return SelectOne(choices, heading, skip=True, quit=True).prompt()
+    choice = SelectOne(choices, heading, skip=True, quit=True).prompt()
+    target.metadata.update(choice)
+    return target.metadata

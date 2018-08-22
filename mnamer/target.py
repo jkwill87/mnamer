@@ -1,5 +1,5 @@
 from os import makedirs
-from os.path import isdir, join, realpath, split
+from os.path import isdir, join, realpath, split, splitext
 from shutil import move
 from warnings import catch_warnings, filterwarnings
 
@@ -8,16 +8,30 @@ from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
 from mapi.providers import provider_factory
 
 from mnamer.exceptions import MnamerConfigException, MnamerException
-from mnamer.utils import crawl_in, file_extension, filter_blacklist
+from mnamer.utils import (
+    crawl_in,
+    file_extension,
+    filter_blacklist,
+    filename_sanitize,
+    filename_replace,
+)
 
 
 class _TargetPath:
     def __init__(self, path):
-        self.directory, self.filename = split(realpath(path))
+        self.directory, relpath = split(realpath(path))
+        self.filename, self.extension = splitext(relpath)
 
     @property
     def full(self):
-        return join(self.directory, self.filename)
+        return join(self.directory, self.filename) + self.extension
+
+    def __repr__(self):
+        return '_TargetPath("%s/" + "%s" + "%s")' % (
+            self.directory,
+            self.filename,
+            self.extension,
+        )
 
 
 def _meta_parse(path, media=None):
@@ -104,13 +118,14 @@ class Target:
         self.api_key = config.get("api_key_" + self.api)
         self.directory = config.get(media + "_directory")
         self.template = config.get(media + "_template")
+        self.replacements = config.get("replacements")
         self.is_renamed = False
         self.is_moved = False
         self.id_key = config.get("id")
         self.hits = config.get("hits")
 
     def __hash__(self):
-        return self.source.full.__hash__() + self.destination.full.__hash__()
+        return self.source.full.__hash__()
 
     def __eq__(self, other):
         return hash(self) == hash(other)
@@ -126,7 +141,10 @@ class Target:
             head = self.source.directory
         head = self.metadata.format(head)
         tail = self.metadata.format(self.template)
-        return _TargetPath(join(head, tail))
+        destination = join(head, tail)
+        destination = filename_replace(destination, self.replacements)
+        destination = filename_sanitize(destination)
+        return _TargetPath(destination)
 
     @staticmethod
     def populate_paths(paths, **config):
@@ -154,6 +172,7 @@ class Target:
             yield result
 
     def relocate(self):
-        if not isdir(self.destination.directory):
-            makedirs(self.destination.directory)
-        move(self.source.full, join(self.destination.full))
+        destination = self.destination
+        if not isdir(destination.directory):
+            makedirs(destination.directory)
+        move(self.source.full, join(destination.full))

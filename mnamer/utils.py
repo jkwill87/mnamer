@@ -101,10 +101,11 @@ def file_stem(path):
 def filename_replace(filename, replacements):
     """ Replaces keys in replacements dict with their values
     """
+    base, ext = splitext(filename)
     for word, replacement in replacements.items():
-        pattern = r"((?<=[^\w])|^)%s((?=[^\w])|$)" % word
-        filename = sub(pattern, replacement, filename, flags=IGNORECASE)
-    return filename
+        if word in filename:
+            base = base.replace(word, replacement)
+    return base + ext
 
 
 def filename_sanitize(filename):
@@ -113,7 +114,7 @@ def filename_sanitize(filename):
     base, ext = splitext(filename)
     base = sub(r"\s+", " ", base)
     base = sub(r'[<>:"|?*&%=+@#^.]', "", base)
-    return relpath(base.strip() + ext)
+    return base.strip() + ext
 
 
 def filename_scenify(filename):
