@@ -12,6 +12,7 @@ from mnamer.utils import (
     crawl_in,
     file_extension,
     filter_blacklist,
+    filter_extensions,
     filename_sanitize,
     filename_replace,
 )
@@ -151,8 +152,9 @@ class Target:
         recurse = config.get("recurse", False)
         extmask = config.get("extmask", ())
         blacklist = config.get("blacklist", ())
-        paths = crawl_in(paths, recurse, extmask)
+        paths = crawl_in(paths, recurse)
         paths = filter_blacklist(paths, blacklist)
+        paths = filter_extensions(paths, extmask)
         return {Target(path, **config) for path in paths}
 
     def query(self):

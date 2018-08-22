@@ -21,7 +21,7 @@ from sys import version_info
 from unicodedata import normalize
 
 
-def crawl_in(paths, recurse=False, extmask=None):
+def crawl_in(paths, recurse=False):
     """ Looks for files amongst or within paths provided
     """
     if not isinstance(paths, (list, tuple, set)):
@@ -31,15 +31,14 @@ def crawl_in(paths, recurse=False, extmask=None):
         path = realpath(path)
         if not exists(path):
             continue
-        if isfile(path) and extension_match(path, extmask):
+        if isfile(path):
             found_files.add(path)
             continue
         if not isdir(path):
             continue
         for root, _dirs, files in walk(path):
             for file in files:
-                if extension_match(file, extmask):
-                    found_files.add(join(root, file))
+                found_files.add(join(root, file))
             if not recurse:
                 break
     return found_files
@@ -73,17 +72,6 @@ def dict_merge(d1, *dn):
 
 def dict_to_json(d):
     return dumps(d, sort_keys=True, skipkeys=True, allow_nan=False)
-
-
-def extension_match(path, valid_extensions):
-    """ Returns True if path's extension is in valid_extensions else False
-    """
-    if not valid_extensions:
-        return True
-    if isinstance(valid_extensions, str):
-        valid_extensions = {valid_extensions}
-    valid_extensions = {e.lstrip(".") for e in valid_extensions}
-    return file_extension(path) in {e.lstrip(".") for e in valid_extensions}
 
 
 def file_extension(path):
@@ -130,9 +118,24 @@ def filename_scenify(filename):
 
 
 def filter_blacklist(paths, blacklist):
+    """ TODO
+    """
     return {
         p for p in paths if not any(match(b, file_stem(p)) for b in blacklist)
     }
+
+
+def filter_extensions(paths, valid_extensions):
+    """ TODO
+    """
+    if not valid_extensions:
+        return paths
+    if isinstance(valid_extensions, str):
+        valid_extensions = (valid_extensions,)
+    if isinstance(paths, str):
+        paths = (paths,)
+    valid_extensions = {e.lstrip(".") for e in valid_extensions}
+    return {path for path in paths if file_extension(path) in valid_extensions}
 
 
 def json_read(path, skip_nil=True):
