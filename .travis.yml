@@ -5,6 +5,6 @@ python:
 install: pip install -r requirements-testing.txt
 dist: trusty
 os: linux
-script: coverage run --source=mnamer -m unittest discover -v
+script: coverage run --source=mnamer -m unittest tests/*.py
 after_success:
   - codecov
