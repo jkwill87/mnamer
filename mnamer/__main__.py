@@ -1,53 +1,100 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-"""
-  _  _  _    _  _    __,   _  _  _    _   ,_
- / |/ |/ |  / |/ |  /  |  / |/ |/ |  |/  /  |
-   |  |  |_/  |  |_/\_/|_/  |  |  |_/|__/   |_/
-
-mnamer (Media reNAMER) is an intelligent and highly configurable media
-organization utility. It parses media filenames for metadata, searches the web
-to fill in the blanks, and then renames and moves them.
-
-See https://github.com/jkwill87/mnamer for more information.
-"""
-
-import json
-from argparse import ArgumentParser
+from __future__ import print_function
 from builtins import input
-from os import environ
-from os.path import normpath, exists, expanduser
-from pathlib import Path
-from re import sub, match
+
+from argparse import ArgumentParser
+from logging import DEBUG, ERROR, INFO, log
+from os.path import expanduser, normpath, realpath
+from re import match
 from shutil import move as shutil_move
-from string import Template
-from unicodedata import normalize
+from sys import platform
 
 from appdirs import user_config_dir
-from guessit import guessit
+from colorama import init as ascii_colour_init
 from mapi.exceptions import MapiNotFoundException
-from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
-from mapi.providers import provider_factory
 from termcolor import cprint
 
-from mnamer import *
+from mnamer import CONFIG_DEFAULTS, VERSION
+from mnamer.exceptions import MnamerConfigException
+from mnamer.utils import (
+    config_load,
+    config_save,
+    dir_crawl,
+    file_stem,
+    filename_replace,
+    filename_sanitize,
+    filename_scenify,
+    merge_dicts,
+    meta_parse,
+    provider_search,
+)
 
 
-def notify(text):
-    if IS_WINDOWS:
-        cprint(text, color='yellow')
-    else:
-        cprint(text, attrs=['dark'])
+class Notify:
+    """ A collection of methods used to format, log, and display text
+    """
+
+    def __init__(self, style=True, logging=False):
+        self.style = style
+        self.logging = logging
+
+    @property
+    def bullet_text(self):
+        return u"  • " if self.style is True else "  - "
+
+    def _log(self, text, level):
+        if self.logging:
+            log(level, text)
+
+    def _print(self, text, bullet, **args):
+        if bullet is True:
+            text = self.bullet_text + text
+        if self.style:
+            cprint(text, **args)
+
+    def heading(self, text):
+        self._log(text, INFO)
+        self._print("\n" + text, False, attrs=["bold"])
+
+    def info(self, text, bullet=False):
+        self._log(text, INFO)
+        print(self.bullet_text + text if bullet else text)
+
+    def verbose(self, text, bullet=False):
+        self._log(text, DEBUG)
+        if platform.startswith("win"):
+            print(self.bullet_text + text if bullet else text)
+        else:
+            self._print(text, bullet, attrs=["dark"])
+
+    def success(self, text, bullet=False):
+        self._log(text, INFO)
+        self._print(text, bullet, color="green")
+
+    def alert(self, text, bullet=False):
+        self._log(text, INFO)
+        self._print(text, bullet, color="yellow")
+
+    def error(self, text, bullet=False):
+        self._log(text, ERROR)
+        self._print(text, bullet, color="red")
+
+    def prompt(self, text):
+        print("   > %s? " % text, end="")
+        user_input = input()
+        self._log("%s=%s" % (text, user_input), INFO)
+        return user_input
 
 
 def get_parameters():
     """ Retrieves program arguments from CLI parameters
     """
 
-    help_usage = 'mnamer target [targets ...] [options] [directives]'
+    help_usage = "mnamer target [targets ...] [options] [directives]"
 
-    help_options = '''
+    help_options = """
 OPTIONS:
     mnamer attempts to load options from mnamer.json in the user's configuration
     directory, .mnamer.json in the current working directory, and then from the
@@ -65,9 +112,9 @@ OPTIONS:
     --movie_template <template>: set movie renaming template
     --television_api {tvdb}: set television api provider
     --television_destination <path>: set television relocation destination
-    --television_template <template>: set television renaming template'''
+    --television_template <template>: set television renaming template"""
 
-    help_directives = '''
+    help_directives = """
 DIRECTIVES:
     Whereas options configure how mnamer works, directives are one-off
     parameters that are used to perform secondary tasks like exporting the
@@ -80,293 +127,101 @@ DIRECTIVES:
     --id < id >: explicitly specify movie or series id
     --media { movie, television }: override media detection
     --version: display mnamer version information and quit
-    '''
+    """
 
     directive_keys = {
-        'id',
-        'media',
-        'config_save',
-        'config_load',
-        'test_run',
-        'version'
+        "id",
+        "media",
+        "config_save",
+        "config_load",
+        "test_run",
+        "version",
     }
 
     parser = ArgumentParser(
-        prog='mnamer', add_help=False,
-        epilog='visit https://github.com/jkwill87/mnamer for more info',
-        usage=help_usage
+        prog="mnamer",
+        add_help=False,
+        epilog="visit https://github.com/jkwill87/mnamer for more info",
+        usage=help_usage,
     )
 
     # Target Parameters
-    parser.add_argument('targets', nargs='*', default=[])
+    parser.add_argument("targets", nargs="*", default=[])
 
     # Configuration Parameters
-    parser.add_argument('-b', '--batch', action='store_true', default=None)
-    parser.add_argument('-s', '--scene', action='store_true', default=None)
-    parser.add_argument('-r', '--recurse', action='store_true', default=None)
-    parser.add_argument('-v', '--verbose', action='store_true', default=None)
-    parser.add_argument('--blacklist', nargs='+', default=None)
-    parser.add_argument('--max_hits', type=int, default=None)
-    parser.add_argument('--extension_mask', nargs='+', default=None)
-    parser.add_argument('--movie_api', choices=['tmdb'], default=None)
-    parser.add_argument('--movie_destination', default=None)
-    parser.add_argument('--movie_template', default=None)
-    parser.add_argument('--television_api', choices=['tvdb'], default=None)
-    parser.add_argument('--television_destination', default=None)
-    parser.add_argument('--television_template', default=None)
+    parser.add_argument("-b", "--batch", action="store_true", default=None)
+    parser.add_argument("-s", "--scene", action="store_true", default=None)
+    parser.add_argument("-r", "--recurse", action="store_true", default=None)
+    parser.add_argument("-v", "--verbose", action="store_true", default=None)
+    parser.add_argument("--blacklist", nargs="+", default=None)
+    parser.add_argument("--max_hits", type=int, default=None)
+    parser.add_argument("--extension_mask", nargs="+", default=None)
+    parser.add_argument("--movie_api", choices=["tmdb"], default=None)
+    parser.add_argument("--movie_destination", default=None)
+    parser.add_argument("--movie_template", default=None)
+    parser.add_argument("--television_api", choices=["tvdb"], default=None)
+    parser.add_argument("--television_destination", default=None)
+    parser.add_argument("--television_template", default=None)
 
     # Directive Parameters
-    parser.add_argument('--help', action='store_true')
-    parser.add_argument('--id')
-    parser.add_argument('--media', choices=['movie', 'television'])
-    parser.add_argument('--config_save', default=None)
-    parser.add_argument('--config_load', default=None)
-    parser.add_argument('--test_run', action='store_true')
-    parser.add_argument('--version', action='store_true')
+    parser.add_argument("--help", action="store_true")
+    parser.add_argument("--id")
+    parser.add_argument("--media", choices=["movie", "television"])
+    parser.add_argument("--config_save", default=None)
+    parser.add_argument("--config_load", default=None)
+    parser.add_argument("--test_run", action="store_true")
+    parser.add_argument("--version", action="store_true")
 
     arguments = vars(parser.parse_args())
-    targets = arguments.pop('targets')
+    targets = arguments.pop("targets")
     directives = {key: arguments.pop(key, None) for key in directive_keys}
     config = {k: v for k, v in arguments.items() if v is not None}
 
     # Exit early if user ask for usage help
-    if arguments['help'] is True:
+    if arguments["help"] is True:
         print(
-            '\nUSAGE:\n    %s\n%s\n%s' %
-            (help_usage, help_options, help_directives)
+            "\nUSAGE:\n    %s\n%s\n%s"
+            % (help_usage, help_options, help_directives)
         )
         exit(0)
     return targets, config, directives
 
 
-def config_load(path):
-    """ Reads JSON file and overlays parsed values over current configs
-    :param str path: the path of the config file to load from
-    :return: key-value option pairs as loaded from file
-    :rtype: dict
-    """
-    templated_path = Template(path).substitute(environ)
-    with open(templated_path, mode='r') as file_pointer:
-        data = json.load(file_pointer)
-    return {k: v for k, v in data.items() if v is not None}
-
-
-def config_save(path, config):
-    """ Serializes Config object as a JSON file
-    :param str path: the path of the config file to save to
-    :param dict config: key-value options pairs to serialize
-    """
-    templated_path = Template(path).substitute(environ)
-    with open(templated_path, mode='w') as file_pointer:
-        json.dump(config, file_pointer, indent=4)
-
-
-def dir_crawl(targets, recurse=False, ext_mask=None):
-    """ Crawls a directory, searching for files
-    :param bool recurse: will iterate through nested directories if true
-    :param optional list ext_mask: only matches files with provided extensions
-        if set
-    :param str or list targets: paths (file or directory) to crawl through
-    :rtype: list of Path
-    """
-    if not isinstance(targets, (list, tuple)):
-        targets = [targets]
-    files = []
-    for target in targets:
-        path = Path(target)
-        if not path.exists():
-            continue
-        for found_file in dir_iter(path, recurse=recurse):
-            if ext_mask and found_file.suffix.strip('.') not in ext_mask:
-                continue
-            files.append(found_file.resolve())
-    seen = set()
-    seen_add = seen.add
-    return [Path(f).absolute() for f in files if not (f in seen or seen_add(f))]
-
-
-def dir_iter(path, recurse=False, depth=0):
-    """ Iterates through a directory, yielding each file found
-    :param Path path: directory path to iterate through
-    :param bool recurse: will iterate through nested directories if true
-    :param int depth: recursion count
-    """
-    if path.is_file():
-        yield path
-    elif path.is_dir():
-        for child in path.iterdir():
-            if child.is_file():
-                yield child
-            elif not recurse:
-                continue
-            elif child.is_symlink() and depth != 0:
-                continue
-            for d in dir_iter(child, True, depth + 1):
-                yield d
-
-
-def provider_search(metadata, id_key=None, **options):
-    """ An adapter for mapi's Provider classes
-    :param Metadata metadata: metadata to use as the basis of search criteria
-    :param id_key: overriding id key
-    :param dict options:
-    :rtype: Metadata (yields)
-    """
-    media = metadata['media']
-    if not hasattr(provider_search, "providers"):
-        provider_search.providers = {}
-    if media not in provider_search.providers:
-        api = {
-            'television': options.get('television_api'),
-            'movie': options.get('movie_api')
-        }.get(media)
-        keys = {
-            'tmdb': options.get('api_key_tmdb'),
-            'tvdb': options.get('api_key_tvdb'),
-            'imdb': None
-        }
-        provider_search.providers[media] = provider_factory(
-            api, api_key=keys.get(api)
-        )
-    for result in provider_search.providers[media].search(id_key, **metadata):
-        yield result
-
-
-def meta_parse(path, media=None):
-    """ Uses guessit to parse metadata from a filename
-    :param Path path: the path to the file to parse
-    :param optional Media media: overrides media detection
-    :rtype: Metadata
-    """
-    abs_path_str = str(path.resolve())
-    media = {
-        'television': 'episode',
-        'tv': 'episode',
-        'movie': 'movie'
-    }.get(media)
-    data = dict(guessit(abs_path_str, {'type': media}))
-
-    # Parse movie metadata
-    if data.get('type') == 'movie':
-        meta = MetadataMovie()
-        if 'title' in data:
-            meta['title'] = data['title']
-        if 'year' in data:
-            meta['date'] = '%s-01-01' % data['year']
-        meta['media'] = 'movie'
-
-    # Parse television metadata
-    elif data.get('type') == 'episode':
-        meta = MetadataTelevision()
-        if 'title' in data:
-            meta['series'] = data['title']
-        if 'season' in data:
-            meta['season'] = str(data['season'])
-        if 'date' in data:
-            meta['date'] = str(data['date'])
-        if 'episode' in data:
-            if isinstance(data['episode'], (list, tuple)):
-                meta['episode'] = str(sorted(data['episode'])[0])
-            else:
-                meta['episode'] = str(data['episode'])
-    else:
-        raise ValueError('Could not determine media type')
-
-    # Parse non-media specific fields
-    quality_fields = [
-        field for field in data if field in [
-            'audio_profile',
-            'screen_size',
-            'video_codec',
-            'video_profile'
-        ]
-    ]
-    for field in quality_fields:
-        if 'quality' not in meta:
-            meta['quality'] = data[field]
-        else:
-            meta['quality'] += ' ' + data[field]
-    if 'release_group' in data:
-        meta['group'] = data['release_group']
-    if path.suffix:
-        meta['extension'] = path.suffix
-    return meta
-
-
-def merge_dicts(d1, d2):
-    """ Merges two dictionaries
-    :param d1: Base dictionary
-    :param d2: Overlaying dictionary
-    :rtype: dict
-    """
-    d3 = d1.copy()
-    d3.update(d2)
-    return d3
-
-
-def sanitize_filename(filename, scene_mode=False, replacements=None):
-    """ Removes illegal filename characters and condenses whitespace
-    :param str filename: the filename to sanitize
-    :param bool scene_mode: replace non-ascii and whitespace characters with
-    dots if true
-    :param optional dict replacements: words to replace prior to processing
-    :rtype: str
-    """
-    for replacement in replacements:
-        filename = filename.replace(replacement, replacements[replacement])
-    if scene_mode is True:
-        filename = normalize('NFKD', filename)
-        filename.encode('ascii', 'ignore')
-        filename = sub(r'\s+', '.', filename)
-        filename = sub(r'[^.\d\w/]', '', filename)
-        filename = filename.lower()
-    else:
-        filename = sub(r'\s+', ' ', filename)
-        filename = sub(r'[^ \d\w?!.,_()\[\]\-/]', '', filename)
-    return filename.strip()
-
-
-def process_files(targets, media=None, test_run=False, id_key=None, **config):
+def process_files(
+    targets, user_media=None, test_run=False, id_key=None, **config
+):
     """ Processes targets, relocating them as needed
-
-    :param list of str targets: files to process
-    :param str media: overrides automatic media detection if set
-    :param bool test_run: mocks relocation operation if True
-    :param optional str id_key: overriding id key
-    :param dict config: optional configuration kwargs
-    :return:
     """
+    notify = Notify()
+
     # Begin processing files
     detection_count = 0
     success_count = 0
     for file_path in dir_crawl(
-            targets,
-            config.get('recurse', False),
-            config.get('extension_mask')
+        targets, config.get("recurse", False), config.get("extension_mask")
     ):
-        cprint('\nDetected File', attrs=['bold'])
+        notify.heading("Detected File")
 
-        blacklist = config.get('blacklist', ())
-        if any(match(b, file_path.stem.lower()) for b in blacklist):
-            cprint('%s (blacklisted)' % file_path, attrs=['dark'])
+        blacklist = config.get("blacklist", ())
+        if any(match(b, file_stem(file_path)) for b in blacklist):
+            notify.info("%s (blacklisted)" % file_path)
             continue
         else:
-            print(file_path.name)
+            print(file_stem(file_path))
 
         # Print metadata fields
-        meta = meta_parse(file_path, media)
-        if config['verbose'] is True:
+        meta = meta_parse(file_path, user_media)
+        if config["verbose"] is True:
             for field, value in meta.items():
-                print('  - %s: %s' % (field, value))
+                notify.verbose("%s: %s" % (field, value), True)
 
         # Print search results
         detection_count += 1
-        cprint('\nQuery Results', attrs=['bold'])
+        notify.heading("Query Results")
         results = provider_search(meta, id_key, **config)
         i = 1
         hits = []
-        max_hits = int(config.get('max_hits', 15))
-        while i < max_hits:
+        while i < int(config.get("max_hits", 15)):
             try:
                 hit = next(results)
                 print("  [%s] %s" % (i, hit))
@@ -377,19 +232,19 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
 
         # Skip hit if no hits
         if not hits:
-            notify('  - None found! Skipping.')
+            notify.info("None found! Skipping.", True)
             continue
 
         # Select first if batch
-        if config.get('batch') is True:
+        if config.get("batch") is True:
             meta.update(hits[0])
 
         # Prompt user for input
         else:
-            print('  [RETURN] for default, [s]kip, [q]uit')
+            print("  [RETURN] for default, [s]kip, [q]uit")
             abort = skip = None
             while True:
-                selection = input('  > Your Choice? ')
+                selection = notify.prompt("Your Choice")
 
                 # Catch default selection
                 if not selection:
@@ -397,141 +252,138 @@ def process_files(targets, media=None, test_run=False, id_key=None, **config):
                     break
 
                 # Catch skip hit (just break w/o changes)
-                elif selection in ['s', 'S', 'skip', 'SKIP']:
+                elif selection in ["s", "S", "skip", "SKIP"]:
                     skip = True
                     break
 
                 # Quit (abort and exit)
-                elif selection in ['q', 'Q', 'quit', 'QUIT']:
+                elif selection in ["q", "Q", "quit", "QUIT"]:
                     abort = True
                     break
 
                 # Catch result choice within presented range
-                elif selection.isdigit() and 0 < int(selection) < len(
-                        hits) + 1:
+                elif selection.isdigit() and 0 < int(selection) < len(hits) + 1:
                     meta.update(hits[int(selection) - 1])
                     break
 
                 # Re-prompt if user input is invalid wrt to presented options
                 else:
-                    print('\nInvalid selection, please try again.')
+                    print("\nInvalid selection, please try again.")
 
             # User requested to skip file...
             if skip is True:
-                notify('  - Skipping rename, as per user request.')
+                notify.info("Skipping rename, as per user request.", True)
                 continue
 
             # User requested to exit...
             elif abort is True:
-                notify('\nAborting, as per user request.')
+                notify.info("\nAborting, as per user request.")
                 return
 
         # Create file path
-        cprint('\nProcessing File', attrs=['bold'])
-        media = meta['media']
-        template = config.get('%s_template' % media)
+        notify.heading("Processing File")
+        media = meta["media"]
+        template = config.get("%s_template" % media)
         dest_path = meta.format(template)
-        if config.get('%s_destination' % media):
-            dest_dir = meta.format(config.get('%s_destination' % media, ''))
-            dest_path = '%s/%s' % (dest_dir, dest_path)
-        dest_path = sanitize_filename(
-            dest_path,
-            config.get('scene', False),
-            config.get('replacements')
-        )
-        dest_path = Path(dest_path)
+        if config.get("%s_destination" % media):
+            dest_dir = meta.format(config.get("%s_destination" % media, ""))
+            dest_path = "%s/%s" % (dest_dir, dest_path)
+        dest_path = filename_sanitize(dest_path)
+        dest_path = filename_replace(dest_path, config.get("replacements"))
+        if config.get("scene") is True:
+            dest_path = filename_scenify(dest_path)
+        dest_path = realpath(dest_path)
 
         # Attempt to process file
         try:
             if not test_run:
-                if exists(str(dest_path.parent)) is False:
-                    dest_path.parent.mkdir(parents=True)
+                # TODO: create parent paths
                 shutil_move(str(file_path), str(dest_path))
-            print("  - Relocating file to '%s'" % dest_path)
-        except IOError:
-            cprint('  - Failed!', 'red')
+            notify.info("Relocating file to '%s'" % dest_path, True)
+        except IOError as e:
+            notify.error(" Failed!", True)
+            if config.get("verbose") is True:
+                notify.verbose(e)
         else:
-            cprint('  - Success!', 'green')
+            notify.success("Success!", True)
             success_count += 1
 
     # Summarize session outcome
     if not detection_count:
-        notify('\nNo media files found. "mnamer --help" for usage.')
+        print("")
+        notify.alert('No media files found. "mnamer --help" for usage.')
         return
 
     if success_count == 0:
-        outcome_colour = 'red'
+        outcome_colour = "red"
     elif success_count < detection_count:
-        outcome_colour = 'yellow'
+        outcome_colour = "yellow"
     else:
-        outcome_colour = 'green'
+        outcome_colour = "green"
     cprint(
-        '\nSuccessfully processed %s out of %s files' %
-        (success_count, detection_count),
-        outcome_colour
+        "\nSuccessfully processed %s out of %s files"
+        % (success_count, detection_count),
+        outcome_colour,
     )
 
 
 def main():
     """ Program entry point
     """
+    notify = Notify()
 
     # Process parameters
     targets, config, directives = get_parameters()
 
     # Allow colour printing to cmd and PowerShell
-    if IS_WINDOWS:
-        from colorama import init as ascii_colour_init
-        ascii_colour_init(autoreset=True)
+    ascii_colour_init(autoreset=True)
 
     # Display version information and exit if requested
-    if directives.get('version') is True:
-        print('mnamer v%s' % VERSION)
+    if directives.get("version") is True:
+        print("mnamer v%s" % VERSION)
         return
 
     # Detect file(s)
-    cprint('Starting mnamer', attrs=['bold'])
-    for file_path in [
-        '.mnamer.json',
-        normpath('%s/mnamer.json' % user_config_dir()),
-        normpath('%s/.mnamer.json' % expanduser('~')),
-        directives['config_load']
+    notify.heading("Starting mnamer")
+    for path in [
+        ".mnamer.json",
+        normpath("%s/mnamer.json" % user_config_dir()),
+        normpath("%s/.mnamer.json" % expanduser("~")),
+        directives["config_load"],
     ]:
-        if not file_path:
+        if not path:
             continue
         try:
-            config = merge_dicts(config_load(file_path), config)
-            cprint('  - success loading config from %s' % file_path,
-                   color='green')
-        except (TypeError, IOError):
-            if config.get('verbose'):
-                notify('  - skipped loading config from %s' % file_path)
+            config = merge_dicts(config_load(path), config)
+            notify.success("success loading config from %s" % path, True)
+        except MnamerConfigException:
+            if config.get("verbose") is True:
+                notify.verbose("skipped loading config from %s" % path, True)
 
     # Backfill configuration with defaults
     config = merge_dicts(CONFIG_DEFAULTS, config)
 
     # Save config to file if requested
-    if directives.get('config_save'):
-        file_path = directives['config_save']
+    if directives.get("config_save"):
+        path = directives["config_save"]
         try:
-            config_save(file_path, config)
-            print('success saving to %s' % directives['config_save'])
+            config_save(path, config)
+            notify.success("success saving to %s" % directives["config_save"])
         except (TypeError, IOError):
-            if config.get('verbose') is True:
-                print('error saving config to %s' % file_path)
+            notify.error("error saving config to %s" % path)
 
     # Display config information
-    if config.get('verbose') is True:
-        cprint('\nConfiguration', attrs=['bold'])
+    if config["verbose"]:
+        notify.heading("Configuration")
         for key, value in config.items():
-            print("  - %s: %s" % (key, None if value == '' else value))
+            notify.info("%s: %s" % (key, None if value == "" else value), True)
 
     # Process Files
-    media = directives.get('media')
-    test_run = directives.get('test_run')
-    id_key = directives.get('id')
-    process_files(targets, media, test_run, id_key, **config)
+    user_media = directives.get("media")
+    test_run = directives.get("test_run")
+    id_key = directives.get("id")
+    process_files(targets, user_media, test_run, id_key, **config)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -1,16 +1,31 @@
-[![licence](https://img.shields.io/github/license/jkwill87/mnamer.svg)](https://en.wikipedia.org/wiki/MIT_License)
-[![pypi](https://img.shields.io/pypi/v/mnamer.svg)](https://pypi.python.org/pypi/mnamer)
+[![pypi](https://img.shields.io/pypi/v/mnamer.svg?style=for-the-badge)](https://pypi.python.org/pypi/mnamer)
+[![travis\_ci](https://img.shields.io/travis/jkwill87/mnamer/develop.svg?style=for-the-badge)](https://travis-ci.org/jkwill87/mnamer)
+[![coverage](https://img.shields.io/codecov/c/github/jkwill87/mnamer/develop.svg?style=for-the-badge)](https://codecov.io/gh/jkwill87/mnamer)
+[![licence](https://img.shields.io/github/license/jkwill87/mnamer.svg?style=for-the-badge)](https://en.wikipedia.org/wiki/MIT_License)
+[![code style black](https://img.shields.io/badge/Code%20Style-Black-black.svg?style=for-the-badge)](https://github.com/ambv/black)
 
-![manmer logo](https://github.com/jkwill87/mnamer/raw/develop/_assets/mnamer.png)
+![mnamer logo](https://github.com/jkwill87/mnamer/raw/develop/_assets/logo.png)
 
 # mnamer
 
 mnamer (**m**edia re**namer**) is an intelligent and highly configurable media organization utility. It parses media filenames for metadata, searches the web to fill in the blanks, and then renames and moves them.
 
+![mnamer terminal recording](https://github.com/jkwill87/mnamer/blob/develop/_assets/terminal-rec.svg)
+
 
 # Installation
 
-`$ [sudo -H] pip install mnamer`
+## Stable Version
+
+`$ pip install mnamer`
+
+## Development Version
+
+`$ pip install https://github.com/jkwill87/mnamer/archive/develop.zip`
+
+## Notes
+
+If you want to install it using system python (e.g. the one that comes with your OS, not really recommended) and get a permission error you need to use either `sudo -H pip ...` or `pip install --user ...`.
 
 
 # Usage
