@@ -1,4 +1,3 @@
-from collections import Mapping
 from copy import deepcopy
 
 from mnamer import (
@@ -8,7 +7,12 @@ from mnamer import (
     PREFERENCE_KEYS,
 )
 from mnamer.exceptions import MnamerConfigException
-from mnamer.utils import crawl_out, json_read, dict_to_json, dict_merge
+from mnamer.utils import crawl_out, dict_merge, dict_to_json, json_read
+
+try:
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Mapping
 
 
 class Configuration(Mapping):
