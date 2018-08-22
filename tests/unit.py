@@ -12,7 +12,7 @@ from mapi.metadata import MetadataMovie, MetadataTelevision
 from mnamer.exceptions import MnamerConfigException, MnamerException
 from mnamer.utils import *
 
-from . import *
+from tests import *
 
 BAD_JSON = "{'some_key':True"
 DUMMY_DIR = "some_dir"
