@@ -1,127 +1,67 @@
+""" A collection of utility functions non-specific to mnamer's domain logic
+"""
+
 import json
-from os import environ, walk
+from json import dumps
+from os import environ, getcwd, walk
 from os.path import (
-    basename, exists, isdir, isfile, join, realpath, relpath, splitext
+    basename,
+    exists,
+    expanduser,
+    isdir,
+    isfile,
+    join,
+    realpath,
+    relpath,
+    splitext,
 )
-from re import sub, IGNORECASE
+from re import IGNORECASE, match, sub
 from string import Template
 from sys import version_info
 from unicodedata import normalize
-from warnings import catch_warnings, filterwarnings
-
-from guessit import guessit
-from mapi.metadata import MetadataMovie, MetadataTelevision
-from mapi.providers import provider_factory
-
-from mnamer.exceptions import MnamerException, MnamerConfigException
 
 
-def config_load(path):
-    """ Reads JSON file and overlays parsed values over current configs
+def crawl_in(paths, recurse=False):
+    """ Looks for files amongst or within paths provided
     """
-    templated_path = Template(path).substitute(environ)
-    try:
-        with open(templated_path, mode='r') as file_pointer:
-            data = json.load(file_pointer)
-        return {k: v for k, v in data.items() if v is not None}
-    except IOError as e:  # e.g. permission error, file doesn't exist
-        error_msg = e.strerror
-    except TypeError:  # e.g. not a properly formatted JSON file
-        error_msg = 'Invalid configuration data'
-    raise MnamerConfigException(error_msg)
-
-
-def config_save(path, config):
-    """ Serializes Config object as a JSON file
-    """
-    templated_path = Template(path).substitute(environ)
-    try:
-        with open(templated_path, mode='w') as file_pointer:
-            json.dump(config, file_pointer, indent=4)
-        return
-    except IOError as e:  # e.g. permission error
-        error_msg = e.strerror
-    raise MnamerConfigException(error_msg)
-
-
-def dir_crawl(targets, recurse=False, ext_mask=None):
-    """ Crawls a directory, searching for files
-    """
-    if not isinstance(targets, (list, tuple, set)):
-        targets = [targets]
+    if not isinstance(paths, (list, tuple, set)):
+        paths = [paths]
     found_files = set()
-    for target in targets:
-        path = realpath(target)
+    for path in paths:
+        path = realpath(path)
         if not exists(path):
             continue
-        if isfile(target) and extension_match(target, ext_mask):
-            found_files.add(realpath(target))
+        if isfile(path):
+            found_files.add(path)
             continue
-        if not isdir(target):
+        if not isdir(path):
             continue
         for root, _dirs, files in walk(path):
-            for f in files:
-                if extension_match(f, ext_mask):
-                    found_files.add(join(root, f))
+            for file in files:
+                found_files.add(join(root, file))
             if not recurse:
                 break
     return found_files
 
 
-def extension_match(path, valid_extensions):
-    """ Returns True if path's extension is in valid_extensions else False
+def crawl_out(filename):
+    """ Looks for a file in the home directory and each directory up from cwd
     """
-    if not valid_extensions:
-        return True
-    if isinstance(valid_extensions, str):
-        valid_extensions = {valid_extensions}
-    valid_extensions = {e.lstrip('.') for e in valid_extensions}
-    return file_extension(path) in {e.lstrip('.') for e in valid_extensions}
+    working_dir = getcwd()
+    parent_dir = None
+    while True:
+        parent_dir = realpath(join(working_dir, ".."))
+        if parent_dir == working_dir:  # e.g. fs root or error
+            break
+        target = join(working_dir, filename)
+        if isfile(target):
+            return target
+        working_dir = parent_dir
+    target = join(expanduser("~"), filename)
+    return target if isfile(target) else ""
 
 
-def file_stem(path):
-    """ Gets the filename for a path with any extension removed
-    """
-    return splitext(basename(path))[0]
-
-
-def file_extension(path):
-    """ Gets the extension for a path; period omitted
-    """
-    return splitext(path)[1].lstrip('.')
-
-
-def filename_replace(filename, replacements):
-    """ Replaces keys in replacements dict with their values
-    """
-    for word, replacement in replacements.items():
-        pattern = r'((?<=[^\w])|^)%s((?=[^\w])|$)' % word
-        filename = sub(pattern, replacement, filename, flags=IGNORECASE)
-    return filename
-
-
-def filename_scenify(filename):
-    """ Replaces non ascii-alphanumerics with .
-    """
-    u_filename = filename.decode('utf-8') if version_info[0] == 2 else filename
-    filename = normalize('NFKD', u_filename)
-    filename.encode('ascii', 'ignore')
-    filename = sub(r'\s+', '.', filename)
-    filename = sub(r'[^.\d\w/]', '', filename)
-    filename = sub(r'\.+', '.', filename)
-    return filename.lower().strip('.')
-
-
-def filename_sanitize(filename):
-    """ Removes illegal filename characters and condenses whitespace
-    """
-    base, ext = splitext(filename)
-    base = sub(r'\s+', ' ', base)
-    base = sub(r'[<>:"|?*&%=+@#^.]', '', base)
-    return relpath(base.strip() + ext)
-
-
-def merge_dicts(d1, *dn):
+def dict_merge(d1, *dn):
     """ Merges two or more dictionaries
     """
     res = d1.copy()
@@ -130,104 +70,96 @@ def merge_dicts(d1, *dn):
     return res
 
 
-def meta_parse(path, media=None):
-    """ Uses guessit to parse metadata from a filename
+def dict_to_json(d):
+    return dumps(d, sort_keys=True, skipkeys=True, allow_nan=False)
+
+
+def file_extension(path):
+    """ Gets the extension for a path; period omitted
     """
-    common_country_codes = {
-        'AU',
-        'RUS',
-        'UK',
-        'US'
+    return splitext(path)[1].lstrip(".")
+
+
+def file_stem(path):
+    """ Gets the filename for a path with any extension removed
+    """
+    return splitext(basename(path))[0]
+
+
+def filename_replace(filename, replacements):
+    """ Replaces keys in replacements dict with their values
+    """
+    base, ext = splitext(filename)
+    for word, replacement in replacements.items():
+        if word in filename:
+            base = base.replace(word, replacement)
+    return base + ext
+
+
+def filename_sanitize(filename):
+    """ Removes illegal filename characters and condenses whitespace
+    """
+    base, ext = splitext(filename)
+    base = sub(r"\s+", " ", base)
+    base = sub(r'[<>:"|?*&%=+@#^.]', "", base)
+    return base.strip() + ext
+
+
+def filename_scenify(filename):
+    """ Replaces non ascii-alphanumerics with .
+    """
+    u_filename = filename.decode("utf-8") if version_info[0] == 2 else filename
+    filename = normalize("NFKD", u_filename)
+    filename.encode("ascii", "ignore")
+    filename = sub(r"\s+", ".", filename)
+    filename = sub(r"[^.\d\w/]", "", filename)
+    filename = sub(r"\.+", ".", filename)
+    return filename.lower().strip(".")
+
+
+def filter_blacklist(paths, blacklist):
+    """ TODO
+    """
+    return {
+        p for p in paths if not any(match(b, file_stem(p)) for b in blacklist)
     }
 
-    media = {
-        'television': 'episode',
-        'tv': 'episode',
-        'movie': 'movie'
-    }.get(media)
-    with catch_warnings():
-        filterwarnings('ignore', category=Warning)
-        data = dict(guessit(path, {'type': media}))
-    media_type = data.get('type') if path else 'unknown'
 
-    # Parse movie metadata
-    if media_type == 'movie':
-        meta = MetadataMovie()
-        if 'title' in data:
-            meta['title'] = data['title']
-        if 'year' in data:
-            meta['date'] = '%s-01-01' % data['year']
-        meta['media'] = 'movie'
-
-    # Parse television metadata
-    elif media_type == 'episode':
-        meta = MetadataTelevision()
-        if 'title' in data:
-            meta['series'] = data['title']
-            if 'year' in data:
-                meta['series'] += ' (%d)' % data['year']
-        if 'season' in data:
-            meta['season'] = str(data['season'])
-        if 'date' in data:
-            meta['date'] = str(data['date'])
-        if 'episode' in data:
-            if isinstance(data['episode'], (list, tuple)):
-                meta['episode'] = str(sorted(data['episode'])[0])
-            else:
-                meta['episode'] = str(data['episode'])
-
-    # Exit early if media type cannot be determined
-    else:
-        raise MnamerException('Could not determine media type')
-
-    # Parse non-media specific fields
-    quality_fields = [
-        field for field in data if field in [
-            'audio_codec',
-            'audio_profile',
-            'screen_size',
-            'video_codec',
-            'video_profile'
-        ]
-    ]
-    for field in quality_fields:
-        if 'quality' not in meta:
-            meta['quality'] = data[field]
-        else:
-            meta['quality'] += ' ' + data[field]
-    if 'release_group' in data:
-        release_group = data['release_group']
-
-        # Sometimes country codes can get incorrectly detected as a scene group
-        if 'series' in meta and release_group.upper() in common_country_codes:
-            meta['series'] += ' (%s)' % release_group.upper()
-        else:
-            meta['group'] = data['release_group']
-    meta['extension'] = file_extension(path)
-    return meta
-
-
-def provider_search(metadata, id_key=None, **options):
-    """ An adapter for mapi's Provider classes
+def filter_extensions(paths, valid_extensions):
+    """ TODO
     """
-    media = metadata['media']
-    if not hasattr(provider_search, "providers"):
-        provider_search.providers = {}
-    if media not in provider_search.providers:
-        api = {
-            'television': options.get('television_api'),
-            'movie': options.get('movie_api')
-        }.get(media)
+    if not valid_extensions:
+        return paths
+    if isinstance(valid_extensions, str):
+        valid_extensions = (valid_extensions,)
+    if isinstance(paths, str):
+        paths = (paths,)
+    valid_extensions = {e.lstrip(".") for e in valid_extensions}
+    return {path for path in paths if file_extension(path) in valid_extensions}
 
-        if api is None:
-            raise MnamerException('No provider specified for %s type' % media)
-        keys = {
-            'tmdb': options.get('api_key_tmdb'),
-            'tvdb': options.get('api_key_tvdb')
-        }
 
-        provider_search.providers[media] = provider_factory(
-            api, api_key=keys.get(api)
-        )
-    for result in provider_search.providers[media].search(id_key, **metadata):
-        yield result  # pragma: no cover
+def json_read(path, skip_nil=True):
+    """ Reads a JSON file from disk
+    """
+    templated_path = Template(path).substitute(environ)
+    try:
+        with open(templated_path, mode="r") as file_pointer:
+            data = json.load(file_pointer)
+    except IOError as e:
+        raise RuntimeError(str(e.strerror).lower())
+    except (TypeError, ValueError):
+        raise RuntimeError("invalid JSON")
+    return {k: v for k, v in data.items() if not (v is None and skip_nil)}
+
+
+def json_write(path, obj, skip_nil=True):
+    """ Writes a JSON file to disk
+    """
+    templated_path = Template(path).substitute(environ)
+    try:
+        json_data = json.dumps(obj, skipkeys=skip_nil)
+        open(templated_path, mode="w").write(json_data)
+    except IOError as e:  # e.g. permission error
+        RuntimeError(e.strerror)
+    except (TypeError, ValueError):
+        RuntimeError("invalid JSON")

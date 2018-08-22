@@ -2,8 +2,10 @@
 [![travis\_ci](https://img.shields.io/travis/jkwill87/mnamer/develop.svg?style=for-the-badge)](https://travis-ci.org/jkwill87/mnamer)
 [![coverage](https://img.shields.io/codecov/c/github/jkwill87/mnamer/develop.svg?style=for-the-badge)](https://codecov.io/gh/jkwill87/mnamer)
 [![licence](https://img.shields.io/github/license/jkwill87/mnamer.svg?style=for-the-badge)](https://en.wikipedia.org/wiki/MIT_License)
+[![code style black](https://img.shields.io/badge/Code%20Style-Black-black.svg?style=for-the-badge)](https://github.com/ambv/black)
 
 ![mnamer logo](https://github.com/jkwill87/mnamer/raw/develop/_assets/logo.png)
+
 
 # mnamer
 
@@ -29,52 +31,41 @@ If you want to install it using system python (e.g. the one that comes with your
 
 # Usage
 
-`mnamer target [targets ...] [options] [directives]`
+`mnamer target [targets ...] [preferences] [directives]`
 
 
-# Options
+# Preferences
 
-mnamer attempts to load options from mnamer.json in the user's configuration directory, .mnamer.json in the current working directory, and then from the command line, also overriding each other in that order.
+mnamer attempts to load preferences from .mnamer.json in the user's home directory, the current working directory, and then in each directory up the drive towards the drive root (e.g. `C:/`, `/`).
 
 
-| Option                  | Arguments        | Description                                           |
+| Preference              | Arguments        | Description                                           |
 |:------------------------|:-----------------|:------------------------------------------------------|
 |-b, --batch              |                  | batch mode; disables interactive prompts              |
 |-s, --scene              |                  | scene mode; replace non ascii-alphanumerics with `.`  |
 |-r, --recurse            |                  | show this help message and exit                       |
 |-v, --verbose            |                  | increases output verbosity                            |
 |--blacklist              | pattern          | ignore files including these words                    |
-|--max_hits               | number           | limits the maximum number of hits for each query      |
-|--extension_mask         | extention(s)     | define the extension mask used by the the file parser |
+|--hits                   | number           | limits the maximum number of hits for each query      |
+|--extmask                | extention(s)     | define the extension mask used by the the file parser |
 |--movie_api              | `imdb` or `tmdb` | set movie api provider                                |
-|--movie_destination      | path             | set movie relocation destination                      |
+|--movie_directory        | path             | set movie relocation directory                        |
 |--movie_template         | template         | set movie renaming template                           |
 |--television_api         | `tvdb`           | set television api provider                           |
-|--television_destination | path             | set television relocation destination                 |
+|--television_directory   | path             | set television relocation directory                   |
 |--television_template    | template         | set television renaming template                      |
 
 
 # Directives
 
-Whereas options configure how mnamer works, directives are one-off parameters that are used to perform secondary tasks like exporting the current option set to a file.
+Whereas preferences configure how mnamer works, directives are one-off parameters that are used to perform secondary tasks like exporting the current option set to a file.
 
-| Option           | Arguments               | Description                            |
-|:-----------------|:------------------------|:---------------------------------------|
-| --config_load    | path                    | import configuration from file         |
-| --config_save    | path                    | save configuration to file             |
-| --id             | id                      | explicitly specify movie or series id  |
-| --media          | `movie` or `television` | override media detection               |
-| --test_run       |                         | mocks the renaming and moving of files |
-
-
-# Configuration Files
-
-In addition to the option argument flags listed above, mnamer can also be configured via JSON configuration file(s). These are loaded and applied from the following locations, in the following order:
-
-1. As **.mnamer.json** within the current working directory (e.g. *./.mnamer.json*)
-2. As **mnamer.json** from within the user config directory (e.g. *~/.config/mnamer.json*)
-3. As **.mnamer.json** from the user home directory (e.g. *~/.mnamer.json*)
-4. Any path explicitly passed using the `--load_config` directive
+| Option           | Arguments               | Description                              |
+|:-----------------|:------------------------|:-----------------------------------------|
+| --config         | path                    | prints config JSON to stdout then exits  |
+| --id             | id                      | explicitly specify movie or series id    |
+| --media          | `movie` or `television` | override media detection                 |
+| --test           |                         | mocks the renaming and moving of files   |
 
 
 # Templating
@@ -82,7 +73,7 @@ In addition to the option argument flags listed above, mnamer can also be config
 
 You have complete control of how media files are renamed using mnamer's template options:
 
-- you can use templating with the following options: **television_destination**, **television_template**, **movie_destination**, **movie_template**
+- you can use templating with the following options: **television_directory**, **television_template**, **movie_directory**, **movie_template**
 - metadata fields prefixed with a sigil `$` found inside angle brackets with the result of a match
 - any leading or trailing whitespace will be trimmed
 - if a field can't be matched, the entire contents of the bracket are disregared
@@ -110,7 +101,7 @@ You have complete control of how media files are renamed using mnamer's template
 *Note: If the subdirectory doesn't exist, mnamer will create it*
 
 - movie_template: `<$title ><($year)><$extension>`
-- movie_destination: `/media/movies/<$title ><($year)>`
+- movie_directory: `/media/movies/<$title ><($year)>`
 - target: `~/Downloads/The.Goonies.1985.720p.BluRay.x264-SiNNERS.mkv`
 - result: `/media/movies/The Goonies (1985)/The Goonies (1985).mkv`
 

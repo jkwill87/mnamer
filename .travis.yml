@@ -2,9 +2,9 @@ language: python
 python:
   - '2.7'
   - '3.6'
-install: pip install -r requirements-dev.txt
+install: pip install -r requirements-testing.txt
 dist: trusty
 os: linux
-script: coverage run --source=mnamer -m unittest discover -v
+script: coverage run --source=mnamer -m unittest discover tests -p "*.py"
 after_success:
   - codecov

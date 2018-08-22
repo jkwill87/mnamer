@@ -1,12 +1,7 @@
--r requirements.txt
+-r requirements-testing.txt
 autopep8
-codecov
-coverage
-mock;python_version<"3"
+black;python_version>"3"
+ipdb
+ipython
 pylint
-pypandoc
 rope
-setuptools>=38.6.0
-twine>=1.11.0
-unittest2;python_version<"3"
-wheel>=0.31.0
