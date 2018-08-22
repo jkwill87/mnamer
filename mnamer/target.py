@@ -166,9 +166,9 @@ class Target:
             provider = self._providers[media]
         hit = 0
         for result in provider.search(self.id_key, **self.metadata):
-            hit += 1
             if hit == self.hits:
                 break
+            hit += 1
             yield result
 
     def relocate(self):

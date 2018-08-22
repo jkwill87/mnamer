@@ -21,7 +21,7 @@ PREFERENCE_DEFAULTS = {
     "nocache": False,
     "nocolor": False,
     "extmask": ("avi", "m4v", "mp4", "mkv", "ts", "wmv"),
-    "hits": 15,
+    "hits": 5,
     "recurse": False,
     "replacements": {"&": "and", "@": "at", ":": ",", ";": ","},
     "scene": False,
