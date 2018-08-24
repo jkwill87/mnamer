@@ -2,10 +2,7 @@ from __future__ import print_function
 
 from teletype.components import SelectOne
 from teletype.components.config import set_style
-from teletype.exceptions import TeletypeQuitException, TeletypeSkipException
 from teletype.io import style_format
-
-from mnamer.utils import dict_merge
 
 try:
     from collections.abc import Mapping, Sequence

@@ -12,8 +12,6 @@ to fill in the blanks, and then renames and moves them.
 See https://github.com/jkwill87/mnamer for more information.
 """
 
-from mnamer.__version__ import VERSION
-
 PREFERENCE_DEFAULTS = {
     # General Options
     "batch": False,
@@ -88,3 +86,5 @@ DIRECTIVES:
     --test: mocks the renaming and moving of files
     --version: display running mnamer version number then exits
 """
+
+VERSION = 2.0

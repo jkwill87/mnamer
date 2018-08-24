@@ -7,7 +7,7 @@ from mnamer import (
     PREFERENCE_KEYS,
 )
 from mnamer.exceptions import MnamerConfigException
-from mnamer.utils import crawl_out, dict_merge, dict_to_json, json_read
+from mnamer.utils import crawl_out, dict_to_json, json_read
 
 try:
     from collections.abc import Mapping

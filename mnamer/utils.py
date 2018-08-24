@@ -12,10 +12,9 @@ from os.path import (
     isfile,
     join,
     realpath,
-    relpath,
     splitext,
 )
-from re import IGNORECASE, match, sub
+from re import match, sub
 from string import Template
 from sys import version_info
 from unicodedata import normalize
@@ -48,7 +47,6 @@ def crawl_out(filename):
     """ Looks for a file in the home directory and each directory up from cwd
     """
     working_dir = getcwd()
-    parent_dir = None
     while True:
         parent_dir = realpath(join(working_dir, ".."))
         if parent_dir == working_dir:  # e.g. fs root or error

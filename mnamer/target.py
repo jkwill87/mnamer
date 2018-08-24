@@ -4,10 +4,10 @@ from shutil import move
 from warnings import catch_warnings, filterwarnings
 
 from guessit import guessit
-from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
+from mapi.metadata import MetadataMovie, MetadataTelevision
 from mapi.providers import provider_factory
 
-from mnamer.exceptions import MnamerConfigException, MnamerException
+from mnamer.exceptions import MnamerException
 from mnamer.utils import (
     crawl_in,
     file_extension,
