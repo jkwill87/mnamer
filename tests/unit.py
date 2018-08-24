@@ -6,7 +6,7 @@ from os.path import isdir, join, realpath, relpath, split
 from shutil import rmtree
 from tempfile import gettempdir
 
-from mnamer.utils import crawl_in, crawl_out
+from mnamer.utils import crawl_in, crawl_out, dict_merge
 from tests import IS_WINDOWS, TestCase, patch
 
 BAD_JSON = "{'some_key':True"
@@ -145,6 +145,30 @@ class TestCrawlOut(TestCase):
     def test_no_match(self):
         self.assertIsNone(crawl_out("avengers.mkv"))
 
+
+class TestMergeDicts(TestCase):
+    def test_two(self):
+        d1 = {"a": 1, "b": 2}
+        d2 = {"c": 3}
+        expected = {"a": 1, "b": 2, "c": 3}
+        actual = dict_merge(d1, d2)
+        self.assertDictEqual(expected, actual)
+
+    def test_many(self):
+        d1 = {"a": 1, "b": 2}
+        d2 = {"c": 3}
+        d3 = {"d": 4, "e": 5, "f": 6}
+        d4 = {"g": 7}
+        expected = {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7}
+        actual = dict_merge(d1, d2, d3, d4)
+        self.assertDictEqual(expected, actual)
+
+    def test_overwrite(self):
+        d1 = {"a": 1, "b": 2, "c": 3}
+        d2 = {"a": 10, "b": 20}
+        expected = {"a": 10, "b": 20, "c": 3}
+        actual = dict_merge(d1, d2)
+        self.assertDictEqual(expected, actual)
 
 # class TestJsonRead(TestCase):
 #     @classmethod
@@ -360,30 +384,6 @@ class TestCrawlOut(TestCase):
 #         actual = filename_scenify(filename)
 #         self.assertEqual(expected, actual)
 
-
-# class TestMergeDicts(TestCase):
-#     def test_two(self):
-#         d1 = {"a": 1, "b": 2}
-#         d2 = {"c": 3}
-#         expected = {"a": 1, "b": 2, "c": 3}
-#         actual = merge_dicts(d1, d2)
-#         self.assertDictEqual(expected, actual)
-
-#     def test_many(self):
-#         d1 = {"a": 1, "b": 2}
-#         d2 = {"c": 3}
-#         d3 = {"d": 4, "e": 5, "f": 6}
-#         d4 = {"g": 7}
-#         expected = {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7}
-#         actual = merge_dicts(d1, d2, d3, d4)
-#         self.assertDictEqual(expected, actual)
-
-#     def test_overwrite(self):
-#         d1 = {"a": 1, "b": 2, "c": 3}
-#         d2 = {"a": 10, "b": 20}
-#         expected = {"a": 10, "b": 20, "c": 3}
-#         actual = merge_dicts(d1, d2)
-#         self.assertDictEqual(expected, actual)
 
 
 # class TestMetaParse(TestCase):

@@ -8,7 +8,6 @@ from os.path import (
     basename,
     exists,
     expanduser,
-    isdir,
     isfile,
     join,
     realpath,
