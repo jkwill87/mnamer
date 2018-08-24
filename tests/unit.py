@@ -1,18 +1,13 @@
 # coding=utf-8
 
-import json
 import os
 from copy import deepcopy
-from os.path import isdir, join, realpath, relpath, sep, split
+from os.path import isdir, join, realpath, relpath, split
 from shutil import rmtree
 from tempfile import gettempdir
 
-from mapi.metadata import MetadataMovie, MetadataTelevision
-
-from mnamer.exceptions import MnamerConfigException, MnamerException
-from mnamer.utils import *
-
-from tests import *
+from mnamer.utils import crawl_in, crawl_out
+from tests import IS_WINDOWS, TestCase, patch
 
 BAD_JSON = "{'some_key':True"
 DUMMY_DIR = "some_dir"
@@ -40,15 +35,15 @@ TEMP_DIR = realpath(gettempdir() + "/mnamer")
 TEST_FILES = {
     relpath(path)
     for path in {
-        "f1.mkv",
-        "f2.mkv",
-        "f3.tiff",
-        "d1a/f4.mp4",
-        "d1a/f5.mkv",
-        "d1b/f6.tiff",
-        "d1b/d2a/f7.mp4",
-        "d1b/d2b/f8.mkv",
-        "d1b/d2b/f9.tiff",
+        "avengers.mkv",
+        "Ninja Turtles (1990).mkv",
+        "scan_001.tiff",
+        "Desktop/temp.zip",
+        "Documents/Photos/DCM0001.jpg",
+        "Documents/Photos/DCM0002.jpg",
+        "Documents/Skiing Trip.mp4",
+        "Downloads/Return of the Jedi.mkv",
+        "Downloads/the.goonies.1985.sample.mp4",
     }
 }
 
@@ -57,19 +52,27 @@ def tmp_path(*paths):
     return {join(TEMP_DIR, path) for path in paths}
 
 
+def create_test_files():
+    for test_file in TEST_FILES:
+        path = join(TEMP_DIR, test_file)
+        directory, _ = split(path)
+        if directory and not isdir(directory):
+            os.makedirs(directory)
+        open(path, "a").close()  # touch file
+
+
+def delete_test_files():
+    rmtree(TEMP_DIR)
+
+
 class TestDirCrawlIn(TestCase):
     @classmethod
     def setUpClass(cls):
-        for test_file in TEST_FILES:
-            path = join(TEMP_DIR, test_file)
-            directory, _ = split(path)
-            if directory and not isdir(directory):
-                os.makedirs(directory)
-            open(path, "a").close()  # touch file
+        create_test_files()
 
     @classmethod
     def tearDownClass(cls):
-        rmtree(TEMP_DIR)
+        delete_test_files()
 
     def test_files__none(self):
         data = join(TEMP_DIR, DUMMY_DIR)
@@ -78,23 +81,32 @@ class TestDirCrawlIn(TestCase):
         self.assertSetEqual(expected, actual)
 
     def test_files__flat(self):
-        data = tmp_path("f1.mkv", "f2.mkv", "f3.tiff")
+        data = tmp_path(
+            "avengers.mkv", "Ninja Turtles (1990).mkv", "scan_001.tiff"
+        )
         expected = data
         actual = crawl_in(data)
         self.assertSetEqual(expected, actual)
 
     def test_dirs__single(self):
         data = TEMP_DIR
-        expected = tmp_path("f1.mkv", "f2.mkv", "f3.tiff")
+        expected = tmp_path(
+            "avengers.mkv", "Ninja Turtles (1990).mkv", "scan_001.tiff"
+        )
         actual = crawl_in(data)
         self.assertSetEqual(expected, actual)
 
     def test_dirs__multiple(self):
-        data = tmp_path("d1a", "d1b")
+        data = tmp_path("Desktop", "Documents", "Downloads")
         expected = tmp_path(
             *{
                 relpath(path)
-                for path in {"d1a/f4.mp4", "d1a/f5.mkv", "d1b/f6.tiff"}
+                for path in {
+                    "Desktop/temp.zip",
+                    "Documents/Skiing Trip.mp4",
+                    "Downloads/Return of the Jedi.mkv",
+                    "Downloads/the.goonies.1985.sample.mp4",
+                }
             }
         )
         actual = crawl_in(data)
