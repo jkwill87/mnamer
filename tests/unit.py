@@ -119,66 +119,31 @@ class TestDirCrawlIn(TestCase):
         self.assertSetEqual(expected, actual)
 
 
-# class TestDirCrawlIn(TestCase):
-#     @classmethod
-#     def setUpClass(cls):
-#         for test_file in TEST_FILES:
-#             path = join(TEMP_DIR, test_file)
-#             directory, _ = split(path)
-#             if directory and not isdir(directory):
-#                 os.makedirs(directory)
-#             open(path, "a").close()
+class TestCrawlOut(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        create_test_files()
 
-#     @classmethod
-#     def tearDownClass(cls):
-#         rmtree(TEMP_DIR)
+    @classmethod
+    def tearDownClass(cls):
+        delete_test_files()
 
-#     def test_files__none(self):
-#         data = join(TEMP_DIR, DUMMY_DIR)
-#         expected = set()
-#         actual = crawl_in(data)
-#         self.assertSetEqual(expected, actual)
+    @patch("mnamer.utils.getcwd")
+    def test_walking(self, patched_getcwd):
+        patched_getcwd.return_value = join(TEMP_DIR)
+        expected = join(TEMP_DIR, "avengers.mkv")
+        actual = crawl_out("avengers.mkv")
+        self.assertEqual(expected, actual)
 
-#     def test_files__flat(self):
-#         data = tmp_path("f1.mkv", "f2.mkv", "f3.tiff")
-#         expected = data
-#         actual = crawl_in(data)
-#         self.assertSetEqual(expected, actual)
+    @patch("mnamer.utils.expanduser")
+    def test_home(self, patched_expanduser):
+        patched_expanduser.return_value = join(TEMP_DIR)
+        expected = join(TEMP_DIR, "avengers.mkv")
+        actual = crawl_out("avengers.mkv")
+        self.assertEqual(expected, actual)
 
-#     def test_files__extmask(self):
-#         data = tmp_path("f1.mkv", "f2.mkv", "f3.tiff")
-#         expected = tmp_path("f1.mkv", "f2.mkv")
-#         actual = crawl_in(data, extmask={"mkv"})
-#         self.assertSetEqual(expected, actual)
-
-#     def test_dirs__single(self):
-#         data = TEMP_DIR
-#         expected = tmp_path("f1.mkv", "f2.mkv", "f3.tiff")
-#         actual = crawl_in(data)
-#         self.assertSetEqual(expected, actual)
-
-#     def test_dirs__multiple(self):
-#         data = tmp_path("d1a", "d1b")
-#         expected = tmp_path(
-#             *{
-#                 relpath(path)
-#                 for path in {"d1a/f4.mp4", "d1a/f5.mkv", "d1b/f6.tiff"}
-#             }
-#         )
-#         actual = crawl_in(data)
-#         self.assertSetEqual(expected, actual)
-
-#     def test_dirs__recurse(self):
-#         data = TEMP_DIR
-#         expected = tmp_path(*TEST_FILES)
-#         actual = crawl_in(data, recurse=True)
-#         self.assertSetEqual(expected, actual)
-
-#     def test_dirs_extmask(self):
-#         data = TEMP_DIR
-#         expected = tmp_path("f1.mkv", "f2.mkv")
-#         actual = crawl_in(data, extmask="mkv")
-#         self.assertSetEqual(expected, actual)
+    def test_no_match(self):
+        self.assertIsNone(crawl_out("avengers.mkv"))
 
 
 # class TestJsonRead(TestCase):

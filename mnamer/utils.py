@@ -33,8 +33,6 @@ def crawl_in(paths, recurse=False):
         if isfile(path):
             found_files.add(path)
             continue
-        if not isdir(path):
-            continue
         for root, _dirs, files in walk(path):
             for file in files:
                 found_files.add(join(root, file))
@@ -56,7 +54,7 @@ def crawl_out(filename):
             return target
         working_dir = parent_dir
     target = join(expanduser("~"), filename)
-    return target if isfile(target) else ""
+    return target if isfile(target) else None
 
 
 def dict_merge(d1, *dn):
