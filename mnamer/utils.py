@@ -136,8 +136,8 @@ def filter_extensions(paths, valid_extensions):
 def json_read(path, skip_nil=True):
     """ Reads a JSON file from disk
     """
-    templated_path = Template(path).substitute(environ)
     try:
+        templated_path = Template(path).substitute(environ)
         with open(templated_path, mode="r") as file_pointer:
             data = json.load(file_pointer)
     except IOError as e:
