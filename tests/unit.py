@@ -13,6 +13,7 @@ from mnamer.utils import (
     dict_merge,
     json_read,
     file_extension,
+    file_stem,
     filename_sanitize,
     filename_replace,
 )
@@ -22,11 +23,6 @@ BAD_JSON = "{'some_key':True"
 DUMMY_DIR = "some_dir"
 DUMMY_FILE = "some_file"
 OPEN_TARGET = "mnamer.utils.open"
-
-MEDIA_EXTENSION = ".mkv"
-MEDIA_GROUP = "EZTV"
-MEDIA_EPISODE = "01x01"
-MEDIA_JUNK = "Who Let the Dogs Out?"
 
 MOVIE_DIR = "C:\\Movies\\" if IS_WINDOWS else "/movies/"
 
@@ -177,13 +173,13 @@ class TestDictMerge(TestCase):
 class TestFileExtension(TestCase):
     def test_abs_path(self):
         path = MOVIE_DIR + "Spaceballs (1987).mkv"
-        expected = MEDIA_EXTENSION.lstrip(".")
+        expected = "mkv"
         actual = file_extension(path)
         self.assertEqual(expected, actual)
 
     def test_rel_path(self):
         path = "Spaceballs (1987).mkv"
-        expected = MEDIA_EXTENSION.lstrip(".")
+        expected = "mkv"
         actual = file_extension(path)
         self.assertEqual(expected, actual)
 
@@ -197,6 +193,26 @@ class TestFileExtension(TestCase):
         path = "Spaceballs (1987).mkv.mkv"
         expected = "mkv"
         actual = file_extension(path)
+        self.assertEqual(expected, actual)
+
+
+class TestFileStem(TestCase):
+    def test_abs_path(self):
+        path = MOVIE_DIR + "Spaceballs (1987).mkv"
+        expected = "Spaceballs (1987)"
+        actual = file_stem(path)
+        self.assertEqual(expected, actual)
+
+    def test_rel_path(self):
+        path = "Spaceballs (1987).mkv"
+        expected = "Spaceballs (1987)"
+        actual = file_stem(path)
+        self.assertEqual(expected, actual)
+
+    def test_dir_only(self):
+        path = MOVIE_DIR
+        expected = ""
+        actual = file_stem(path)
         self.assertEqual(expected, actual)
 
 
@@ -335,26 +351,6 @@ class TestJsonRead(TestCase):
 #         valid_extensions = [".mp4"]
 #         actual = extension_match(self.path, valid_extensions)
 #         self.assertFalse(actual)
-
-
-# class TestFileStem(TestCase):
-#     def test_abs_path(self):
-#         path = MOVIE_DIR + "Spaceballs (1987).mkv"
-#         expected = MOVIE_TITLE
-#         actual = file_stem(path)
-#         self.assertEqual(expected, actual)
-
-#     def test_rel_path(self):
-#         path = "Spaceballs (1987).mkv"
-#         expected = MOVIE_TITLE
-#         actual = file_stem(path)
-#         self.assertEqual(expected, actual)
-
-#     def test_dir_only(self):
-#         path = MOVIE_DIR
-#         expected = ""
-#         actual = file_stem(path)
-#         self.assertEqual(expected, actual)
 
 
 # class TestFilenameScenify(TestCase):
