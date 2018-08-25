@@ -15,6 +15,7 @@ from mnamer.utils import (
     file_extension,
     file_stem,
     filename_sanitize,
+    filename_scenify,
     filename_replace,
 )
 from tests import IS_WINDOWS, TestCase, mock_open, patch
@@ -260,6 +261,32 @@ class TestFilenameSanitize(TestCase):
         self.assertEqual(expected, actual)
 
 
+class TestFilenameScenify(TestCase):
+    def test_dot_concat(self):
+        filename = "some  file..name"
+        expected = "some.file.name"
+        actual = filename_scenify(filename)
+        self.assertEqual(expected, actual)
+
+    def test_remove_non_alpanum_chars(self):
+        filename = "who let the dogs out!? (1999)"
+        expected = "who.let.the.dogs.out.1999"
+        actual = filename_scenify(filename)
+        self.assertEqual(expected, actual)
+
+    def test_spaces_to_dots(self):
+        filename = " Space Jam "
+        expected = "space.jam"
+        actual = filename_scenify(filename)
+        self.assertEqual(expected, actual)
+
+    def test_utf8_to_ascii(self):
+        filename = "Amélie"
+        expected = "amelie"
+        actual = filename_scenify(filename)
+        self.assertEqual(expected, actual)
+
+
 class TestJsonRead(TestCase):
     @classmethod
     def tearDownClass(cls):
@@ -351,32 +378,6 @@ class TestJsonRead(TestCase):
 #         valid_extensions = [".mp4"]
 #         actual = extension_match(self.path, valid_extensions)
 #         self.assertFalse(actual)
-
-
-# class TestFilenameScenify(TestCase):
-#     def test_dot_concat(self):
-#         filename = "some  file..name"
-#         expected = "some.file.name"
-#         actual = filename_scenify(filename)
-#         self.assertEqual(expected, actual)
-
-#     def test_remove_non_alpanum_chars(self):
-#         filename = "who let the dogs out!? (1999)"
-#         expected = "who.let.the.dogs.out.1999"
-#         actual = filename_scenify(filename)
-#         self.assertEqual(expected, actual)
-
-#     def test_spaces_to_dots(self):
-#         filename = " Space Jam "
-#         expected = "space.jam"
-#         actual = filename_scenify(filename)
-#         self.assertEqual(expected, actual)
-
-#     def test_utf8_to_ascii(self):
-#         filename = "Amélie"
-#         expected = "amelie"
-#         actual = filename_scenify(filename)
-#         self.assertEqual(expected, actual)
 
 
 # class TestMetaParse(TestCase):
