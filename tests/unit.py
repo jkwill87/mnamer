@@ -1,13 +1,14 @@
 # coding=utf-8
 
+import json
 import os
 from copy import deepcopy
 from os.path import isdir, join, realpath, relpath, split
 from shutil import rmtree
 from tempfile import gettempdir
 
-from mnamer.utils import crawl_in, crawl_out, dict_merge
-from tests import IS_WINDOWS, TestCase, patch
+from mnamer.utils import crawl_in, crawl_out, dict_merge, json_read
+from tests import IS_WINDOWS, TestCase, mock_open, patch
 
 BAD_JSON = "{'some_key':True"
 DUMMY_DIR = "some_dir"
@@ -170,45 +171,46 @@ class TestMergeDicts(TestCase):
         actual = dict_merge(d1, d2)
         self.assertDictEqual(expected, actual)
 
-# class TestJsonRead(TestCase):
-#     @classmethod
-#     def tearDownClass(cls):
-#         os.environ = deepcopy(ENVIRON_BACKUP)
 
-#     def test_environ_substitution(self):
-#         os.environ["HOME"] = DUMMY_DIR
-#         with patch(OPEN_TARGET, mock_open(read_data="{}")) as mock_file:
-#             json_read("$HOME/config.json")
-#             mock_file.assert_called_with(DUMMY_DIR + "/config.json", mode="r")
+class TestJsonRead(TestCase):
+    @classmethod
+    def tearDownClass(cls):
+        os.environ = deepcopy(ENVIRON_BACKUP)
 
-#     def test_load_success(self):
-#         data = expected = {"dots": True}
-#         mocked_open = mock_open(read_data=json.dumps(data))
-#         with patch(OPEN_TARGET, mocked_open) as _:
-#             actual = json_read(DUMMY_FILE)
-#             self.assertDictEqual(expected, actual)
+    def test_environ_substitution(self):
+        os.environ["HOME"] = DUMMY_DIR
+        with patch(OPEN_TARGET, mock_open(read_data="{}")) as mock_file:
+            json_read("$HOME/config.json")
+            mock_file.assert_called_with(DUMMY_DIR + "/config.json", mode="r")
 
-#     def test_load_success__skips_none(self):
-#         data = {"dots": True, "scene": None}
-#         expected = {"dots": True}
-#         mocked_open = mock_open(read_data=json.dumps(data))
-#         with patch(OPEN_TARGET, mocked_open) as _:
-#             actual = json_read(DUMMY_FILE)
-#             self.assertDictEqual(expected, actual)
+    def test_load_success(self):
+        data = expected = {"dots": True}
+        mocked_open = mock_open(read_data=json.dumps(data))
+        with patch(OPEN_TARGET, mocked_open) as _:
+            actual = json_read(DUMMY_FILE)
+            self.assertDictEqual(expected, actual)
 
-#     def test_load_fail__io(self):
-#         mocked_open = mock_open()
-#         with patch(OPEN_TARGET, mocked_open) as patched_open:
-#             patched_open.side_effect = IOError
-#             with self.assertRaises(MnamerConfigException):
-#                 json_read(DUMMY_FILE)
+    def test_load_success__skips_none(self):
+        data = {"dots": True, "scene": None}
+        expected = {"dots": True}
+        mocked_open = mock_open(read_data=json.dumps(data))
+        with patch(OPEN_TARGET, mocked_open) as _:
+            actual = json_read(DUMMY_FILE)
+            self.assertDictEqual(expected, actual)
 
-#     def test_load_fail__invalid_json(self):
-#         mocked_open = mock_open(read_data=BAD_JSON)
-#         with patch(OPEN_TARGET, mocked_open) as patched_open:
-#             patched_open.side_effect = TypeError
-#             with self.assertRaises(MnamerConfigException):
-#                 json_read(DUMMY_FILE)
+    def test_load_fail__io(self):
+        mocked_open = mock_open()
+        with patch(OPEN_TARGET, mocked_open) as patched_open:
+            patched_open.side_effect = IOError
+            with self.assertRaises(RuntimeError):
+                json_read(DUMMY_FILE)
+
+    def test_load_fail__invalid_json(self):
+        mocked_open = mock_open(read_data=BAD_JSON)
+        with patch(OPEN_TARGET, mocked_open) as patched_open:
+            patched_open.side_effect = TypeError
+            with self.assertRaises(RuntimeError):
+                json_read(DUMMY_FILE)
 
 
 # class TestConfigSave(TestCase):
@@ -383,7 +385,6 @@ class TestMergeDicts(TestCase):
 #         expected = "amelie"
 #         actual = filename_scenify(filename)
 #         self.assertEqual(expected, actual)
-
 
 
 # class TestMetaParse(TestCase):
