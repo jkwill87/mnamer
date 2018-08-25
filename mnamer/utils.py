@@ -12,7 +12,7 @@ from os.path import (
     realpath,
     splitext,
 )
-from re import match, sub
+from re import match, sub, IGNORECASE
 from string import Template
 from sys import version_info
 from unicodedata import normalize
@@ -82,7 +82,7 @@ def filename_replace(filename, replacements):
     base, ext = splitext(filename)
     for word, replacement in replacements.items():
         if word in filename:
-            base = base.replace(word, replacement)
+            base = sub(r"%s\b" % word, replacement, base, flags=IGNORECASE)
     return base + ext
 
 

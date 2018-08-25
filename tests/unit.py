@@ -7,7 +7,14 @@ from os.path import isdir, join, realpath, relpath, split
 from shutil import rmtree
 from tempfile import gettempdir
 
-from mnamer.utils import crawl_in, crawl_out, dict_merge, json_read, file_extension
+from mnamer.utils import (
+    crawl_in,
+    crawl_out,
+    dict_merge,
+    json_read,
+    file_extension,
+    filename_replace,
+)
 from tests import IS_WINDOWS, TestCase, mock_open, patch
 
 BAD_JSON = "{'some_key':True"
@@ -187,8 +194,38 @@ class TestFileExtension(TestCase):
 
     def test_multiple_extensions(self):
         path = "Spaceballs (1987).mkv.mkv"
-        expected = 'mkv'
+        expected = "mkv"
         actual = file_extension(path)
+        self.assertEqual(expected, actual)
+
+
+class FilenameReplace(TestCase):
+    def setUp(self):
+        self.filename = "The quick brown fox jumps over the lazy dog"
+
+    def test_no_change(self):
+        replacements = {}
+        expected = self.filename
+        actual = filename_replace(self.filename, replacements)
+        self.assertEqual(expected, actual)
+
+    def test_single_replacement(self):
+        replacements = {"brown": "red"}
+        expected = "The quick red fox jumps over the lazy dog"
+        actual = filename_replace(self.filename, replacements)
+        self.assertEqual(expected, actual)
+
+    def test_multiple_replacement(self):
+        replacements = {"the": "a", "lazy": "misunderstood", "dog": "cat"}
+        expected = "a quick brown fox jumps over a misunderstood cat"
+        actual = filename_replace(self.filename, replacements)
+        self.assertEqual(expected, actual)
+
+    def test_only_replaces_whole_words(self):
+        filename = "the !the the theater the"
+        replacements = {"the": "x"}
+        expected = "x !x x theater x"
+        actual = filename_replace(filename, replacements)
         self.assertEqual(expected, actual)
 
 
@@ -303,37 +340,6 @@ class TestJsonRead(TestCase):
 #         expected = ""
 #         actual = file_stem(path)
 #         self.assertEqual(expected, actual)
-
-
-# class FilenameReplace(TestCase):
-#     def setUp(self):
-#         self.filename = "The quick brown fox jumps over the lazy dog"
-
-#     def test_no_change(self):
-#         replacements = {}
-#         expected = self.filename
-#         actual = filename_replace(self.filename, replacements)
-#         self.assertEqual(expected, actual)
-
-#     def test_single_replacement(self):
-#         replacements = {"brown": "red"}
-#         expected = "The quick red fox jumps over the lazy dog"
-#         actual = filename_replace(self.filename, replacements)
-#         self.assertEqual(expected, actual)
-
-#     def test_multiple_replacement(self):
-#         replacements = {"the": "a", "lazy": "misunderstood", "dog": "cat"}
-#         expected = "a quick brown fox jumps over a misunderstood cat"
-#         actual = filename_replace(self.filename, replacements)
-#         self.assertEqual(expected, actual)
-
-#     def test_only_replaces_whole_words(self):
-#         filename = "_the the theater the"
-#         replacements = {"the": "_"}
-#         expected = "_the _ theater _"
-#         actual = filename_replace(filename, replacements)
-#         self.assertEqual(expected, actual)
-
 
 # class TestFilenameSanitize(TestCase):
 #     def test_condense_whitespace(self):
