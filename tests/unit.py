@@ -7,7 +7,7 @@ from os.path import isdir, join, realpath, relpath, split
 from shutil import rmtree
 from tempfile import gettempdir
 
-from mnamer.utils import crawl_in, crawl_out, dict_merge, json_read
+from mnamer.utils import crawl_in, crawl_out, dict_merge, json_read, file_extension
 from tests import IS_WINDOWS, TestCase, mock_open, patch
 
 BAD_JSON = "{'some_key':True"
@@ -21,14 +21,8 @@ MEDIA_EPISODE = "01x01"
 MEDIA_JUNK = "Who Let the Dogs Out?"
 
 MOVIE_DIR = "C:\\Movies\\" if IS_WINDOWS else "/movies/"
-MOVIE_TITLE = "Spaceballs (1987)"
 
 TELEVISION_DIR = "C:\\Television\\" if IS_WINDOWS else "/telelvision/"
-TELEVISION_SERIES = "Adventure Time"
-TELEVISION_EPISODE_A = "S01E01"
-TELEVISION_EPISODE_B = "01x01"
-TELEVISION_EPISODE_MULTI = "S01E01E02"
-TELEVISION_FILENAME = "%s %s" % (TELEVISION_SERIES, TELEVISION_EPISODE_A)
 
 ENVIRON_BACKUP = deepcopy(os.environ)
 
@@ -147,7 +141,7 @@ class TestCrawlOut(TestCase):
         self.assertIsNone(crawl_out("avengers.mkv"))
 
 
-class TestMergeDicts(TestCase):
+class TestDictMerge(TestCase):
     def test_two(self):
         d1 = {"a": 1, "b": 2}
         d2 = {"c": 3}
@@ -170,6 +164,32 @@ class TestMergeDicts(TestCase):
         expected = {"a": 10, "b": 20, "c": 3}
         actual = dict_merge(d1, d2)
         self.assertDictEqual(expected, actual)
+
+
+class TestFileExtension(TestCase):
+    def test_abs_path(self):
+        path = MOVIE_DIR + "Spaceballs (1987).mkv"
+        expected = MEDIA_EXTENSION.lstrip(".")
+        actual = file_extension(path)
+        self.assertEqual(expected, actual)
+
+    def test_rel_path(self):
+        path = "Spaceballs (1987).mkv"
+        expected = MEDIA_EXTENSION.lstrip(".")
+        actual = file_extension(path)
+        self.assertEqual(expected, actual)
+
+    def test_no_extension(self):
+        path = "Spaceballs (1987)"
+        expected = ""
+        actual = file_extension(path)
+        self.assertEqual(expected, actual)
+
+    def test_multiple_extensions(self):
+        path = "Spaceballs (1987).mkv.mkv"
+        expected = 'mkv'
+        actual = file_extension(path)
+        self.assertEqual(expected, actual)
 
 
 class TestJsonRead(TestCase):
@@ -267,13 +287,13 @@ class TestJsonRead(TestCase):
 
 # class TestFileStem(TestCase):
 #     def test_abs_path(self):
-#         path = MOVIE_DIR + MOVIE_TITLE + MEDIA_EXTENSION
+#         path = MOVIE_DIR + "Spaceballs (1987).mkv"
 #         expected = MOVIE_TITLE
 #         actual = file_stem(path)
 #         self.assertEqual(expected, actual)
 
 #     def test_rel_path(self):
-#         path = MOVIE_TITLE + MEDIA_EXTENSION
+#         path = "Spaceballs (1987).mkv"
 #         expected = MOVIE_TITLE
 #         actual = file_stem(path)
 #         self.assertEqual(expected, actual)
@@ -282,32 +302,6 @@ class TestJsonRead(TestCase):
 #         path = MOVIE_DIR
 #         expected = ""
 #         actual = file_stem(path)
-#         self.assertEqual(expected, actual)
-
-
-# class TestFileExtension(TestCase):
-#     def test_abs_path(self):
-#         path = MOVIE_DIR + MOVIE_TITLE + MEDIA_EXTENSION
-#         expected = MEDIA_EXTENSION.lstrip(".")
-#         actual = file_extension(path)
-#         self.assertEqual(expected, actual)
-
-#     def test_rel_path(self):
-#         path = MOVIE_TITLE + MEDIA_EXTENSION
-#         expected = MEDIA_EXTENSION.lstrip(".")
-#         actual = file_extension(path)
-#         self.assertEqual(expected, actual)
-
-#     def test_no_extension(self):
-#         path = MOVIE_TITLE
-#         expected = ""
-#         actual = file_extension(path)
-#         self.assertEqual(expected, actual)
-
-#     def test_multiple_extensions(self):
-#         path = MOVIE_TITLE + MEDIA_EXTENSION + MEDIA_EXTENSION
-#         expected = MEDIA_EXTENSION.lstrip(".")
-#         actual = file_extension(path)
 #         self.assertEqual(expected, actual)
 
 
@@ -452,7 +446,7 @@ class TestJsonRead(TestCase):
 #         self.assertEqual(expected, actual)
 
 #     def test_movie__filename_only(self):
-#         path = MOVIE_TITLE + MEDIA_EXTENSION
+#         path = "Spaceballs (1987).mkv"
 #         expected = {
 #             "title": "Spaceballs",
 #             "date": "1987-01-01",
@@ -463,7 +457,7 @@ class TestJsonRead(TestCase):
 #         self.assertDictEqual(expected, actual)
 
 #     def test_movie__full_path(self):
-#         path = MOVIE_DIR + MOVIE_TITLE + MEDIA_EXTENSION
+#         path = MOVIE_DIR + "Spaceballs (1987).mkv"
 #         expected = {
 #             "title": "Spaceballs",
 #             "date": "1987-01-01",
@@ -492,7 +486,7 @@ class TestJsonRead(TestCase):
 #         self.assertIn("Dolby Digital", actual)
 
 #     def test_quality__omitted(self):
-#         path = MOVIE_TITLE + MEDIA_EXTENSION
+#         path = "Spaceballs (1987).mkv"
 #         actual = meta_parse(path).get("quality")
 #         self.assertIsNone(actual)
 
@@ -503,12 +497,12 @@ class TestJsonRead(TestCase):
 #         self.assertEqual(actual, expected)
 
 #     def test_release_group_omitted(self):
-#         path = MOVIE_TITLE + MEDIA_EXTENSION
+#         path = "Spaceballs (1987).mkv"
 #         actual = meta_parse(path)
 #         self.assertNotIn("group", actual)
 
 #     def test_extension__provided(self):
-#         path = MOVIE_TITLE + MEDIA_EXTENSION
+#         path = "Spaceballs (1987).mkv"
 #         expected = MEDIA_EXTENSION
 #         actual = meta_parse(path).get("extension")
 #         self.assertEqual(expected, actual)
