@@ -2,7 +2,6 @@
 """
 
 import json
-from json import dumps
 from os import environ, getcwd, walk
 from os.path import (
     basename,
@@ -63,10 +62,6 @@ def dict_merge(d1, *dn):
     for d in dn:
         res.update(d)
     return res
-
-
-def dict_to_json(d):
-    return dumps(d, sort_keys=True, skipkeys=True, allow_nan=False)
 
 
 def file_extension(path):

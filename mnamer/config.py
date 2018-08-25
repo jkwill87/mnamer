@@ -1,4 +1,5 @@
 from copy import deepcopy
+from json import dumps
 
 from mnamer import (
     CONFIGURATION_KEYS,
@@ -7,7 +8,7 @@ from mnamer import (
     PREFERENCE_KEYS,
 )
 from mnamer.exceptions import MnamerConfigException
-from mnamer.utils import crawl_out, dict_to_json, json_read
+from mnamer.utils import crawl_out, json_read
 
 try:
     from collections.abc import Mapping
@@ -53,7 +54,7 @@ class Configuration(Mapping):
 
     @property
     def preference_json(self):
-        return dict_to_json(self.preference_dict)
+        return dumps(self.preference_dict, sort_keys=True)
 
     @property
     def directive_dict(self):
@@ -61,8 +62,8 @@ class Configuration(Mapping):
 
     @property
     def directive_json(self):
-        return dict_to_json(self.directive_dict)
+        return dumps(self.directive_dict, sort_keys=True)
 
     @property
     def config_json(self):
-        return dict_to_json(self._dict)
+        return dumps(self._dict, sort_keys=True)
