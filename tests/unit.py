@@ -13,6 +13,7 @@ from mnamer.utils import (
     dict_merge,
     json_read,
     file_extension,
+    filename_sanitize,
     filename_replace,
 )
 from tests import IS_WINDOWS, TestCase, mock_open, patch
@@ -229,6 +230,20 @@ class FilenameReplace(TestCase):
         self.assertEqual(expected, actual)
 
 
+class TestFilenameSanitize(TestCase):
+    def test_condense_whitespace(self):
+        filename = "fix  these    spaces\tplease "
+        expected = "fix these spaces please"
+        actual = filename_sanitize(filename)
+        self.assertEqual(expected, actual)
+
+    def test_remove_illegal_chars(self):
+        filename = "<:*sup*:>"
+        expected = "sup"
+        actual = filename_sanitize(filename)
+        self.assertEqual(expected, actual)
+
+
 class TestJsonRead(TestCase):
     @classmethod
     def tearDownClass(cls):
@@ -339,25 +354,6 @@ class TestJsonRead(TestCase):
 #         path = MOVIE_DIR
 #         expected = ""
 #         actual = file_stem(path)
-#         self.assertEqual(expected, actual)
-
-# class TestFilenameSanitize(TestCase):
-#     def test_condense_whitespace(self):
-#         filename = "fix  these    spaces\tplease "
-#         expected = "fix these spaces please"
-#         actual = filename_sanitize(filename)
-#         self.assertEqual(expected, actual)
-
-#     def test_remove_illegal_chars(self):
-#         filename = "<:*sup*:>"
-#         expected = "sup"
-#         actual = filename_sanitize(filename)
-#         self.assertEqual(expected, actual)
-
-#     def test_dir_concat(self):
-#         filename = "somedir%s%ssomefile" % (sep, sep)
-#         expected = "somedir%ssomefile" % sep
-#         actual = filename_sanitize(filename)
 #         self.assertEqual(expected, actual)
 
 
