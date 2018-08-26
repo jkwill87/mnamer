@@ -14,6 +14,7 @@ from mnamer.utils import (
     json_read,
     file_extension,
     file_stem,
+    filter_blacklist,
     filename_sanitize,
     filename_scenify,
     filename_replace,
@@ -36,14 +37,15 @@ TEST_FILES = {
     relpath(path)
     for path in {
         "avengers.mkv",
-        "Ninja Turtles (1990).mkv",
-        "scan_001.tiff",
+    "avengers.mkv",
         "Desktop/temp.zip",
         "Documents/Photos/DCM0001.jpg",
         "Documents/Photos/DCM0002.jpg",
         "Documents/Skiing Trip.mp4",
         "Downloads/Return of the Jedi.mkv",
         "Downloads/the.goonies.1985.sample.mp4",
+    "Ninja Turtles (1990).mkv",
+    "scan_001.tiff",
     }
 }
 
@@ -285,6 +287,64 @@ class TestFilenameScenify(TestCase):
         expected = "amelie"
         actual = filename_scenify(filename)
         self.assertEqual(expected, actual)
+
+
+class TestFilterBlacklist(TestCase):
+    def test_filter_none(self):
+        expected = TEST_FILES
+        actual = filter_blacklist(TEST_FILES, ())
+        self.assertSetEqual(expected, actual)
+        expected = TEST_FILES
+        actual = filter_blacklist(TEST_FILES, None)
+        self.assertSetEqual(expected, actual)
+
+    def test_filter_single_pattern_multiple_paths(self):
+        expected = TEST_FILES - {
+            "Documents/Photos/DCM0001.jpg",
+            "Documents/Photos/DCM0002.jpg",
+        }
+        actual = filter_blacklist(TEST_FILES, "dcm")
+        self.assertSetEqual(expected, actual)
+
+    def test_filter_multiple_patterns_multiple_paths(self):
+        expected = TEST_FILES - {
+            "Desktop/temp.zip",
+            "Downloads/the.goonies.1985.sample.mp4",
+        }
+        actual = filter_blacklist(TEST_FILES, ("temp", "sample"))
+        self.assertSetEqual(expected, actual)
+
+    def test_filter_simple_pattern_single_path(self):
+        expected = set()
+        actual = filter_blacklist("Documents/sample.file.mp4", "sample")
+        self.assertSetEqual(expected, actual)
+        expected = {"Documents/sample.file.mp4"}
+        actual = filter_blacklist("Documents/sample.file.mp4", "dcm")
+        self.assertSetEqual(expected, actual)
+
+    def test_filter_multiple_patterns_single_path(self):
+        expected = set()
+        actual = filter_blacklist(
+            "Documents/sample.file.mp4", ("files", "sample")
+        )
+        self.assertSetEqual(expected, actual)
+        expected = {"Documents/sample.file.mp4"}
+        actual = filter_blacklist(
+            "Documents/sample.file.mp4", ("apple", "banana")
+        )
+        self.assertSetEqual(expected, actual)
+
+    def test_regex(self):
+        pattern = r"\d+"
+        expected = TEST_FILES - {
+            "Documents/Photos/DCM0001.jpg",
+            "Documents/Photos/DCM0002.jpg",
+            "Downloads/the.goonies.1985.sample.mp4",
+            "Ninja Turtles (1990).mkv",
+            "scan_001.tiff",
+        }
+        actual = filter_blacklist(TEST_FILES, pattern)
+        self.assertSetEqual(expected, actual)
 
 
 class TestJsonRead(TestCase):

@@ -12,7 +12,7 @@ from os.path import (
     realpath,
     splitext,
 )
-from re import match, sub, IGNORECASE
+from re import search, sub, IGNORECASE
 from string import Template
 from sys import version_info
 from unicodedata import normalize
@@ -108,10 +108,18 @@ def filename_scenify(filename):
 
 
 def filter_blacklist(paths, blacklist):
-    """ TODO
+    """ Filters a collection of paths by a collection of regex pattens
     """
+    if not blacklist:
+        return {p for p in paths}
+    elif isinstance(blacklist, str):
+        blacklist = (blacklist,)
+    if isinstance(paths, str):
+        paths = (paths,)
     return {
-        p for p in paths if not any(match(b, file_stem(p)) for b in blacklist)
+        p
+        for p in paths
+        if not any(search(b, file_stem(p), IGNORECASE) for b in blacklist)
     }
 
 
