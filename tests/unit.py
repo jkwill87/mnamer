@@ -11,13 +11,15 @@ from mnamer.utils import (
     crawl_in,
     crawl_out,
     dict_merge,
-    json_read,
     file_extension,
     file_stem,
-    filter_blacklist,
+    filename_replace,
     filename_sanitize,
     filename_scenify,
-    filename_replace,
+    filter_blacklist,
+    filter_extensions,
+    json_read,
+    json_write,
 )
 from tests import IS_WINDOWS, TestCase, mock_open, patch
 
@@ -298,7 +300,7 @@ class TestFilterBlacklist(TestCase):
         actual = filter_blacklist(TEST_FILES, None)
         self.assertSetEqual(expected, actual)
 
-    def test_filter_single_pattern_multiple_paths(self):
+    def test_filter_multiple_paths_single_pattern(self):
         expected = TEST_FILES - {
             "Documents/Photos/DCM0001.jpg",
             "Documents/Photos/DCM0002.jpg",
@@ -306,7 +308,7 @@ class TestFilterBlacklist(TestCase):
         actual = filter_blacklist(TEST_FILES, "dcm")
         self.assertSetEqual(expected, actual)
 
-    def test_filter_multiple_patterns_multiple_paths(self):
+    def test_filter_multiple_paths_multiple_patterns(self):
         expected = TEST_FILES - {
             "Desktop/temp.zip",
             "Downloads/the.goonies.1985.sample.mp4",
@@ -314,7 +316,7 @@ class TestFilterBlacklist(TestCase):
         actual = filter_blacklist(TEST_FILES, ("temp", "sample"))
         self.assertSetEqual(expected, actual)
 
-    def test_filter_simple_pattern_single_path(self):
+    def test_filter_single_path_single_pattern(self):
         expected = set()
         actual = filter_blacklist("Documents/sample.file.mp4", "sample")
         self.assertSetEqual(expected, actual)
@@ -322,7 +324,7 @@ class TestFilterBlacklist(TestCase):
         actual = filter_blacklist("Documents/sample.file.mp4", "dcm")
         self.assertSetEqual(expected, actual)
 
-    def test_filter_multiple_patterns_single_path(self):
+    def test_filter_single_path_multiple_patterns(self):
         expected = set()
         actual = filter_blacklist(
             "Documents/sample.file.mp4", ("files", "sample")
@@ -388,222 +390,28 @@ class TestJsonRead(TestCase):
                 json_read(DUMMY_FILE)
 
 
-# class TestConfigSave(TestCase):
-#     @classmethod
-#     def tearDownClass(cls):
-#         os.environ = deepcopy(ENVIRON_BACKUP)
+class TestJsonWrite(TestCase):
+    @classmethod
+    def tearDownClass(cls):
+        os.environ = deepcopy(ENVIRON_BACKUP)
 
-#     def test_environ_substitution(self):
-#         os.environ["HOME"] = DUMMY_DIR
-#         data = {"dots": True}
-#         path = DUMMY_DIR + "/config.json"
-#         with patch(OPEN_TARGET, mock_open()) as patched_open:
-#             config_save("$HOME/config.json", data)
-#             patched_open.assert_called_with(path, mode="w")
+    def test_environ_substitution(self):
+        os.environ["HOME"] = DUMMY_DIR
+        data = {"dots": True}
+        path = DUMMY_DIR + "/config.json"
+        with patch(OPEN_TARGET, mock_open()) as patched_open:
+            json_write("$HOME/config.json", data)
+            patched_open.assert_called_with(path, mode="w")
 
-#     def test_save_success(self):
-#         mocked_open = mock_open()
-#         with patch(OPEN_TARGET, mocked_open) as _:
-#             config_save(DUMMY_FILE, {"dots": True})
-#             mocked_open.assert_called()
+    def test_save_success(self):
+        mocked_open = mock_open()
+        with patch(OPEN_TARGET, mocked_open) as _:
+            json_write(DUMMY_FILE, {"dots": True})
+            mocked_open.assert_called()
 
-#     def test_save_fail__io(self):
-#         mocked_open = mock_open()
-#         with patch(OPEN_TARGET, mocked_open) as patched_open:
-#             patched_open.side_effect = IOError
-#             with self.assertRaises(MnamerConfigException):
-#                 config_save(DUMMY_FILE, {"dots": True})
-
-
-# class TestExtensionMatch(TestCase):
-#     def setUp(self):
-#         self.path = MOVIE_DIR + MOVIE_TITLE + ".mkv"
-
-#     def test_pass__dot(self):
-#         valid_extensions = [".mkv"]
-#         actual = extension_match(self.path, valid_extensions)
-#         self.assertTrue(actual)
-
-#     def test_pass__bare(self):
-#         valid_extensions = ["mkv"]
-#         actual = extension_match(self.path, valid_extensions)
-#         self.assertTrue(actual)
-
-#     def test_pass__string(self):
-#         valid_extensions = ".mkv"
-#         actual = extension_match(self.path, valid_extensions)
-#         self.assertTrue(actual)
-
-#     def test_fail(self):
-#         valid_extensions = [".mp4"]
-#         actual = extension_match(self.path, valid_extensions)
-#         self.assertFalse(actual)
-
-
-# class TestMetaParse(TestCase):
-#     def test_television__filename_only(self):
-#         path = TELEVISION_FILENAME
-#         expected = {
-#             "episode": "1",
-#             "media": "television",
-#             "season": "1",
-#             "series": TELEVISION_SERIES,
-#         }
-#         actual = dict(meta_parse(path))
-#         self.assertDictEqual(expected, actual)
-
-#     def test_television__full_path(self):
-#         path = TELEVISION_DIR + TELEVISION_FILENAME
-#         expected = {
-#             "episode": "1",
-#             "media": "television",
-#             "season": "1",
-#             "series": TELEVISION_SERIES,
-#         }
-#         actual = dict(meta_parse(path))
-#         self.assertDictEqual(expected, actual)
-
-#     def test_television__multi(self):
-#         path = TELEVISION_FILENAME + "E02"
-#         expected = {
-#             "episode": "1",
-#             "media": "television",
-#             "season": "1",
-#             "series": TELEVISION_SERIES,
-#         }
-#         actual = dict(meta_parse(path))
-#         self.assertDictEqual(expected, actual)
-
-#     def test_television__series_with_year(self):
-#         path = "Deception (2008) 01x01" + MEDIA_EXTENSION
-#         expected = "Deception (2008)"
-#         actual = meta_parse(path).get("series")
-#         self.assertEqual(expected, actual)
-
-#     def test_television__series_with_country_code_1(self):
-#         path = TELEVISION_FILENAME + " (UK)"
-#         expected = TELEVISION_SERIES + " (UK)"
-#         actual = meta_parse(path).get("series")
-#         self.assertEqual(expected, actual)
-
-#     def test_television__series_with_country_code_2(self):
-#         path = TELEVISION_FILENAME + " [us]"
-#         expected = TELEVISION_SERIES + " (US)"
-#         actual = meta_parse(path).get("series")
-#         self.assertEqual(expected, actual)
-
-#     def test_television__series_with_date(self):
-#         path = "The Daily Show 2017.11.01" + MEDIA_EXTENSION
-#         expected = "The Daily Show"
-#         actual = meta_parse(path)["series"]
-#         self.assertEqual(expected, actual)
-
-#     def test_television__media_override(self):
-#         path = "Lost (2004)" + MEDIA_EXTENSION
-#         expected = "television"
-#         actual = meta_parse(path, media="television")["media"]
-#         self.assertEqual(expected, actual)
-
-#     def test_movie__filename_only(self):
-#         path = "Spaceballs (1987).mkv"
-#         expected = {
-#             "title": "Spaceballs",
-#             "date": "1987-01-01",
-#             "media": "movie",
-#             "extension": ".mkv",
-#         }
-#         actual = dict(meta_parse(path))
-#         self.assertDictEqual(expected, actual)
-
-#     def test_movie__full_path(self):
-#         path = MOVIE_DIR + "Spaceballs (1987).mkv"
-#         expected = {
-#             "title": "Spaceballs",
-#             "date": "1987-01-01",
-#             "media": "movie",
-#             "extension": ".mkv",
-#         }
-#         actual = dict(meta_parse(path))
-#         self.assertDictEqual(expected, actual)
-
-#     def test_movie__media_overide(self):
-#         path = "Deception (2008) 01x01" + MEDIA_EXTENSION
-#         expected = "movie"
-#         actual = meta_parse(path, media="movie")["media"]
-#         self.assertEqual(expected, actual)
-
-#     def test_quality__provided_single(self):
-#         path = MOVIE_TITLE + "4k" + MEDIA_EXTENSION
-#         expected = "2160p"
-#         actual = meta_parse(path).get("quality")
-#         self.assertEqual(expected, actual)
-
-#     def test_quality__provided_multiple(self):
-#         path = MOVIE_TITLE + "1080P ac3" + MEDIA_EXTENSION
-#         actual = meta_parse(path).get("quality")
-#         self.assertIn("1080p", actual)
-#         self.assertIn("Dolby Digital", actual)
-
-#     def test_quality__omitted(self):
-#         path = "Spaceballs (1987).mkv"
-#         actual = meta_parse(path).get("quality")
-#         self.assertIsNone(actual)
-
-#     def test_release_group__provided(self):
-#         path = "%s%s [%s]" % (MOVIE_TITLE, MEDIA_EXTENSION, MEDIA_GROUP)
-#         expected = MEDIA_GROUP
-#         actual = meta_parse(path).get("group")
-#         self.assertEqual(actual, expected)
-
-#     def test_release_group_omitted(self):
-#         path = "Spaceballs (1987).mkv"
-#         actual = meta_parse(path)
-#         self.assertNotIn("group", actual)
-
-#     def test_extension__provided(self):
-#         path = "Spaceballs (1987).mkv"
-#         expected = MEDIA_EXTENSION
-#         actual = meta_parse(path).get("extension")
-#         self.assertEqual(expected, actual)
-
-#     def test_extension__omitted(self):
-#         path = MOVIE_TITLE
-#         actual = meta_parse(path).get("extension")
-#         self.assertIsNone(actual)
-
-#     def test_unknown(self):
-#         path = ""
-#         with self.assertRaises(MnamerException):
-#             meta_parse(path)
-
-
-# class TestProviderSearch(TestCase):
-#     def setUp(self):
-#         self.metadata_television = MetadataTelevision(
-#             series="Lost", season=1, episode=1
-#         )
-#         self.metadata_movie = MetadataMovie(title="Pulp Fiction")
-
-#     @patch("mapi.providers.TMDb")
-#     def test_call_tmdb(self, mock_tmdb):
-#         list(
-#             provider_search(
-#                 self.metadata_movie, movie_api="tmdb", api_key_tmdb="yolo"
-#             )
-#         )
-#         mock_tmdb.assert_called_once_with(api_key="yolo")
-
-#     @patch("mapi.providers.TVDb")
-#     def test_call_tvdb(self, mock_tvdb):
-#         list(
-#             provider_search(
-#                 self.metadata_television,
-#                 television_api="tvdb",
-#                 api_key_tvdb="yolo",
-#             )
-#         )
-#         mock_tvdb.assert_called_once_with(api_key="yolo")
-
-#     def test_call_missing_api(self):
-#         with self.assertRaises(MnamerException):
-#             list(provider_search(self.metadata_television))
+    def test_save_fail__io(self):
+        mocked_open = mock_open()
+        with patch(OPEN_TARGET, mocked_open) as patched_open:
+            patched_open.side_effect = RuntimeError
+            with self.assertRaises(RuntimeError):
+                json_write(DUMMY_FILE, {"dots": True})

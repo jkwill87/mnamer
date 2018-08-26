@@ -108,7 +108,7 @@ def filename_scenify(filename):
 
 
 def filter_blacklist(paths, blacklist):
-    """ Filters a collection of paths by a collection of regex pattens
+    """ Filters (set difference) a collection of paths by a collection of regex pattens
     """
     if not blacklist:
         return {p for p in paths}
@@ -124,7 +124,7 @@ def filter_blacklist(paths, blacklist):
 
 
 def filter_extensions(paths, valid_extensions):
-    """ TODO
+    """ Filters a collection of pensions by a collection of extensions
     """
     if not valid_extensions:
         return paths
@@ -150,12 +150,12 @@ def json_read(path, skip_nil=True):
     return {k: v for k, v in data.items() if not (v is None and skip_nil)}
 
 
-def json_write(path, obj, skip_nil=True):
+def json_write(path, obj):
     """ Writes a JSON file to disk
     """
     templated_path = Template(path).substitute(environ)
     try:
-        json_data = json.dumps(obj, skipkeys=skip_nil)
+        json_data = json.dumps(obj)
         open(templated_path, mode="w").write(json_data)
     except IOError as e:  # e.g. permission error
         RuntimeError(e.strerror)
