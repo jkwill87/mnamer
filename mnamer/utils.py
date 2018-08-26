@@ -124,7 +124,7 @@ def filter_blacklist(paths, blacklist):
 
 
 def filter_extensions(paths, valid_extensions):
-    """ Filters a collection of pensions by a collection of extensions
+    """ Filters (set intersection) a collection of extension by a collection of extensions
     """
     if not valid_extensions:
         return paths

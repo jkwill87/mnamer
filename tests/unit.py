@@ -39,15 +39,14 @@ TEST_FILES = {
     relpath(path)
     for path in {
         "avengers.mkv",
-    "avengers.mkv",
         "Desktop/temp.zip",
         "Documents/Photos/DCM0001.jpg",
         "Documents/Photos/DCM0002.jpg",
         "Documents/Skiing Trip.mp4",
         "Downloads/Return of the Jedi.mkv",
         "Downloads/the.goonies.1985.sample.mp4",
-    "Ninja Turtles (1990).mkv",
-    "scan_001.tiff",
+        "Ninja Turtles (1990).mkv",
+        "scan_001.tiff",
     }
 }
 
@@ -346,6 +345,59 @@ class TestFilterBlacklist(TestCase):
             "scan_001.tiff",
         }
         actual = filter_blacklist(TEST_FILES, pattern)
+        self.assertSetEqual(expected, actual)
+
+
+class TestFilterExtensions(TestCase):
+    def test_filter_none(self):
+        expected = TEST_FILES
+        actual = filter_extensions(TEST_FILES, ())
+        self.assertSetEqual(expected, actual)
+        expected = TEST_FILES
+        actual = filter_extensions(TEST_FILES, None)
+        self.assertSetEqual(expected, actual)
+
+    def test_filter_multiple_paths_single_pattern(self):
+        expected = {
+            "Documents/Photos/DCM0001.jpg",
+            "Documents/Photos/DCM0002.jpg",
+        }
+        actual = filter_extensions(TEST_FILES, "jpg")
+        self.assertSetEqual(expected, actual)
+        actual = filter_extensions(TEST_FILES, ".jpg")
+        self.assertSetEqual(expected, actual)
+
+    def test_filter_multiple_paths_multiple_patterns(self):
+        expected = {
+            "avengers.mkv",
+            "Desktop/temp.zip",
+            "Downloads/Return of the Jedi.mkv",
+            "Ninja Turtles (1990).mkv",
+        }
+        actual = filter_extensions(TEST_FILES, ("mkv", "zip"))
+        self.assertSetEqual(expected, actual)
+        actual = filter_extensions(TEST_FILES, (".mkv", ".zip"))
+        self.assertSetEqual(expected, actual)
+
+    def test_filter_single_path_single_pattern(self):
+        expected = {
+            "avengers.mkv",
+            "Desktop/temp.zip",
+            "Downloads/Return of the Jedi.mkv",
+            "Ninja Turtles (1990).mkv",
+        }
+        actual = filter_extensions(TEST_FILES, ("mkv", "zip"))
+        self.assertSetEqual(expected, actual)
+        actual = filter_extensions(TEST_FILES, (".mkv", ".zip"))
+        self.assertSetEqual(expected, actual)
+
+    def test_filter_single_path_multiple_patterns(self):
+        expected = {"Documents/Skiing Trip.mp4"}
+        actual = filter_extensions("Documents/Skiing Trip.mp4", ("mp4", "zip"))
+        self.assertSetEqual(expected, actual)
+        actual = filter_extensions(
+            "Documents/Skiing Trip.mp4", (".mp4", ".zip")
+        )
         self.assertSetEqual(expected, actual)
 
 
