@@ -11,7 +11,7 @@
 
 mnamer (**m**edia re**namer**) is an intelligent and highly configurable media organization utility. It parses media filenames for metadata, searches the web to fill in the blanks, and then renames and moves them.
 
-![mnamer terminal recording](https://github.com/jkwill87/mnamer/blob/develop/_assets/terminal-rec.svg)
+![demo](https://github.com/jkwill87/mnamer/blob/develop/_assets/demo.svg)
 
 
 # Installation
