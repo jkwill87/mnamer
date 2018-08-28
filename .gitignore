@@ -11,6 +11,6 @@ MANIFEST
 __pycache__/
 build
 dist/
-playground*
+demo*
 testing/test_files_*
 venv*
