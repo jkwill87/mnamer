@@ -45,9 +45,11 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 |-s, --scene              |                  | scene mode; replace non ascii-alphanumerics with `.`  |
 |-r, --recurse            |                  | show this help message and exit                       |
 |-v, --verbose            |                  | increases output verbosity                            |
-|--blacklist              | pattern          | ignore files including these words                    |
+|--blacklist              | pattern          | ignore files including these words                     |
 |--hits                   | number           | limits the maximum number of hits for each query      |
-|--extmask                | extention(s)     | define the extension mask used by the the file parser |
+|--extmask                | extention(s)     | define the extension mask used by the the file parser   |
+|--nocache                |                  | disables and clears result cache                      |
+|--nostyle                |                  | disables colours and uses ASCII chars for UI prompts  |
 |--movie_api              | `imdb` or `tmdb` | set movie api provider                                |
 |--movie_directory        | path             | set movie relocation directory                        |
 |--movie_template         | template         | set movie renaming template                           |

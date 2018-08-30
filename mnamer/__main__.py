@@ -27,7 +27,7 @@ def main():
     except MnamerConfigException:
         pass
     targets = Target.populate_paths(args.targets, **config)
-    enable_style(config.get("nocolor") == False)
+    enable_style(config.get("nostyle") == False)
     enable_verbose(config.get("verbose") == True)
 
     # Handle directives and configuration
