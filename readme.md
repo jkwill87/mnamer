@@ -81,24 +81,28 @@ You have complete control of how media files are renamed using mnamer's template
 - if a field can't be matched, the entire contents of the bracket are disregared
 
 
-## Example: SxE Episodes Format
+## Examples
+<details>
+<summary>SxE Episodes Format</summary>
 
 - television_template: `<$series - >< - $seasonx><$episode - >< - $title><$extension>`
 - target: `~/Downloads/Rick.and.Morty.S02E01.WEBRip.x264-RARBG.mp4`
 - result: `~/Downloads/Rick and Morty - 02x01 - A Rickle in Time.mp4`
+</details>
 
 
-## Example: Missing Metadata
-
+<details>
+<summary>Missing Metadata</summary>
 
 *Note: Target file is missing group metadata field in title and will be omitted gracefully*
 
 - television_template: `<$series - >< - S$season><E$episode - >< - $group - >< - $title><$extension>`
 - target: `~/Downloads/The.Orville.S01E01.1080p.WEB-DL.DD5.1.H264-RARBG.mkv`
 - result: `~/Downloads/The Orville - S01E01 - Old Wounds.mkv`
+</details>
 
-
-## Example: Subdirectories
+<details>
+<summary>Subdirectories</summary>
 
 *Note: If the subdirectory doesn't exist, mnamer will create it*
 
@@ -106,6 +110,7 @@ You have complete control of how media files are renamed using mnamer's template
 - movie_directory: `/media/movies/<$title ><($year)>`
 - target: `~/Downloads/The.Goonies.1985.720p.BluRay.x264-SiNNERS.mkv`
 - result: `/media/movies/The Goonies (1985)/The Goonies (1985).mkv`
+</details>
 
 
 # Metadata Fields
