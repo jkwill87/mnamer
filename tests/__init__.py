@@ -1,10 +1,11 @@
 # coding=utf-8
 
 import sys
-from os import name as _name
+import os
+from contextlib import contextmanager
 
 IS_PY2 = sys.version_info[0] == 2
-IS_WINDOWS = _name == "nt"
+IS_WINDOWS = os.name == "nt"
 
 if IS_PY2:
     from unittest2 import TestCase, skip
@@ -15,3 +16,25 @@ if IS_PY2:
 else:
     from unittest import TestCase, skip
     from unittest.mock import patch, mock_open
+
+
+@contextmanager
+def mute_stderr():
+    with open(os.devnull, "w") as devnull:
+        old_stderr = sys.stderr
+        sys.stderr = devnull
+        try:
+            yield
+        finally:
+            sys.stderr = old_stderr
+
+
+@contextmanager
+def mute_stdout():
+    with open(os.devnull, 'w') as devnull:
+        old_stdout = sys.stdout
+        sys.stdout = devnull
+        try:
+            yield
+        finally:
+            sys.stdout = old_stdout

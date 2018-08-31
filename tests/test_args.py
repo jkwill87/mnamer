@@ -1,28 +1,7 @@
 import sys
-from argparse import ArgumentError
-import os
-from contextlib import contextmanager
-from mnamer import (
-    DIRECTIVE_KEYS,
-    HELP,
-    PREFERENCE_DEFAULTS,
-    PREFERENCE_KEYS,
-    USAGE,
-)
+
 from mnamer.args import Arguments
-
-from tests import IS_WINDOWS, TestCase, mock_open, patch
-
-
-@contextmanager
-def mute_stderr():
-    with open(os.devnull, "w") as devnull:
-        old_stderr = sys.stderr
-        sys.stderr = devnull
-        try:
-            yield
-        finally:
-            sys.stderr = old_stderr
+from tests import TestCase, mute_stderr, mute_stdout
 
 
 def add_params(params):
