@@ -31,8 +31,8 @@ class TestTargets(ArgsTestCase):
         self.assertSetEqual(expected, actual)
 
     def testSingleTarget(self):
-        params = expected = ("file_1.txt",)
-        expected = set(params)
+        params = ("file_1.txt",)
+        expected = {"file_1.txt"}
         add_params(params)
         actual = Arguments().targets
         self.assertSetEqual(expected, actual)
@@ -211,48 +211,48 @@ class TestPreferences(ArgsTestCase):
 
 class TestDirectives(ArgsTestCase):
     def testHelp(self):
-        with self.subTest('default'):
-            self.assertIsNone(Arguments().directives.get('help'))
-        with self.subTest('override'):
-            with mute_stderr():
+        with self.subTest("default"):
+            self.assertIsNone(Arguments().directives.get("help"))
+        with self.subTest("override"):
+            with mute_stdout():
                 with self.assertRaises(SystemExit):
-                    add_params('--help')
+                    add_params("--help")
                     Arguments()
 
     def testId(self):
-        with self.subTest('default'):
-            self.assertIsNone(Arguments().directives.get('id'))
-        with self.subTest('override'):
-            add_params('--id=3')
-            expected = '3'
-            actual = Arguments().directives.get('id')
+        with self.subTest("default"):
+            self.assertIsNone(Arguments().directives.get("id"))
+        with self.subTest("override"):
+            add_params("--id=3")
+            expected = "3"
+            actual = Arguments().directives.get("id")
             self.assertEqual(expected, actual)
 
     def testMedia(self):
-        with self.subTest('default'):
-            self.assertIsNone(Arguments().directives.get('media'))
-        with self.subTest('override'):
-            add_params('--media television')
-            expected = 'television'
-            actual = Arguments().directives.get('media')
+        with self.subTest("default"):
+            self.assertIsNone(Arguments().directives.get("media"))
+        with self.subTest("override"):
+            add_params("--media television")
+            expected = "television"
+            actual = Arguments().directives.get("media")
             self.assertEqual(expected, actual)
         reset_params()
-        with self.subTest('invalid choice'):
-            add_params('--media music')
+        with self.subTest("invalid choice"):
+            add_params("--media music")
             with mute_stderr():
                 with self.assertRaises(SystemExit):
                     Arguments()
 
     def testTest(self):
-        with self.subTest('default'):
-            self.assertFalse(Arguments().directives.get('test'))
-        with self.subTest('override'):
-            add_params('--test')
-            self.assertTrue(Arguments().directives.get('test'))
+        with self.subTest("default"):
+            self.assertFalse(Arguments().directives.get("test"))
+        with self.subTest("override"):
+            add_params("--test")
+            self.assertTrue(Arguments().directives.get("test"))
 
     def testVersion(self):
-        with self.subTest('default'):
-            self.assertFalse(Arguments().directives.get('version'))
-        with self.subTest('override'):
-            add_params('--version')
-            self.assertTrue(Arguments().directives.get('version'))
+        with self.subTest("default"):
+            self.assertFalse(Arguments().directives.get("version"))
+        with self.subTest("override"):
+            add_params("--version")
+            self.assertTrue(Arguments().directives.get("version"))

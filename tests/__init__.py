@@ -31,7 +31,7 @@ def mute_stderr():
 
 @contextmanager
 def mute_stdout():
-    with open(os.devnull, 'w') as devnull:
+    with open(os.devnull, "w") as devnull:
         old_stdout = sys.stdout
         sys.stdout = devnull
         try:
