@@ -76,153 +76,155 @@ class TestTargets(ArgsTestCase):
 class TestPreferences(ArgsTestCase):
     def testBatch(self):
         with self.subTest("default"):
-            self.assertFalse(Arguments().configuration.get("batch"))
+            self.assertFalse(Arguments().preferences.get("batch"))
         with self.subTest("short option"):
             add_params("-b")
-            self.assertTrue(Arguments().configuration.get("batch"))
+            self.assertTrue(Arguments().preferences.get("batch"))
         reset_params()
         with self.subTest("long option"):
             add_params("--batch")
-            self.assertTrue(Arguments().configuration.get("batch"))
+            self.assertTrue(Arguments().preferences.get("batch"))
 
     def testScene(self):
         with self.subTest("default"):
-            self.assertFalse(Arguments().configuration.get("scene"))
+            self.assertFalse(Arguments().preferences.get("scene"))
         with self.subTest("short option"):
             add_params("-s")
-            self.assertTrue(Arguments().configuration.get("scene"))
+            self.assertTrue(Arguments().preferences.get("scene"))
         reset_params()
         with self.subTest("long option"):
             add_params("--scene")
-            self.assertTrue(Arguments().configuration.get("scene"))
+            self.assertTrue(Arguments().preferences.get("scene"))
 
     def testRecurse(self):
         with self.subTest("default"):
-            self.assertFalse(Arguments().configuration.get("recurse"))
+            self.assertFalse(Arguments().preferences.get("recurse"))
         with self.subTest("short option"):
             add_params("-r")
-            self.assertTrue(Arguments().configuration.get("recurse"))
+            self.assertTrue(Arguments().preferences.get("recurse"))
         reset_params()
         with self.subTest("long option"):
             add_params("--recurse")
-            self.assertTrue(Arguments().configuration.get("recurse"))
+            self.assertTrue(Arguments().preferences.get("recurse"))
 
     def testVerbose(self):
         with self.subTest("default"):
-            self.assertFalse(Arguments().configuration.get("verbose"))
+            self.assertFalse(Arguments().preferences.get("verbose"))
         with self.subTest("short option"):
             add_params("-v")
-            self.assertTrue(Arguments().configuration.get("verbose"))
+            self.assertTrue(Arguments().preferences.get("verbose"))
         reset_params()
         with self.subTest("long option"):
             add_params("--verbose")
-            self.assertTrue(Arguments().configuration.get("verbose"))
+            self.assertTrue(Arguments().preferences.get("verbose"))
 
     def testBlacklist(self):
         with self.subTest("default"):
-            self.assertIsNone(Arguments().configuration.get("blacklist"))
+            self.assertIsNone(Arguments().preferences.get("blacklist"))
         with self.subTest("override"):
             add_params("--blacklist apple orange")
             expected = ["apple", "orange"]
-            actual = Arguments().configuration.get("blacklist")
+            actual = Arguments().preferences.get("blacklist")
             self.assertListEqual(expected, actual)
 
     def testHits(self):
         with self.subTest("default"):
-            self.assertIsNone(Arguments().configuration.get("hits"))
+            self.assertIsNone(Arguments().preferences.get("hits"))
         with self.subTest("override"):
             add_params("--hits 25")
             expected = 25
-            actual = Arguments().configuration.get("hits")
+            actual = Arguments().preferences.get("hits")
             self.assertEqual(expected, actual)
 
     def testExtmask(self):
         with self.subTest("default"):
-            self.assertIsNone(Arguments().configuration.get("extmask"))
+            self.assertIsNone(Arguments().preferences.get("extmask"))
         with self.subTest("override"):
             add_params("--extmask avi mkv mp4")
             expected = ["avi", "mkv", "mp4"]
-            actual = Arguments().configuration.get("extmask")
+            actual = Arguments().preferences.get("extmask")
             self.assertListEqual(expected, actual)
 
     def testNoCache(self):
         with self.subTest("default"):
-            self.assertFalse(Arguments().configuration.get("nocache"))
+            self.assertFalse(Arguments().preferences.get("nocache"))
         with self.subTest("override"):
             add_params("--nocache")
-            self.assertTrue(Arguments().configuration.get("nocache"))
+            self.assertTrue(Arguments().preferences.get("nocache"))
 
     def testNoStyle(self):
         with self.subTest("default"):
-            self.assertFalse(Arguments().configuration.get("nostyle"))
+            self.assertFalse(Arguments().preferences.get("nostyle"))
         with self.subTest("nostyle"):
             add_params("--nostyle")
-            self.assertTrue(Arguments().configuration.get("nostyle"))
+            self.assertTrue(Arguments().preferences.get("nostyle"))
 
     def testMovieApi(self):
         with self.subTest("default"):
-            self.assertIsNone(Arguments().configuration.get("movie_api"))
+            self.assertIsNone(Arguments().preferences.get("movie_api"))
         with self.subTest("override"):
             add_params("--movie_api tmdb")
             expected = "tmdb"
-            actual = Arguments().configuration.get("movie_api")
+            actual = Arguments().preferences.get("movie_api")
             self.assertEqual(expected, actual)
+        reset_params()
         with self.subTest("invalid choice"):
             add_params("--movie_api yolo")
             with mute_stderr():
                 with self.assertRaises(SystemExit):
-                    Arguments().configuration.get("movie_api")
+                    Arguments()
 
     def testMovieDirectory(self):
         with self.subTest("default"):
-            self.assertIsNone(Arguments().configuration.get("movie_directory"))
+            self.assertIsNone(Arguments().preferences.get("movie_directory"))
         with self.subTest("override"):
             add_params("--movie_directory /media/movies")
             expected = "/media/movies"
-            actual = Arguments().configuration.get("movie_directory")
+            actual = Arguments().preferences.get("movie_directory")
             self.assertEqual(expected, actual)
 
     def testMovieTemplate(self):
         with self.subTest("default"):
-            self.assertIsNone(Arguments().configuration.get("movie_template"))
+            self.assertIsNone(Arguments().preferences.get("movie_template"))
         with self.subTest("override"):
             add_params("--movie_template=<$title><$year>")
             expected = "<$title><$year>"
-            actual = Arguments().configuration.get("movie_template")
+            actual = Arguments().preferences.get("movie_template")
             self.assertEqual(expected, actual)
 
     def testTelevisionApi(self):
         with self.subTest("default"):
-            self.assertIsNone(Arguments().configuration.get("television_api"))
+            self.assertIsNone(Arguments().preferences.get("television_api"))
         with self.subTest("override"):
             add_params("--television_api tvdb")
             expected = "tvdb"
-            actual = Arguments().configuration.get("television_api")
+            actual = Arguments().preferences.get("television_api")
             self.assertEqual(expected, actual)
+        reset_params()
         with self.subTest("invalid choice"):
             add_params("--television_api yolo")
             with mute_stderr():
                 with self.assertRaises(SystemExit):
-                    Arguments().configuration.get("television_api")
+                    Arguments()
 
     def testTelevisionDirectory(self):
         with self.subTest("default"):
             self.assertIsNone(
-                Arguments().configuration.get("television_directory")
+                Arguments().preferences.get("television_directory")
             )
         with self.subTest("override"):
             add_params("--television_directory /media/television")
             expected = "/media/television"
-            actual = Arguments().configuration.get("television_directory")
+            actual = Arguments().preferences.get("television_directory")
             self.assertEqual(expected, actual)
 
     def testTelevisionTemplate(self):
         with self.subTest("default"):
             self.assertIsNone(
-                Arguments().configuration.get("television_template")
+                Arguments().preferences.get("television_template")
             )
         with self.subTest("override"):
             add_params("--television_template <$title><$season><$episode>")
             expected = "<$title><$season><$episode>"
-            actual = Arguments().configuration.get("television_template")
+            actual = Arguments().preferences.get("television_template")
             self.assertEqual(expected, actual)
