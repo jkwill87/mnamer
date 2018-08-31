@@ -256,3 +256,11 @@ class TestDirectives(ArgsTestCase):
         with self.subTest("override"):
             add_params("--version")
             self.assertTrue(Arguments().directives.get("version"))
+
+
+class TestConfiguration(ArgsTestCase):
+    def testConfigurationProperty(self):
+        add_params(("--version", "--nostyle"))
+        configuration = Arguments().configuration
+        self.assertTrue(configuration.get("version"))
+        self.assertTrue(configuration.get("nostyle"))
