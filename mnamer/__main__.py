@@ -27,8 +27,8 @@ def main():
     except MnamerConfigException:
         pass
     targets = Target.populate_paths(args.targets, **config)
-    enable_style(config.get("nostyle") == False)
-    enable_verbose(config.get("verbose") == True)
+    enable_style(config.get("nostyle") is False)
+    enable_verbose(config.get("verbose") is True)
 
     # Handle directives and configuration
     if config.get("version"):
@@ -71,7 +71,7 @@ def main():
             continue
 
     # Display results
-    summary = "%d out of %d files moved successfully"
+    summary = "%d out of %d files processed successfully"
     if success_count == 0:
         msg(summary % (success_count, total_count), "red")
     elif success_count == total_count:
