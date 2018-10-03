@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 from teletype.exceptions import TeletypeQuitException, TeletypeSkipException
+from mapi.exceptions import MapiNotFoundException
 
 from mnamer import VERSION
 from mnamer.args import Arguments
@@ -13,6 +14,7 @@ from mnamer.cli import (
     get_choice,
     msg,
     print_listing,
+    print_heading,
 )
 from mnamer.config import Configuration
 from mnamer.exceptions import MnamerConfigException
@@ -57,6 +59,7 @@ def main():
         if config.get("verbose"):
             print_listing(target.metadata)
         try:
+            print_heading(target)
             get_choice(target)
             msg("moving to %s" % target.destination.full, bullet=True)
             if not config.get("test"):
@@ -69,6 +72,8 @@ def main():
         except TeletypeSkipException:
             msg("SKIPPING as per user request\n", "yellow", True)
             continue
+        except MapiNotFoundException:
+            msg("No matches found, SKIPPING\n", "yellow", True)
 
     # Display results
     summary = "%d out of %d files processed successfully"
