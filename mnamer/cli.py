@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from teletype.components import SelectOne
 from teletype.components.config import set_style
-from teletype.io import style_format
+from teletype.io import style_format, style_print
 
 try:
     from collections.abc import Mapping, Sequence
@@ -51,11 +51,14 @@ def print_listing(listing, header=None, debug=False):
     print()
 
 
-def get_choice(target):
+def print_heading(target):
     media = target.metadata["media"].title()
     filename = target.source.filename
-    heading = style_format('Processing %s "%s"' % (media, filename), "bold")
+    style_print('Processing %s "%s"' % (media, filename), style="bold")
+
+
+def get_choice(target):
     choices = target.query()
-    choice = SelectOne(choices, heading, skip=True, quit=True).prompt()
+    choice = SelectOne(choices, skip=True, quit=True).prompt()
     target.metadata.update(choice)
     return target.metadata
