@@ -46,7 +46,7 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 | --nocache              |                  | disables and clears result cache                      |
 | --nostyle              |                  | disables colours and uses ASCII chars for UI prompts  |
 | --movie_api            | `imdb` or `tmdb` | set movie api provider                                |
-| --movie_directory      | path             | set movie relocation directory                        |
+| --movie_destination     | path             | set movie relocation directory                        |
 | --movie_template       | template         | set movie renaming template                           |
 | --television_api       | `tvdb`           | set television api provider                           |
 | --television_directory | path             | set television relocation directory                   |
