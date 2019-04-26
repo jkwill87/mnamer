@@ -87,4 +87,4 @@ DIRECTIVES:
     --version: display running mnamer version number then exits
 """
 
-VERSION = 2.0
+VERSION = "1.5.0"

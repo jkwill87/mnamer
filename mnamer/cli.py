@@ -42,7 +42,7 @@ def print_listing(listing, header=None, debug=False):
         msg("%s:" % header, "bold")
     if isinstance(listing, Mapping):
         for key, value in listing.items():
-            msg("%s: %r" % (key, value), bullet=True)
+            msg("%s: %s" % (key, value), bullet=True)
     else:
         for value in listing:
             msg("%s" % value, bullet=True)
