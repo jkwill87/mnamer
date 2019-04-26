@@ -3,4 +3,4 @@ attrs>=18.1
 future;python_version<"3"
 guessit>=3
 mapi>=3.5,<4
-teletype>=0.2.1
+teletype>=0.2.2
