@@ -1,5 +1,5 @@
 from copy import deepcopy
-from json import dumps
+from mnamer.utils import json_dumps
 
 from mnamer import (
     CONFIGURATION_KEYS,
@@ -34,6 +34,9 @@ class Configuration(Mapping):
     def __len__(self):
         return self._dict.__len__()
 
+    def __repr__(self):
+        return self._dict.__repr__()
+
     def load_file(self):
         json_file = crawl_out(".mnamer.json")
         try:
@@ -54,7 +57,7 @@ class Configuration(Mapping):
 
     @property
     def preference_json(self):
-        return dumps(self.preference_dict, sort_keys=True)
+        return json_dumps(self.preference_dict)
 
     @property
     def directive_dict(self):
@@ -62,8 +65,8 @@ class Configuration(Mapping):
 
     @property
     def directive_json(self):
-        return dumps(self.directive_dict, sort_keys=True)
+        return json_dumps(self.directive_dict)
 
     @property
     def config_json(self):
-        return dumps(self._dict, sort_keys=True)
+        return json_dumps(self._dict)

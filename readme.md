@@ -6,11 +6,13 @@
 
 ![mnamer logo](https://github.com/jkwill87/mnamer/raw/develop/_assets/logo.png)
 
+
 # mnamer
 
 mnamer (**m**edia re**namer**) is an intelligent and highly configurable media organization utility. It parses media filenames for metadata, searches the web to fill in the blanks, and then renames and moves them.
 
 ![demo](https://github.com/jkwill87/mnamer/blob/develop/_assets/demo.svg)
+
 
 # Installation
 
@@ -25,6 +27,7 @@ mnamer (**m**edia re**namer**) is an intelligent and highly configurable media o
 ## Notes
 
 If you want to install it using system python (e.g. the one that comes with your OS, not really recommended) and get a permission error you need to use either `sudo -H pip ...` or `pip install --user ...`.
+
 
 # Usage
 
@@ -51,6 +54,7 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 | --television_api       | `tvdb`           | set television api provider                           |
 | --television_directory | path             | set television relocation directory                   |
 | --television_template  | template         | set television renaming template                      |
+
 
 # Directives
 
@@ -102,6 +106,7 @@ _Note: If the subdirectory doesn't exist, mnamer will create it_
 - target: `~/Downloads/The.Goonies.1985.720p.BluRay.x264-SiNNERS.mkv`
 - result: `/media/movies/The Goonies (1985)/The Goonies (1985).mkv`
   </details>
+
 
 # Metadata Fields
 

@@ -136,6 +136,18 @@ def filter_extensions(paths, valid_extensions):
     return {path for path in paths if file_extension(path) in valid_extensions}
 
 
+def json_dumps(d: dict):
+    return json.dumps(
+        d,
+        allow_nan=False,
+        check_circular=True,
+        ensure_ascii=True,
+        indent=4,
+        skipkeys=True,
+        sort_keys=True,
+    )
+
+
 def json_read(path, skip_nil=True):
     """ Reads a JSON file from disk
     """

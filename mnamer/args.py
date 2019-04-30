@@ -35,6 +35,7 @@ class Arguments:
 
         # Directive Parameters
         p.add_argument("--help", action="store_true")
+        p.add_argument("--config", action="store_true")
         p.add_argument("--id")
         p.add_argument("--media", choices=["movie", "television"])
         p.add_argument("--test", action="store_true")

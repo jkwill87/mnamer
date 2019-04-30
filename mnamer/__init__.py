@@ -45,7 +45,7 @@ PREFERENCE_DEFAULTS = {
 
 PREFERENCE_KEYS = set(PREFERENCE_DEFAULTS.keys())
 
-DIRECTIVE_KEYS = {"help", "version", "media", "test", "id"}
+DIRECTIVE_KEYS = {"help", "config", "id", "media", "test", "version"}
 
 CONFIGURATION_KEYS = PREFERENCE_KEYS | DIRECTIVE_KEYS
 
@@ -79,8 +79,8 @@ DIRECTIVES:
     Directives are one-off parameters that are used to perform secondary tasks
     like overriding media detection.
 
-    --config: prints current config JSON to stdout then exits
     --help: prints this message then exits
+    --config: prints current config JSON to stdout then exits
     --id <id>: explicitly specify movie or series id
     --media { movie, television }: override media detection
     --test: mocks the renaming and moving of files

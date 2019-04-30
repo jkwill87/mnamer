@@ -37,6 +37,7 @@ def main():
         msg("mnamer version %s" % VERSION)
         exit(0)
     elif config.get("config"):
+        print(config.config_json)
         exit(0)
 
     # Exit early if no media files are found
