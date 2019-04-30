@@ -57,8 +57,15 @@ def print_heading(target):
     style_print('Processing %s "%s"' % (media, filename), style="bold")
 
 
-def get_choice(target):
+def ask_choice(target):
     choices = target.query()
     choice = SelectOne(choices, skip=True, quit=True).prompt()
+    target.metadata.update(choice)
+    return target.metadata
+
+
+def pick_first(target):
+    choices = target.query()
+    choice = next(choices)
     target.metadata.update(choice)
     return target.metadata

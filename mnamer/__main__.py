@@ -9,12 +9,13 @@ from mapi.exceptions import MapiNotFoundException
 from mnamer import VERSION
 from mnamer.args import Arguments
 from mnamer.cli import (
+    ask_choice,
     enable_style,
     enable_verbose,
-    get_choice,
     msg,
-    print_listing,
+    pick_first,
     print_heading,
+    print_listing,
 )
 from mnamer.config import Configuration
 from mnamer.exceptions import MnamerConfigException
@@ -54,6 +55,7 @@ def main():
 
     # Main program loop
     success_count = 0
+    query_action = pick_first if config.get("batch") else ask_choice
     for target in targets:
 
         # Process current target
@@ -61,7 +63,7 @@ def main():
             print_listing(target.metadata)
         try:
             print_heading(target)
-            get_choice(target)
+            query_action(target)
             msg("moving to %s" % target.destination.full, bullet=True)
             if not config.get("test"):
                 target.relocate()
