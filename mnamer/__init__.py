@@ -27,11 +27,11 @@ PREFERENCE_DEFAULTS = {
     # Movie related
     "movie_api": "tmdb",
     "movie_directory": "",
-    "movie_template": "{title} ({year}){extension}",
+    "movie_format": "{title} ({year}){extension}",
     # Television related
     "television_api": "tvdb",
     "television_directory": "",
-    "television_template": "{series} - S{season:02}E{episode:02} - {title}{extension}",
+    "television_format": "{series} - S{season:02}E{episode:02} - {title}{extension}",
     # API Keys -- consider using your own or IMDb if limits are hit
     "api_key_tmdb": "db972a607f2760bb19ff8bb34074b4c7",
     "api_key_tvdb": "E69C7A2CEF2F3152",
@@ -53,10 +53,10 @@ PREFERENCES:
     forms may also be set in a '.mnamer.json' config file, in which case cli
     arguments will take presenece.
 
-    -b, --batch: batch mode; disables interactive prompts
+    -b, --batch: batch mode; disable interactive prompts
     -s, --scene: scene mode; use dots in place of alphanumeric chars
     -r, --recurse: show this help message and exit
-    --v, --verbose: increases output verbosity
+    --v, --verbose: increase output verbosity
     --nostyle: print to stdout without color or styling
     --nocache: disable request caching
     --blacklist <word,...>: ignore files matching these regular expressions
@@ -64,10 +64,10 @@ PREFERENCES:
     --hits <number>: limit the maximum number of hits for each query
     --movie_api {tmdb}: set movie api provider
     --movie_directory <path>: set movie relocation directory
-    --movie_template <template>: set movie renaming template
+    --movie_format <format>: set movie renaming format specification
     --television_api {tvdb}: set television api provider
     --television_directory <path>: set television relocation directory
-    --television_template <template>: set television renaming template
+    --television_format <format>: set television renaming format specification
 
 DIRECTIVES:
     Directives are one-off parameters that are used to perform secondary tasks

@@ -28,10 +28,10 @@ class Arguments:
         p.add_argument("--nostyle", action="store_true", default=None)
         p.add_argument("--movie_api", choices=["tmdb"], default=None)
         p.add_argument("--movie_directory", default=None)
-        p.add_argument("--movie_template", default=None)
+        p.add_argument("--movie_format", default=None)
         p.add_argument("--television_api", choices=["tvdb"], default=None)
         p.add_argument("--television_directory", default=None)
-        p.add_argument("--television_template", default=None)
+        p.add_argument("--television_format", default=None)
 
         # Directive Parameters
         p.add_argument("--help", action="store_true")

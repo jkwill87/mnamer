@@ -162,13 +162,13 @@ class TestPreferences(ArgsTestCase):
             actual = Arguments().preferences.get("movie_directory")
             self.assertEqual(expected, actual)
 
-    def testMovieTemplate(self):
+    def testMovieFormat(self):
         with self.subTest("default"):
-            self.assertIsNone(Arguments().preferences.get("movie_template"))
+            self.assertIsNone(Arguments().preferences.get("movie_format"))
         with self.subTest("override"):
-            add_params("--movie_template={title}{year}")
+            add_params("--movie_format={title}{year}")
             expected = "{title}{year}"
-            actual = Arguments().preferences.get("movie_template")
+            actual = Arguments().preferences.get("movie_format")
             self.assertEqual(expected, actual)
 
     def testTelevisionApi(self):
@@ -197,15 +197,15 @@ class TestPreferences(ArgsTestCase):
             actual = Arguments().preferences.get("television_directory")
             self.assertEqual(expected, actual)
 
-    def testTelevisionTemplate(self):
+    def testTelevisionFormat(self):
         with self.subTest("default"):
             self.assertIsNone(
-                Arguments().preferences.get("television_template")
+                Arguments().preferences.get("television_format")
             )
         with self.subTest("override"):
-            add_params("--television_template {title}{season}{episode}")
+            add_params("--television_format {title}{season}{episode}")
             expected = "{title}{season}{episode}"
-            actual = Arguments().preferences.get("television_template")
+            actual = Arguments().preferences.get("television_format")
             self.assertEqual(expected, actual)
 
 

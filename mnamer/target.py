@@ -118,7 +118,7 @@ class Target:
         self.api = config.get(media + "_api")
         self.api_key = config.get("api_key_" + self.api)
         self.directory = config.get(media + "_directory")
-        self.template = config.get(media + "_template")
+        self.format = config.get(media + "_format")
         self.replacements = config.get("replacements")
         self.is_renamed = False
         self.is_moved = False
@@ -141,7 +141,7 @@ class Target:
         else:
             head = self.source.directory
         head = format(self.metadata, head)
-        tail = format(self.metadata, self.template)
+        tail = format(self.metadata, self.format)
         destination = join(head, tail)
         destination = filename_replace(destination, self.replacements)
         destination = filename_sanitize(destination)

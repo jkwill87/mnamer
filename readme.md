@@ -33,6 +33,7 @@ If you want to install it using system python (e.g. the one that comes with your
 
 `mnamer target [targets ...] [preferences] [directives]`
 
+
 # Preferences
 
 mnamer attempts to load preferences from .mnamer.json in the user's home directory, the current working directory, and then in each directory up the drive towards the drive root (e.g. `C:/`, `/`).
@@ -50,10 +51,10 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 | --nostyle              |                  | disables colours and uses ASCII chars for UI prompts  |
 | --movie_api            | `imdb` or `tmdb` | set movie api provider                                |
 | --movie_directory      | path             | set movie relocation directory                        |
-| --movie_template       | template         | set movie renaming template                           |
+| --movie_format         | format         | set movie renaming format                           |
 | --television_api       | `tvdb`           | set television api provider                           |
 | --television_directory | path             | set television relocation directory                   |
-| --television_template  | template         | set television renaming template                      |
+| --television_format    | format         | set television renaming format                      |
 
 
 # Directives
@@ -67,21 +68,22 @@ Whereas preferences configure how mnamer works, directives are one-off parameter
 | --media  | `movie` or `television` | override media detection                |
 | --test   |                         | mocks the renaming and moving of files  |
 
-# Templating
 
-You have complete control of how media files are renamed using mnamer's template options:
+# Formatting
 
-- you can use templating with the following options: **television_directory**, **television_template**, **movie_directory**, **movie_template**
-- metadata fields prefixed with a sigil `$` found inside angle brackets with the result of a match
-- any leading or trailing whitespace will be trimmed
-- if a field can't be matched, the entire contents of the bracket are disregared
+You have complete control of how media files are renamed using mnamer's format options:
+
+- you can use formatting with the following options: **television_directory**, **television_format**, **movie_directory**, **movie_format**
+- uses Python's [format string syntax](https://docs.python.org/3/library/string.html#format-string-syntax) specification for to replace metadata fields
+- essentially just replaces variables in curly braces with metadata fields
+- automatically trims results, concatenates whitespace, and removes empty brackets 
 
 ## Examples
 
 <details>
 <summary>SxE Episodes Format</summary>
 
-- television_template: `{series} {season}x{episode}{title}{extension}`
+- television_format: `{series} {season:02}x{episode:02}{title}{extension}`
 - target: `~/Downloads/Rick.and.Morty.S02E01.WEBRip.x264-RARBG.mp4`
 - result: `~/Downloads/Rick and Morty - 02x01 - A Rickle in Time.mp4`
   </details>
@@ -91,7 +93,7 @@ You have complete control of how media files are renamed using mnamer's template
 
 _Note: Target file is missing group metadata field in title and will be omitted gracefully_
 
-- television_template: `{series} - S{season:02}{episode:02} - {group} - {title}{extension}`
+- television_format: `{series} - S{season:02}{episode:02} - {group} - {title}{extension}`
 - target: `~/Downloads/The.Orville.S01E01.1080p.WEB-DL.DD5.1.H264-RARBG.mkv`
 - result: `~/Downloads/The Orville - S01E01 - Old Wounds.mkv`
   </details>
@@ -101,7 +103,7 @@ _Note: Target file is missing group metadata field in title and will be omitted 
 
 _Note: If the subdirectory doesn't exist, mnamer will create it_
 
-- movie_template: `{title} {year}{extension}`
+- movie_format: `{title} {year}{extension}`
 - movie_directory: `/media/movies/{title} ({year})`
 - target: `~/Downloads/The.Goonies.1985.720p.BluRay.x264-SiNNERS.mkv`
 - result: `/media/movies/The Goonies (1985)/The Goonies (1985).mkv`
