@@ -136,7 +136,7 @@ def filter_extensions(paths, valid_extensions):
     return {path for path in paths if file_extension(path) in valid_extensions}
 
 
-def json_dumps(d: dict):
+def json_dumps(d):
     return json.dumps(
         d,
         allow_nan=False,
