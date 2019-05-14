@@ -4,9 +4,9 @@ from teletype.components import SelectOne
 from teletype.components.config import set_style
 from teletype.io import style_format, style_print
 
-try:
+try:  # pragma: no cover
     from collections.abc import Mapping, Sequence
-except ImportError:
+except ImportError:  # pragma: no cover
     from collections import Mapping, Sequence
 
 set_style(secondary="magenta")

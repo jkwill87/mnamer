@@ -10,9 +10,9 @@ from mnamer import (
 from mnamer.exceptions import MnamerConfigException
 from mnamer.utils import crawl_out, json_read
 
-try:
+try:# pragma: no cover
     from collections.abc import Mapping
-except ImportError:
+except ImportError:# pragma: no cover
     from collections import Mapping
 
 
