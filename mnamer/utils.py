@@ -91,7 +91,7 @@ def filename_sanitize(filename):
     """
     base, ext = splitext(filename)
     base = sub(r"\s+", " ", base)
-    base = sub(r'[<>:"|?*&%=+@#^.]', "", base)
+    base = sub(r'[<>:"|?*&%=+@#^]', "", base)
     return base.strip() + ext
 
 

@@ -142,9 +142,9 @@ class Target:
             head = self.source.directory
         head = format(self.metadata, head)
         tail = format(self.metadata, self.format)
+        tail = filename_replace(tail, self.replacements)
+        tail = filename_sanitize(tail)
         destination = join(head, tail)
-        destination = filename_replace(destination, self.replacements)
-        destination = filename_sanitize(destination)
         return _TargetPath(destination)
 
     @staticmethod
