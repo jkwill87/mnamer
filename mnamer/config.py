@@ -10,9 +10,9 @@ from mnamer import (
 from mnamer.exceptions import MnamerConfigException
 from mnamer.utils import crawl_out, json_read
 
-try:# pragma: no cover
+try:  # pragma: no cover
     from collections.abc import Mapping
-except ImportError:# pragma: no cover
+except ImportError:  # pragma: no cover
     from collections import Mapping
 
 
@@ -24,6 +24,7 @@ class Configuration(Mapping):
                 raise MnamerConfigException("%s is not a valid field" % key)
             else:
                 self._dict[key] = value
+        self.file = crawl_out(".mnamer.json")
 
     def __getitem__(self, key):
         return self._dict.__getitem__(key)
@@ -38,18 +39,18 @@ class Configuration(Mapping):
         return self._dict.__repr__()
 
     def load_file(self):
-        json_file = crawl_out(".mnamer.json")
         try:
-            json_data = json_read(json_file)
-        except RuntimeError as e:
-            raise MnamerConfigException(e)
+            json_data = json_read(self.file)
+        except RuntimeError:
+            # no data no load, nothing to do
+            return
         for key, value in json_data.items():
             value = json_data.get(key)
             if key not in PREFERENCE_KEYS:
-                raise MnamerConfigException("%s is not a valid field" % key)
+                # ahh, bad data encountered
+                raise MnamerConfigException("'%s' is not a valid field" % key)
             elif value is not None:
                 setattr(self, key, value)
-        return json_file
 
     @property
     def preference_dict(self):

@@ -35,14 +35,16 @@ def msg(text, style=None, bullet=False, debug=False):
     print(text)
 
 
-def print_listing(listing, header=None, debug=False):
+def print_listing(listing, header=None, h1=True, debug=False):
     if debug and not _verbose:
         return
     if header:
-        msg("%s:" % header, "bold")
+        msg("%s:" % header, "bold" if h1 else None)
     if isinstance(listing, Mapping):
         for key, value in listing.items():
             msg("%s: %s" % (key, value), bullet=True)
+    elif isinstance(listing, str):
+        msg("%s" % listing, bullet=True)
     else:
         for value in listing:
             msg("%s" % value, bullet=True)

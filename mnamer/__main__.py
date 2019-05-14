@@ -25,10 +25,12 @@ from mnamer.target import Target
 def main():
     args = Arguments()
     config = Configuration(**args.configuration)
-    try:
-        config.load_file()
-    except MnamerConfigException:
-        pass
+    if config.file:
+        try:
+            config.load_file()
+        except MnamerConfigException as e:
+            msg("error loading config from %s: %s" % (config.file, e), "red")
+            return
     targets = Target.populate_paths(args.targets, **config)
     enable_style(config.get("nostyle") is False)
     enable_verbose(config.get("verbose") is True)
@@ -38,7 +40,7 @@ def main():
         msg("mnamer version %s" % VERSION)
         exit(0)
     elif config.get("config"):
-        print(config.config_json)
+        print(config.preference_json)
         exit(0)
 
     # Exit early if no media files are found
@@ -49,9 +51,10 @@ def main():
 
     # Print configuration details
     msg("Starting mnamer\n", "bold underline")
-    print_listing(config.preference_dict, "Preferences", True)
-    print_listing(config.directive_dict, "Directives", True)
-    print_listing(targets, "Targets", True)
+    print_listing(config.file, "Configuration File", debug=True)
+    print_listing(config.preference_dict, "Preferences", debug=True)
+    print_listing(config.directive_dict, "Directives", debug=True)
+    print_listing(targets, "Targets", debug=True)
 
     # Main program loop
     success_count = 0
@@ -59,10 +62,9 @@ def main():
     for target in targets:
 
         # Process current target
-        if config.get("verbose"):
-            print_listing(target.metadata)
         try:
             print_heading(target)
+            print_listing(target.metadata, "\nDetected Fields", False, True   )
             query_action(target)
             msg("moving to %s" % target.destination.full, bullet=True)
             if not config.get("test"):
