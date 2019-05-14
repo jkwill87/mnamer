@@ -166,8 +166,8 @@ class TestPreferences(ArgsTestCase):
         with self.subTest("default"):
             self.assertIsNone(Arguments().preferences.get("movie_template"))
         with self.subTest("override"):
-            add_params("--movie_template=<$title><$year>")
-            expected = "<$title><$year>"
+            add_params("--movie_template={title}{year}")
+            expected = "{title}{year}"
             actual = Arguments().preferences.get("movie_template")
             self.assertEqual(expected, actual)
 
@@ -203,8 +203,8 @@ class TestPreferences(ArgsTestCase):
                 Arguments().preferences.get("television_template")
             )
         with self.subTest("override"):
-            add_params("--television_template <$title><$season><$episode>")
-            expected = "<$title><$season><$episode>"
+            add_params("--television_template {title}{season}{episode}")
+            expected = "{title}{season}{episode}"
             actual = Arguments().preferences.get("television_template")
             self.assertEqual(expected, actual)
 

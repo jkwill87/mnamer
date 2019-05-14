@@ -27,17 +27,11 @@ PREFERENCE_DEFAULTS = {
     # Movie related
     "movie_api": "tmdb",
     "movie_directory": "",
-    "movie_template": "<$title ><($year)><$extension>",
+    "movie_template": "{title} ({year}){extension}",
     # Television related
     "television_api": "tvdb",
     "television_directory": "",
-    "television_template": (
-        "<$series - >"
-        "< - S$season>"
-        "<E$episode - >"
-        "< - $title>"
-        "<$extension>"
-    ),
+    "television_template": "{series} - S{season:02}E{episode:02} - {title}{extension}",
     # API Keys -- consider using your own or IMDb if limits are hit
     "api_key_tmdb": "db972a607f2760bb19ff8bb34074b4c7",
     "api_key_tvdb": "E69C7A2CEF2F3152",

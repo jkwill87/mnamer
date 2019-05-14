@@ -140,8 +140,8 @@ class Target:
             head = self.directory
         else:
             head = self.source.directory
-        head = self.metadata.format(head)
-        tail = self.metadata.format(self.template)
+        head = format(self.metadata, head)
+        tail = format(self.metadata, self.template)
         destination = join(head, tail)
         destination = filename_replace(destination, self.replacements)
         destination = filename_sanitize(destination)

@@ -81,7 +81,7 @@ You have complete control of how media files are renamed using mnamer's template
 <details>
 <summary>SxE Episodes Format</summary>
 
-- television_template: `<$series - >< - $seasonx><$episode - >< - $title><$extension>`
+- television_template: `{series} {season}x{episode}{title}{extension}`
 - target: `~/Downloads/Rick.and.Morty.S02E01.WEBRip.x264-RARBG.mp4`
 - result: `~/Downloads/Rick and Morty - 02x01 - A Rickle in Time.mp4`
   </details>
@@ -91,7 +91,7 @@ You have complete control of how media files are renamed using mnamer's template
 
 _Note: Target file is missing group metadata field in title and will be omitted gracefully_
 
-- television_template: `<$series - >< - S$season><E$episode - >< - $group - >< - $title><$extension>`
+- television_template: `{series} - S{season:02}{episode:02} - {group} - {title}{extension}`
 - target: `~/Downloads/The.Orville.S01E01.1080p.WEB-DL.DD5.1.H264-RARBG.mkv`
 - result: `~/Downloads/The Orville - S01E01 - Old Wounds.mkv`
   </details>
@@ -101,8 +101,8 @@ _Note: Target file is missing group metadata field in title and will be omitted 
 
 _Note: If the subdirectory doesn't exist, mnamer will create it_
 
-- movie_template: `<$title ><($year)><$extension>`
-- movie_directory: `/media/movies/<$title ><($year)>`
+- movie_template: `{title} {year}{extension}`
+- movie_directory: `/media/movies/{title} ({year})`
 - target: `~/Downloads/The.Goonies.1985.720p.BluRay.x264-SiNNERS.mkv`
 - result: `/media/movies/The Goonies (1985)/The Goonies (1985).mkv`
   </details>
