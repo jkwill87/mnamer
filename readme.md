@@ -81,7 +81,7 @@ You have complete control of how media files are renamed using mnamer's format o
 ## Examples
 
 <details>
-<summary>SxE Episodes Format</summary>
+<summary>S00xE00 Episodes Format</summary>
 
 - television_format: `{series} {season:02}x{episode:02}{title}{extension}`
 - target: `~/Downloads/Rick.and.Morty.S02E01.WEBRip.x264-RARBG.mp4`
@@ -93,8 +93,8 @@ You have complete control of how media files are renamed using mnamer's format o
 
 _Note: Target file is missing group metadata field in title and will be omitted gracefully_
 
-- television_format: `{series} - S{season:02}{episode:02} - {group} - {title}{extension}`
-- target: `~/Downloads/The.Orville.S01E01.1080p.WEB-DL.DD5.1.H264-RARBG.mkv`
+- television_format: `{series} - S{season:02}E{episode:02} - {group} - {title}{extension}`
+- target: `~/Downloads/The.Orville.S01E01.1080p.WEB-DL.DD5.1.H264.mkv`
 - result: `~/Downloads/The Orville - S01E01 - Old Wounds.mkv`
   </details>
 
@@ -103,7 +103,7 @@ _Note: Target file is missing group metadata field in title and will be omitted 
 
 _Note: If the subdirectory doesn't exist, mnamer will create it_
 
-- movie_format: `{title} {year}{extension}`
+- movie_format: `{title} ({year}){extension}`
 - movie_directory: `/media/movies/{title} ({year})`
 - target: `~/Downloads/The.Goonies.1985.720p.BluRay.x264-SiNNERS.mkv`
 - result: `/media/movies/The Goonies (1985)/The Goonies (1985).mkv`
