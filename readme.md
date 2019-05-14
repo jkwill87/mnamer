@@ -22,7 +22,7 @@ mnamer (**m**edia re**namer**) is an intelligent and highly configurable media o
 
 ## Development Version
 
-`$ pip install https://github.com/jkwill87/mnamer/archive/develop.zip`
+`$ pip install -U https://github.com/jkwill87/mnamer/archive/develop.zip`
 
 ## Notes
 
@@ -51,10 +51,12 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 | --nostyle              |                  | disables colours and uses ASCII chars for UI prompts  |
 | --movie_api            | `imdb` or `tmdb` | set movie api provider                                |
 | --movie_directory      | path             | set movie relocation directory                        |
-| --movie_format         | format         | set movie renaming format                           |
+| --movie_format         | format           | set movie renaming format                             |
 | --television_api       | `tvdb`           | set television api provider                           |
 | --television_directory | path             | set television relocation directory                   |
-| --television_format    | format         | set television renaming format                      |
+| --television_format    | format           | set television renaming format                        |
+
+**Protip:** Quickly save your current preference set on MacOS or *nix by running `mnamer --config > ~/.mnamer.conf`.
 
 
 # Directives
@@ -76,12 +78,12 @@ You have complete control of how media files are renamed using mnamer's format o
 - you can use formatting with the following options: **television_directory**, **television_format**, **movie_directory**, **movie_format**
 - uses Python's [format string syntax](https://docs.python.org/3/library/string.html#format-string-syntax) specification for to replace metadata fields
 - essentially just replaces variables in curly braces with metadata fields
-- automatically trims results, concatenates whitespace, and removes empty brackets 
+- automatically trims results, concatenates whitespace, and removes empty brackets
 
 ## Examples
 
 <details>
-<summary>S00xE00 Episodes Format</summary>
+<summary>00x00 Television Format</summary>
 
 - television_format: `{series} {season:02}x{episode:02}{title}{extension}`
 - target: `~/Downloads/Rick.and.Morty.S02E01.WEBRip.x264-RARBG.mp4`
