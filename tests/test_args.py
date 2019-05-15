@@ -199,9 +199,7 @@ class TestPreferences(ArgsTestCase):
 
     def testTelevisionFormat(self):
         with self.subTest("default"):
-            self.assertIsNone(
-                Arguments().preferences.get("television_format")
-            )
+            self.assertIsNone(Arguments().preferences.get("television_format"))
         with self.subTest("override"):
             add_params("--television_format {title}{season}{episode}")
             expected = "{title}{season}{episode}"

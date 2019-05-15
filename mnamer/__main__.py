@@ -64,7 +64,7 @@ def main():
         # Process current target
         try:
             print_heading(target)
-            print_listing(target.metadata, "\nDetected Fields", False, True   )
+            print_listing(target.metadata, "\nDetected Fields", False, True)
             query_action(target)
             msg("moving to %s" % target.destination.full, bullet=True)
             if not config.get("test"):
