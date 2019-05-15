@@ -50,7 +50,7 @@ class Configuration(Mapping):
                 # ahh, bad data encountered
                 raise MnamerConfigException("'%s' is not a valid field" % key)
             elif value is not None:
-                setattr(self, key, value)
+                self._dict[key] = value
 
     @property
     def preference_dict(self):
