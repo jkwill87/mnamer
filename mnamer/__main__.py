@@ -51,10 +51,10 @@ def main():
 
     # Print configuration details
     msg("Starting mnamer\n", "bold underline")
-    print_listing(config.file, "Configuration File", debug=True)
-    print_listing(config.preference_dict, "Preferences", debug=True)
-    print_listing(config.directive_dict, "Directives", debug=True)
-    print_listing(targets, "Targets", debug=True)
+    print_listing(config.file, "Configuration File", is_debug=True)
+    print_listing(config.preference_dict, "Preferences", is_debug=True)
+    print_listing(config.directive_dict, "Directives", is_debug=True)
+    print_listing(targets, "Targets", is_debug=True)
 
     # Main program loop
     success_count = 0
@@ -66,7 +66,7 @@ def main():
             print_heading(target)
             print_listing(target.metadata, "\nDetected Fields", False, True)
             query_action(target)
-            msg("moving to %s" % target.destination.full, bullet=True)
+            msg("moving to %s" % target.destination.full, as_bullet=True)
             if not config.get("test"):
                 target.relocate()
             msg("OK!\n", "green", True)

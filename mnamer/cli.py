@@ -25,49 +25,47 @@ def enable_verbose(is_enabled):
     _verbose = True if is_enabled else False
 
 
-def msg(text, style=None, bullet=False, debug=False):
-    if debug and not _verbose:
+def msg(text, style="", as_bullet=False, is_debug=False):
+    if is_debug and not _verbose:
         return
-    if bullet:
+    if as_bullet:
         text = " - " + text
     if _style and style:
         text = style_format(text, style)
     print(text)
 
 
-def print_listing(listing, header=None, h1=True, debug=False):
-    if debug and not _verbose:
+def print_listing(listing, header="", as_h1=True, is_debug=False):
+    if is_debug and not _verbose:
         return
     if header:
-        msg("%s:" % header, "bold" if h1 else None)
-    if isinstance(listing, Mapping):
+        msg("%s:" % header, "bold" if as_h1 else None)
+    if not listing:
+        msg("None", as_bullet=True)
+    elif isinstance(listing, Mapping):
         for key, value in listing.items():
-            msg("%s: %s" % (key, value), bullet=True)
+            msg("%s: %s" % (key, value), as_bullet=True)
     elif isinstance(listing, str):
-        msg("%s" % listing, bullet=True)
+        msg("%s" % listing, as_bullet=True)
     else:
         for value in listing:
-            msg("%s" % value, bullet=True)
-    if not listing:
-        msg("None", bullet=True)
+            msg("%s" % value, as_bullet=True)
     print()
 
 
 def print_heading(target):
     media = target.metadata["media"].title()
     filename = target.source.filename
-    style_print('Processing %s "%s"' % (media, filename), style="bold")
+    msg('Processing %s "%s"' % (media, filename), "bold")
 
 
 def ask_choice(target):
     choices = target.query()
     choice = SelectOne(choices, skip=True, quit=True).prompt()
     target.metadata.update(choice)
-    return target.metadata
 
 
 def pick_first(target):
     choices = target.query()
     choice = next(choices)
     target.metadata.update(choice)
-    return target.metadata
