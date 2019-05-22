@@ -1,15 +1,14 @@
 from __future__ import print_function
 
-from teletype.components import SelectOne
-from teletype.components.config import set_style
-from teletype.io import style_format, style_print
+from teletype.components import Select
+from teletype.io import style_format
 
 try:  # pragma: no cover
     from collections.abc import Mapping, Sequence
 except ImportError:  # pragma: no cover
     from collections import Mapping, Sequence
 
-set_style(secondary="magenta")
+_tty_config = {}
 
 _style = True
 _verbose = False
@@ -61,7 +60,9 @@ def print_heading(target):
 
 def ask_choice(target):
     choices = target.query()
-    choice = SelectOne(choices, skip=True, quit=True).prompt()
+    choice = Select(
+        choices, style_primary="magenta", skip=True, quit=True
+    ).prompt()
     target.metadata.update(choice)
 
 
