@@ -68,6 +68,9 @@ class Arguments:
                 self.directives[key] = value
             elif key in PREFERENCE_KEYS:
                 self.preferences[key] = value
+                if key.endswith("_directory") and not isdir(value):
+                    print(f"mnamer: error: {key} '{value}' cannot be found")
+                    exit(0)
 
     @property
     def configuration(self) -> Dict[str, Any]:

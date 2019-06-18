@@ -1,21 +1,12 @@
-# coding=utf-8
-
-import sys
 import os
+import sys
 from contextlib import contextmanager
+from unittest import TestCase, skip
+from unittest.mock import mock_open, patch
 
-IS_PY2 = sys.version_info[0] == 2
 IS_WINDOWS = os.name == "nt"
 
-if IS_PY2:
-    from unittest2 import TestCase, skip
-    from mock import patch, mock_open
-
-    reload(sys)
-    sys.setdefaultencoding("utf-8")
-else:
-    from unittest import TestCase, skip
-    from unittest.mock import patch, mock_open
+__all__ = ["IS_WINDOWS", "mute_stderr", "mute_stdout"]
 
 
 @contextmanager

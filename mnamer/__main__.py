@@ -1,94 +1,107 @@
-#!/usr/bin/env python
-# coding=utf-8
-
-from __future__ import print_function
-
-from teletype.exceptions import TeletypeQuitException, TeletypeSkipException
-from mapi.exceptions import MapiNotFoundException
+#!/usr/bin/env python3
 
 from mnamer import VERSION
 from mnamer.args import Arguments
-from mnamer.cli import (
-    ask_choice,
-    enable_style,
-    enable_verbose,
-    msg,
-    pick_first,
-    print_heading,
-    print_listing,
-)
 from mnamer.config import Configuration
-from mnamer.exceptions import MnamerConfigException
+from mnamer.exceptions import (
+    MnamerConfigException,
+    MnamerAbortException,
+    MnamerSkipException,
+)
 from mnamer.target import Target
+from mnamer.tty import NoticeLevel, Tty
 
 
 def main():
+    # Setup arguments and runtime configuration
     args = Arguments()
     config = Configuration(**args.configuration)
+    tty = Tty(**config)
     if config.file:
         try:
             config.load_file()
         except MnamerConfigException as e:
-            msg("error loading config from %s: %s" % (config.file, e), "red")
+            tty.p(
+                f"error loading from {config.file}: {e}",
+                style=NoticeLevel.ERROR,
+            )
             return
     targets = Target.populate_paths(args.targets, **config)
-    enable_style(config.get("nostyle") is False)
-    enable_verbose(config.get("verbose") is True)
 
     # Handle directives and configuration
-    if config.get("version"):
-        msg("mnamer version %s" % VERSION)
+    if config["version"]:
+        tty.p(f"mnamer version {VERSION}")
         exit(0)
-    elif config.get("config"):
+    elif config["config"]:
         print(config.preference_json)
         exit(0)
 
     # Exit early if no media files are found
     total_count = len(targets)
     if total_count == 0:
-        msg("No media files found. Run mnamer --help for usage", "yellow")
+        tty.p(
+            "No media files found. Run mnamer --help for usage",
+            style=NoticeLevel.ALERT,
+        )
         exit(0)
 
     # Print configuration details
-    msg("Starting mnamer\n", "bold underline")
-    print_listing(config.file, "Configuration File", is_debug=True)
-    print_listing(config.preference_dict, "Preferences", is_debug=True)
-    print_listing(config.directive_dict, "Directives", is_debug=True)
-    print_listing(targets, "Targets", is_debug=True)
+    tty.p("Configuration File", True, NoticeLevel.NOTICE)
+    tty.ul(config.file, True)
+    tty.p("Preferences", True, NoticeLevel.NOTICE)
+    tty.ul(config.preference_dict, True)
+    tty.p("Directives", True, NoticeLevel.NOTICE)
+    tty.ul(config.directive_dict, True)
+    tty.p("Targets", True, NoticeLevel.NOTICE)
+    tty.ul(targets, True)
 
     # Main program loop
+    tty.p("Starting mnamer", style=NoticeLevel.NOTICE)
     success_count = 0
-    query_action = pick_first if config.get("batch") else ask_choice
     for target in targets:
 
-        # Process current target
-        try:
-            print_heading(target)
-            print_listing(target.metadata, "\nDetected Fields", False, True)
-            query_action(target)
-            msg("moving to %s" % target.destination.full, as_bullet=True)
-            if not config.get("test"):
-                target.relocate()
-            msg("OK!\n", "green", True)
-            success_count += 1
-        except TeletypeQuitException:
-            msg("EXITING as per user request\n", "red", True)
-            break
-        except TeletypeSkipException:
-            msg("SKIPPING as per user request\n", "yellow", True)
-            continue
-        except MapiNotFoundException:
-            msg("No matches found, SKIPPING\n", "yellow", True)
+        # Announce file
+        media = target.metadata["media"].title()
+        filename = target.source.filename
+        tty.p(f'\nProcessing {media} "{filename}"', style=NoticeLevel.NOTICE)
 
-    # Display results
-    summary = "%d out of %d files processed successfully"
+        # List details
+        tty.p("\nDetected Fields", True, style=NoticeLevel.NOTICE)
+        tty.ul(target.metadata, True)
+
+        # Update metadata
+        try:
+            new_meta = tty.choose(target)
+            target.metadata.update(new_meta)
+        except MnamerSkipException:
+            continue
+        except MnamerAbortException:
+            break
+        tty.p(f"moving to {target.destination.full}")
+
+        # Do rename
+        if not config["test"]:
+            target.relocate()
+
+        # Done!
+        tty.p("OK!", style=NoticeLevel.SUCCESS)
+        success_count += 1
+
+    # Report result summary
     if success_count == 0:
-        msg(summary % (success_count, total_count), "red")
+        notice_level = NoticeLevel.ERROR
     elif success_count == total_count:
-        msg(summary % (success_count, total_count), "green")
+        notice_level = NoticeLevel.SUCCESS
     else:
-        msg(summary % (success_count, total_count), "yellow")
+        notice_level = NoticeLevel.ALERT
+    tty.p(
+        f"\n{success_count} out of {total_count} files processed successfully",
+        style=notice_level,
+    )
 
 
 if __name__ == "__main__":
+    from mapi import log as mapi_log  # TODO remove
+
+    mapi_log.setLevel(100)  # TODO remove
     main()
