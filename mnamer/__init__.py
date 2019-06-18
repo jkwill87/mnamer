@@ -1,5 +1,3 @@
-# coding=utf-8
-
 """
   _  _  _    _  _    __,   _  _  _    _   ,_
  / |/ |/ |  / |/ |  /  |  / |/ |/ |  |/  /  |
@@ -8,22 +6,62 @@
 mnamer (Media reNAMER) is an intelligent and highly configurable media
 organization utility. It parses media filenames for metadata, searches the web
 to fill in the blanks, and then renames and moves them.
+"""
 
-See https://github.com/jkwill87/mnamer for more information.
+USAGE = "mnamer target [targets ...] [preferences] [directives]"
+
+HELP = """
+
+USAGE: mnamer target [targets ...] [preferences] [directives]
+
+PREFERENCES:
+    The following flags can be used to customize mnamer's behaviour. Their long
+    forms may also be set in a '.mnamer.json' config file, in which case cli
+    arguments will take presenece.
+
+    -b, --batch: batch mode; disable interactive prompts
+    -r, --recurse: show this help message and exit
+    -s, --scene: scene mode; use dots in place of alphanumeric chars
+    -v, --verbose: increase output verbosity
+    --nocache: disable and clear request cache
+    --noguess: disable best guess fallback; e.g. when no matches, network down
+    --nostyle: print to stdout without using colour or fancy unicode characters
+    --blacklist=<word,...>: ignore files matching these regular expressions
+    --extmask=<ext,...>: define extension mask used by the file parser
+    --hits=<number>: limit the maximum number of hits for each query
+    --movie_api={tmdb,omdb}: set movie api provider
+    --movie_directory=<path>: set movie relocation directory
+    --movie_format=<format>: set movie renaming format specification
+    --television_api={tvdb,omdb}: set television api provider
+    --television_directory=<path>: set television relocation directory
+    --television_format=<format>: set television renaming format specification
+
+DIRECTIVES:
+    Directives are one-off parameters that are used to perform secondary tasks
+    like overriding media detection. They can't be used in '.mnamer.json'.
+
+    --help: prints this message then exits
+    --config: prints current config JSON to stdout then exits
+    --id=<id>: explicitly specifies a movie or series id
+    --media={movie,television}: override media detection
+    --test: mocks the renaming and moving of files
+    --version: display running mnamer version number then exits
+
+Visit https://github.com/jkwill87/mnamer for more information.
 """
 
 PREFERENCE_DEFAULTS = {
     # General Options
     "batch": False,
-    "blacklist": (".*sample.*", "^RARBG.*"),
-    "nocache": False,
-    "nostyle": False,
-    "extmask": ("avi", "m4v", "mp4", "mkv", "ts", "wmv"),
-    "hits": 5,
     "recurse": False,
-    "replacements": {"&": "and", "@": "at", ":": ",", ";": ","},
     "scene": False,
     "verbose": False,
+    "nocache": False,
+    "noguess": False,
+    "nostyle": False,
+    "blacklist": (".*sample.*", "^RARBG.*"),
+    "extmask": ("avi", "m4v", "mp4", "mkv", "ts", "wmv"),
+    "hits": 5,
     # Movie related
     "movie_api": "tmdb",
     "movie_directory": "",
@@ -35,50 +73,12 @@ PREFERENCE_DEFAULTS = {
     # API Keys -- consider using your own or IMDb if limits are hit
     "api_key_tmdb": "db972a607f2760bb19ff8bb34074b4c7",
     "api_key_tvdb": "E69C7A2CEF2F3152",
+    "api_key_omdb": "",  # TODO
+    # Non-cli Preferences
+    "replacements": {"&": "and", "@": "at", ":": ",", ";": ","},
 }
 
 PREFERENCE_KEYS = set(PREFERENCE_DEFAULTS.keys())
-
 DIRECTIVE_KEYS = {"help", "config", "id", "media", "test", "version"}
-
 CONFIGURATION_KEYS = PREFERENCE_KEYS | DIRECTIVE_KEYS
-
-USAGE = "mnamer target [targets ...] [options] [directives]"
-
-HELP = """
-Visit https://github.com/jkwill87/mnamer for more information.
-
-PREFERENCES:
-    The following flags can be used to customize mnamer's behaviour. Their long
-    forms may also be set in a '.mnamer.json' config file, in which case cli
-    arguments will take presenece.
-
-    -b, --batch: batch mode; disable interactive prompts
-    -s, --scene: scene mode; use dots in place of alphanumeric chars
-    -r, --recurse: show this help message and exit
-    --v, --verbose: increase output verbosity
-    --nostyle: print to stdout without color or styling
-    --nocache: disable request caching
-    --blacklist <word,...>: ignore files matching these regular expressions
-    --extmask <ext,...>: define extension mask used by the file parser
-    --hits <number>: limit the maximum number of hits for each query
-    --movie_api {tmdb}: set movie api provider
-    --movie_directory <path>: set movie relocation directory
-    --movie_format <format>: set movie renaming format specification
-    --television_api {tvdb}: set television api provider
-    --television_directory <path>: set television relocation directory
-    --television_format <format>: set television renaming format specification
-
-DIRECTIVES:
-    Directives are one-off parameters that are used to perform secondary tasks
-    like overriding media detection.
-
-    --help: prints this message then exits
-    --config: prints current config JSON to stdout then exits
-    --id <id>: explicitly specify movie or series id
-    --media { movie, television }: override media detection
-    --test: mocks the renaming and moving of files
-    --version: display running mnamer version number then exits
-"""
-
-VERSION = "1.5.0"
+VERSION = "2.0.0"

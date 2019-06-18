@@ -38,23 +38,24 @@ If you want to install it using system python (e.g. the one that comes with your
 
 mnamer attempts to load preferences from .mnamer.json in the user's home directory, the current working directory, and then in each directory up the drive towards the drive root (e.g. `C:/`, `/`).
 
-| Preference             | Arguments        | Description                                           |
-| :--------------------- | :--------------- | :---------------------------------------------------- |
-| -b, --batch            |                  | batch mode; disables interactive prompts              |
-| -s, --scene            |                  | scene mode; replace non ascii-alphanumerics with `.`  |
-| -r, --recurse          |                  | show this help message and exit                       |
-| -v, --verbose          |                  | increases output verbosity                            |
-| --blacklist            | pattern          | ignore files including these words                    |
-| --hits                 | number           | limits the maximum number of hits for each query      |
-| --extmask              | extention(s)     | define the extension mask used by the the file parser |
-| --nocache              |                  | disables and clears result cache                      |
-| --nostyle              |                  | disables colours and uses ASCII chars for UI prompts  |
-| --movie_api            | `imdb` or `tmdb` | set movie api provider                                |
-| --movie_directory      | path             | set movie relocation directory                        |
-| --movie_format         | format           | set movie renaming format                             |
-| --television_api       | `tvdb`           | set television api provider                           |
-| --television_directory | path             | set television relocation directory                   |
-| --television_format    | format           | set television renaming format                        |
+| Preference             | Arguments        | Description                                                     |
+| :--------------------- | :--------------- | :-------------------------------------------------------------- |
+| -b, --batch            |                  | batch mode; disable interactive prompts                         |
+| -r, --recurse          |                  | show this help message and exit                                 |
+| -s, --scene            |                  | scene mode; replace non ascii-alphanumerics with `.`            |
+| -v, --verbose          |                  | increase output verbosity                                       |
+| --nocache              |                  | disable and clear result cache                                  |
+| --noguess              |                  | disable best guess fallback; e.g. when no matches, network down |
+| --nostyle              |                  | disable colours and uses ASCII chars for UI prompts             |
+| --blacklist            | pattern          | ignore files including these words                               |
+| --extmask              | extention(s)     | define the extension mask used by the the file parser             |
+| --hits                 | number           | limit the maximum number of hits for each query                 |
+| --movie_api            | `imdb` or `tmdb` | set movie api provider                                          |
+| --movie_directory      | path             | set movie relocation directory                                  |
+| --movie_format         | format           | set movie renaming format                                       |
+| --television_api       | `tvdb`           | set television api provider                                     |
+| --television_directory | path             | set television relocation directory                             |
+| --television_format    | format           | set television renaming format                                  |
 
 **Protip:** Quickly save your current preference set on MacOS or *nix by running `mnamer --config > ~/.mnamer.conf`.
 
