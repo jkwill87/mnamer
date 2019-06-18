@@ -1,6 +1,6 @@
 -r requirements-testing.txt
 autopep8
-black;python_version>"3"
+black
 ipdb
 ipython
 pylint
