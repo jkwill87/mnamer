@@ -1,5 +1,5 @@
+from collections.abc import Mapping
 from copy import deepcopy
-from mnamer.utils import json_dumps
 
 from mnamer import (
     CONFIGURATION_KEYS,
@@ -8,12 +8,9 @@ from mnamer import (
     PREFERENCE_KEYS,
 )
 from mnamer.exceptions import MnamerConfigException
-from mnamer.utils import crawl_out, json_read
+from mnamer.utils import crawl_out, json_dumps, json_read
 
-try:  # pragma: no cover
-    from collections.abc import Mapping
-except ImportError:  # pragma: no cover
-    from collections import Mapping
+__all__ = ["Configuration"]
 
 
 class Configuration(Mapping):
@@ -21,7 +18,7 @@ class Configuration(Mapping):
         self._dict = deepcopy(PREFERENCE_DEFAULTS)
         for key, value in overrides.items():
             if key not in CONFIGURATION_KEYS:
-                raise MnamerConfigException("%s is not a valid field" % key)
+                raise MnamerConfigException(f"{key} is not a valid field")
             else:
                 self._dict[key] = value
         self.file = crawl_out(".mnamer.json")
@@ -48,7 +45,7 @@ class Configuration(Mapping):
             value = json_data.get(key)
             if key not in PREFERENCE_KEYS:
                 # ahh, bad data encountered
-                raise MnamerConfigException("'%s' is not a valid field" % key)
+                raise MnamerConfigException(f"'{key}' is not a valid field")
             elif value is not None:
                 self._dict[key] = value
 

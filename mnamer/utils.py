@@ -12,9 +12,8 @@ from os.path import (
     realpath,
     splitext,
 )
-from re import search, sub, IGNORECASE
+from re import IGNORECASE, search, sub
 from string import Template
-from sys import version_info
 from unicodedata import normalize
 
 
@@ -98,8 +97,7 @@ def filename_sanitize(filename):
 def filename_scenify(filename):
     """ Replaces non ascii-alphanumerics with .
     """
-    u_filename = filename.decode("utf-8") if version_info[0] == 2 else filename
-    filename = normalize("NFKD", u_filename)
+    filename = normalize("NFKD", filename)
     filename.encode("ascii", "ignore")
     filename = sub(r"\s+", ".", filename)
     filename = sub(r"[^.\d\w/]", "", filename)
