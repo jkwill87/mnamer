@@ -1,14 +1,19 @@
 from collections.abc import Mapping
 from enum import Enum
-from typing import Any, Collection, Optional, Union, Dict
-from itertools import islice
+from itertools import chain, islice
+from typing import Any, Collection, Dict, Optional, Union
+
 from mapi.exceptions import MapiNetworkException, MapiNotFoundException
 from mapi.metadata import Metadata
 from teletype.codes import CHARS_ASCII, CHARS_DEFAULT
 from teletype.components import ChoiceHelper, SelectOne
 from teletype.io import style_format
 
-from mnamer.exceptions import MnamerAbortException, MnamerSkipException
+from mnamer.exceptions import (
+    MnamerAbortException,
+    MnamerException,
+    MnamerSkipException,
+)
 from mnamer.target import Target
 
 StyleType = Optional[Union["NoticeLevel", str, Collection[str]]]
@@ -92,32 +97,62 @@ class Tty:
         elif isinstance(listing, str):
             self.p(f" - {listing}")
 
+    def _choose_skip(self):
+        self.p("SKIPPING", style=NoticeLevel.ALERT)
+        raise MnamerSkipException
+
+    def _choose_quit(self):
+        self.p("ABORTING", style=NoticeLevel.ERROR)
+        raise MnamerAbortException
+
     def choose(self, target: Target) -> Metadata:
         """ Prompts the user for their selection given a target
         """
-        choices = None
+        # Query provider for options
+        options = None
         try:
-            choices = tuple(islice(target.query(), self.hits))
+            options = tuple(islice(target.query(), self.hits))
         except MapiNotFoundException:
             self.p("No matches found", style=NoticeLevel.ALERT)
             if self.noguess:
-                raise MnamerSkipException
+                self._choose_skip()
         except MapiNetworkException:
             self.p("Network Failure", style=NoticeLevel.ALERT)
             if self.noguess:
-                raise MnamerSkipException
+                self._choose_skip()
         except KeyboardInterrupt:
             self.p("ABORTING", style=NoticeLevel.ERROR)
-            raise MnamerAbortException
-        if not choices:
+            self._choose_quit()
+        # Add best guess option as fallback
+        if not options:
             label = style_format(
                 "(Best Guess)", None if self.nostyle else "magenta"
             )
-            choices = [
+            options = [
                 ChoiceHelper(target.metadata, f"{target.metadata} {label}")
             ]
+        # Add skip and quit actions
+        if self.nostyle:
+            actions = (
+                ChoiceHelper(MnamerSkipException, "skip", None, "[s]"),
+                ChoiceHelper(MnamerAbortException, "quit", None, "[q]"),
+            )
+        else:
+            actions = (
+                ChoiceHelper(MnamerSkipException, "skip", "dark", "s"),
+                ChoiceHelper(MnamerAbortException, "quit", "dark", "q"),
+            )
+        choices = chain(options, actions)
+        # Select first choice if running using batch mode
         if self.batch:
-            choice = choices[0]
+            choice = next(choices)
+            if isinstance(choice, ChoiceHelper):
+                choice = choice.value
+        # Otherwise prompt user for their selection
         else:
             choice = SelectOne(choices, **self._prompt_chars).prompt()
+            if choice is MnamerSkipException:
+                self._choose_skip()
+            elif choice is MnamerAbortException:
+                self._choose_quit()
         return choice
