@@ -101,7 +101,4 @@ def main():
 
 
 if __name__ == "__main__":
-    from mapi import log as mapi_log  # TODO remove
-
-    mapi_log.setLevel(100)  # TODO remove
     main()
