@@ -1,5 +1,4 @@
 appdirs>=1.4
-attrs>=18.1
 guessit<4
 mapi>=3,<4
 teletype>=1,<2
