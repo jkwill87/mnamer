@@ -4,12 +4,12 @@ class MnamerException(Exception):
 
 
 class MnamerSkipException(MnamerException):
-    """
+    """ Raised when a user has chosen to skip renaming the current target
     """
 
 
 class MnamerAbortException(MnamerException):
-    """
+    """ Raised when the user has chosen to quit the application
     """
 
 
