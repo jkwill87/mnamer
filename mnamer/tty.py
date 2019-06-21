@@ -3,39 +3,18 @@ from enum import Enum
 from itertools import chain, islice
 from typing import Any, Collection, Dict, Optional, Union
 
-from mapi.exceptions import MapiNetworkException, MapiNotFoundException
-from mapi.metadata import Metadata
 from teletype.codes import CHARS_ASCII, CHARS_DEFAULT
 from teletype.components import ChoiceHelper, SelectOne
 from teletype.io import style_format
 
-from mnamer.exceptions import (
-    MnamerAbortException,
-    MnamerException,
-    MnamerSkipException,
-)
+from mapi.exceptions import MapiNetworkException, MapiNotFoundException
+from mapi.metadata import Metadata
+from mnamer.exceptions import MnamerAbortException, MnamerSkipException
 from mnamer.target import Target
 
 StyleType = Optional[Union["NoticeLevel", str, Collection[str]]]
 
 __all__ = ["NoticeLevel", "Tty"]
-
-# def print_listing(listing, header="", as_h1=True, is_debug=False):
-#     if is_debug and not _verbose:
-#         return
-#     if header:
-#         msg("%s:" % header, "bold" if as_h1 else None)
-#     if not listing:
-#         msg("None", as_bullet=True)
-#     elif isinstance(listing, Mapping):
-#         for key, value in listing.items():
-#             msg("%s: %s" % (key, value), as_bullet=True)
-#     elif isinstance(listing, str):
-#         msg("%s" % listing, as_bullet=True)
-#     else:
-#         for value in listing:
-#             msg("%s" % value, as_bullet=True)
-#     print()
 
 
 class NoticeLevel(Enum):
