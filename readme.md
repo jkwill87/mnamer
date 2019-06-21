@@ -66,10 +66,10 @@ Whereas preferences configure how mnamer works, directives are one-off parameter
 
 | Option   | Arguments               | Description                             |
 | :------- | :---------------------- | :-------------------------------------- |
-| --config | path                    | prints config JSON to stdout then exits |
+| --config  | path                    | prints config JSON to stdout then exits  |
 | --id     | id                      | explicitly specify movie or series id   |
 | --media  | `movie` or `television` | override media detection                |
-| --test   |                         | mocks the renaming and moving of files  |
+| --test   |                         | mocks the renaming and moving of files   |
 
 
 # Formatting
