@@ -1,4 +1,4 @@
-appdirs>=1.4
-guessit<4
-mapi>=3,<4
-teletype>=1,<2
+appdirs==1.*
+guessit==3.*
+mapi==3.*
+teletype==1.*
