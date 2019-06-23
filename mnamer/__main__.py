@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
+from mapi.endpoints import clear_cache
+
 from mnamer import VERSION
 from mnamer.args import Arguments
 from mnamer.config import Configuration
 from mnamer.exceptions import (
-    MnamerConfigException,
     MnamerAbortException,
+    MnamerConfigException,
     MnamerSkipException,
 )
 from mnamer.target import Target
@@ -35,6 +37,9 @@ def main():
     elif config["config"]:
         print(config.preference_json)
         exit(0)
+    elif config["nocache"]:
+        clear_cache()
+        tty.p(f"cache cleared", style=NoticeLevel.ALERT)
 
     # Exit early if no media files are found
     total_count = len(targets)

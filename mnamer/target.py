@@ -61,12 +61,13 @@ class Target:
         self.formatting: str = config.get(media + "_format")
         self.hits: int = config.get("hits")
         self.id_key: str = config.get("id")
+        self.cache: bool = False if config.get("nocache") else True
         self.replacements: str = config.get("replacements")
         self.scene: bool = config.get("scene")
         self.is_moved: bool = False
         self.is_renamed: bool = False
 
-    def __hash__(self) -> str:
+    def __hash__(self) -> int:
         return self.source.full.__hash__()
 
     def __eq__(self, other: Any) -> bool:
@@ -180,9 +181,10 @@ class Target:
         media = self.metadata.get("media")
         if self.api is None:
             raise MnamerException("No provider specified for %s type" % media)
-        provider: Provider
         if media not in Target._providers:
-            provider = provider_factory(self.api, api_key=self.api_key)
+            provider = provider_factory(
+                self.api, api_key=self.api_key, cache=self.cache
+            )
             Target._providers[media] = provider
         else:
             provider = Target._providers[media]
