@@ -1,40 +1,34 @@
-import sys
+from pathlib import Path
+from sys import argv
 
 import pytest
 
 from mnamer.args import Arguments
-
-
-def _add_param(param, input_value=None):
-    if param and input_value is not None:
-        sys.argv.append(f"{param}={input_value}")
-    elif param:
-        sys.argv.append(param)
+from tests import JUNK_TEXT
 
 
 @pytest.mark.usefixtures("reset_params")
-def test_args__no_targets():
-    assert Arguments().targets == set()
+class TestTargets:
+    @property
+    def targets(self):
+        return Arguments().targets
 
+    def test_none(self):
+        assert self.targets == set()
 
-@pytest.mark.usefixtures("reset_params")
-def test_args__single_target():
-    param = "file_1.txt"
-    _add_param(param)
-    assert Arguments().targets == {param}
+    def test_single(self):
+        param = "file_1.txt"
+        argv.append(param)
+        assert self.targets == {param}
 
+    def test_multiple(self):
+        params = {"file_1.txt", "file_2.txt", "file_3.txt"}
+        for param in params:
+            argv.append(param)
+        assert self.targets == params
 
-@pytest.mark.usefixtures("reset_params")
-def test_args__multiple_targets():
-    params = {"file_1.txt", "file_2.txt", "file_3.txt"}
-    for param in params:
-        _add_param(param)
-    assert Arguments().targets == params
-
-
-@pytest.mark.usefixtures("reset_params")
-def test_args__mixed_targets():
-    params = {"--test", "file_1.txt", "file_2.txt"}
-    for param in params:
-        _add_param(param)
-    assert Arguments().targets == set(params) - {"--test"}  # omits test param
+    def test_mixed(self):
+        params = ("--test", "file_1.txt", "file_2.txt")
+        for param in params:
+            argv.append(param)
+        assert self.targets == set(params) - {"--test"}
