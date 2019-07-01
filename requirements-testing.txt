@@ -1,7 +1,5 @@
 -r requirements.txt
-codecov
-coverage
-pypandoc
-setuptools>=38.6.0
-twine>=1.11.0
-wheel>=0.31.0
+mock
+pytest==4.6.*
+pytest-cov
+pytest-xdist

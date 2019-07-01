@@ -4,6 +4,6 @@ python:
 install: pip install -r requirements-testing.txt
 dist: xenial
 os: linux
-script: python -m pytest --cov=mapi --numprocesses=2 --durations=5
+script: python -m pytest --cov=mnamer --numprocesses=2 --durations=5
 after_success:
   - codecov
