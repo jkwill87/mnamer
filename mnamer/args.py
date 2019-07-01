@@ -2,9 +2,10 @@ from argparse import ArgumentParser, SUPPRESS
 from os.path import isdir
 from typing import Any, Dict
 
+from mapi.providers import API_MOVIE, API_TELEVISION
+
 from mnamer import DIRECTIVE_KEYS, HELP, PREFERENCE_KEYS, USAGE
 from mnamer.utils import dict_merge
-from mapi.providers import API_MOVIE, API_TELEVISION
 
 __all__ = ["Arguments"]
 
@@ -42,17 +43,17 @@ class Arguments:
 
         # Directive Parameters
         p.add_argument("--help", action="store_true")
-        p.add_argument("--config", action="store_true")
+        p.add_argument("--config_dump", action="store_true")
         p.add_argument("--id")
         p.add_argument("--media", choices=["movie", "television"])
         p.add_argument("--test", action="store_true")
-        p.add_argument("--version", action="store_true")
+        p.add_argument("-V", "--version", action="store_true")
 
         args: Dict[str, str] = vars(p.parse_args())
 
         # Exit early if user ask for usage help
         if args.get("help"):
-            print(f"\nUSAGE:\n {USAGE}\n{HELP}")
+            print(HELP, end="")
             exit(0)
 
         targets = args.get("targets", None)
