@@ -4,10 +4,11 @@ python:
 install: pip install -r requirements-testing.txt
 dist: xenial
 os: linux
-script: python -m pytest \
-  --capture=no \
-  --cov=mnamer \
-  --numprocesses=2 \
+script: >
+  python -m pytest
+  --capture=no
   --durations=5
+  --cov=mnamer
+  --numprocesses=2
 after_success:
   - codecov
