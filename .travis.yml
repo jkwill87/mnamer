@@ -8,6 +8,7 @@ script: >
   python -m pytest
   --capture=no
   --durations=5
+  --cov-report=term
   --cov=mnamer
   --numprocesses=2
 after_success:
