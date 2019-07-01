@@ -145,3 +145,48 @@ class TestPreferences:
     def test_television_format(self):
         argv.append("--movie_format={title}{season}{episode}")
         assert self.prefs.get("movie_format") == "{title}{season}{episode}"
+
+
+@pytest.mark.usefixtures("reset_params")
+class TestDirectives:
+    @property
+    def directives(self):
+        return Arguments().directives
+
+    def test_none(self):
+        assert self.directives == dict()
+
+    def test_help(self):
+        argv.append("--help")
+        assert self.directives.get("help") is True
+
+    def test_config_dump(self):
+        argv.append("--config_dump")
+        assert self.directives.get("config_dump") is True
+
+    def test_id(self):
+        argv.append("--id")
+        argv.append("1234")
+        assert self.directives.get("id") == "1234"
+
+    @pytest.mark.parametrize("value", ("television", "movie"))
+    def test_media(self, value):
+        argv.append("--media")
+        argv.append(value)
+        assert self.directives.get("media") == value
+
+    def test_media__invalid(self):
+        argv.append("--media")
+        argv.append(JUNK_TEXT)
+        with pytest.raises(SystemExit) as e:
+            self.directives.get("media")
+        assert e.type == SystemExit
+
+    def test_test(self):
+        argv.append("--test")
+        assert self.directives.get("test") is True
+
+    @pytest.mark.parametrize("value", ("-V", "--version"))
+    def test_version(self, value):
+        argv.append(value)
+        assert self.directives.get("version") is True
