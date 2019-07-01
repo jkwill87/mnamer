@@ -2,7 +2,7 @@
 
 from setuptools import setup
 
-from mnamer import VERSION
+from mnamer.__version__ import VERSION
 
 with open("readme.md", "r") as fp:
     LONG_DESCRIPTION = fp.read()
