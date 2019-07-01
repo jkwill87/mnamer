@@ -1,6 +1,5 @@
 -r requirements.txt
 codecov
-mock
 pytest==4.6.*
 pytest-cov
 pytest-xdist
