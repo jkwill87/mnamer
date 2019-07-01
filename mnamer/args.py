@@ -51,11 +51,6 @@ class Arguments:
 
         args: Dict[str, str] = vars(p.parse_args())
 
-        # Exit early if user ask for usage help
-        if args.get("help"):
-            print(HELP, end="")
-            exit(0)
-
         targets = args.get("targets", None)
         self.targets = set(targets) if targets else set()
         self.directives = {}

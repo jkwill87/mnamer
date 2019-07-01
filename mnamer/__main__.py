@@ -2,6 +2,7 @@
 
 from mapi.utils import clear_cache
 
+from mnamer import HELP
 from mnamer.__version__ import VERSION
 from mnamer.args import Arguments
 from mnamer.config import Configuration
@@ -20,9 +21,10 @@ def main():
     tty = Tty(**config)
 
     # Handle directives and configuration
-    if config_file:
-        tty.p(f"loaded config from {config_file}", style=NoticeLevel.ALERT)
-    if config["version"]:
+    if config["help"]:
+        print(HELP, end="")
+        exit(0)
+    elif config["version"]:
         tty.p(f"mnamer version {VERSION}")
         exit(0)
     elif config["config_dump"]:
@@ -42,6 +44,8 @@ def main():
         exit(0)
 
     # Print configuration details
+    if config_file:
+        tty.p(f"loaded config from {config_file}", style=NoticeLevel.ALERT)
     tty.p("\nCLI Arguments", True, NoticeLevel.NOTICE)
     tty.ul(args.configuration, True)
     tty.p("\nPreferences", True, NoticeLevel.NOTICE)
