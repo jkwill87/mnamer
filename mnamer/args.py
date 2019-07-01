@@ -45,7 +45,7 @@ class Arguments:
         p.add_argument("--help", action="store_true")
         p.add_argument("--config_dump", action="store_true")
         p.add_argument("--id")
-        p.add_argument("--media", choices=["movie", "television"])
+        p.add_argument("--media", choices=("movie", "television"))
         p.add_argument("--test", action="store_true")
         p.add_argument("-V", "--version", action="store_true")
 
