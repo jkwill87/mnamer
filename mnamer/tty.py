@@ -70,11 +70,14 @@ class Tty:
             return
         if not listing:
             listing = "None"
-        if isinstance(listing, Mapping):
+        if isinstance(listing, str):
+            self.p(f" - {listing}")
+        elif isinstance(listing, Mapping):
             for key, value in listing.items():
                 self.ul(f"{key}: {value}")
-        elif isinstance(listing, str):
-            self.p(f" - {listing}")
+        elif isinstance(listing, Collection):
+            for list_item in listing:
+                self.ul(f"{list_item}")
 
     def _choose_skip(self):
         self.p("SKIPPING", style=NoticeLevel.ALERT)
