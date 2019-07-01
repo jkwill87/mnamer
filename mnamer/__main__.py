@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from mapi.endpoints import clear_cache
+from mapi.utils import clear_cache
 
-from mnamer import VERSION
+from mnamer.__version__ import VERSION
 from mnamer.args import Arguments
 from mnamer.config import Configuration
 from mnamer.exceptions import (
@@ -10,6 +10,7 @@ from mnamer.exceptions import (
     MnamerConfigException,
     MnamerSkipException,
 )
+from mnamer.utils import crawl_out
 from mnamer.target import Target
 from mnamer.tty import NoticeLevel, Tty
 
@@ -17,14 +18,15 @@ from mnamer.tty import NoticeLevel, Tty
 def main():
     # Setup arguments and runtime configuration
     args = Arguments()
-    config = Configuration(**args.configuration)
+    config_file = crawl_out(".mnamer.json")
+    config = Configuration(config_file, **args.configuration)
     tty = Tty(**config)
-    if config.file:
+    if config.config_file:
         try:
             config.load_file()
         except MnamerConfigException as e:
             tty.p(
-                f"error loading from {config.file}: {e}",
+                f"error loading from {config.config_file}: {e}",
                 style=NoticeLevel.ERROR,
             )
             return
@@ -52,7 +54,7 @@ def main():
 
     # Print configuration details
     tty.p("Configuration File", True, NoticeLevel.NOTICE)
-    tty.ul(config.file, True)
+    tty.ul(config.config_file, True)
     tty.p("Preferences", True, NoticeLevel.NOTICE)
     tty.ul(config.preference_dict, True)
     tty.p("Directives", True, NoticeLevel.NOTICE)

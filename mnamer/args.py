@@ -1,9 +1,10 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, SUPPRESS
 from os.path import isdir
 from typing import Any, Dict
 
 from mnamer import DIRECTIVE_KEYS, HELP, PREFERENCE_KEYS, USAGE
 from mnamer.utils import dict_merge
+from mapi.providers import API_MOVIE, API_TELEVISION
 
 __all__ = ["Arguments"]
 
@@ -15,30 +16,29 @@ class Arguments:
             add_help=False,
             epilog="visit https://github.com/jkwill87/mnamer for more info",
             usage=USAGE,
+            argument_default=SUPPRESS,
         )
 
         # Target Parameters
         p.add_argument("targets", nargs="*", default=[])
 
         # Configuration Parameters
-        p.add_argument("-b", "--batch", action="store_true", default=None)
-        p.add_argument("-r", "--recurse", action="store_true", default=None)
-        p.add_argument("-s", "--scene", action="store_true", default=None)
-        p.add_argument("-v", "--verbose", action="store_true", default=None)
-        p.add_argument("--nocache", action="store_true", default=None)
-        p.add_argument("--noguess", action="store_true", default=None)
-        p.add_argument("--nostyle", action="store_true", default=None)
-        p.add_argument("--blacklist", nargs="+", default=None)
-        p.add_argument("--extmask", nargs="+", default=None)
-        p.add_argument("--hits", type=int, default=None)
-        p.add_argument("--movie_api", choices=["tmdb", "omdb"], default=None)
-        p.add_argument("--movie_directory", default=None)
-        p.add_argument("--movie_format", default=None)
-        p.add_argument(
-            "--television_api", choices=["tvdb", "omdb"], default=None
-        )
-        p.add_argument("--television_directory", default=None)
-        p.add_argument("--television_format", default=None)
+        p.add_argument("-b", "--batch", action="store_true")
+        p.add_argument("-r", "--recurse", action="store_true")
+        p.add_argument("-s", "--scene", action="store_true")
+        p.add_argument("-v", "--verbose", action="store_true")
+        p.add_argument("--nocache", action="store_true")
+        p.add_argument("--noguess", action="store_true")
+        p.add_argument("--nostyle", action="store_true")
+        p.add_argument("--blacklist", nargs="+")
+        p.add_argument("--extmask", nargs="+")
+        p.add_argument("--hits", type=int)
+        p.add_argument("--movie_api", choices=API_MOVIE)
+        p.add_argument("--movie_directory")
+        p.add_argument("--movie_format")
+        p.add_argument("--television_api", choices=API_TELEVISION)
+        p.add_argument("--television_directory")
+        p.add_argument("--television_format")
 
         # Directive Parameters
         p.add_argument("--help", action="store_true")
@@ -51,11 +51,9 @@ class Arguments:
         args: Dict[str, str] = vars(p.parse_args())
 
         # Exit early if user ask for usage help
-        if args["help"] is True:
+        if args.get("help"):
             print(f"\nUSAGE:\n {USAGE}\n{HELP}")
             exit(0)
-        else:
-            args.pop("help")
 
         targets = args.get("targets", None)
         self.targets = set(targets) if targets else set()

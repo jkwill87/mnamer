@@ -1,4 +1,4 @@
-"""
+r"""
   _  _  _    _  _    __,   _  _  _    _   ,_
  / |/ |/ |  / |/ |  /  |  / |/ |/ |  |/  /  |
    |  |  |_/  |  |_/\_/|_/  |  |  |_/|__/   |_/
@@ -17,7 +17,7 @@ USAGE: mnamer target [targets ...] [preferences] [directives]
 PREFERENCES:
     The following flags can be used to customize mnamer's behaviour. Their long
     forms may also be set in a '.mnamer.json' config file, in which case cli
-    arguments will take presenece.
+    arguments will take precedence.
 
     -b, --batch: batch mode; disable interactive prompts
     -r, --recurse: show this help message and exit
@@ -32,7 +32,7 @@ PREFERENCES:
     --movie_api={tmdb,omdb}: set movie api provider
     --movie_directory=<path>: set movie relocation directory
     --movie_format=<format>: set movie renaming format specification
-    --television_api={tvdb,omdb}: set television api provider
+    --television_api={tvdb}: set television api provider
     --television_directory=<path>: set television relocation directory
     --television_format=<format>: set television renaming format specification
 
@@ -45,13 +45,13 @@ DIRECTIVES:
     --id=<id>: explicitly specifies a movie or series id
     --media={movie,television}: override media detection
     --test: mocks the renaming and moving of files
-    --version: display running mnamer version number then exits
+    --version: displays the running mnamer version number then exits
 
 Visit https://github.com/jkwill87/mnamer for more information.
 """
 
 PREFERENCE_DEFAULTS = {
-    # General Options
+    # General options
     "batch": False,
     "recurse": False,
     "scene": False,
@@ -70,15 +70,14 @@ PREFERENCE_DEFAULTS = {
     "television_api": "tvdb",
     "television_directory": "",
     "television_format": "{series} - S{season:02}E{episode:02} - {title}{extension}",
-    # API Keys -- consider using your own or IMDb if limits are hit
+    # API Keys-- please consider using your own to avoid hitting limits
     "api_key_tmdb": "db972a607f2760bb19ff8bb34074b4c7",
     "api_key_tvdb": "E69C7A2CEF2F3152",
-    "api_key_omdb": "",  # TODO
-    # Non-cli Preferences
+    "api_key_omdb": "61652c15",
+    # Non-CLI preferences
     "replacements": {"&": "and", "@": "at", ":": ",", ";": ","},
 }
 
 PREFERENCE_KEYS = set(PREFERENCE_DEFAULTS.keys())
 DIRECTIVE_KEYS = {"help", "config", "id", "media", "test", "version"}
 CONFIGURATION_KEYS = PREFERENCE_KEYS | DIRECTIVE_KEYS
-VERSION = "2.0.0"

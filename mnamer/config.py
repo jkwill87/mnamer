@@ -1,6 +1,7 @@
 from collections.abc import Mapping
 from copy import deepcopy
-
+from os import access, R_OK
+from os.path import isfile
 from mnamer import (
     CONFIGURATION_KEYS,
     DIRECTIVE_KEYS,
@@ -8,20 +9,28 @@ from mnamer import (
     PREFERENCE_KEYS,
 )
 from mnamer.exceptions import MnamerConfigException
-from mnamer.utils import crawl_out, json_dumps, json_read
+from mnamer.utils import json_dumps, json_read
 
 __all__ = ["Configuration"]
 
 
 class Configuration(Mapping):
-    def __init__(self, **overrides):
-        self._dict = deepcopy(PREFERENCE_DEFAULTS)
+    def __init__(self, config_file=None, **overrides):
+        # 1. Load defaults
+        self._dict = {
+            **PREFERENCE_DEFAULTS,
+            **{directive: False for directive in DIRECTIVE_KEYS},
+        }
+        # 2. Overlay config file settings
+        self.config_file = config_file
+        if config_file:
+            self.load_file()
+        # 3. Overlay override settings
         for key, value in overrides.items():
             if key not in CONFIGURATION_KEYS:
                 raise MnamerConfigException(f"{key} is not a valid field")
             else:
                 self._dict[key] = value
-        self.file = crawl_out(".mnamer.json")
 
     def __getitem__(self, key):
         return self._dict.__getitem__(key)
@@ -36,8 +45,10 @@ class Configuration(Mapping):
         return self._dict.__repr__()
 
     def load_file(self):
+        if not isfile(self.config_file) or not access(self.config_file, R_OK):
+            raise MnamerConfigException(f"'{self.config_file}' cannot be read")
         try:
-            json_data = json_read(self.file)
+            json_data = json_read(self.config_file)
         except RuntimeError:
             # no data no load, nothing to do
             return
