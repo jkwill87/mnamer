@@ -93,12 +93,19 @@ class TestPreferences:
         argv.append("25")
         assert self.prefs.get("hits") == 25
 
+    def test_hits__invalid(self):
+        argv.append("--hits")
+        argv.append("25x")
+        with pytest.raises(SystemExit) as e:
+            self.prefs.get("hits")
+        assert e.type == SystemExit
+
     @pytest.mark.parametrize("value", ("tmdb", "omdb"))
     def test_movie_api(self, value):
         argv.append(f"--movie_api={value}")
         assert self.prefs.get("movie_api") == value
 
-    def test_movie_api_invalid(self):
+    def test_movie_api__invalid(self):
         argv.append("--movie_api")
         argv.append(JUNK_TEXT)
         with pytest.raises(SystemExit) as e:
@@ -121,10 +128,9 @@ class TestPreferences:
         argv.append("tvdb")
         assert self.prefs.get("television_api") == "tvdb"
 
-    def test_television_api_invalid(self):
+    def test_television_api__invalid(self):
         argv.append("--television_api")
         argv.append(JUNK_TEXT)
-
         with pytest.raises(SystemExit) as e:
             self.prefs.get("television_api")
         assert e.type == SystemExit
