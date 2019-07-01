@@ -1,7 +1,7 @@
 from collections.abc import Mapping
-from copy import deepcopy
-from os import access, R_OK
+from os import R_OK, access
 from os.path import isfile
+
 from mnamer import (
     CONFIGURATION_KEYS,
     DIRECTIVE_KEYS,

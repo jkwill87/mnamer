@@ -11,7 +11,6 @@ to fill in the blanks, and then renames and moves them.
 USAGE = "mnamer target [targets ...] [preferences] [directives]"
 
 HELP = """
-
 USAGE: mnamer target [targets ...] [preferences] [directives]
 
 PREFERENCES:
@@ -79,5 +78,5 @@ PREFERENCE_DEFAULTS = {
 }
 
 PREFERENCE_KEYS = set(PREFERENCE_DEFAULTS.keys())
-DIRECTIVE_KEYS = {"help", "config", "id", "media", "test", "version"}
+DIRECTIVE_KEYS = {"help", "config_dump", "id", "media", "test", "version"}
 CONFIGURATION_KEYS = PREFERENCE_KEYS | DIRECTIVE_KEYS

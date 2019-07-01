@@ -5,14 +5,10 @@ from mapi.utils import clear_cache
 from mnamer.__version__ import VERSION
 from mnamer.args import Arguments
 from mnamer.config import Configuration
-from mnamer.exceptions import (
-    MnamerAbortException,
-    MnamerConfigException,
-    MnamerSkipException,
-)
-from mnamer.utils import crawl_out
+from mnamer.exceptions import MnamerAbortException, MnamerSkipException
 from mnamer.target import Target
 from mnamer.tty import NoticeLevel, Tty
+from mnamer.utils import crawl_out
 
 
 def main():
@@ -20,23 +16,16 @@ def main():
     args = Arguments()
     config_file = crawl_out(".mnamer.json")
     config = Configuration(config_file, **args.configuration)
-    tty = Tty(**config)
-    if config.config_file:
-        try:
-            config.load_file()
-        except MnamerConfigException as e:
-            tty.p(
-                f"error loading from {config.config_file}: {e}",
-                style=NoticeLevel.ERROR,
-            )
-            return
     targets = Target.populate_paths(args.targets, **config)
+    tty = Tty(**config)
 
     # Handle directives and configuration
+    if config_file:
+        tty.p(f"loaded config from {config_file}", style=NoticeLevel.ALERT)
     if config["version"]:
         tty.p(f"mnamer version {VERSION}")
         exit(0)
-    elif config["config"]:
+    elif config["config_dump"]:
         print(config.preference_json)
         exit(0)
     elif config["nocache"]:
@@ -47,20 +36,21 @@ def main():
     total_count = len(targets)
     if total_count == 0:
         tty.p(
-            "No media files found. Run mnamer --help for usage",
+            "No media files found. Run mnamer --help for usage information.",
             style=NoticeLevel.ALERT,
         )
         exit(0)
 
     # Print configuration details
-    tty.p("Configuration File", True, NoticeLevel.NOTICE)
-    tty.ul(config.config_file, True)
-    tty.p("Preferences", True, NoticeLevel.NOTICE)
+    tty.p("\nCLI Arguments", True, NoticeLevel.NOTICE)
+    tty.ul(args.configuration, True)
+    tty.p("\nPreferences", True, NoticeLevel.NOTICE)
     tty.ul(config.preference_dict, True)
-    tty.p("Directives", True, NoticeLevel.NOTICE)
+    tty.p("\nDirectives", True, NoticeLevel.NOTICE)
     tty.ul(config.directive_dict, True)
-    tty.p("Targets", True, NoticeLevel.NOTICE)
+    tty.p("\nTargets", True, NoticeLevel.NOTICE)
     tty.ul(targets, True)
+    tty.p(f"\n{'-' * 80}\n", True, NoticeLevel.ALERT)
 
     # Main program loop
     tty.p("Starting mnamer", style=NoticeLevel.NOTICE)
@@ -73,7 +63,6 @@ def main():
         tty.p(f'\nProcessing {media} "{filename}"', style=NoticeLevel.NOTICE)
 
         # List details
-        tty.p("\nDetected Fields", True, style=NoticeLevel.NOTICE)
         tty.ul(target.metadata, True)
 
         # Update metadata
