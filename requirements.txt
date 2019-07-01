@@ -1,4 +1,4 @@
 appdirs==1.*
 guessit==3.*
-mapi==3.*
+mapi==3.7.*
 teletype==1.*
