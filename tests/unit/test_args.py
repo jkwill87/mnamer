@@ -40,12 +40,13 @@ class TestPreferences:
     def prefs(self):
         return Arguments().preferences
 
-    @pytest.mark.parametrize(
-        "input_value, stored_value", (("-b", True), ("--batch", True))
-    )
-    def test_batch(self, input_value, stored_value):
-        argv.append(input_value)
-        assert self.prefs.get("batch") == stored_value
+    def test_none(self):
+        assert self.prefs == dict()
+
+    @pytest.mark.parametrize("value", ("-b", "--batch"))
+    def test_batch(self, value):
+        argv.append(value)
+        assert self.prefs.get("batch") is True
 
     @pytest.mark.parametrize("value", ("-r", "--recurse"))
     def test_recurse(self, value):
