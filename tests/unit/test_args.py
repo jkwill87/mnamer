@@ -190,3 +190,36 @@ class TestDirectives:
     def test_version(self, value):
         argv.append(value)
         assert self.directives.get("version") is True
+
+
+@pytest.mark.usefixtures("reset_params")
+class TestConfiguration:
+    @property
+    def configuration(self):
+        return Arguments().configuration
+
+    def test_none(self):
+        assert self.configuration == dict()
+
+    def test_preferences_single(self):
+        argv.append("--verbose")
+        assert self.configuration == {"verbose": True}
+
+    def test_preferences_multi(self):
+        argv.append("--recurse")
+        argv.append("--verbose")
+        assert self.configuration == {"recurse": True, "verbose": True}
+
+    def test_directives_single(self):
+        argv.append("--config_dump")
+        assert self.configuration == {"config_dump": True}
+
+    def test_directives_multi(self):
+        argv.append("--config_dump")
+        argv.append("--help")
+        assert self.configuration == {"config_dump": True, "help": True}
+
+    def test_mixed(self):
+        argv.append("--verbose")
+        argv.append("--config_dump")
+        assert self.configuration == {"verbose": True, "config_dump": True}
