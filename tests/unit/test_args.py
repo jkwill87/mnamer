@@ -119,6 +119,13 @@ class TestPreferences:
         argv.append(path)
         assert self.prefs.get("movie_directory") == path
 
+    def test_movie_directory__invalid(self):
+        argv.append("--movie_directory")
+        argv.append(JUNK_TEXT)
+        with pytest.raises(SystemExit) as e:
+            self.prefs.get("movie_directory")
+        assert e.type == SystemExit
+
     def test_movie_format(self):
         argv.append("--movie_format={title}{year}")
         assert self.prefs.get("movie_format") == "{title}{year}"
@@ -141,6 +148,13 @@ class TestPreferences:
         argv.append("--television_directory")
         argv.append(path)
         assert self.prefs.get("television_directory") == path
+
+    def test_television_directory__invalid(self):
+        argv.append("--television_directory")
+        argv.append(JUNK_TEXT)
+        with pytest.raises(SystemExit) as e:
+            self.prefs.get("television_directory")
+        assert e.type == SystemExit
 
     def test_television_format(self):
         argv.append("--movie_format={title}{season}{episode}")
