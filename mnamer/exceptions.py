@@ -1,3 +1,7 @@
+""" mnamer's custom exception type definitions
+"""
+
+
 class MnamerException(Exception):
     """ Base exception for the mnamer package
     """

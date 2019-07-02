@@ -4,7 +4,7 @@ from typing import Any, Dict
 
 from mapi.providers import API_MOVIE, API_TELEVISION
 
-from mnamer import DIRECTIVE_KEYS, HELP, PREFERENCE_KEYS, USAGE
+from mnamer import DIRECTIVE_KEYS, PREFERENCE_KEYS, USAGE
 from mnamer.utils import dict_merge
 
 __all__ = ["Arguments"]
