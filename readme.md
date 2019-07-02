@@ -64,12 +64,12 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 
 Whereas preferences configure how mnamer works, directives are one-off parameters that are used to perform secondary tasks like exporting the current option set to a file.
 
-| Option   | Arguments               | Description                             |
-| :------- | :---------------------- | :-------------------------------------- |
-| --config  | path                    | prints config JSON to stdout then exits  |
-| --id     | id                      | explicitly specify movie or series id   |
-| --media  | `movie` or `television` | override media detection                |
-| --test   |                         | mocks the renaming and moving of files   |
+| Option        | Arguments               | Description                             |
+| :------------ | :---------------------- | :-------------------------------------- |
+| --config_dump |                         | prints config JSON to stdout then exits |
+| --id          | id                      | explicitly specify movie or series id   |
+| --media       | `movie` or `television` | override media detection                |
+| --test        |                         | mocks the renaming and moving of files  |
 
 
 # Formatting
