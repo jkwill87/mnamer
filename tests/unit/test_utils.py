@@ -147,3 +147,46 @@ class TestFileStem:
         expected = ""
         actual = file_stem(path)
         assert expected == actual
+
+
+class TestFilenameReplace:
+    FILENAME = "The quick brown fox jumps over the lazy dog"
+
+    def test_no_change(self):
+        replacements = {}
+        expected = self.FILENAME
+        actual = filename_replace(self.FILENAME, replacements)
+        assert expected == actual
+
+    def test_single_replacement(self):
+        replacements = {"brown": "red"}
+        expected = "The quick red fox jumps over the lazy dog"
+        actual = filename_replace(self.FILENAME, replacements)
+        assert expected == actual
+
+    def test_multiple_replacement(self):
+        replacements = {"the": "a", "lazy": "misunderstood", "dog": "cat"}
+        expected = "a quick brown fox jumps over a misunderstood cat"
+        actual = filename_replace(self.FILENAME, replacements)
+        assert expected == actual
+
+    def test_only_replaces_whole_words(self):
+        filename = "the !the the theater the"
+        replacements = {"the": "x"}
+        expected = "x !x x theater x"
+        actual = filename_replace(filename, replacements)
+        assert expected == actual
+
+
+class TestFilenameSanitize:
+    def test_condense_whitespace(self):
+        filename = "fix  these    spaces\tplease "
+        expected = "fix these spaces please"
+        actual = filename_sanitize(filename)
+        assert expected == actual
+
+    def test_remove_illegal_chars(self):
+        filename = "<:*sup*:>"
+        expected = "sup"
+        actual = filename_sanitize(filename)
+        assert expected == actual
