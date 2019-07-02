@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 from mnamer.utils import *
-from tests import DUMMY_DIR, TEST_FILES
+from tests import DUMMY_DIR, TEST_FILES, MOVIE_DIR
 
 
 # OPEN_TARGET = "mnamer.utils.open"
@@ -100,4 +100,30 @@ class TestDictMerge:
         d2 = {"a": 10, "b": 20}
         expected = {"a": 10, "b": 20, "c": 3}
         actual = dict_merge(d1, d2)
+        assert expected == actual
+
+
+class TestFileExtension:
+    def test_abs_path(self):
+        path = MOVIE_DIR + "Spaceballs (1987).mkv"
+        expected = "mkv"
+        actual = file_extension(path)
+        assert expected == actual
+
+    def test_rel_path(self):
+        path = "Spaceballs (1987).mkv"
+        expected = "mkv"
+        actual = file_extension(path)
+        assert expected == actual
+
+    def test_no_extension(self):
+        path = "Spaceballs (1987)"
+        expected = ""
+        actual = file_extension(path)
+        assert expected == actual
+
+    def test_multiple_extensions(self):
+        path = "Spaceballs (1987).mkv.mkv"
+        expected = "mkv"
+        actual = file_extension(path)
         assert expected == actual
