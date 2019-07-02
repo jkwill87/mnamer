@@ -1,10 +1,13 @@
-from os import getcwd
+from os import getcwd, chdir
 from os.path import join, relpath
-
+from unittest.mock import patch, MagicMock
 import pytest
 
 from mnamer.utils import *
 from tests import DUMMY_DIR, TEST_FILES
+
+
+# OPEN_TARGET = "mnamer.utils.open"
 
 
 def prepend_temp_path(*paths):
@@ -14,7 +17,7 @@ def prepend_temp_path(*paths):
 @pytest.mark.usefixtures("setup_test_path")
 class TestDirCrawlIn:
     def test_files__none(self):
-        data = join(".", DUMMY_DIR)
+        data = join(getcwd(), DUMMY_DIR)
         assert crawl_in(data) == set()
 
     def test_files__flat(self):
@@ -51,3 +54,25 @@ class TestDirCrawlIn:
         expected = prepend_temp_path(*TEST_FILES)
         actual = crawl_in(recurse=True)
         assert expected == actual
+
+
+@pytest.mark.usefixtures("setup_test_path")
+class TestCrawlOut:
+    def test_walking(self):
+        expected = join(getcwd(), "avengers.mkv")
+        actual = crawl_out("avengers.mkv")
+        assert expected == actual
+
+    @patch("mnamer.utils.expanduser")
+    def test_home(self, expanduser):
+        mock_home_directory = getcwd()
+        mock_users_directory = join(mock_home_directory, "..")
+        expanduser.return_value = mock_home_directory
+        chdir(mock_users_directory)
+        expected = join(mock_home_directory, "avengers.mkv")
+        actual = crawl_out("avengers.mkv")
+        assert expected == actual
+
+    def test_no_match(self):
+        path = join(getcwd(), DUMMY_DIR, "avengers.mkv")
+        assert crawl_out(path) is None
