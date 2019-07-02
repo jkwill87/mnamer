@@ -1,3 +1,6 @@
+""" Shared constants used by mnamer's test
+"""
+
 import os
 
 __all__ = [
@@ -22,9 +25,9 @@ IS_WINDOWS = os.name == "nt"
 
 JUNK_TEXT = "asdf#$@#g9765sdfg54hggaw"
 
-MOVIE_DIR = "C:\\Movies\\" if IS_WINDOWS else "/movies/"
-
 OPEN_TARGET = "mnamer.utils.open"
+
+MOVIE_DIR = "C:\\Movies\\" if IS_WINDOWS else "/movies/"
 
 TELEVISION_DIR = "C:\\Television\\" if IS_WINDOWS else "/television/"
 
