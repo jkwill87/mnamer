@@ -17,23 +17,33 @@ from tests import (
 )
 
 
-def prepend_temp_path(*paths):
+def prepend_temp_path(*paths: str):
+    """ Prepends file path with testing directory
+    """
     return {join(getcwd(), path) for path in paths}
 
 
 @contextmanager
-def set_env(**env):
+def set_env(**env: str):
+    """ A context manager which simulates setting environment variables
+    """
+    # Backup old environment
     old_env = dict(environ)
     environ.update(env)
     try:
+        # Test with new environment variables set
         yield
     finally:
+        # Restore old environment afterwards
         environ.clear()
         environ.update(old_env)
 
 
 @pytest.mark.usefixtures("setup_test_path")
 class TestDirCrawlIn:
+    """ Unit tests for mnamer/utils.py:test_dir_crawl_in()
+    """
+
     def test_files__none(self):
         data = join(getcwd(), DUMMY_DIR)
         assert crawl_in(data) == set()
@@ -76,6 +86,9 @@ class TestDirCrawlIn:
 
 @pytest.mark.usefixtures("setup_test_path")
 class TestCrawlOut:
+    """ Unit tests for mnamer/utils.py:test_dir_crawl_out()
+    """
+
     def test_walking(self):
         expected = join(getcwd(), "avengers.mkv")
         actual = crawl_out("avengers.mkv")
@@ -97,6 +110,9 @@ class TestCrawlOut:
 
 
 class TestDictMerge:
+    """ Unit tests for mnamer/utils.py:dict_merge()
+    """
+
     def test_two(self):
         d1 = {"a": 1, "b": 2}
         d2 = {"c": 3}
@@ -122,6 +138,9 @@ class TestDictMerge:
 
 
 class TestFileExtension:
+    """ Unit tests for mnamer/utils.py:file_extension()
+    """
+
     def test_abs_path(self):
         path = MOVIE_DIR + "Spaceballs (1987).mkv"
         expected = "mkv"
@@ -148,6 +167,9 @@ class TestFileExtension:
 
 
 class TestFileStem:
+    """ Unit tests for mnamer/utils.py:test_file_stem()
+    """
+
     def test_abs_path(self):
         path = MOVIE_DIR + "Spaceballs (1987).mkv"
         expected = "Spaceballs (1987)"
@@ -168,6 +190,9 @@ class TestFileStem:
 
 
 class TestFilenameReplace:
+    """ Unit tests for mnamer/utils.py:test_file_replace()
+    """
+
     FILENAME = "The quick brown fox jumps over the lazy dog"
 
     def test_no_change(self):
@@ -197,6 +222,9 @@ class TestFilenameReplace:
 
 
 class TestFilenameSanitize:
+    """ Unit tests for mnamer/utils.py:test_filename_sanitize()
+    """
+
     def test_condense_whitespace(self):
         filename = "fix  these    spaces\tplease "
         expected = "fix these spaces please"
@@ -211,6 +239,9 @@ class TestFilenameSanitize:
 
 
 class TestFilenameScenify:
+    """ Unit tests for mnamer/utils.py:test_filename_scenify()
+    """
+
     def test_dot_concat(self):
         filename = "some  file..name"
         expected = "some.file.name"
@@ -237,6 +268,9 @@ class TestFilenameScenify:
 
 
 class TestFilterBlacklist:
+    """ Unit tests for mnamer/utils.py:test_filter_blacklist()
+    """
+
     def test_filter_none(self):
         expected = TEST_FILES
         actual = filter_blacklist(TEST_FILES, ())
@@ -295,6 +329,9 @@ class TestFilterBlacklist:
 
 
 class TestFilterExtensions:
+    """ Unit tests for mnamer/utils.py:test_filter_extensions()
+    """
+
     def test_filter_none(self):
         expected = TEST_FILES
         actual = filter_extensions(TEST_FILES, ())
@@ -348,6 +385,9 @@ class TestFilterExtensions:
 
 
 class TestJsonRead:
+    """ Unit tests for mnamer/utils.py:test_json_read()
+    """
+
     def test_environ_substitution(self):
         with patch(OPEN_TARGET, mock_open(read_data="{}")) as mock_file:
             with set_env(HOME=DUMMY_DIR):
@@ -385,6 +425,9 @@ class TestJsonRead:
 
 
 class TestJsonWrite:
+    """ Unit tests for mnamer/utils.py:test_json_write()
+    """
+
     def test_environ_substitution(self):
         data = {"dots": True}
         path = DUMMY_DIR + "/config.json"
