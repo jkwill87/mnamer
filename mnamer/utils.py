@@ -34,7 +34,7 @@ __all__ = [
 ]
 
 
-def crawl_in(paths, recurse=False):
+def crawl_in(paths=".", recurse=False):
     """ Looks for files amongst or within paths provided
     """
     if not isinstance(paths, (list, tuple, set)):
