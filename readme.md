@@ -24,6 +24,8 @@ mnamer (**m**edia re**namer**) is an intelligent and highly configurable media o
 
 `$ pip install -U https://github.com/jkwill87/mnamer/archive/develop.zip`
 
+**Note:** Only advisable if unit tests are passing!
+
 ## Notes
 
 If you want to install it using system python (e.g. the one that comes with your OS, not really recommended) and get a permission error you need to use either `sudo -H pip ...` or `pip install --user ...`.
