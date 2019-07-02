@@ -1,5 +1,5 @@
 from os import makedirs
-from os.path import isdir, join, realpath, split, splitext
+from os.path import isdir, join
 from shutil import move
 from typing import Any, Collection, Dict, Set
 from warnings import catch_warnings, filterwarnings
@@ -9,6 +9,7 @@ from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
 from mapi.providers import Provider, provider_factory
 
 from mnamer.exceptions import MnamerException
+from mnamer.path import Path
 from mnamer.utils import (
     crawl_in,
     file_extension,
@@ -19,30 +20,7 @@ from mnamer.utils import (
     filter_extensions,
 )
 
-__all__ = ["Path", "Target"]
-
-
-class Path:
-    """ Data class used to represent the segments of a file path
-    """
-
-    def __init__(self, path: str):
-        directory, relpath = split(realpath(path))
-        filename, extension = splitext(relpath)
-        self.directory: str = directory
-        self.filename: str = filename
-        self.extension: str = extension
-
-    @property
-    def full(self) -> str:
-        return join(self.directory, self.filename) + self.extension
-
-    def __repr__(self) -> str:
-        return f'Path("%s/" + "%s" + "%s")' % (
-            self.directory,
-            self.filename,
-            self.extension,
-        )
+__all__ = ["Target"]
 
 
 class Target:
