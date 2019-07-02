@@ -127,3 +127,23 @@ class TestFileExtension:
         expected = "mkv"
         actual = file_extension(path)
         assert expected == actual
+
+
+class TestFileStem:
+    def test_abs_path(self):
+        path = MOVIE_DIR + "Spaceballs (1987).mkv"
+        expected = "Spaceballs (1987)"
+        actual = file_stem(path)
+        assert expected == actual
+
+    def test_rel_path(self):
+        path = "Spaceballs (1987).mkv"
+        expected = "Spaceballs (1987)"
+        actual = file_stem(path)
+        assert expected == actual
+
+    def test_dir_only(self):
+        path = MOVIE_DIR
+        expected = ""
+        actual = file_stem(path)
+        assert expected == actual
