@@ -1,15 +1,20 @@
+""" Shared fixtures automatically imported by PyTest
+"""
+
+import os
+import sys
+import tempfile
 from shutil import rmtree
 
 import pytest
-import sys
-import tempfile
-import os
 
 from tests import TEST_FILES
 
 
 @pytest.fixture
 def reset_params():
+    """ Clears argv before and after running test
+    """
     del sys.argv[:]
     sys.argv.append("mnamer")
     yield
@@ -17,8 +22,10 @@ def reset_params():
     sys.argv.append("mnamer")
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def setup_test_path():
+    """ Creates some mixed media file types for testing in a temporary directory
+    """
     orig_dir = os.getcwd()
     tmp_dir = tempfile.mkdtemp()
     for test_file in TEST_FILES:
