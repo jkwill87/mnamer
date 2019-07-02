@@ -76,3 +76,28 @@ class TestCrawlOut:
     def test_no_match(self):
         path = join(getcwd(), DUMMY_DIR, "avengers.mkv")
         assert crawl_out(path) is None
+
+
+class TestDictMerge:
+    def test_two(self):
+        d1 = {"a": 1, "b": 2}
+        d2 = {"c": 3}
+        expected = {"a": 1, "b": 2, "c": 3}
+        actual = dict_merge(d1, d2)
+        assert expected == actual
+
+    def test_many(self):
+        d1 = {"a": 1, "b": 2}
+        d2 = {"c": 3}
+        d3 = {"d": 4, "e": 5, "f": 6}
+        d4 = {"g": 7}
+        expected = {"a": 1, "b": 2, "c": 3, "d": 4, "e": 5, "f": 6, "g": 7}
+        actual = dict_merge(d1, d2, d3, d4)
+        assert expected == actual
+
+    def test_overwrite(self):
+        d1 = {"a": 1, "b": 2, "c": 3}
+        d2 = {"a": 10, "b": 20}
+        expected = {"a": 10, "b": 20, "c": 3}
+        actual = dict_merge(d1, d2)
+        assert expected == actual
