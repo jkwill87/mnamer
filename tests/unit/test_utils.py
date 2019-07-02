@@ -1,17 +1,35 @@
-from os import getcwd, chdir
+import json
+from contextlib import contextmanager
+from os import chdir, environ, getcwd
 from os.path import join, relpath
-from unittest.mock import patch, MagicMock
+from unittest.mock import mock_open, patch
+
 import pytest
 
 from mnamer.utils import *
-from tests import DUMMY_DIR, TEST_FILES, MOVIE_DIR
-
-
-# OPEN_TARGET = "mnamer.utils.open"
+from tests import (
+    BAD_JSON,
+    DUMMY_DIR,
+    DUMMY_FILE,
+    MOVIE_DIR,
+    OPEN_TARGET,
+    TEST_FILES,
+)
 
 
 def prepend_temp_path(*paths):
     return {join(getcwd(), path) for path in paths}
+
+
+@contextmanager
+def set_env(**env):
+    old_env = dict(environ)
+    environ.update(env)
+    try:
+        yield
+    finally:
+        environ.clear()
+        environ.update(old_env)
 
 
 @pytest.mark.usefixtures("setup_test_path")
@@ -190,3 +208,200 @@ class TestFilenameSanitize:
         expected = "sup"
         actual = filename_sanitize(filename)
         assert expected == actual
+
+
+class TestFilenameScenify:
+    def test_dot_concat(self):
+        filename = "some  file..name"
+        expected = "some.file.name"
+        actual = filename_scenify(filename)
+        assert expected == actual
+
+    def test_remove_non_alpanum_chars(self):
+        filename = "who let the dogs out!? (1999)"
+        expected = "who.let.the.dogs.out.1999"
+        actual = filename_scenify(filename)
+        assert expected == actual
+
+    def test_spaces_to_dots(self):
+        filename = " Space Jam "
+        expected = "space.jam"
+        actual = filename_scenify(filename)
+        assert expected == actual
+
+    def test_utf8_to_ascii(self):
+        filename = "Amélie"
+        expected = "amelie"
+        actual = filename_scenify(filename)
+        assert expected == actual
+
+
+class TestFilterBlacklist:
+    def test_filter_none(self):
+        expected = TEST_FILES
+        actual = filter_blacklist(TEST_FILES, ())
+        assert expected == actual
+        expected = TEST_FILES
+        actual = filter_blacklist(TEST_FILES, None)
+        assert expected == actual
+
+    def test_filter_multiple_paths_single_pattern(self):
+        expected = TEST_FILES - {
+            "Documents/Photos/DCM0001.jpg",
+            "Documents/Photos/DCM0002.jpg",
+        }
+        actual = filter_blacklist(TEST_FILES, "dcm")
+        assert expected == actual
+
+    def test_filter_multiple_paths_multiple_patterns(self):
+        expected = TEST_FILES - {
+            "Desktop/temp.zip",
+            "Downloads/the.goonies.1985.sample.mp4",
+        }
+        actual = filter_blacklist(TEST_FILES, ("temp", "sample"))
+        assert expected == actual
+
+    def test_filter_single_path_single_pattern(self):
+        expected = set()
+        actual = filter_blacklist("Documents/sample.file.mp4", "sample")
+        assert expected == actual
+        expected = {"Documents/sample.file.mp4"}
+        actual = filter_blacklist("Documents/sample.file.mp4", "dcm")
+        assert expected == actual
+
+    def test_filter_single_path_multiple_patterns(self):
+        expected = set()
+        actual = filter_blacklist(
+            "Documents/sample.file.mp4", ("files", "sample")
+        )
+        assert expected == actual
+        expected = {"Documents/sample.file.mp4"}
+        actual = filter_blacklist(
+            "Documents/sample.file.mp4", ("apple", "banana")
+        )
+        assert expected == actual
+
+    def test_regex(self):
+        pattern = r"\d+"
+        expected = TEST_FILES - {
+            "Documents/Photos/DCM0001.jpg",
+            "Documents/Photos/DCM0002.jpg",
+            "Downloads/the.goonies.1985.sample.mp4",
+            "Ninja Turtles (1990).mkv",
+            "scan_001.tiff",
+        }
+        actual = filter_blacklist(TEST_FILES, pattern)
+        assert expected == actual
+
+
+class TestFilterExtensions:
+    def test_filter_none(self):
+        expected = TEST_FILES
+        actual = filter_extensions(TEST_FILES, ())
+        assert expected == actual
+        expected = TEST_FILES
+        actual = filter_extensions(TEST_FILES, None)
+        assert expected == actual
+
+    def test_filter_multiple_paths_single_pattern(self):
+        expected = {
+            "Documents/Photos/DCM0001.jpg",
+            "Documents/Photos/DCM0002.jpg",
+        }
+        actual = filter_extensions(TEST_FILES, "jpg")
+        assert expected == actual
+        actual = filter_extensions(TEST_FILES, ".jpg")
+        assert expected == actual
+
+    def test_filter_multiple_paths_multiple_patterns(self):
+        expected = {
+            "avengers.mkv",
+            "Desktop/temp.zip",
+            "Downloads/Return of the Jedi.mkv",
+            "Ninja Turtles (1990).mkv",
+        }
+        actual = filter_extensions(TEST_FILES, ("mkv", "zip"))
+        assert expected == actual
+        actual = filter_extensions(TEST_FILES, (".mkv", ".zip"))
+        assert expected == actual
+
+    def test_filter_single_path_single_pattern(self):
+        expected = {
+            "avengers.mkv",
+            "Desktop/temp.zip",
+            "Downloads/Return of the Jedi.mkv",
+            "Ninja Turtles (1990).mkv",
+        }
+        actual = filter_extensions(TEST_FILES, ("mkv", "zip"))
+        assert expected == actual
+        actual = filter_extensions(TEST_FILES, (".mkv", ".zip"))
+        assert expected == actual
+
+    def test_filter_single_path_multiple_patterns(self):
+        expected = {"Documents/Skiing Trip.mp4"}
+        actual = filter_extensions("Documents/Skiing Trip.mp4", ("mp4", "zip"))
+        assert expected == actual
+        actual = filter_extensions(
+            "Documents/Skiing Trip.mp4", (".mp4", ".zip")
+        )
+        assert expected == actual
+
+
+class TestJsonRead:
+    def test_environ_substitution(self):
+        with patch(OPEN_TARGET, mock_open(read_data="{}")) as mock_file:
+            with set_env(HOME=DUMMY_DIR):
+                json_read("$HOME/config.json")
+        mock_file.assert_called_with(DUMMY_DIR + "/config.json", mode="r")
+
+    def test_load_success(self):
+        data = expected = {"dots": True}
+        mocked_open = mock_open(read_data=json.dumps(data))
+        with patch(OPEN_TARGET, mocked_open) as _:
+            actual = json_read(DUMMY_FILE)
+            assert expected == actual
+
+    def test_load_success__skips_none(self):
+        data = {"dots": True, "scene": None}
+        expected = {"dots": True}
+        mocked_open = mock_open(read_data=json.dumps(data))
+        with patch(OPEN_TARGET, mocked_open) as _:
+            actual = json_read(DUMMY_FILE)
+            assert expected == actual
+
+    def test_load_fail__io(self):
+        mocked_open = mock_open()
+        with patch(OPEN_TARGET, mocked_open) as patched_open:
+            patched_open.side_effect = IOError
+            with pytest.raises(RuntimeError):
+                json_read(DUMMY_FILE)
+
+    def test_load_fail__invalid_json(self):
+        mocked_open = mock_open(read_data=BAD_JSON)
+        with patch(OPEN_TARGET, mocked_open) as patched_open:
+            patched_open.side_effect = TypeError
+            with pytest.raises(RuntimeError):
+                json_read(DUMMY_FILE)
+
+
+class TestJsonWrite:
+    def test_environ_substitution(self):
+        data = {"dots": True}
+        path = DUMMY_DIR + "/config.json"
+        with patch(OPEN_TARGET, mock_open()) as patched_open:
+            with set_env(HOME=DUMMY_DIR):
+                json_write("$HOME/config.json", data)
+            patched_open.assert_called_with(path, mode="w")
+
+    def test_save_success(self):
+        mocked_open = mock_open()
+        with patch(OPEN_TARGET, mocked_open) as _:
+            json_write(DUMMY_FILE, {"dots": True})
+            mocked_open.assert_called()
+
+    def test_save_fail__io(self):
+        mocked_open = mock_open()
+        with patch(OPEN_TARGET, mocked_open) as patched_open:
+            patched_open.side_effect = RuntimeError
+            with pytest.raises(RuntimeError):
+                json_write(DUMMY_FILE, {"dots": True})
