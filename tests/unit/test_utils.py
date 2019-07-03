@@ -281,16 +281,16 @@ class TestFilterBlacklist:
 
     def test_filter_multiple_paths_single_pattern(self):
         expected = TEST_FILES - {
-            "Documents/Photos/DCM0001.jpg",
-            "Documents/Photos/DCM0002.jpg",
+            join("Documents", "Photos", "DCM0001.jpg"),
+            join("Documents", "Photos", "DCM0002.jpg"),
         }
         actual = filter_blacklist(TEST_FILES, "dcm")
         assert expected == actual
 
     def test_filter_multiple_paths_multiple_patterns(self):
         expected = TEST_FILES - {
-            "Desktop/temp.zip",
-            "Downloads/the.goonies.1985.sample.mp4",
+            join("Desktop", "temp.zip"),
+            join("Downloads", "the.goonies.1985.sample.mp4"),
         }
         actual = filter_blacklist(TEST_FILES, ("temp", "sample"))
         assert expected == actual
@@ -318,9 +318,9 @@ class TestFilterBlacklist:
     def test_regex(self):
         pattern = r"\d+"
         expected = TEST_FILES - {
-            "Documents/Photos/DCM0001.jpg",
-            "Documents/Photos/DCM0002.jpg",
-            "Downloads/the.goonies.1985.sample.mp4",
+            join("Documents", "Photos", "DCM0001.jpg"),
+            join("Documents", "Photos", "DCM0002.jpg"),
+            join("Downloads", "the.goonies.1985.sample.mp4"),
             "Ninja Turtles (1990).mkv",
             "scan_001.tiff",
         }
@@ -342,8 +342,8 @@ class TestFilterExtensions:
 
     def test_filter_multiple_paths_single_pattern(self):
         expected = {
-            "Documents/Photos/DCM0001.jpg",
-            "Documents/Photos/DCM0002.jpg",
+            join("Documents", "Photos", "DCM0001.jpg"),
+            join("Documents", "Photos", "DCM0002.jpg"),
         }
         actual = filter_extensions(TEST_FILES, "jpg")
         assert expected == actual
@@ -352,10 +352,10 @@ class TestFilterExtensions:
 
     def test_filter_multiple_paths_multiple_patterns(self):
         expected = {
-            "avengers.mkv",
-            "Desktop/temp.zip",
-            "Downloads/Return of the Jedi.mkv",
-            "Ninja Turtles (1990).mkv",
+            join("avengers.mkv"),
+            join("Desktop", "temp.zip"),
+            join("Downloads", "Return of the Jedi.mkv"),
+            join("Ninja Turtles (1990).mkv"),
         }
         actual = filter_extensions(TEST_FILES, ("mkv", "zip"))
         assert expected == actual
@@ -365,8 +365,8 @@ class TestFilterExtensions:
     def test_filter_single_path_single_pattern(self):
         expected = {
             "avengers.mkv",
-            "Desktop/temp.zip",
-            "Downloads/Return of the Jedi.mkv",
+            join("Desktop", "temp.zip"),
+            join("Downloads", "Return of the Jedi.mkv"),
             "Ninja Turtles (1990).mkv",
         }
         actual = filter_extensions(TEST_FILES, ("mkv", "zip"))
