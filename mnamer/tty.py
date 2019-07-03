@@ -43,12 +43,13 @@ class Tty:
         self.verbose: bool = verbose
 
     @property
-    def _prompt_chars(self) -> Dict[str, str]:
+    def prompt_chars(self) -> Dict[str, str]:
         if self.nostyle:
             prompt_chars = CHARS_ASCII.copy()
         else:
             prompt_chars = {
-                "arrow": style_format(CHARS_DEFAULT["arrow"], "magenta")
+                **CHARS_DEFAULT,
+                **{"arrow": style_format(CHARS_DEFAULT["arrow"], "magenta")},
             }
         return prompt_chars
 
@@ -132,7 +133,7 @@ class Tty:
                 choice = choice.value
         # Otherwise prompt user for their selection
         else:
-            choice = SelectOne(choices, **self._prompt_chars).prompt()
+            choice = SelectOne(choices, **self.prompt_chars).prompt()
             if choice is MnamerSkipException:
                 self._choose_skip()
             elif choice is MnamerAbortException:
