@@ -1,6 +1,7 @@
-from tests import IS_WINDOWS
-from tty import Tty, NoticeLevel
 import pytest
+
+from mnamer.tty import NoticeLevel, Tty
+from tests import IS_WINDOWS
 
 
 class TestTty:
