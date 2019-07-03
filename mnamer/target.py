@@ -1,7 +1,7 @@
 from os import makedirs
 from os.path import isdir, join
 from shutil import move
-from typing import Any, Collection, Dict, Set
+from typing import Any, Collection, Dict, Set, Optional
 from warnings import catch_warnings, filterwarnings
 
 from guessit import guessit
@@ -33,17 +33,17 @@ class Target:
         self.source: Path = Path(path)
         self.metadata: Metadata = self._meta_parse(path, config.get("media"))
         media: str = self.metadata.get("media", "unknown")
-        self.api: str = config.get(media + "_api")
-        self.api_key: str = config.get("api_key_" + self.api)
-        self.directory: str = config.get(media + "_directory")
+        self.api: str = config.get(media + "_api", "")
+        self.api_key: str = config.get("api_key_" + self.api, "")
+        self.directory: Optional[str] = config.get(media + "_directory")
         self.formatting: str = config.get(media + "_format")
-        self.hits: int = config.get("hits")
-        self.id_key: str = config.get("id")
+        self.hits: Optional[int] = config.get("hits")
+        self.id_key: Optional[str] = config.get("id")
         self.cache: bool = False if config.get("nocache") else True
-        self.replacements: str = config.get("replacements")
-        self.scene: bool = config.get("scene")
-        self.is_moved: bool = False
-        self.is_renamed: bool = False
+        self.replacements: Dict[str, str] = config.get("replacements")
+        self.scene: bool = config.get("scene") is True
+        self._has_moved: bool = False
+        self._has_renamed: bool = False
 
     def __hash__(self) -> int:
         return self.source.full.__hash__()
@@ -79,6 +79,14 @@ class Target:
         paths = filter_blacklist(paths, blacklist)
         paths = filter_extensions(paths, extmask)
         return {Target(path, **config) for path in paths}
+
+    @property
+    def has_moved(self):
+        return self._has_moved
+
+    @property
+    def has_renamed(self):
+        return self._has_renamed
 
     @staticmethod
     def _meta_parse(path: str, media: str) -> Metadata:
@@ -168,7 +176,7 @@ class Target:
             provider = Target._providers[media]
         hit = 0
         for result in provider.search(self.id_key, **self.metadata):
-            if hit == self.hits:
+            if self.hits and self.hits == hit:
                 break
             hit += 1
             yield result

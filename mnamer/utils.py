@@ -72,7 +72,7 @@ def crawl_out(filename: str):
     return target if isfile(target) else None
 
 
-def dict_merge(d1: Dict[Any], *dn: Dict[Any]):
+def dict_merge(d1: Dict[Any, Any], *dn: Dict[Any, Any]):
     """ Merges two or more dictionaries
     """
     res = d1.copy()
@@ -93,7 +93,7 @@ def file_stem(path: str):
     return splitext(basename(path))[0]
 
 
-def filename_replace(filename: str, replacements: Dict[str]):
+def filename_replace(filename: str, replacements: Dict[str, str]):
     """ Replaces keys in replacements dict with their values
     """
     base, ext = splitext(filename)
@@ -152,7 +152,7 @@ def filter_extensions(paths: Collection, valid_extensions: Collection):
     return {path for path in paths if file_extension(path) in valid_extensions}
 
 
-def json_dumps(d: Dict[Any]):
+def json_dumps(d: Dict[str, Any]):
     return json.dumps(
         d,
         allow_nan=False,
