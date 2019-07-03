@@ -14,6 +14,7 @@ from os.path import (
 )
 from re import IGNORECASE, search, sub
 from string import Template
+from typing import Collection, Dict, Any
 
 from unicodedata import normalize
 
@@ -34,7 +35,7 @@ __all__ = [
 ]
 
 
-def crawl_in(paths=".", recurse=False):
+def crawl_in(paths: Collection = ".", recurse: bool = False):
     """ Looks for files amongst or within paths provided
     """
     if not isinstance(paths, (list, tuple, set)):
@@ -55,7 +56,7 @@ def crawl_in(paths=".", recurse=False):
     return found_files
 
 
-def crawl_out(filename):
+def crawl_out(filename: str):
     """ Looks for a file in the home directory and each directory up from cwd
     """
     working_dir = getcwd()
@@ -71,7 +72,7 @@ def crawl_out(filename):
     return target if isfile(target) else None
 
 
-def dict_merge(d1, *dn):
+def dict_merge(d1: Dict[Any], *dn: Dict[Any]):
     """ Merges two or more dictionaries
     """
     res = d1.copy()
@@ -80,19 +81,19 @@ def dict_merge(d1, *dn):
     return res
 
 
-def file_extension(path):
+def file_extension(path: str):
     """ Gets the extension for a path; period omitted
     """
     return splitext(path)[1].lstrip(".")
 
 
-def file_stem(path):
+def file_stem(path: str):
     """ Gets the filename for a path with any extension removed
     """
     return splitext(basename(path))[0]
 
 
-def filename_replace(filename, replacements):
+def filename_replace(filename: str, replacements: Dict[str]):
     """ Replaces keys in replacements dict with their values
     """
     base, ext = splitext(filename)
@@ -102,7 +103,7 @@ def filename_replace(filename, replacements):
     return base + ext
 
 
-def filename_sanitize(filename):
+def filename_sanitize(filename: str):
     """ Removes illegal filename characters and condenses whitespace
     """
     base, ext = splitext(filename)
@@ -111,7 +112,7 @@ def filename_sanitize(filename):
     return base.strip("-., ") + ext
 
 
-def filename_scenify(filename):
+def filename_scenify(filename: str):
     """ Replaces non ascii-alphanumerics with .
     """
     filename = normalize("NFKD", filename)
@@ -122,7 +123,7 @@ def filename_scenify(filename):
     return filename.lower().strip(".")
 
 
-def filter_blacklist(paths, blacklist):
+def filter_blacklist(paths: Collection, blacklist: Collection):
     """ Filters (set difference) a collection of paths by a collection of regex pattens
     """
     if not blacklist:
@@ -138,7 +139,7 @@ def filter_blacklist(paths, blacklist):
     }
 
 
-def filter_extensions(paths, valid_extensions):
+def filter_extensions(paths: Collection, valid_extensions: Collection):
     """ Filters (set intersection) a collection of extension by a collection of extensions
     """
     if not valid_extensions:
@@ -151,7 +152,7 @@ def filter_extensions(paths, valid_extensions):
     return {path for path in paths if file_extension(path) in valid_extensions}
 
 
-def json_dumps(d):
+def json_dumps(d: Dict[Any]):
     return json.dumps(
         d,
         allow_nan=False,
@@ -163,7 +164,7 @@ def json_dumps(d):
     )
 
 
-def json_read(path, skip_nil=True):
+def json_read(path: str, skip_nil: bool = True):
     """ Reads a JSON file from disk
     """
     try:
@@ -177,7 +178,7 @@ def json_read(path, skip_nil=True):
     return {k: v for k, v in data.items() if not (v is None and skip_nil)}
 
 
-def json_write(path, obj):
+def json_write(path: str, obj: Any):
     """ Writes a JSON file to disk
     """
     templated_path = Template(path).substitute(environ)
