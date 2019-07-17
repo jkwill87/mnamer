@@ -57,6 +57,7 @@ class Target:
     def destination(self) -> Path:
         if self.directory:
             dir_head = format(self.metadata, self.directory)
+            dir_head = filename_sanitize(dir_head)
         else:
             dir_head = self.source.directory
         if self.formatting:
