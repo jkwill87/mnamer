@@ -55,19 +55,20 @@ class Target:
 
     @property
     def destination(self) -> Path:
-        if self.directory:
-            head = self.directory
+        dir_head = self.directory if self.directory else self.source.directory
+        if self.formatting:
+            path = format(self.metadata, self.formatting)
+            path = filename_sanitize(path)
         else:
-            head = format(self.metadata, self.source.directory)
-            if self.scene:
-                head = filename_scenify(head)
-        tail = format(self.metadata, self.formatting)
-        tail = filename_replace(tail, self.replacements)
-        tail = filename_sanitize(tail)
+            path = f"{self.source.filename}.{self.source.extension}"
+        if self.replacements:
+            path = filename_replace(path, self.replacements)
         if self.scene:
-            tail = filename_scenify(tail)
-        destination = join(head, tail)
-        return Path(destination)
+            path = filename_scenify(path)
+        dir_tail, filename = split(path)
+        directory = join(dir_head, dir_tail)
+        destination = join(directory, filename)
+        return Path.parse(destination)
 
     @classmethod
     def populate_paths(
