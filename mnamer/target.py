@@ -70,15 +70,17 @@ class Target:
         destination = join(head, tail)
         return Path(destination)
 
-    @staticmethod
-    def populate_paths(paths: Collection[str], **config: Any) -> Set["Target"]:
+    @classmethod
+    def populate_paths(
+        cls, paths: Collection[str], **config: Any
+    ) -> Set["Target"]:
         recurse = config.get("recurse", False)
         extmask = config.get("extmask", ())
         blacklist = config.get("blacklist", ())
         paths = crawl_in(paths, recurse)
         paths = filter_blacklist(paths, blacklist)
         paths = filter_extensions(paths, extmask)
-        return {Target(path, **config) for path in paths}
+        return {cls(path, **config) for path in paths}
 
     @property
     def has_moved(self):
