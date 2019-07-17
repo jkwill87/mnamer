@@ -14,7 +14,7 @@ from os.path import (
 )
 from re import IGNORECASE, search, sub
 from string import Template
-from typing import Collection, Dict, Any
+from typing import Collection, Dict, Any, Optional
 
 from unicodedata import normalize
 
@@ -123,7 +123,7 @@ def filename_scenify(filename: str):
     return filename.lower().strip(".")
 
 
-def filter_blacklist(paths: Collection, blacklist: Collection):
+def filter_blacklist(paths: Collection, blacklist: Optional[Collection]):
     """ Filters (set difference) a collection of paths by a collection of regex pattens
     """
     if not blacklist:
@@ -139,7 +139,9 @@ def filter_blacklist(paths: Collection, blacklist: Collection):
     }
 
 
-def filter_extensions(paths: Collection, valid_extensions: Collection):
+def filter_extensions(
+    paths: Collection, valid_extensions: Optional[Collection]
+):
     """ Filters (set intersection) a collection of extension by a collection of extensions
     """
     if not valid_extensions:
