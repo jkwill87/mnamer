@@ -82,14 +82,6 @@ class Target:
         paths = filter_extensions(paths, extmask)
         return {cls(path, **config) for path in paths}
 
-    @property
-    def has_moved(self):
-        return self._has_moved
-
-    @property
-    def has_renamed(self):
-        return self._has_renamed
-
     @staticmethod
     def _meta_parse(path: str, media: str) -> Metadata:
         """ Uses guessit to parse metadata from a filename
