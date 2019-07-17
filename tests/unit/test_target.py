@@ -1,5 +1,6 @@
 from os import getcwd
 from os.path import join
+from unittest.mock import patch
 
 import pytest
 from mapi.metadata import MetadataMovie, MetadataTelevision
@@ -195,3 +196,28 @@ class TestDestination:
 
     def test_directory__nested(self):
         pass
+
+
+@pytest.mark.usefixtures("setup_test_path")
+class TestPopulatePaths:
+    @pytest.mark.parametrize(
+        "arg,value",
+        (
+            ("recurse", True),
+            ("recurse", False),
+            ("blacklist", ("apple", "orange", "lemon")),
+            ("blacklist", ()),
+        ),
+    )
+    def test_passes_config(self, arg, value):
+        with patch("mnamer.target.Target.__new__") as target_constructor:
+            target_constructor.return_value = None
+            Target.populate_paths(".", **{arg: value})
+            assert target_constructor.call_args_list[0][1][arg] == value
+
+    def test_applies_extmask(self):
+        with patch("mnamer.target.Target.__new__") as target_constructor:
+            target_constructor.return_value = None
+            Target.populate_paths(".", extmask="tiff")
+            assert target_constructor.call_count == 1
+            assert target_constructor.call_args[0][1].endswith("tiff")
