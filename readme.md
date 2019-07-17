@@ -22,9 +22,9 @@ mnamer (**m**edia re**namer**) is an intelligent and highly configurable media o
 
 ## Development Version
 
-`$ pip install -U https://github.com/jkwill87/mnamer/archive/develop.zip`
+mnamer v2 is under development. It is currently in a functional state and suitable for use so long as unit tests are passing. This version currently introduces breaking changes from v1 and has the potential to continue doing so. These changes will be documented upon release.
 
-**Note:** Only advisable if unit tests are passing!
+`$ pip install -U https://github.com/jkwill87/mnamer/archive/develop.zip`
 
 ## Notes
 
@@ -49,8 +49,8 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 | --nocache              |                  | disable and clear result cache                                  |
 | --noguess              |                  | disable best guess fallback; e.g. when no matches, network down |
 | --nostyle              |                  | disable colours and uses ASCII chars for UI prompts             |
-| --blacklist            | pattern          | ignore files including these words                               |
-| --extmask              | extention(s)     | define the extension mask used by the the file parser             |
+| --blacklist            | pattern          | ignore files including these words                              |
+| --extmask              | extention(s)     | define the extension mask used by the the file parser           |
 | --hits                 | number           | limit the maximum number of hits for each query                 |
 | --movie_api            | `imdb` or `tmdb` | set movie api provider                                          |
 | --movie_directory      | path             | set movie relocation directory                                  |
