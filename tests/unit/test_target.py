@@ -1,5 +1,7 @@
+from os import getcwd
 from os.path import join
 
+import pytest
 from mapi.metadata import MetadataMovie, MetadataTelevision
 
 from mnamer.path import Path
@@ -13,7 +15,7 @@ class TestInit:
         assert isinstance(target.source, Path)
         assert target.source.directory == MOVIE_DIR.rstrip("/\\")
         assert target.source.filename == "goonies"
-        assert target.source.extension == ".mp4"
+        assert target.source.extension == "mp4"
         assert target.source.full == join(MOVIE_DIR, "goonies.mp4")
 
     def test_metadata__movie(self):
@@ -86,14 +88,14 @@ class TestInit:
         target = Target(
             "Austin Powers: International Man of Mystery (1997).avi"
         )
-        assert target.cache == True
+        assert target.cache is True
 
     def test_cache__false(self):
         target = Target(
             "Austin Powers: International Man of Mystery (1997).avi",
             nocache=True,
         )
-        assert target.cache == False
+        assert target.cache is False
 
     def test_replacements(self):
         target = Target(
@@ -106,3 +108,90 @@ class TestInit:
         assert target.scene is False
         target = Target("Garden State (2004).mp4", scene=True)
         assert target.scene is True
+
+
+class TestDestination:
+    def test_format__unspecified(self):
+        target = Target("./jurassic.park.1993.wmv")
+        assert target.destination.full == join(
+            getcwd(), "jurassic.park.1993.wmv"
+        )
+
+    def test_format__filename(self):
+        target = Target(
+            "./jurassic.park.1993.wmv", movie_format="{title}{extension}"
+        )
+        assert target.destination.full == join(getcwd(), "Jurassic Park.wmv")
+
+    def test_format__directory(self):
+        target = Target(
+            "./jurassic.park.1993.wmv",
+            movie_format="{title} ({year})/{title}{extension}",
+        )
+        assert target.destination.full == join(
+            getcwd(), "Jurassic Park (1993)", "Jurassic Park.wmv"
+        )
+
+    def test_scene(self):
+        target = Target(
+            "./jurassic.park.1993.wmv",
+            movie_format="{title} ({year}){extension}",
+            scene=True,
+        )
+        assert target.destination.full == join(
+            getcwd(), "jurassic.park.1993.wmv"
+        )
+
+    def test_scene__format_directory(self):
+        target = Target(
+            "./jurassic park 1993.wmv",
+            movie_format="{title} ({year})/{title}{extension}",
+            scene=True,
+        )
+        assert target.destination.full == join(
+            getcwd(), "jurassic.park.1993", "jurassic.park.wmv"
+        )
+
+    def test_replacements(self):
+        target = Target(
+            "./jurassic park 1993.wmv", replacements={"Park": "Jungle"}
+        )
+        assert target.destination.full == join(
+            getcwd(), "jurassic park 1993.wmv"
+        )
+
+    def test_replacements__format(self):
+        target = Target(
+            "./jurassic.park.1993.wmv",
+            movie_format="{title} ({year}){extension}",
+            replacements={"Park": "Jungle"},
+        )
+        assert target.destination.full == join(
+            getcwd(), "Jurassic Jungle (1993).wmv"
+        )
+
+    def test_replacements__format_directory(self):
+        target = Target(
+            "./jurassic.park.1993.wmv",
+            movie_format="{title} ({year})/{title}{extension}",
+            replacements={"Park": "Jungle"},
+        )
+        assert target.destination.full == join(
+            getcwd(), "Jurassic Jungle (1993)", "Jurassic Jungle.wmv"
+        )
+
+    @pytest.mark.parametrize("scene", (True, False))
+    @pytest.mark.parametrize(
+        "path",
+        (
+            "jurassic.park.1993.wmv",  # implied
+            join(".", "jurassic.park.1993.wmv"),  # relative
+            join(getcwd(), "jurassic.park.1993.wmv"),  # absolute
+        ),
+    )
+    def test_directory__cwd(self, path, scene):
+        target = Target(path, movie_directory="My Videos", scene=scene)
+        assert target.destination.directory == join(getcwd(), "My Videos")
+
+    def test_directory__nested(self):
+        pass

@@ -2,7 +2,7 @@
 """
 
 from os import name as os_name
-from os.path import join
+from os.path import expanduser, join
 
 __all__ = [
     "BAD_JSON",
@@ -43,3 +43,5 @@ TEST_FILES = {
     "Ninja Turtles (1990).mkv",
     "scan_001.tiff",
 }
+
+USER_HOME_DIR = expanduser("~")
