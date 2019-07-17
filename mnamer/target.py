@@ -55,7 +55,10 @@ class Target:
 
     @property
     def destination(self) -> Path:
-        dir_head = self.directory if self.directory else self.source.directory
+        if self.directory:
+            dir_head = format(self.metadata, self.directory)
+        else:
+            dir_head = self.source.directory
         if self.formatting:
             path = format(self.metadata, self.formatting)
             path = filename_sanitize(path)

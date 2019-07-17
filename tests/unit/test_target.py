@@ -120,17 +120,21 @@ class TestDestination:
 
     def test_format__filename(self):
         target = Target(
-            "./jurassic.park.1993.wmv", movie_format="{title}{extension}"
-        )
-        assert target.destination.full == join(getcwd(), "Jurassic Park.wmv")
-
-    def test_format__directory(self):
-        target = Target(
             "./jurassic.park.1993.wmv",
             movie_format="{title} ({year})/{title}{extension}",
         )
         assert target.destination.full == join(
             getcwd(), "Jurassic Park (1993)", "Jurassic Park.wmv"
+        )
+
+    def test_format__directory(self):
+        target = Target(
+            "./jurassic.park.1993.wmv",
+            movie_directory="/movies/{title} ({year})",
+            movie_format="{title}{extension}",
+        )
+        assert target.destination.full == join(
+            "/", "movies", "Jurassic Park (1993)", "Jurassic Park.wmv"
         )
 
     def test_scene(self):
