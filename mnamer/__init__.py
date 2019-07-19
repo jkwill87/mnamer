@@ -58,8 +58,8 @@ PREFERENCE_DEFAULTS = {
     "nocache": False,
     "noguess": False,
     "nostyle": False,
-    "blacklist": (".*sample.*", "^RARBG.*"),
-    "extmask": ("avi", "m4v", "mp4", "mkv", "ts", "wmv"),
+    "blacklist": [".*sample.*", "^RARBG.*"],
+    "extmask": ["avi", "m4v", "mp4", "mkv", "ts", "wmv"],
     "hits": 5,
     # Movie related
     "movie_api": "tmdb",

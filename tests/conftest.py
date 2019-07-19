@@ -5,10 +5,10 @@ import os
 import sys
 import tempfile
 from shutil import rmtree
-
 import pytest
 
 from tests import TEST_FILES
+from mnamer.__main__ import main
 
 
 @pytest.fixture
@@ -38,3 +38,22 @@ def setup_test_path():
     yield
     rmtree(tmp_dir)
     os.chdir(orig_dir)
+
+
+@pytest.mark.usefixtures("setup_test_path")
+@pytest.fixture
+def e2e_main(capsys):
+    """ Runs main with provided arguments and returns stdout
+    """
+
+    def fn(*args):
+        for arg in args:
+            sys.argv.append(arg)
+        try:
+            main()
+        except SystemExit:
+            pass
+
+        return capsys.readouterr().out.strip(), capsys.readouterr().err.strip()
+
+    return fn

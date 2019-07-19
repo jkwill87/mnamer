@@ -11,6 +11,8 @@ from mnamer.target import Target
 from mnamer.tty import NoticeLevel, Tty
 from mnamer.utils import crawl_out
 
+__all__ = ["main"]
+
 
 def main():
     # Setup arguments and runtime configuration

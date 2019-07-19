@@ -155,6 +155,8 @@ def filter_extensions(
 
 
 def json_dumps(d: Dict[str, Any]):
+    """ A wrapper for json.dumps
+    """
     return json.dumps(
         d,
         allow_nan=False,

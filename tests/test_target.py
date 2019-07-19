@@ -7,7 +7,7 @@ from mapi.metadata import MetadataMovie, MetadataTelevision
 
 from mnamer.path import Path
 from mnamer.target import Target
-from tests import MOVIE_DIR
+from tests import IS_WINDOWS, MOVIE_DIR
 
 
 class TestInit:
@@ -128,13 +128,14 @@ class TestDestination:
         )
 
     def test_format__directory(self):
+        root = "C:\\" if IS_WINDOWS else "/"
         target = Target(
             "./jurassic.park.1993.wmv",
             movie_directory="/movies/{title} ({year})",
             movie_format="{title}{extension}",
         )
         assert target.destination.full == join(
-            "/", "movies", "Jurassic Park (1993)", "Jurassic Park.wmv"
+            root, "movies", "Jurassic Park (1993)", "Jurassic Park.wmv"
         )
 
     def test_scene(self):
@@ -225,3 +226,43 @@ class TestPopulatePaths:
             Target.populate_paths(".", extmask="tiff")
             assert target_constructor.call_count == 1
             assert target_constructor.call_args[0][1].endswith("tiff")
+
+
+class TestParse:
+    def test_movie_parse__title(self):
+        pass
+
+    def test_movie_parse__year(self):
+        pass
+
+    def test_movie_parse__media(self):
+        pass
+
+    def test_television_parse__episode(self):
+        pass
+
+    def test_television_parse__season(self):
+        pass
+
+    def test_television_parse_date(self):
+        pass
+
+    def test_no_media_type(self):
+        pass
+
+    def test_quality(self):
+        pass
+
+    def test_release_group(self):
+        pass
+
+    def test_country_code_detect(self):
+        pass
+
+
+class TestQuery:
+    pass
+
+
+class TestRelocate:
+    pass
