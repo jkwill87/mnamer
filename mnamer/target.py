@@ -66,11 +66,11 @@ class Target:
             dir_head = self.source.directory
         if self.formatting:
             path = format(self.metadata, self.formatting)
+            if self.replacements:
+                path = filename_replace(path, self.replacements)
             path = filename_sanitize(path)
         else:
             path = f"{self.source.filename}.{self.source.extension}"
-        if self.replacements:
-            path = filename_replace(path, self.replacements)
         dir_tail, filename = split(path)
         directory = join(dir_head, dir_tail)
         if self.scene:
