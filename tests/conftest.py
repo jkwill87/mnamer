@@ -5,10 +5,11 @@ import os
 import sys
 import tempfile
 from shutil import rmtree
+
 import pytest
 
-from tests import TEST_FILES
 from mnamer.__main__ import main
+from tests import TEST_FILES
 
 
 @pytest.fixture

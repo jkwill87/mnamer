@@ -14,7 +14,7 @@ from os.path import (
 )
 from re import IGNORECASE, search, sub
 from string import Template
-from typing import Collection, Dict, Any, Optional
+from typing import Any, Collection, Dict, Optional
 
 from unicodedata import normalize
 

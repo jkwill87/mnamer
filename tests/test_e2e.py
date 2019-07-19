@@ -1,8 +1,10 @@
-from mnamer.__version__ import VERSION
-from mnamer import HELP, PREFERENCE_DEFAULTS
-from unittest.mock import patch
-import pytest
 import json
+from unittest.mock import patch
+
+import pytest
+
+from mnamer import HELP, PREFERENCE_DEFAULTS
+from mnamer.__version__ import VERSION
 
 
 @pytest.mark.usefixtures("reset_params")
