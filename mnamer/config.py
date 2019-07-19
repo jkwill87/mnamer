@@ -62,7 +62,9 @@ class Configuration(Mapping):
 
     @property
     def preference_dict(self):
-        return {k: v for k, v in self._dict.items() if k in PREFERENCE_KEYS}
+        return {
+            k: v for k, v in self._dict.items() if k and k in PREFERENCE_KEYS
+        }
 
     @property
     def preference_json(self):
@@ -70,7 +72,9 @@ class Configuration(Mapping):
 
     @property
     def directive_dict(self):
-        return {k: v for k, v in self._dict.items() if k in DIRECTIVE_KEYS}
+        return {
+            k: v for k, v in self._dict.items() if k and k in DIRECTIVE_KEYS
+        }
 
     @property
     def directive_json(self):
