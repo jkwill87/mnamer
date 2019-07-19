@@ -230,18 +230,18 @@ class TestPopulatePaths:
             ("blacklist", ()),
         ),
     )
-    def test_passes_config(self, arg, value):
-        with patch("mnamer.target.Target.__new__") as target_constructor:
-            target_constructor.return_value = None
-            Target.populate_paths(".", **{arg: value})
-            assert target_constructor.call_args_list[0][1][arg] == value
+    @patch("mnamer.target.Target.__new__")
+    def test_passes_config(self, target_constructor, arg, value):
+        target_constructor.return_value = None
+        Target.populate_paths(".", **{arg: value})
+        assert target_constructor.call_args_list[0][1][arg] == value
 
-    def test_applies_extmask(self):
-        with patch("mnamer.target.Target.__new__") as target_constructor:
-            target_constructor.return_value = None
-            Target.populate_paths(".", extmask="tiff")
-            assert target_constructor.call_count == 1
-            assert target_constructor.call_args[0][1].endswith("tiff")
+    @patch("mnamer.target.Target.__new__")
+    def test_applies_extmask(self, target_constructor):
+        target_constructor.return_value = None
+        Target.populate_paths(".", extmask="tiff")
+        assert target_constructor.call_count == 1
+        assert target_constructor.call_args[0][1].endswith("tiff")
 
 
 class TestParse:
@@ -274,11 +274,3 @@ class TestParse:
 
     def test_country_code_detect(self):
         pass
-
-
-class TestQuery:
-    pass
-
-
-class TestRelocate:
-    pass
