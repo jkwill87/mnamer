@@ -31,14 +31,6 @@ class TestConstructor:
                     config = Configuration(config_file=JUNK_TEXT)
         assert config._dict == expect
 
-    def test_config_overlay__rejects_not_found(self):
-        with pytest.raises(MnamerConfigException):
-            Configuration(config_file=JUNK_TEXT)
-
-    def test_config_overlay__rejects_bad_keys(self):
-        with pytest.raises(MnamerConfigException):
-            Configuration(apples=5)
-
     def test_override_overlay(self):
         config = Configuration(verbose=True)
         assert config["verbose"] is True
@@ -54,23 +46,21 @@ class TestConstructor:
         assert config._dict == DEFAULT_CONFIG
 
 
-def test_getitem():
-    config = Configuration(recurse=True)
-    assert config["verbose"] is False
-    assert config["recurse"] is True
+class TestLoadFile:
+    def test_json__invalid(self):
+        with patch("mnamer.config.isfile") as mock_isfile:
+            mock_isfile.return_value = True
+            with patch("mnamer.config.access") as mock_access:
+                mock_access.return_value = True
+                with patch("mnamer.config.json_read") as json_read:
+                    json_read.return_value = {JUNK_TEXT: True}
+                    with pytest.raises(MnamerConfigException):
+                        Configuration(config_file=JUNK_TEXT)
 
+    def test_json__doesnt_exist(self):
+        with pytest.raises(MnamerConfigException):
+            Configuration(config_file=JUNK_TEXT)
 
-def test_iter():
-    config = Configuration()
-    for k in config:
-        assert k in DEFAULT_CONFIG
-    for k in DEFAULT_CONFIG:
-        assert k in config
-
-
-def test_len():
-    assert len(Configuration()) == len(DEFAULT_CONFIG)
-
-
-def test_repr():
-    assert repr(Configuration()) == repr(DEFAULT_CONFIG)
+    def test_json__key_invalid(self):
+        with pytest.raises(MnamerConfigException):
+            Configuration(apples=5)
