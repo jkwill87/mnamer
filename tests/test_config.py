@@ -52,3 +52,25 @@ class TestConstructor:
                     json_read.return_value = {"verbose": True}
                     config = Configuration(config_file=JUNK_TEXT, verbose=False)
         assert config._dict == DEFAULT_CONFIG
+
+
+def test_getitem():
+    config = Configuration(recurse=True)
+    assert config["verbose"] is False
+    assert config["recurse"] is True
+
+
+def test_iter():
+    config = Configuration()
+    for k in config:
+        assert k in DEFAULT_CONFIG
+    for k in DEFAULT_CONFIG:
+        assert k in config
+
+
+def test_len():
+    assert len(Configuration()) == len(DEFAULT_CONFIG)
+
+
+def test_repr():
+    assert repr(Configuration()) == repr(DEFAULT_CONFIG)
