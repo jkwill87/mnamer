@@ -16,14 +16,22 @@ def test_targets__none(e2e_main):
 
 
 @pytest.mark.usefixtures("reset_params")
-def test_directives__config_dump(e2e_main):
-    with patch("mnamer.__main__.crawl_out") as mock_crawl_out:
-        mock_crawl_out.return_value = None
-        out, err, = e2e_main("--config_dump")
+@patch("mnamer.__main__.crawl_out")
+def test_directives__config_dump(mock_crawl_out, e2e_main):
+    mock_crawl_out.return_value = None
+    out, err, = e2e_main("--config_dump")
     json_out = json.loads(out)
     for key, value in PREFERENCE_DEFAULTS.items():
         assert json_out[key] == value, key
     assert not err
+
+
+@pytest.mark.usefixtures("reset_params")
+@patch("mnamer.__main__.crawl_out")
+def test_directives__config_ignore(mock_crawl_out, e2e_main):
+    e2e_main("--config_ignore")
+    mock_crawl_out.return_value = None
+    assert mock_crawl_out.called is False
 
 
 @pytest.mark.usefixtures("reset_params")

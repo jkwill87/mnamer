@@ -18,7 +18,7 @@ def main():
     # Setup arguments and runtime configuration
     args = Arguments()
     if args.directives.get("config_ignore"):
-        config_file = args.directives.get("config_ignore")
+        config_file = None
     else:
         config_file = crawl_out(".mnamer.json")
     config = Configuration(config_file, **args.configuration)
