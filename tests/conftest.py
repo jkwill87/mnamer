@@ -7,6 +7,7 @@ import tempfile
 from shutil import rmtree
 
 import pytest
+from teletype.io import strip_format
 
 from mnamer.__main__ import main
 from tests import TEST_FILES
@@ -55,6 +56,9 @@ def e2e_main(capsys):
         except SystemExit:
             pass
 
-        return capsys.readouterr().out.strip(), capsys.readouterr().err.strip()
+        return (
+            strip_format(capsys.readouterr().out.strip()),
+            strip_format(capsys.readouterr().err.strip()),
+        )
 
     return fn
