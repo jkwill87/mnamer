@@ -1,7 +1,7 @@
 from os import makedirs
 from os.path import isdir, join, split
 from shutil import move
-from typing import Any, Collection, Dict, Optional, Set
+from typing import Any, Collection, Dict, Optional, Set, Union
 
 from guessit import guessit
 from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
@@ -41,6 +41,7 @@ class Target:
         self.cache: bool = False if config.get("nocache") else True
         self.replacements: Dict[str, str] = config.get("replacements")
         self.scene: bool = config.get("scene") is True
+        self.lowercase: bool = config.get("lowercase") is True
         self._has_moved: bool = False
         self._has_renamed: bool = False
 
@@ -55,6 +56,9 @@ class Target:
 
     @property
     def destination(self) -> Path:
+        """ The destination Path for the target based on its metadata and user
+            preferences
+        """
         if self.directory:
             dir_head = format(self.metadata, self.directory)
             dir_head = filename_sanitize(dir_head)
@@ -67,17 +71,21 @@ class Target:
             path = f"{self.source.filename}.{self.source.extension}"
         if self.replacements:
             path = filename_replace(path, self.replacements)
-        if self.scene:
-            path = filename_scenify(path)
         dir_tail, filename = split(path)
         directory = join(dir_head, dir_tail)
+        if self.scene:
+            filename = filename_scenify(filename)
+        if self.lowercase:
+            filename = filename.lower()
         destination = join(directory, filename)
         return Path.parse(destination)
 
     @classmethod
     def populate_paths(
-        cls, paths: Collection[str], **config: Any
+        cls, paths: Union[Collection[str], str], **config: Any
     ) -> Set["Target"]:
+        """ Creates a list of Target objects for media files found in paths
+        """
         recurse = config.get("recurse", False)
         extmask = config.get("extmask", ())
         blacklist = config.get("blacklist", ())
@@ -159,6 +167,8 @@ class Target:
         return meta
 
     def query(self) -> Metadata:
+        """ Queries the target's respective media provider for metadata matches
+        """
         media = self.metadata.get("media")
         if self.api is None:
             raise MnamerException("No provider specified for %s type" % media)
@@ -177,6 +187,8 @@ class Target:
             yield result
 
     def relocate(self):
+        """ Performs the action of renaming and/or moving a file
+        """
         destination = self.destination
         if not isdir(destination.directory):
             makedirs(destination.directory)

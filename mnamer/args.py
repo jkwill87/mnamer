@@ -25,6 +25,7 @@ class Arguments:
 
         # Configuration Parameters
         p.add_argument("-b", "--batch", action="store_true")
+        p.add_argument("-l", "--lowercase", action="store_true")
         p.add_argument("-r", "--recurse", action="store_true")
         p.add_argument("-s", "--scene", action="store_true")
         p.add_argument("-v", "--verbose", action="store_true")
@@ -44,6 +45,7 @@ class Arguments:
         # Directive Parameters
         p.add_argument("--help", action="store_true")
         p.add_argument("--config_dump", action="store_true")
+        p.add_argument("--config_ignore", action="store_true")
         p.add_argument("--id")
         p.add_argument("--media", choices=("movie", "television"))
         p.add_argument("--test", action="store_true")

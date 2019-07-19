@@ -53,6 +53,11 @@ class TestPreferences:
         argv.append(value)
         assert self.prefs.get("recurse") is True
 
+    @pytest.mark.parametrize("value", ("-l", "--lowercase"))
+    def test_lowercase(self, value):
+        argv.append(value)
+        assert self.prefs.get("lowercase") is True
+
     @pytest.mark.parametrize("value", ("-s", "--scene"))
     def test_scene(self, value):
         argv.append(value)

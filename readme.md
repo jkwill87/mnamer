@@ -43,6 +43,7 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 | Preference             | Arguments        | Description                                                     |
 | :--------------------- | :--------------- | :-------------------------------------------------------------- |
 | -b, --batch            |                  | batch mode; disable interactive prompts                         |
+| -l, --lowercase        |                  | rename filenames as lowercase                                   |
 | -r, --recurse          |                  | show this help message and exit                                 |
 | -s, --scene            |                  | scene mode; replace non ascii-alphanumerics with `.`            |
 | -v, --verbose          |                  | increase output verbosity                                       |
@@ -66,12 +67,13 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 
 Whereas preferences configure how mnamer works, directives are one-off parameters that are used to perform secondary tasks like exporting the current option set to a file.
 
-| Option        | Arguments               | Description                             |
-| :------------ | :---------------------- | :-------------------------------------- |
-| --config_dump |                         | prints config JSON to stdout then exits |
-| --id          | id                      | explicitly specify movie or series id   |
-| --media       | `movie` or `television` | override media detection                |
-| --test        |                         | mocks the renaming and moving of files  |
+| Option          | Arguments               | Description                             |
+| :-------------- | :---------------------- | :-------------------------------------- |
+| --config_dump   |                         | prints config JSON to stdout then exits |
+| --config_ignore |                         | skips loading config file for session   |
+| --id            | id                      | explicitly specify movie or series id   |
+| --media         | `movie` or `television` | override media detection                |
+| --test          |                         | mocks the renaming and moving of files  |
 
 
 # Formatting
@@ -91,7 +93,7 @@ You have complete control of how media files are renamed using mnamer's format o
 - television_format: `{series} {season:02}x{episode:02}{title}{extension}`
 - target: `~/Downloads/Rick.and.Morty.S02E01.WEBRip.x264-RARBG.mp4`
 - result: `~/Downloads/Rick and Morty - 02x01 - A Rickle in Time.mp4`
-  </details>
+</details>
 
 <details>
 <summary>Missing Metadata</summary>
@@ -101,7 +103,7 @@ _Note: Target file is missing group metadata field in title and will be omitted 
 - television_format: `{series} - S{season:02}E{episode:02} - {group} - {title}{extension}`
 - target: `~/Downloads/The.Orville.S01E01.1080p.WEB-DL.DD5.1.H264.mkv`
 - result: `~/Downloads/The Orville - S01E01 - Old Wounds.mkv`
-  </details>
+</details>
 
 <details>
 <summary>Nesting Directories</summary>
@@ -112,7 +114,7 @@ _Note: If the subdirectory doesn't exist, mnamer will create it_
 - movie_directory: `/media/movies/{title} ({year})`
 - target: `~/Downloads/The.Goonies.1985.720p.BluRay.x264-SiNNERS.mkv`
 - result: `/media/movies/The Goonies (1985)/The Goonies (1985).mkv`
-  </details>
+</details>
 
 
 # Metadata Fields

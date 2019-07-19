@@ -14,7 +14,7 @@ from os.path import (
 )
 from re import IGNORECASE, search, sub
 from string import Template
-from typing import Any, Collection, Dict, Optional
+from typing import Any, Collection, Dict, Optional, Union
 
 from unicodedata import normalize
 
@@ -35,7 +35,7 @@ __all__ = [
 ]
 
 
-def crawl_in(paths: Collection = ".", recurse: bool = False):
+def crawl_in(paths: Union[Collection[str], str] = ".", recurse: bool = False):
     """ Looks for files amongst or within paths provided
     """
     if not isinstance(paths, (list, tuple, set)):
@@ -123,7 +123,10 @@ def filename_scenify(filename: str):
     return filename.lower().strip(".")
 
 
-def filter_blacklist(paths: Collection, blacklist: Optional[Collection]):
+def filter_blacklist(
+    paths: Union[Collection[str], str],
+    blacklist: Optional[Union[Collection[str], str]],
+):
     """ Filters (set difference) a collection of paths by a collection of regex pattens
     """
     if not blacklist:
@@ -140,7 +143,8 @@ def filter_blacklist(paths: Collection, blacklist: Optional[Collection]):
 
 
 def filter_extensions(
-    paths: Collection, valid_extensions: Optional[Collection]
+    paths: Union[Collection[str], str],
+    valid_extensions: Optional[Union[Collection[str], str]],
 ):
     """ Filters (set intersection) a collection of extension by a collection of extensions
     """

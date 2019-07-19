@@ -26,6 +26,9 @@ class NoticeLevel(Enum):
 
 
 class Tty:
+    """ Captures user input and manager cli output
+    """
+
     def __init__(
         self,
         *,

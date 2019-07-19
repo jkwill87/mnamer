@@ -19,6 +19,7 @@ PREFERENCES:
     arguments will take precedence.
 
     -b, --batch: batch mode; disable interactive prompts
+    -l, --lowercase: rename filenames as lowercase
     -r, --recurse: show this help message and exit
     -s, --scene: scene mode; use dots in place of alphanumeric chars
     -v, --verbose: increase output verbosity
@@ -40,7 +41,8 @@ DIRECTIVES:
     like overriding media detection. They can't be used in '.mnamer.json'.
 
     --help: prints this message then exits
-    --config: prints current config JSON to stdout then exits
+    --config_dump: prints current config JSON to stdout then exits
+    --config_ignore: skips loading config file for session
     --id=<id>: explicitly specifies a movie or series id
     --media={movie,television}: override media detection
     --test: mocks the renaming and moving of files
@@ -52,6 +54,7 @@ Visit https://github.com/jkwill87/mnamer for more information.
 PREFERENCE_DEFAULTS = {
     # General options
     "batch": False,
+    "lowercase": False,
     "recurse": False,
     "scene": False,
     "verbose": False,
@@ -78,5 +81,13 @@ PREFERENCE_DEFAULTS = {
 }
 
 PREFERENCE_KEYS = set(PREFERENCE_DEFAULTS.keys())
-DIRECTIVE_KEYS = {"help", "config_dump", "id", "media", "test", "version"}
+DIRECTIVE_KEYS = {
+    "help",
+    "config_dump",
+    "config_ignore",
+    "id",
+    "media",
+    "test",
+    "version",
+}
 CONFIGURATION_KEYS = PREFERENCE_KEYS | DIRECTIVE_KEYS

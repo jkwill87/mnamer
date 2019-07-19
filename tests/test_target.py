@@ -104,6 +104,12 @@ class TestInit:
         )
         assert target.replacements == {"Goofie", "Goofy"}
 
+    def test_lowercase(self):
+        target = Target("Garden State (2004).mp4")
+        assert target.lowercase is False
+        target = Target("Garden State (2004).mp4", lowercase=True)
+        assert target.lowercase is True
+
     def test_scene(self):
         target = Target("Garden State (2004).mp4")
         assert target.scene is False
@@ -138,6 +144,16 @@ class TestDestination:
             root, "movies", "Jurassic Park (1993)", "Jurassic Park.wmv"
         )
 
+    def test_lowercase(self):
+        target = Target(
+            "./Jurassic Park 1993.wmv",
+            movie_format="{title} ({year}){extension}",
+            lowercase=True,
+        )
+        assert target.destination.full == join(
+            getcwd(), "jurassic park (1993).wmv"
+        )
+
     def test_scene(self):
         target = Target(
             "./jurassic.park.1993.wmv",
@@ -155,7 +171,7 @@ class TestDestination:
             scene=True,
         )
         assert target.destination.full == join(
-            getcwd(), "jurassic.park.1993", "jurassic.park.wmv"
+            getcwd(), "Jurassic Park (1993)", "jurassic.park.wmv"
         )
 
     def test_replacements(self):

@@ -17,7 +17,10 @@ __all__ = ["main"]
 def main():
     # Setup arguments and runtime configuration
     args = Arguments()
-    config_file = crawl_out(".mnamer.json")
+    if args.directives.get("config_ignore"):
+        config_file = args.directives.get("config_ignore")
+    else:
+        config_file = crawl_out(".mnamer.json")
     config = Configuration(config_file, **args.configuration)
     targets = Target.populate_paths(args.targets, **config)
     tty = Tty(**config)
