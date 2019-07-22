@@ -188,7 +188,9 @@ class Target:
         else:
             provider = Target._providers[media]
         hit = 0
-        for result in provider.search(self.id_key, **self.metadata):
+        for result in provider.search(
+            self.id_key, **self.metadata, year=self.metadata.get("year")
+        ):
             if self.hits and self.hits == hit:
                 break
             hit += 1

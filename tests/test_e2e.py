@@ -1,7 +1,10 @@
 import json
-from unittest.mock import patch
 import re
+from os.path import join
+from unittest.mock import patch
+
 import pytest
+
 from mnamer import HELP, PREFERENCE_DEFAULTS
 from mnamer.__version__ import VERSION
 
@@ -29,40 +32,56 @@ def test_targets__television__single_file(e2e_main):
 
 @pytest.mark.usefixtures("reset_params")
 @pytest.mark.usefixtures("setup_test_path")
-def test_targets__television__single_directory(e2e_main):
+def test_targets__television__multi_file(e2e_main):
+    out, err = e2e_main(
+        "--config_ignore",
+        "--batch",
+        "game.of.thrones.01x05-eztv.mp4",
+        join("Downloads", "archer.2009.s10e07.webrip.x264-lucidtv.mkv"),
+    )
+    assert re.search(
+        r"moving to .+Game of Thrones - S01E05 - The Wolf and The Lion.mp4", out
+    )
+    assert out.endswith("2 out of 2 files processed successfully")
+    assert not err
+
+
+@pytest.mark.usefixtures("reset_params")
+@pytest.mark.usefixtures("setup_test_path")
+def test_targets__movie__single_file(e2e_main):
+    out, err = e2e_main(
+        "--config_ignore", "--batch", "avengers infinity war.wmv"
+    )
+    assert re.search(r"moving to .+Avengers Infinity War \(2018\).wmv", out)
+    assert out.endswith("1 out of 1 files processed successfully")
+    assert not err
+
+
+@pytest.mark.usefixtures("reset_params")
+@pytest.mark.usefixtures("setup_test_path")
+def test_targets__movie__multi_file(e2e_main):
+    out, err = e2e_main(
+        "--config_ignore",
+        "--batch",
+        "avengers infinity war.wmv",
+        join("Downloads", "Return of the Jedi 1080p.mkv"),
+    )
+    assert re.search(r"moving to .+Avengers Infinity War \(2018\).wmv", out)
+    assert re.search(r"moving to .+Return of the Jedi \(1983\).mkv", out)
+    assert out.endswith("2 out of 2 files processed successfully")
+    assert not err
+
+
+@pytest.mark.usefixtures("reset_params")
+@pytest.mark.usefixtures("setup_test_path")
+def test_targets__mixed__single_directory(e2e_main):
     out, err = e2e_main("--config_ignore", "--batch", ".")
     assert re.search(
         r"moving to .+Game of Thrones - S01E05 - The Wolf and The Lion.mp4", out
     )
     assert re.search(r"moving to .+Ninja Turtles \(1990\).mkv", out)
-    assert re.search(r"moving to .+Avengers Infinity War.wmv", out)
+    assert re.search(r"moving to .+Avengers Infinity War \(2018\).wmv", out)
     assert out.endswith("3 out of 3 files processed successfully")
-    assert not err
-
-
-@pytest.mark.usefixtures("reset_params")
-@pytest.mark.usefixtures("setup_test_path")
-def test_targets__television__multi(e2e_main):
-    out, err = e2e_main(
-        "--config_ignore", "--batch", "game.of.thrones.01x05-eztv.mp4"
-    )
-    assert re.search(
-        r"moving to .+Game of Thrones - S01E05 - The Wolf and The Lion.mp4", out
-    )
-    assert out.endswith("1 out of 1 files processed successfully")
-    assert not err
-
-
-@pytest.mark.usefixtures("reset_params")
-@pytest.mark.usefixtures("setup_test_path")
-def test_targets__movie(e2e_main):
-    out, err = e2e_main(
-        "--config_ignore", "--batch", "game.of.thrones.01x05-eztv.mp4"
-    )
-    assert re.search(
-        r"moving to .+Game of Thrones - S01E05 - The Wolf and The Lion.mp4", out
-    )
-    assert out.endswith("1 out of 1 files processed successfully")
     assert not err
 
 
