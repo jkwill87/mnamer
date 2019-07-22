@@ -16,6 +16,9 @@ mnamer (**m**edia re**namer**) is an intelligent and highly configurable media o
 
 # Installation
 
+**Protip**: If you want to install mnamer using system python (e.g. the one that comes with your OS, not really recommended) and get a permission error you need to use either `pip --user ...` or `sudo -H pip ...`.
+
+
 ## Stable Version
 
 `$ pip install mnamer`
@@ -25,10 +28,6 @@ mnamer (**m**edia re**namer**) is an intelligent and highly configurable media o
 mnamer v2 is under development. It is currently in a functional state and suitable for use so long as unit tests are passing. This version currently introduces breaking configuration changes from v1 and has the potential to continue doing so. See [the Wiki Page](https://github.com/jkwill87/mnamer/wiki/Version-2-Changes) for a list of these changes.
 
 `$ pip install -U https://github.com/jkwill87/mnamer/archive/develop.zip`
-
-## Notes
-
-If you want to install it using system python (e.g. the one that comes with your OS, not really recommended) and get a permission error you need to use either `sudo -H pip ...` or `pip install --user ...`.
 
 
 # Usage
