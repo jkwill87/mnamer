@@ -24,7 +24,7 @@ def reset_params():
     sys.argv.append("mnamer")
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def setup_test_path():
     """ Creates some mixed media file types for testing in a temporary directory
     """

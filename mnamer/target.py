@@ -87,12 +87,20 @@ class Target:
         """ Creates a list of Target objects for media files found in paths
         """
         recurse = config.get("recurse", False)
-        extmask = config.get("extmask", ())
+        extension_mask = config.get("extension_mask", ())
         blacklist = config.get("blacklist", ())
+        media_mask = config.get("media_mask")
         paths = crawl_in(paths, recurse)
         paths = filter_blacklist(paths, blacklist)
-        paths = filter_extensions(paths, extmask)
-        return {cls(path, **config) for path in paths}
+        paths = filter_extensions(paths, extension_mask)
+        targets = {cls(path, **config) for path in paths}
+        if media_mask:
+            targets = {
+                target
+                for target in targets
+                if target.metadata["media"] == media_mask
+            }
+        return targets
 
     @staticmethod
     def parse(path: str, media: str) -> Metadata:

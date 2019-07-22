@@ -86,12 +86,12 @@ class TestPreferences:
         argv.append("orange")
         assert self.prefs.get("blacklist") == ["apple", "orange"]
 
-    def test_extmask(self):
-        argv.append("--extmask")
+    def test_extension_mask(self):
+        argv.append("--extension_mask")
         argv.append("avi")
         argv.append("mkv")
         argv.append("mp4")
-        assert self.prefs.get("extmask") == ["avi", "mkv", "mp4"]
+        assert self.prefs.get("extension_mask") == ["avi", "mkv", "mp4"]
 
     def test_hits(self):
         argv.append("--hits")
@@ -189,16 +189,29 @@ class TestDirectives:
         assert self.directives.get("id") == "1234"
 
     @pytest.mark.parametrize("value", ("television", "movie"))
-    def test_media(self, value):
-        argv.append("--media")
+    def test_media_force(self, value):
+        argv.append("--media_override")
         argv.append(value)
-        assert self.directives.get("media") == value
+        assert self.directives.get("media_override") == value
 
-    def test_media__invalid(self):
-        argv.append("--media")
+    def test_media_force__invalid(self):
+        argv.append("--media_override")
         argv.append(JUNK_TEXT)
         with pytest.raises(SystemExit) as e:
-            self.directives.get("media")
+            self.directives.get("media_override")
+        assert e.type == SystemExit
+
+    @pytest.mark.parametrize("value", ("television", "movie"))
+    def test_media_mask(self, value):
+        argv.append("--media_override")
+        argv.append(value)
+        assert self.directives.get("media_override") == value
+
+    def test_media_mask__invalid(self):
+        argv.append("--media_mask")
+        argv.append(JUNK_TEXT)
+        with pytest.raises(SystemExit) as e:
+            self.directives.get("media_mask")
         assert e.type == SystemExit
 
     def test_test(self):

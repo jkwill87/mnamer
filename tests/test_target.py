@@ -237,9 +237,9 @@ class TestPopulatePaths:
         assert target_constructor.call_args_list[0][1][arg] == value
 
     @patch("mnamer.target.Target.__new__")
-    def test_applies_extmask(self, target_constructor):
+    def test_applies_extension_mask(self, target_constructor):
         target_constructor.return_value = None
-        Target.populate_paths(".", extmask="tiff")
+        Target.populate_paths(".", extension_mask="tiff")
         assert target_constructor.call_count == 1
         assert target_constructor.call_args[0][1].endswith("tiff")
 

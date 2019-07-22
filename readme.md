@@ -43,15 +43,15 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 | Preference             | Arguments        | Description                                                     |
 | :--------------------- | :--------------- | :-------------------------------------------------------------- |
 | -b, --batch            |                  | batch mode; disable interactive prompts                         |
-| -l, --lowercase        |                  | rename filenames as lowercase                                   |
+| -l, --lowercase        |                  | rename files using lowercase only chars only                    |
 | -r, --recurse          |                  | show this help message and exit                                 |
 | -s, --scene            |                  | scene mode; replace non ascii-alphanumerics with `.`            |
 | -v, --verbose          |                  | increase output verbosity                                       |
 | --nocache              |                  | disable and clear result cache                                  |
 | --noguess              |                  | disable best guess fallback; e.g. when no matches, network down |
 | --nostyle              |                  | disable colours and uses ASCII chars for UI prompts             |
-| --blacklist            | pattern          | ignore files including these words                              |
-| --extmask              | extention(s)     | define the extension mask used by the the file parser           |
+| --blacklist            | pattern          | ignore files including these words (regex)                      |
+| --extension_mask       | extention(s)     | only process files with given extensions                        |
 | --hits                 | number           | limit the maximum number of hits for each query                 |
 | --movie_api            | `imdb` or `tmdb` | set movie api provider                                          |
 | --movie_directory      | path             | set movie relocation directory                                  |
@@ -72,7 +72,8 @@ Whereas preferences configure how mnamer works, directives are one-off parameter
 | --config_dump   |                         | prints config JSON to stdout then exits |
 | --config_ignore |                         | skips loading config file for session   |
 | --id            | id                      | explicitly specify movie or series id   |
-| --media         | `movie` or `television` | override media detection                |
+| --media_force   | `movie` or `television` | override media detection                |
+| --media_mask    | `movie` or `television` | only process given media type           |
 | --test          |                         | mocks the renaming and moving of files  |
 
 

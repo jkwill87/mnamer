@@ -50,14 +50,20 @@ class TestDirCrawlIn:
 
     def test_files__flat(self):
         expected = prepend_temp_path(
-            "avengers.mkv", "Ninja Turtles (1990).mkv", "scan_001.tiff"
+            "avengers infinity war.wmv",
+            "Ninja Turtles (1990).mkv",
+            "scan_001.tiff",
+            "game.of.thrones.01x05-eztv.mp4",
         )
         actual = crawl_in()
         assert expected == actual
 
     def test_dirs__single(self):
         expected = prepend_temp_path(
-            "avengers.mkv", "Ninja Turtles (1990).mkv", "scan_001.tiff"
+            "avengers infinity war.wmv",
+            "Ninja Turtles (1990).mkv",
+            "scan_001.tiff",
+            "game.of.thrones.01x05-eztv.mp4",
         )
         actual = crawl_in()
         assert expected == actual
@@ -70,8 +76,10 @@ class TestDirCrawlIn:
                 for path in {
                     "Desktop/temp.zip",
                     "Documents/Skiing Trip.mp4",
-                    "Downloads/Return of the Jedi.mkv",
+                    "Downloads/Return of the Jedi 1080p.mkv",
                     "Downloads/the.goonies.1985.sample.mp4",
+                    "Downloads/archer.2009.s10e07.webrip.x264-lucidtv.mkv",
+                    "Downloads/the.goonies.1985.mp4",
                 }
             }
         )
@@ -90,8 +98,8 @@ class TestCrawlOut:
     """
 
     def test_walking(self):
-        expected = join(getcwd(), "avengers.mkv")
-        actual = crawl_out("avengers.mkv")
+        expected = join(getcwd(), "avengers infinity war.wmv")
+        actual = crawl_out("avengers infinity war.wmv")
         assert expected == actual
 
     @patch("mnamer.utils.expanduser")
@@ -100,12 +108,12 @@ class TestCrawlOut:
         mock_users_directory = join(mock_home_directory, "..")
         expanduser.return_value = mock_home_directory
         chdir(mock_users_directory)
-        expected = join(mock_home_directory, "avengers.mkv")
-        actual = crawl_out("avengers.mkv")
+        expected = join(mock_home_directory, "avengers infinity war.wmv")
+        actual = crawl_out("avengers infinity war.wmv")
         assert expected == actual
 
     def test_no_match(self):
-        path = join(getcwd(), DUMMY_DIR, "avengers.mkv")
+        path = join(getcwd(), DUMMY_DIR, "avengers infinity war.wmv")
         assert crawl_out(path) is None
 
 
@@ -316,13 +324,12 @@ class TestFilterBlacklist:
         assert expected == actual
 
     def test_regex(self):
-        pattern = r"\d+"
+        pattern = r"\s+"
         expected = TEST_FILES - {
-            join("Documents", "Photos", "DCM0001.jpg"),
-            join("Documents", "Photos", "DCM0002.jpg"),
-            join("Downloads", "the.goonies.1985.sample.mp4"),
+            join("Downloads", "Return of the Jedi 1080p.mkv"),
+            join("Documents", "Skiing Trip.mp4"),
+            "avengers infinity war.wmv",
             "Ninja Turtles (1990).mkv",
-            "scan_001.tiff",
         }
         actual = filter_blacklist(TEST_FILES, pattern)
         assert expected == actual
@@ -352,21 +359,9 @@ class TestFilterExtensions:
 
     def test_filter_multiple_paths_multiple_patterns(self):
         expected = {
-            join("avengers.mkv"),
             join("Desktop", "temp.zip"),
-            join("Downloads", "Return of the Jedi.mkv"),
-            join("Ninja Turtles (1990).mkv"),
-        }
-        actual = filter_extensions(TEST_FILES, ("mkv", "zip"))
-        assert expected == actual
-        actual = filter_extensions(TEST_FILES, (".mkv", ".zip"))
-        assert expected == actual
-
-    def test_filter_single_path_single_pattern(self):
-        expected = {
-            "avengers.mkv",
-            join("Desktop", "temp.zip"),
-            join("Downloads", "Return of the Jedi.mkv"),
+            join("Downloads", "Return of the Jedi 1080p.mkv"),
+            join("Downloads", "archer.2009.s10e07.webrip.x264-lucidtv.mkv"),
             "Ninja Turtles (1990).mkv",
         }
         actual = filter_extensions(TEST_FILES, ("mkv", "zip"))

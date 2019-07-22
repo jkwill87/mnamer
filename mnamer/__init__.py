@@ -27,7 +27,7 @@ PREFERENCES:
     --noguess: disable best guess fallback; e.g. when no matches, network down
     --nostyle: print to stdout without using colour or fancy unicode characters
     --blacklist=<word,...>: ignore files matching these regular expressions
-    --extmask=<ext,...>: define extension mask used by the file parser
+    --extension_mask=<ext,...>: only process given file types
     --hits=<number>: limit the maximum number of hits for each query
     --movie_api={tmdb,omdb}: set movie api provider
     --movie_directory=<path>: set movie relocation directory
@@ -44,7 +44,8 @@ DIRECTIVES:
     --config_dump: prints current config JSON to stdout then exits
     --config_ignore: skips loading config file for session
     --id=<id>: explicitly specifies a movie or series id
-    --media={movie,television}: override media detection
+    --media_override={movie,television}: override media detection
+    --media_mask={movie,television}: only process given media type
     --test: mocks the renaming and moving of files
     --version: displays the running mnamer version number then exits
 
@@ -62,7 +63,7 @@ PREFERENCE_DEFAULTS = {
     "noguess": False,
     "nostyle": False,
     "blacklist": [".*sample.*", "^RARBG.*"],
-    "extmask": ["avi", "m4v", "mp4", "mkv", "ts", "wmv"],
+    "extension_mask": ["avi", "m4v", "mp4", "mkv", "ts", "wmv"],
     "hits": 5,
     # Movie related
     "movie_api": "tmdb",
@@ -86,7 +87,8 @@ DIRECTIVE_KEYS = {
     "config_dump",
     "config_ignore",
     "id",
-    "media",
+    "media_override",
+    "media_mask",
     "test",
     "version",
 }

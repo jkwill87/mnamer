@@ -33,13 +33,16 @@ MOVIE_DIR = "C:\\Movies\\" if IS_WINDOWS else "/movies/"
 TELEVISION_DIR = "C:\\Television\\" if IS_WINDOWS else "/television/"
 
 TEST_FILES = {
-    "avengers.mkv",
     join("Desktop", "temp.zip"),
     join("Documents", "Photos", "DCM0001.jpg"),
     join("Documents", "Photos", "DCM0002.jpg"),
     join("Documents", "Skiing Trip.mp4"),
-    join("Downloads", "Return of the Jedi.mkv"),
+    join("Downloads", "archer.2009.s10e07.webrip.x264-lucidtv.mkv"),
+    join("Downloads", "Return of the Jedi 1080p.mkv"),
+    join("Downloads", "the.goonies.1985.mp4"),
     join("Downloads", "the.goonies.1985.sample.mp4"),
+    "game.of.thrones.01x05-eztv.mp4",
+    "avengers infinity war.wmv",
     "Ninja Turtles (1990).mkv",
     "scan_001.tiff",
 }

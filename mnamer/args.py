@@ -33,7 +33,7 @@ class Arguments:
         p.add_argument("--noguess", action="store_true")
         p.add_argument("--nostyle", action="store_true")
         p.add_argument("--blacklist", nargs="+")
-        p.add_argument("--extmask", nargs="+")
+        p.add_argument("--extension_mask", nargs="+")
         p.add_argument("--hits", type=int)
         p.add_argument("--movie_api", choices=API_MOVIE)
         p.add_argument("--movie_directory")
@@ -47,7 +47,8 @@ class Arguments:
         p.add_argument("--config_dump", action="store_true")
         p.add_argument("--config_ignore", action="store_true")
         p.add_argument("--id")
-        p.add_argument("--media", choices=("movie", "television"))
+        p.add_argument("--media_override", choices=("movie", "television"))
+        p.add_argument("--media_mask", choices=("movie", "television"))
         p.add_argument("--test", action="store_true")
         p.add_argument("-V", "--version", action="store_true")
 
