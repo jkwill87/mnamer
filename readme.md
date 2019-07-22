@@ -22,7 +22,7 @@ mnamer (**m**edia re**namer**) is an intelligent and highly configurable media o
 
 ## Development Version
 
-mnamer v2 is under development. It is currently in a functional state and suitable for use so long as unit tests are passing. This version currently introduces breaking configuration changes from v1 and has the potential to continue doing so. These changes will be documented upon release.
+mnamer v2 is under development. It is currently in a functional state and suitable for use so long as unit tests are passing. This version currently introduces breaking configuration changes from v1 and has the potential to continue doing so. See [the Wiki Page](https://github.com/jkwill87/mnamer/wiki/Version-2-Changes) for a list of these changes.
 
 `$ pip install -U https://github.com/jkwill87/mnamer/archive/develop.zip`
 
@@ -43,15 +43,15 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 | Preference             | Arguments        | Description                                                     |
 | :--------------------- | :--------------- | :-------------------------------------------------------------- |
 | -b, --batch            |                  | batch mode; disable interactive prompts                         |
-| -l, --lowercase        |                  | rename files using lowercase characters only                     |
+| -l, --lowercase        |                  | rename files using lowercase characters only                    |
 | -r, --recurse          |                  | show this help message and exit                                 |
 | -s, --scene            |                  | scene mode; replace non ascii-alphanumerics with `.`            |
 | -v, --verbose          |                  | increase output verbosity                                       |
 | --nocache              |                  | disable and clear result cache                                  |
 | --noguess              |                  | disable best guess fallback; e.g. when no matches, network down |
 | --nostyle              |                  | disable colours and uses ASCII characters for prompts           |
-| --blacklist            | pattern          | ignore files including these words (regex)                       |
-| --extension_mask       | extention(s)     | only process files with given extensions                         |
+| --blacklist            | pattern          | ignore files including these words (regex)                      |
+| --extension_mask       | extention(s)     | only process files with given extensions                        |
 | --hits                 | number           | limit the maximum number of hits for each query                 |
 | --movie_api            | `imdb` or `tmdb` | set movie api provider                                          |
 | --movie_directory      | path             | set movie relocation directory                                  |
@@ -69,12 +69,12 @@ Whereas preferences configure how mnamer works, directives are one-off parameter
 
 | Option          | Arguments               | Description                             |
 | :-------------- | :---------------------- | :-------------------------------------- |
-| --config_dump    |                         | prints config JSON to stdout then exits  |
-| --config_ignore  |                         | skips loading config file for session     |
+| --config_dump   |                         | prints config JSON to stdout then exits |
+| --config_ignore |                         | skips loading config file for session   |
 | --id            | id                      | explicitly specify movie or series id   |
 | --media_force   | `movie` or `television` | override media detection                |
 | --media_mask    | `movie` or `television` | only process given media type           |
-| --test          |                         | mocks the renaming and moving of files   |
+| --test          |                         | mocks the renaming and moving of files  |
 
 
 # Formatting
@@ -85,38 +85,9 @@ You have complete control of how media files are renamed using mnamer's format o
 - uses Python's [format string syntax](https://docs.python.org/3/library/string.html#format-string-syntax) specification for to replace metadata fields
 - essentially just replaces variables in curly braces with metadata fields
 - automatically trims results, concatenates whitespace, and removes empty brackets
+- nexted directories are automatically created
 
-## Examples
-
-<details>
-<summary>00x00 Television Format</summary>
-
-- television_format: `{series} {season:02}x{episode:02}{title}{extension}`
-- target: `~/Downloads/Rick.and.Morty.S02E01.WEBRip.x264-RARBG.mp4`
-- result: `~/Downloads/Rick and Morty - 02x01 - A Rickle in Time.mp4`
-</details>
-
-<details>
-<summary>Missing Metadata</summary>
-
-_Note: Target file is missing group metadata field in title and will be omitted gracefully_
-
-- television_format: `{series} - S{season:02}E{episode:02} - {group} - {title}{extension}`
-- target: `~/Downloads/The.Orville.S01E01.1080p.WEB-DL.DD5.1.H264.mkv`
-- result: `~/Downloads/The Orville - S01E01 - Old Wounds.mkv`
-</details>
-
-<details>
-<summary>Nesting Directories</summary>
-
-_Note: If the subdirectory doesn't exist, mnamer will create it_
-
-- movie_format: `{title} ({year}){extension}`
-- movie_directory: `/media/movies/{title} ({year})`
-- target: `~/Downloads/The.Goonies.1985.720p.BluRay.x264-SiNNERS.mkv`
-- result: `/media/movies/The Goonies (1985)/The Goonies (1985).mkv`
-</details>
-
+See [the Wiki Page](https://github.com/jkwill87/mnamer/wiki/Formatting-Examples) for examples.
 
 # Metadata Fields
 
