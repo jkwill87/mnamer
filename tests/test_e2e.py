@@ -7,6 +7,7 @@ import pytest
 
 from mnamer import HELP, PREFERENCE_DEFAULTS
 from mnamer.__version__ import VERSION
+from mnamer.exceptions import MnamerAbortException, MnamerSkipException
 
 
 @pytest.mark.usefixtures("reset_params")
@@ -129,4 +130,24 @@ def test_directives__help(e2e_main):
 def test_directives__version(e2e_main, flag):
     out, err = e2e_main(flag)
     assert out == f"mnamer version {VERSION}"
+    assert not err
+
+
+@pytest.mark.usefixtures("reset_params")
+@pytest.mark.usefixtures("setup_test_path")
+@patch("mnamer.tty.SelectOne.prompt")
+def test_skip(mock_prompt, e2e_main):
+    mock_prompt.side_effect = MnamerSkipException()
+    out, err = e2e_main(".")
+    assert out.endswith("0 out of 3 files processed successfully")
+    assert not err
+
+
+@pytest.mark.usefixtures("reset_params")
+@pytest.mark.usefixtures("setup_test_path")
+@patch("mnamer.tty.SelectOne.prompt")
+def test_abort(mock_prompt, e2e_main):
+    mock_prompt.side_effect = MnamerAbortException()
+    out, err = e2e_main(".")
+    assert out.endswith("0 out of 3 files processed successfully")
     assert not err
