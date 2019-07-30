@@ -38,8 +38,8 @@ def setup_test_path():
         open(path, "a").close()  # touch file
     os.chdir(tmp_dir)
     yield
-    rmtree(tmp_dir)
     os.chdir(orig_dir)
+    rmtree(tmp_dir)
 
 
 @pytest.mark.usefixtures("setup_test_path")
@@ -49,6 +49,8 @@ def e2e_main(capsys):
     """
 
     def fn(*args):
+        if "--config_ignore" not in args:
+            sys.argv.append("--config_ignore")
         for arg in args:
             sys.argv.append(arg)
         try:

@@ -21,9 +21,7 @@ def test_targets__none(e2e_main):
 @pytest.mark.usefixtures("reset_params")
 @pytest.mark.usefixtures("setup_test_path")
 def test_targets__television__single_file(e2e_main):
-    out, err = e2e_main(
-        "--config_ignore", "--batch", "game.of.thrones.01x05-eztv.mp4"
-    )
+    out, err = e2e_main("--batch", "game.of.thrones.01x05-eztv.mp4")
     assert re.search(
         r"moving to .+Game of Thrones - S01E05 - The Wolf and The Lion.mp4", out
     )
@@ -35,7 +33,6 @@ def test_targets__television__single_file(e2e_main):
 @pytest.mark.usefixtures("setup_test_path")
 def test_targets__television__multi_file(e2e_main):
     out, err = e2e_main(
-        "--config_ignore",
         "--batch",
         "game.of.thrones.01x05-eztv.mp4",
         join("Downloads", "archer.2009.s10e07.webrip.x264-lucidtv.mkv"),
@@ -50,9 +47,7 @@ def test_targets__television__multi_file(e2e_main):
 @pytest.mark.usefixtures("reset_params")
 @pytest.mark.usefixtures("setup_test_path")
 def test_targets__movie__single_file(e2e_main):
-    out, err = e2e_main(
-        "--config_ignore", "--batch", "avengers infinity war.wmv"
-    )
+    out, err = e2e_main("--batch", "avengers infinity war.wmv")
     assert re.search(r"moving to .+Avengers Infinity War \(2018\).wmv", out)
     assert out.endswith("1 out of 1 files processed successfully")
     assert not err
@@ -62,7 +57,6 @@ def test_targets__movie__single_file(e2e_main):
 @pytest.mark.usefixtures("setup_test_path")
 def test_targets__movie__multi_file(e2e_main):
     out, err = e2e_main(
-        "--config_ignore",
         "--batch",
         "avengers infinity war.wmv",
         join("Downloads", "Return of the Jedi 1080p.mkv"),
@@ -76,7 +70,7 @@ def test_targets__movie__multi_file(e2e_main):
 @pytest.mark.usefixtures("reset_params")
 @pytest.mark.usefixtures("setup_test_path")
 def test_targets__mixed__single_directory(e2e_main):
-    out, err = e2e_main("--config_ignore", "--batch", ".")
+    out, err = e2e_main("--batch", ".")
     assert re.search(
         r"moving to .+Game of Thrones - S01E05 - The Wolf and The Lion.mp4", out
     )
@@ -114,7 +108,7 @@ def test_directives__config_dump(mock_crawl_out, e2e_main):
 @pytest.mark.usefixtures("reset_params")
 @patch("mnamer.__main__.crawl_out")
 def test_directives__config_ignore(mock_crawl_out, e2e_main):
-    e2e_main("--config_ignore")
+    e2e_main()
     assert mock_crawl_out.called is False
 
 

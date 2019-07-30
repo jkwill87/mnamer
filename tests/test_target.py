@@ -133,16 +133,15 @@ class TestDestination:
             getcwd(), "Jurassic Park (1993)", "Jurassic Park.wmv"
         )
 
+    @pytest.mark.skipif(IS_WINDOWS, reason="uses POSIX directory structure")
     def test_format__directory(self):
-        root = "C:\\" if IS_WINDOWS else "/"
         target = Target(
             "./jurassic.park.1993.wmv",
             movie_directory="/movies/{title} ({year})",
             movie_format="{title}{extension}",
         )
-        assert target.destination.full == join(
-            root, "movies", "Jurassic Park (1993)", "Jurassic Park.wmv"
-        )
+        expect = "/movies/Jurassic Park (1993)/Jurassic Park.wmv"
+        assert target.destination.full == expect
 
     def test_lowercase(self):
         target = Target(
