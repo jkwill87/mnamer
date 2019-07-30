@@ -22,6 +22,7 @@ setup(
     long_description_content_type="text/markdown",
     name="mnamer",
     packages=["mnamer"],
+    python_requires="~=3.6",
     url="https://github.com/jkwill87/mnamer",
     version=VERSION,
 )
