@@ -41,6 +41,7 @@ DIRECTIVES:
     like overriding media detection. They can't be used in '.mnamer.json'.
 
     --help: prints this message then exits
+    --config=file: loads the given config file
     --config_dump: prints current config JSON to stdout then exits
     --config_ignore: skips loading config file for session
     --id=<id>: explicitly specifies a movie or series id
@@ -85,6 +86,7 @@ PREFERENCE_KEYS = set(PREFERENCE_DEFAULTS.keys())
 DIRECTIVE_KEYS = {
     "help",
     "config_dump",
+    "config",
     "config_ignore",
     "id",
     "media_override",

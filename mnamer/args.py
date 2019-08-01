@@ -45,6 +45,7 @@ class Arguments:
         # Directive Parameters
         p.add_argument("--help", action="store_true")
         p.add_argument("--config_dump", action="store_true")
+        p.add_argument("--config")
         p.add_argument("--config_ignore", action="store_true")
         p.add_argument("--id")
         p.add_argument("--media_override", choices=("movie", "television"))
