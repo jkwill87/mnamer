@@ -80,6 +80,7 @@ PREFERENCE_DEFAULTS = {
     "api_key_omdb": "61652c15",
     # Non-CLI preferences
     "replacements": {"&": "and", "@": "at", ":": ",", ";": ","},
+    "season_overrides": {}
 }
 
 PREFERENCE_KEYS = set(PREFERENCE_DEFAULTS.keys())
@@ -92,6 +93,6 @@ DIRECTIVE_KEYS = {
     "media_override",
     "media_mask",
     "test",
-    "version",
+    "version"
 }
 CONFIGURATION_KEYS = PREFERENCE_KEYS | DIRECTIVE_KEYS

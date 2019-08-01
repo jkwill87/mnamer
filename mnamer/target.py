@@ -30,7 +30,7 @@ class Target:
 
     def __init__(self, path: str, **config: Any):
         self.source: Path = Path.parse(path)
-        self.metadata: Metadata = self.parse(path, config.get("media"))
+        self.metadata: Metadata = self.parse(path, config.get("media"), config.get("season_overrides"))
         media: str = self.metadata.get("media", "unknown")
         self.api: str = config.get(media + "_api", "")
         self.api_key: str = config.get("api_key_" + self.api, "")
@@ -103,7 +103,7 @@ class Target:
         return targets
 
     @staticmethod
-    def parse(path: str, media: str) -> Metadata:
+    def parse(path: str, media: str, season_overrides: object) -> Metadata:
         """ Uses guessit to parse metadata from a filename
         """
         country_codes = {"AU", "RUS", "UK", "US", "USA"}
@@ -133,6 +133,10 @@ class Target:
                     meta["series"] += " (%d)" % data["year"]
             if "season" in data:
                 meta["season"] = str(data["season"])
+                if meta["series"] in season_overrides:
+                    if str(meta["season"]) in season_overrides[meta["series"]]:
+                        meta["season"] = str(season_overrides[meta["series"]][str(meta["season"])])
+
             if "date" in data:
                 meta["date"] = str(data["date"])
             if "episode" in data:
