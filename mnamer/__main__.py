@@ -49,7 +49,7 @@ def main():
             "No media files found. Run mnamer --help for usage information.",
             style=NoticeLevel.ALERT,
         )
-        exit(0)
+        exit(1)
 
     # Print configuration details
     if config_file:
