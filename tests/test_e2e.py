@@ -69,6 +69,22 @@ def test_targets__movie__multi_file(e2e_main):
 
 @pytest.mark.usefixtures("reset_params")
 @pytest.mark.usefixtures("setup_test_path")
+def test_targets__mixed(e2e_main):
+    out, err = e2e_main(
+        "--batch",
+        "game.of.thrones.01x05-eztv.mp4",
+        join("Downloads", "Return of the Jedi 1080p.mkv"),
+    )
+    assert re.search(
+        r"moving to .+Game of Thrones - S01E05 - The Wolf and The Lion.mp4", out
+    )
+    assert re.search(r"moving to .+Return of the Jedi \(1983\).mkv", out)
+    assert out.endswith("2 out of 2 files processed successfully")
+    assert not err
+
+
+@pytest.mark.usefixtures("reset_params")
+@pytest.mark.usefixtures("setup_test_path")
 def test_targets__mixed__single_directory(e2e_main):
     out, err = e2e_main("--batch", ".")
     assert re.search(
@@ -77,13 +93,6 @@ def test_targets__mixed__single_directory(e2e_main):
     assert re.search(r"moving to .+Ninja Turtles \(1990\).mkv", out)
     assert re.search(r"moving to .+Avengers Infinity War \(2018\).wmv", out)
     assert out.endswith("3 out of 3 files processed successfully")
-    assert not err
-
-
-@pytest.mark.usefixtures("reset_params")
-@pytest.mark.usefixtures("setup_test_path")
-def test_targets__mixed(e2e_main):
-    out, err = e2e_main()
     assert not err
 
 
