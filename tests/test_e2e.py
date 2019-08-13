@@ -115,13 +115,6 @@ def test_directives__config_dump(mock_crawl_out, e2e_main):
 
 
 @pytest.mark.usefixtures("reset_params")
-@patch("mnamer.__main__.crawl_out")
-def test_directives__config_ignore(mock_crawl_out, e2e_main):
-    e2e_main()
-    assert mock_crawl_out.called is False
-
-
-@pytest.mark.usefixtures("reset_params")
 def test_directives__help(e2e_main):
     out, err = e2e_main("--help")
     assert out.strip() == HELP.strip()
