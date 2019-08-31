@@ -1,5 +1,4 @@
-""" Shared constants used by mnamer's test
-"""
+"""Shared constants used by mnamer's test."""
 
 from os import name as os_name
 from os.path import expanduser, join

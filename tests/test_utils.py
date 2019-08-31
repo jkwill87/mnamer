@@ -18,15 +18,13 @@ from tests import (
 
 
 def prepend_temp_path(*paths: str):
-    """ Prepends file path with testing directory
-    """
+    """Prepends file path with testing directory."""
     return {join(getcwd(), path) for path in paths}
 
 
 @contextmanager
 def set_env(**env: str):
-    """ A context manager which simulates setting environment variables
-    """
+    """A context manager which simulates setting environment variables."""
     # Backup old environment
     old_env = dict(environ)
     environ.update(env)
@@ -41,7 +39,7 @@ def set_env(**env: str):
 
 @pytest.mark.usefixtures("setup_test_path")
 class TestDirCrawlIn:
-    """ Unit tests for mnamer/utils.py:test_dir_crawl_in()
+    """Unit tests for mnamer/utils.py:test_dir_crawl_in().
     """
 
     def test_files__none(self):
@@ -94,7 +92,7 @@ class TestDirCrawlIn:
 
 @pytest.mark.usefixtures("setup_test_path")
 class TestCrawlOut:
-    """ Unit tests for mnamer/utils.py:test_dir_crawl_out()
+    """Unit tests for mnamer/utils.py:test_dir_crawl_out().
     """
 
     def test_walking(self):
@@ -118,7 +116,7 @@ class TestCrawlOut:
 
 
 class TestDictMerge:
-    """ Unit tests for mnamer/utils.py:dict_merge()
+    """Unit tests for mnamer/utils.py:dict_merge().
     """
 
     def test_two(self):
@@ -146,7 +144,7 @@ class TestDictMerge:
 
 
 class TestFileExtension:
-    """ Unit tests for mnamer/utils.py:file_extension()
+    """Unit tests for mnamer/utils.py:file_extension().
     """
 
     def test_abs_path(self):
@@ -175,7 +173,7 @@ class TestFileExtension:
 
 
 class TestFileStem:
-    """ Unit tests for mnamer/utils.py:test_file_stem()
+    """Unit tests for mnamer/utils.py:test_file_stem().
     """
 
     def test_abs_path(self):
@@ -198,7 +196,7 @@ class TestFileStem:
 
 
 class TestFilenameReplace:
-    """ Unit tests for mnamer/utils.py:test_file_replace()
+    """Unit tests for mnamer/utils.py:test_file_replace().
     """
 
     FILENAME = "The quick brown fox jumps over the lazy dog"
@@ -230,7 +228,7 @@ class TestFilenameReplace:
 
 
 class TestFilenameSanitize:
-    """ Unit tests for mnamer/utils.py:test_filename_sanitize()
+    """Unit tests for mnamer/utils.py:test_filename_sanitize().
     """
 
     def test_condense_whitespace(self):
@@ -247,7 +245,7 @@ class TestFilenameSanitize:
 
 
 class TestFilenameScenify:
-    """ Unit tests for mnamer/utils.py:test_filename_scenify()
+    """Unit tests for mnamer/utils.py:test_filename_scenify().
     """
 
     def test_dot_concat(self):
@@ -276,7 +274,7 @@ class TestFilenameScenify:
 
 
 class TestFilterBlacklist:
-    """ Unit tests for mnamer/utils.py:test_filter_blacklist()
+    """Unit tests for mnamer/utils.py:test_filter_blacklist().
     """
 
     def test_filter_none(self):
@@ -336,7 +334,7 @@ class TestFilterBlacklist:
 
 
 class TestFilterExtensions:
-    """ Unit tests for mnamer/utils.py:test_filter_extensions()
+    """Unit tests for mnamer/utils.py:test_filter_extensions().
     """
 
     def test_filter_none(self):
@@ -380,7 +378,7 @@ class TestFilterExtensions:
 
 
 class TestJsonRead:
-    """ Unit tests for mnamer/utils.py:test_json_read()
+    """Unit tests for mnamer/utils.py:test_json_read().
     """
 
     def test_environ_substitution(self):
@@ -420,7 +418,7 @@ class TestJsonRead:
 
 
 class TestJsonWrite:
-    """ Unit tests for mnamer/utils.py:test_json_write()
+    """Unit tests for mnamer/utils.py:test_json_write().
     """
 
     def test_environ_substitution(self):

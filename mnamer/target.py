@@ -23,7 +23,7 @@ __all__ = ["Target"]
 
 
 class Target:
-    """ Manages metadata state for a media file and facilitates its relocation
+    """Manages metadata state for a media file and facilitates its relocation.
     """
 
     _providers: Dict[str, Provider] = {}
@@ -56,8 +56,9 @@ class Target:
 
     @property
     def destination(self) -> Path:
-        """ The destination Path for the target based on its metadata and user
-            preferences
+        """
+        The destination Path for the target based on its metadata and user
+        preferences.
         """
         if self.directory:
             dir_head = format(self.metadata, self.directory)
@@ -84,8 +85,7 @@ class Target:
     def populate_paths(
         cls, paths: Union[Collection[str], str], **config: Any
     ) -> Set["Target"]:
-        """ Creates a list of Target objects for media files found in paths
-        """
+        """Creates a list of Target objects for media files found in paths."""
         recurse = config.get("recurse", False)
         extension_mask = config.get("extension_mask", ())
         blacklist = config.get("blacklist", ())
@@ -104,8 +104,7 @@ class Target:
 
     @staticmethod
     def parse(path: str, media: str) -> Metadata:
-        """ Uses guessit to parse metadata from a filename
-        """
+        """Uses guessit to parse metadata from a filename."""
         country_codes = {"AU", "RUS", "UK", "US", "USA"}
         media = {
             "television": "episode",
@@ -175,8 +174,7 @@ class Target:
         return meta
 
     def query(self) -> Metadata:
-        """ Queries the target's respective media provider for metadata matches
-        """
+        """Queries the target's respective media provider for metadata."""
         media = self.metadata.get("media")
         if self.api is None:
             raise MnamerException("No provider specified for %s type" % media)
@@ -197,8 +195,7 @@ class Target:
             yield result
 
     def relocate(self):
-        """ Performs the action of renaming and/or moving a file
-        """
+        """Performs the action of renaming and/or moving a file."""
         destination = self.destination
         if not isdir(destination.directory):
             makedirs(destination.directory)

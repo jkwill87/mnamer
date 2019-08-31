@@ -1,5 +1,4 @@
-""" Shared fixtures automatically imported by PyTest
-"""
+"""Shared fixtures automatically imported by PyTest."""
 
 import os
 import sys
@@ -15,8 +14,7 @@ from tests import TEST_FILES
 
 @pytest.fixture
 def reset_params():
-    """ Clears argv before and after running test
-    """
+    """Clears argv before and after running test."""
     del sys.argv[:]
     sys.argv.append("mnamer")
     yield
@@ -26,8 +24,7 @@ def reset_params():
 
 @pytest.fixture()
 def setup_test_path():
-    """ Creates some mixed media file types for testing in a temporary directory
-    """
+    """Creates mixed media file types for testing in a temporary directory."""
     orig_dir = os.getcwd()
     tmp_dir = tempfile.mkdtemp()
     for test_file in TEST_FILES:
@@ -45,8 +42,7 @@ def setup_test_path():
 @pytest.mark.usefixtures("setup_test_path")
 @pytest.fixture
 def e2e_main(capsys):
-    """ Runs main with provided arguments and returns stdout
-    """
+    """Runs main with provided arguments and returns stdout."""
 
     def fn(*args):
         if "--config_ignore" not in args:

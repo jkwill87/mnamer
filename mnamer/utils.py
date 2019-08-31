@@ -1,5 +1,4 @@
-""" A collection of utility functions non-specific to mnamer's domain logic
-"""
+"""A collection of utility functions non-specific to mnamer's domain logic."""
 
 import json
 from os import environ, getcwd, walk
@@ -36,8 +35,7 @@ __all__ = [
 
 
 def crawl_in(paths: Union[Collection[str], str] = ".", recurse: bool = False):
-    """ Looks for files amongst or within paths provided
-    """
+    """Looks for files amongst or within paths provided."""
     if not isinstance(paths, (list, tuple, set)):
         paths = [paths]
     found_files = set()
@@ -57,8 +55,7 @@ def crawl_in(paths: Union[Collection[str], str] = ".", recurse: bool = False):
 
 
 def crawl_out(filename: str):
-    """ Looks for a file in the home directory and each directory up from cwd
-    """
+    """Looks for a file in the home directory and each directory up from cwd."""
     working_dir = getcwd()
     while True:
         parent_dir = realpath(join(working_dir, ".."))
@@ -73,8 +70,7 @@ def crawl_out(filename: str):
 
 
 def dict_merge(d1: Dict[Any, Any], *dn: Dict[Any, Any]):
-    """ Merges two or more dictionaries
-    """
+    """Merges two or more dictionaries."""
     res = d1.copy()
     for d in dn:
         res.update(d)
@@ -82,20 +78,17 @@ def dict_merge(d1: Dict[Any, Any], *dn: Dict[Any, Any]):
 
 
 def file_extension(path: str):
-    """ Gets the extension for a path; period omitted
-    """
+    """Gets the extension for a path; period omitted."""
     return splitext(path)[1].lstrip(".")
 
 
 def file_stem(path: str):
-    """ Gets the filename for a path with any extension removed
-    """
+    """Gets the filename for a path with any extension removed."""
     return splitext(basename(path))[0]
 
 
 def filename_replace(filename: str, replacements: Dict[str, str]):
-    """ Replaces keys in replacements dict with their values
-    """
+    """Replaces keys in replacements dict with their values."""
     base, ext = splitext(filename)
     for word, replacement in replacements.items():
         if word in filename:
@@ -104,8 +97,7 @@ def filename_replace(filename: str, replacements: Dict[str, str]):
 
 
 def filename_sanitize(filename: str):
-    """ Removes illegal filename characters and condenses whitespace
-    """
+    """Removes illegal filename characters and condenses whitespace."""
     base, ext = splitext(filename)
     base = sub(r"\s+", " ", base)
     base = sub(r'[<>:"|?*&%=+@#`^]', "", base)
@@ -113,8 +105,7 @@ def filename_sanitize(filename: str):
 
 
 def filename_scenify(filename: str):
-    """ Replaces non ascii-alphanumerics with .
-    """
+    """Replaces non ascii-alphanumerics with dots."""
     filename = normalize("NFKD", filename)
     filename.encode("ascii", "ignore")
     filename = sub(r"\s+", ".", filename)
@@ -127,8 +118,7 @@ def filter_blacklist(
     paths: Union[Collection[str], str],
     blacklist: Optional[Union[Collection[str], str]],
 ):
-    """ Filters (set difference) a collection of paths by a collection of regex pattens
-    """
+    """Filters (set difference) paths by a collection of regex pattens."""
     if not blacklist:
         return {p for p in paths}
     elif isinstance(blacklist, str):
@@ -146,8 +136,7 @@ def filter_extensions(
     paths: Union[Collection[str], str],
     valid_extensions: Optional[Union[Collection[str], str]],
 ):
-    """ Filters (set intersection) a collection of extension by a collection of extensions
-    """
+    """Filters (set intersection) a collection of extensions."""
     if not valid_extensions:
         return paths
     if isinstance(valid_extensions, str):
@@ -159,8 +148,7 @@ def filter_extensions(
 
 
 def json_dumps(d: Dict[str, Any]):
-    """ A wrapper for json.dumps
-    """
+    """A wrapper for json.dumps."""
     return json.dumps(
         d,
         allow_nan=False,
@@ -173,8 +161,7 @@ def json_dumps(d: Dict[str, Any]):
 
 
 def json_read(path: str, skip_nil: bool = True):
-    """ Reads a JSON file from disk
-    """
+    """Reads a JSON file from disk."""
     try:
         templated_path = Template(path).substitute(environ)
         with open(templated_path, mode="r") as file_pointer:
@@ -187,8 +174,7 @@ def json_read(path: str, skip_nil: bool = True):
 
 
 def json_write(path: str, obj: Any):
-    """ Writes a JSON file to disk
-    """
+    """Writes a JSON file to disk."""
     templated_path = Template(path).substitute(environ)
     try:
         json_data = json.dumps(obj)

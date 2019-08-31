@@ -26,8 +26,7 @@ class NoticeLevel(Enum):
 
 
 class Tty:
-    """ Captures user input and manager cli output
-    """
+    """Captures user input and manager cli output."""
 
     def __init__(
         self,
@@ -57,8 +56,7 @@ class Tty:
         return prompt_chars
 
     def p(self, text: str, debug: bool = False, style: StyleType = None):
-        """ Prints a paragraph to stdout
-        """
+        """Prints a paragraph to stdout."""
         if debug and not self.verbose:
             return
         if isinstance(style, NoticeLevel):
@@ -68,8 +66,7 @@ class Tty:
         print(text)
 
     def ul(self, listing: Any, debug: bool = False):
-        """ Prints an unordered listing to stdout
-        """
+        """Prints an unordered listing to stdout."""
         if debug and not self.verbose:
             return
         if not listing:
@@ -92,8 +89,7 @@ class Tty:
         raise MnamerAbortException
 
     def choose(self, target: Target) -> Metadata:
-        """ Prompts the user for their selection given a target
-        """
+        """Prompts the user for their selection given a target."""
         # Query provider for options
         options = None
         try:

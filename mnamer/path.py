@@ -4,7 +4,7 @@ __all__ = ["Path"]
 
 
 class Path:
-    """ Simple data class used to represent the segments of a file path
+    """Simple data class used to represent the segments of a file path.
     """
 
     def __init__(self, directory: str, filename: str, extension: str):
