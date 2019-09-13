@@ -3,7 +3,8 @@ from os.path import join
 from unittest.mock import patch
 
 import pytest
-from mapi.metadata import MetadataMovie, MetadataTelevision
+from mapi.metadata.metadata_movie import MetadataMovie
+from mapi.metadata.metadata_television import MetadataTelevision
 
 from mnamer.path import Path
 from mnamer.target import Target

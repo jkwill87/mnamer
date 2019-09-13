@@ -4,7 +4,9 @@ from shutil import move
 from typing import Any, Collection, Dict, Optional, Set, Union
 
 from guessit import guessit
-from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
+from mapi.metadata.metadata import Metadata
+from mapi.metadata.metadata_movie import MetadataMovie
+from mapi.metadata.metadata_television import MetadataTelevision
 from mapi.providers import Provider, provider_factory
 
 from mnamer.exceptions import MnamerException
@@ -158,7 +160,7 @@ class Target:
             ]
         ]
         for field in quality_fields:
-            if "quality" not in meta:
+            if not meta["quality"]:
                 meta["quality"] = data[field]
             else:
                 meta["quality"] += " " + data[field]
@@ -166,7 +168,7 @@ class Target:
             release_group = data["release_group"]
 
             # Sometimes country codes can get incorrectly detected as a group
-            if "series" in meta and release_group.upper() in country_codes:
+            if meta["series"] and release_group.upper() in country_codes:
                 meta["series"] += " (%s)" % release_group.upper()
             else:
                 meta["group"] = data["release_group"]

@@ -98,7 +98,9 @@ def test_targets__mixed(e2e_main):
         join("Downloads", "Return of the Jedi 1080p.mkv"),
     )
     result = Result(out)
-    assert result.has_moved(r"Game of Thrones - S01E05 - The Wolf and The Lion.mp4")
+    assert result.has_moved(
+        r"Game of Thrones - S01E05 - The Wolf and The Lion.mp4"
+    )
     assert result.has_moved(r"Return of the Jedi \(1983\).mkv")
     assert result.passed == 2
     assert result.total == 2
