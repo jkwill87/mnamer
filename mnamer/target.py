@@ -119,7 +119,7 @@ class Target:
         # Parse movie metadata
         if media_type == "movie":
             meta = MetadataMovie()
-            if "title" in data:
+            if data["title"]:
                 meta["title"] = data["title"]
             if "year" in data:
                 meta["date"] = "%s-01-01" % data["year"]
@@ -128,15 +128,15 @@ class Target:
         # Parse television metadata
         elif media_type == "episode":
             meta = MetadataTelevision()
-            if "title" in data:
+            if data["title"]:
                 meta["series"] = data["title"]
             if "year" in data:
                 meta["series"] += " (%d)" % data["year"]
-            if "season" in data:
+            if data["season"]:
                 meta["season"] = str(data["season"])
             if "date" in data:
                 meta["date"] = str(data["date"])
-            if "episode" in data:
+            if data["episode"]:
                 if isinstance(data["episode"], (list, tuple)):
                     meta["episode"] = str(sorted(data["episode"])[0])
                 else:
