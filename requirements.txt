@@ -1,5 +1,4 @@
 appdirs==1.*
-guessit==3.0.4
-rebulk==1.*
+guessit==3.1.0
 mapi==3.8.*
 teletype==1.*
