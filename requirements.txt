@@ -1,4 +1,4 @@
 appdirs==1.*
 guessit==3.1.0
-mapi==3.8.*
-teletype==1.*
+teletype==1.0.4
+git+git://github.com/jkwill87/mapi@develop

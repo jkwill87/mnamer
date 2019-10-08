@@ -119,7 +119,7 @@ class Target:
         # Parse movie metadata
         if media_type == "movie":
             meta = MetadataMovie()
-            if data["title"]:
+            if "title" in data:
                 meta["title"] = data["title"]
             if "year" in data:
                 meta["date"] = "%s-01-01" % data["year"]
@@ -128,19 +128,21 @@ class Target:
         # Parse television metadata
         elif media_type == "episode":
             meta = MetadataTelevision()
-            if data["title"]:
+            if "title" in data:
                 meta["series"] = data["title"]
-            if "year" in data:
-                meta["series"] += " (%d)" % data["year"]
-            if data["season"]:
+            if "alternative_title" in data:
+                meta["title"] = data["alternative_title"]
+            if "season" in data:
                 meta["season"] = str(data["season"])
-            if "date" in data:
-                meta["date"] = str(data["date"])
-            if data["episode"]:
+            if "episode" in data:
                 if isinstance(data["episode"], (list, tuple)):
                     meta["episode"] = str(sorted(data["episode"])[0])
                 else:
                     meta["episode"] = str(data["episode"])
+            if "date" in data:
+                meta["date"] = str(data["date"])
+            elif "year" in data:
+                meta["year"] = data["year"]
 
         # Exit early if media type cannot be determined
         else:
@@ -160,7 +162,7 @@ class Target:
             ]
         ]
         for field in quality_fields:
-            if not meta["quality"]:
+            if "quality" not in meta:
                 meta["quality"] = data[field]
             else:
                 meta["quality"] += " " + data[field]
@@ -168,7 +170,7 @@ class Target:
             release_group = data["release_group"]
 
             # Sometimes country codes can get incorrectly detected as a group
-            if meta["series"] and release_group.upper() in country_codes:
+            if "series" in meta and release_group.upper() in country_codes:
                 meta["series"] += " (%s)" % release_group.upper()
             else:
                 meta["group"] = data["release_group"]
@@ -188,9 +190,7 @@ class Target:
         else:
             provider = Target._providers[media]
         hit = 0
-        for result in provider.search(
-            self.id_key, **self.metadata, year=self.metadata.get("year")
-        ):
+        for result in provider.search(self.id_key, **self.metadata):
             if self.hits and self.hits == hit:
                 break
             hit += 1
