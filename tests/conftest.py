@@ -11,6 +11,8 @@ from teletype.io import strip_format
 from mnamer.__main__ import main
 from tests import TEST_FILES
 
+sys.argv = ["mnamer"]
+
 
 @pytest.fixture
 def reset_params():
