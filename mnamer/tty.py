@@ -4,7 +4,7 @@ from itertools import chain, islice
 from typing import Any, Collection, Dict, Optional, Union
 
 from mapi.exceptions import MapiNetworkException, MapiNotFoundException
-from mapi.metadata.metadata import Metadata
+from mapi.metadata import Metadata
 from teletype.codes import CHARS_ASCII, CHARS_DEFAULT
 from teletype.components import ChoiceHelper, SelectOne
 from teletype.io import style_format
