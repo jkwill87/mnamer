@@ -1,3 +1,31 @@
 [tool.black]
 line-length = 80
 exclude = 'venv/'
+
+[tool.poetry]
+name = "mnamer"
+version = "2.0.0"
+description = "mnamer is an intelligent and highly configurable CLI media organization utility"
+authors = ["Jessy Williams <jessy@jessywilliams.com>"]
+license = "MIT"
+readme = "readme.md"
+repository = "https://github.com/jkwill87/mnamer"
+keywords = ["metadata", "cli", "organizer", "batch", "media"]
+include = ["license.txt", "readme.md", "requirements.txt"]
+packages = [{ include = "mnamer" }]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+appdirs = "1.*"
+guessit = "3.1.0"
+teletype = "1.0.4"
+mapi = "*"
+
+[tool.poetry.dev-dependencies]
+codecov = "*"
+pytest = "^4.6"
+pytest-cov = "*"
+
+[build-system]
+requires = ["poetry>=1"]
+build-backend = "poetry.masonry.api"
