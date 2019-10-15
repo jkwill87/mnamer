@@ -1,5 +1,7 @@
+import logging
 from collections.abc import Mapping
 from enum import Enum
+from functools import total_ordering
 from itertools import chain, islice
 from typing import Any, Collection, Dict, Optional, Union
 
@@ -14,7 +16,7 @@ from mnamer.target import Target
 
 StyleType = Optional[Union["NoticeLevel", str, Collection[str]]]
 
-__all__ = ["NoticeLevel", "Tty"]
+__all__ = ["LogLevel", "NoticeLevel", "Tty"]
 
 
 class NoticeLevel(Enum):
@@ -23,6 +25,23 @@ class NoticeLevel(Enum):
     SUCCESS = "green"
     ALERT = "yellow"
     ERROR = "red"
+
+
+@total_ordering
+class LogLevel(Enum):
+    STANDARD = 0
+    VERBOSE = 1
+    DEBUG = 2
+
+    def __eq__(self, other: Union["LogLevel", int]):
+        return (
+            self.value == other.value if isinstance(other, LogLevel) else other
+        )
+
+    def __lt__(self, other: Union["LogLevel", int]):
+        return (
+            self.value < other.value if isinstance(other, LogLevel) else other
+        )
 
 
 class Tty:
@@ -35,14 +54,22 @@ class Tty:
         hits: int,
         noguess: bool,
         nostyle: bool,
-        verbose: bool,
+        verbose: LogLevel,
         **_,
     ):
         self.batch: bool = batch
         self.hits: int = hits
         self.noguess: bool = noguess
         self.nostyle: bool = nostyle
-        self.verbose: bool = verbose
+        self.log_level: LogLevel = LogLevel(verbose)
+
+        mapi_log = logging.getLogger("mapi")
+        if self.log_level == LogLevel.DEBUG:
+            mapi_log.setLevel(logging.DEBUG)
+        elif self.log_level == LogLevel.VERBOSE:
+            mapi_log.setLevel(logging.WARNING)
+        else:
+            mapi_log.setLevel(logging.FATAL)
 
     @property
     def prompt_chars(self) -> Dict[str, str]:
@@ -55,9 +82,14 @@ class Tty:
             }
         return prompt_chars
 
-    def p(self, text: str, debug: bool = False, style: StyleType = None):
+    def p(
+        self,
+        text: str,
+        verbosity: LogLevel = LogLevel.STANDARD,
+        style: StyleType = None,
+    ):
         """Prints a paragraph to stdout."""
-        if debug and not self.verbose:
+        if self.log_level < verbosity:
             return
         if isinstance(style, NoticeLevel):
             style = style.value
@@ -65,9 +97,9 @@ class Tty:
             text = style_format(text, style)
         print(text)
 
-    def ul(self, listing: Any, debug: bool = False):
+    def ul(self, listing: Any, verbosity: LogLevel = LogLevel.STANDARD):
         """Prints an unordered listing to stdout."""
-        if debug and not self.verbose:
+        if self.log_level < verbosity:
             return
         if not listing:
             listing = "None"

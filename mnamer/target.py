@@ -32,7 +32,7 @@ class Target:
 
     def __init__(self, path: str, **config: Any):
         self.source: Path = Path.parse(path)
-        self.metadata: Metadata = self.parse(path, config.get("media"))
+        self.metadata: Metadata = self.parse(path, config.get("media_type"))
         media: str = self.metadata.get("media", "unknown")
         self.api: str = config.get(media + "_api", "")
         self.api_key: str = config.get("api_key_" + self.api, "")

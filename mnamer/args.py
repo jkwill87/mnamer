@@ -6,6 +6,7 @@ from mapi.providers import API_MOVIE, API_TELEVISION
 
 from mnamer import DIRECTIVE_KEYS, PREFERENCE_KEYS, USAGE
 from mnamer.utils import dict_merge
+from mnamer.tty import LogLevel
 
 __all__ = ["Arguments"]
 
@@ -57,7 +58,7 @@ class Arguments:
         targets = args.get("targets", None)
         self.targets = set(targets) if targets else set()
         self.directives = {}
-        self.preferences = {}
+        self.preferences = {"verbose": LogLevel(args["verbose"])}
         for key, value in args.items():
             if value is None:
                 continue

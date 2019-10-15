@@ -8,7 +8,7 @@ from mnamer.args import Arguments
 from mnamer.config import Configuration
 from mnamer.exceptions import MnamerAbortException, MnamerSkipException
 from mnamer.target import Target
-from mnamer.tty import NoticeLevel, Tty
+from mnamer.tty import LogLevel, NoticeLevel, Tty
 from mnamer.utils import crawl_out
 
 __all__ = ["main"]
@@ -51,15 +51,15 @@ def main():
     # Print configuration details
     if config_file:
         tty.p(f"loaded config from {config_file}", style=NoticeLevel.ALERT)
-    tty.p("\nCLI Arguments", True, NoticeLevel.NOTICE)
-    tty.ul(args.configuration, True)
-    tty.p("\nPreferences", True, NoticeLevel.NOTICE)
-    tty.ul(config.preference_dict, True)
-    tty.p("\nDirectives", True, NoticeLevel.NOTICE)
-    tty.ul(config.directive_dict, True)
-    tty.p("\nTargets", True, NoticeLevel.NOTICE)
-    tty.ul(targets, True)
-    tty.p(f"\n{'-' * 80}\n", True, NoticeLevel.ALERT)
+    tty.p("\nCLI Arguments", LogLevel.VERBOSE, NoticeLevel.NOTICE)
+    tty.ul(args.configuration, LogLevel.VERBOSE)
+    tty.p("\nPreferences", LogLevel.VERBOSE, NoticeLevel.NOTICE)
+    tty.ul(config.preference_dict, LogLevel.VERBOSE)
+    tty.p("\nDirectives", LogLevel.VERBOSE, NoticeLevel.NOTICE)
+    tty.ul(config.directive_dict, LogLevel.VERBOSE)
+    tty.p("\nTargets", LogLevel.VERBOSE, NoticeLevel.NOTICE)
+    tty.ul(targets, LogLevel.VERBOSE)
+    tty.p(f"\n{'-' * 80}\n", LogLevel.VERBOSE, NoticeLevel.ALERT)
 
     # Main program loop
     tty.p("Starting mnamer", style=NoticeLevel.NOTICE)
@@ -72,7 +72,7 @@ def main():
         tty.p(f'\nProcessing {media} "{filename}"', style=NoticeLevel.NOTICE)
 
         # List details
-        tty.ul(target.metadata, True)
+        tty.ul(target.metadata, LogLevel.DEBUG)
 
         # Update metadata
         try:
