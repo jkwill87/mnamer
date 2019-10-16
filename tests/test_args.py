@@ -4,6 +4,7 @@ from sys import argv
 import pytest
 
 from mnamer.args import Arguments
+from mnamer.tty import LogLevel
 from tests import JUNK_TEXT
 
 
@@ -37,84 +38,91 @@ class TestTargets:
 @pytest.mark.usefixtures("reset_params")
 class TestPreferences:
     @property
-    def prefs(self):
+    def preferences(self):
         return Arguments().preferences
 
     def test_none(self):
-        assert self.prefs == dict()
+        assert self.preferences == {"verbose": LogLevel.STANDARD.value}
 
     @pytest.mark.parametrize("value", ("-b", "--batch"))
     def test_batch(self, value):
         argv.append(value)
-        assert self.prefs.get("batch") is True
+        assert self.preferences.get("batch") is True
 
     @pytest.mark.parametrize("value", ("-r", "--recurse"))
     def test_recurse(self, value):
         argv.append(value)
-        assert self.prefs.get("recurse") is True
+        assert self.preferences.get("recurse") is True
 
     @pytest.mark.parametrize("value", ("-l", "--lowercase"))
     def test_lowercase(self, value):
         argv.append(value)
-        assert self.prefs.get("lowercase") is True
+        assert self.preferences.get("lowercase") is True
 
     @pytest.mark.parametrize("value", ("-s", "--scene"))
     def test_scene(self, value):
         argv.append(value)
-        assert self.prefs.get("scene") is True
+        assert self.preferences.get("scene") is True
+
+    def test_log_level__standard(self):
+        assert self.preferences.get("verbose") == LogLevel.STANDARD.value
 
     @pytest.mark.parametrize("value", ("-v", "--verbose"))
-    def test_verbose(self, value):
+    def test_log_level__verbose(self, value):
         argv.append(value)
-        assert self.prefs.get("verbose") is True
+        assert self.preferences.get("verbose") == LogLevel.VERBOSE.value
+
+    def test_log_level__debug(self):
+        argv.append("-vv")
+        assert self.preferences.get("verbose") == LogLevel.DEBUG.value
 
     def test_nocache(self):
         argv.append("--nocache")
-        assert self.prefs.get("nocache") is True
+        assert self.preferences.get("nocache") is True
 
     def test_noguess(self):
         argv.append("--noguess")
-        assert self.prefs.get("noguess") is True
+        assert self.preferences.get("noguess") is True
 
     def test_nostyle(self):
         argv.append("--nostyle")
-        assert self.prefs.get("nostyle") is True
+        assert self.preferences.get("nostyle") is True
 
     def test_blacklist(self):
         argv.append("--blacklist")
         argv.append("apple")
         argv.append("orange")
-        assert self.prefs.get("blacklist") == ["apple", "orange"]
+        assert self.preferences.get("blacklist") == ["apple", "orange"]
 
     def test_extension_mask(self):
         argv.append("--extension_mask")
         argv.append("avi")
         argv.append("mkv")
         argv.append("mp4")
-        assert self.prefs.get("extension_mask") == ["avi", "mkv", "mp4"]
+        assert self.preferences.get("extension_mask") == ["avi", "mkv", "mp4"]
 
     def test_hits(self):
         argv.append("--hits")
         argv.append("25")
-        assert self.prefs.get("hits") == 25
+        assert self.preferences.get("hits") == 25
 
     def test_hits__invalid(self):
         argv.append("--hits")
         argv.append("25x")
         with pytest.raises(SystemExit) as e:
-            self.prefs.get("hits")
+            self.preferences.get("hits")
         assert e.type == SystemExit
 
     @pytest.mark.parametrize("value", ("tmdb", "omdb"))
     def test_movie_api(self, value):
         argv.append(f"--movie_api={value}")
-        assert self.prefs.get("movie_api") == value
+        assert self.preferences.get("movie_api") == value
 
     def test_movie_api__invalid(self):
         argv.append("--movie_api")
         argv.append(JUNK_TEXT)
         with pytest.raises(SystemExit) as e:
-            self.prefs.get("movie_api")
+            self.preferences.get("movie_api")
         assert e.type == SystemExit
 
     @pytest.mark.usefixtures("tmp_path")
@@ -122,29 +130,29 @@ class TestPreferences:
         path = str(tmp_path)
         argv.append("--movie_directory")
         argv.append(path)
-        assert self.prefs.get("movie_directory") == path
+        assert self.preferences.get("movie_directory") == path
 
     def test_movie_directory__invalid(self):
         argv.append("--movie_directory")
         argv.append(JUNK_TEXT)
         with pytest.raises(SystemExit) as e:
-            self.prefs.get("movie_directory")
+            self.preferences.get("movie_directory")
         assert e.type == SystemExit
 
     def test_movie_format(self):
         argv.append("--movie_format={title}{year}")
-        assert self.prefs.get("movie_format") == "{title}{year}"
+        assert self.preferences.get("movie_format") == "{title}{year}"
 
     def test_television_api(self):
         argv.append("--television_api")
         argv.append("tvdb")
-        assert self.prefs.get("television_api") == "tvdb"
+        assert self.preferences.get("television_api") == "tvdb"
 
     def test_television_api__invalid(self):
         argv.append("--television_api")
         argv.append(JUNK_TEXT)
         with pytest.raises(SystemExit) as e:
-            self.prefs.get("television_api")
+            self.preferences.get("television_api")
         assert e.type == SystemExit
 
     @pytest.mark.usefixtures("tmp_path")
@@ -152,18 +160,20 @@ class TestPreferences:
         path = str(tmp_path)
         argv.append("--television_directory")
         argv.append(path)
-        assert self.prefs.get("television_directory") == path
+        assert self.preferences.get("television_directory") == path
 
     def test_television_directory__invalid(self):
         argv.append("--television_directory")
         argv.append(JUNK_TEXT)
         with pytest.raises(SystemExit) as e:
-            self.prefs.get("television_directory")
+            self.preferences.get("television_directory")
         assert e.type == SystemExit
 
     def test_television_format(self):
         argv.append("--movie_format={title}{season}{episode}")
-        assert self.prefs.get("movie_format") == "{title}{season}{episode}"
+        assert (
+            self.preferences.get("movie_format") == "{title}{season}{episode}"
+        )
 
 
 @pytest.mark.usefixtures("reset_params")
@@ -190,22 +200,22 @@ class TestDirectives:
 
     @pytest.mark.parametrize("value", ("television", "movie"))
     def test_media_force(self, value):
-        argv.append("--media_override")
+        argv.append("--media_type")
         argv.append(value)
-        assert self.directives.get("media_override") == value
+        assert self.directives.get("media_type") == value
 
     def test_media_force__invalid(self):
-        argv.append("--media_override")
+        argv.append("--media_type")
         argv.append(JUNK_TEXT)
         with pytest.raises(SystemExit) as e:
-            self.directives.get("media_override")
+            self.directives.get("media_type")
         assert e.type == SystemExit
 
     @pytest.mark.parametrize("value", ("television", "movie"))
     def test_media_mask(self, value):
-        argv.append("--media_override")
+        argv.append("--media_type")
         argv.append(value)
-        assert self.directives.get("media_override") == value
+        assert self.directives.get("media_type") == value
 
     def test_media_mask__invalid(self):
         argv.append("--media_mask")
@@ -231,27 +241,42 @@ class TestConfiguration:
         return Arguments().configuration
 
     def test_none(self):
-        assert self.configuration == dict()
+        assert self.configuration == {"verbose": LogLevel.STANDARD.value}
 
     def test_preferences_single(self):
         argv.append("--verbose")
-        assert self.configuration == {"verbose": True}
+        assert self.configuration == {"verbose": LogLevel.VERBOSE.value}
 
     def test_preferences_multi(self):
         argv.append("--recurse")
-        argv.append("--verbose")
-        assert self.configuration == {"recurse": True, "verbose": True}
+        argv.append("--help")
+        assert self.configuration == {
+            "recurse": True,
+            "help": True,
+            "verbose": LogLevel.STANDARD.value,
+        }
 
     def test_directives_single(self):
         argv.append("--config_dump")
-        assert self.configuration == {"config_dump": True}
+        assert self.configuration == {
+            "config_dump": True,
+            "verbose": LogLevel.STANDARD.value,
+        }
 
     def test_directives_multi(self):
         argv.append("--config_dump")
         argv.append("--help")
-        assert self.configuration == {"config_dump": True, "help": True}
+        assert self.configuration == {
+            "config_dump": True,
+            "help": True,
+            "verbose": LogLevel.STANDARD.value,
+        }
 
     def test_mixed(self):
-        argv.append("--verbose")
+        argv.append("--help")
         argv.append("--config_dump")
-        assert self.configuration == {"verbose": True, "config_dump": True}
+        assert self.configuration == {
+            "help": True,
+            "config_dump": True,
+            "verbose": LogLevel.STANDARD.value,
+        }
