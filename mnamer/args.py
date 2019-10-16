@@ -29,7 +29,7 @@ class Arguments:
         p.add_argument("-l", "--lowercase", action="store_true")
         p.add_argument("-r", "--recurse", action="store_true")
         p.add_argument("-s", "--scene", action="store_true")
-        p.add_argument("-v", "--verbose", action="store_true")
+        p.add_argument("-v", "--verbose", action="count", default=0)
         p.add_argument("--nocache", action="store_true")
         p.add_argument("--noguess", action="store_true")
         p.add_argument("--nostyle", action="store_true")
@@ -48,7 +48,7 @@ class Arguments:
         p.add_argument("--config_dump", action="store_true")
         p.add_argument("--config_ignore", action="store_true")
         p.add_argument("--id")
-        p.add_argument("--media_override", choices=("movie", "television"))
+        p.add_argument("--media_type", choices=("movie", "television"))
         p.add_argument("--media_mask", choices=("movie", "television"))
         p.add_argument("--test", action="store_true")
         p.add_argument("-V", "--version", action="store_true")
@@ -58,7 +58,7 @@ class Arguments:
         targets = args.get("targets", None)
         self.targets = set(targets) if targets else set()
         self.directives = {}
-        self.preferences = {"verbose": LogLevel(args["verbose"])}
+        self.preferences = {}
         for key, value in args.items():
             if value is None:
                 continue

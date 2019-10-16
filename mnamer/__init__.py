@@ -44,7 +44,7 @@ DIRECTIVES:
     --config_dump: prints current config JSON to stdout then exits
     --config_ignore: skips loading config file for session
     --id=<id>: explicitly specifies a movie or series id
-    --media_override={movie,television}: override media detection
+    --media_type={movie,television}: override media detection
     --media_mask={movie,television}: only process given media type
     --test: mocks the renaming and moving of files
     --version: displays the running mnamer version number then exits
@@ -87,7 +87,7 @@ DIRECTIVE_KEYS = {
     "config_dump",
     "config_ignore",
     "id",
-    "media_override",
+    "media_type",
     "media_mask",
     "test",
     "version",

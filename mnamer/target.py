@@ -4,10 +4,9 @@ from shutil import move
 from typing import Any, Collection, Dict, Optional, Set, Union
 
 from guessit import guessit
-from mapi.metadata import Metadata
-from mapi.metadata import MovieMetadata
-from mapi.metadata import TelevisionMetadata
+from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
 from mapi.providers import Provider, provider_factory
+from mapi.utils import year_parse
 
 from mnamer.exceptions import MnamerException
 from mnamer.path import Path
@@ -118,16 +117,16 @@ class Target:
 
         # Parse movie metadata
         if media_type == "movie":
-            meta = MovieMetadata()
+            meta = MetadataMovie()
             if "title" in data:
                 meta["title"] = data["title"]
             if "year" in data:
-                meta["date"] = "%s-01-01" % data["year"]
+                meta["year"] = year_parse(data["year"])
             meta["media"] = "movie"
 
         # Parse television metadata
         elif media_type == "episode":
-            meta = TelevisionMetadata()
+            meta = MetadataTelevision()
             if "title" in data:
                 meta["series"] = data["title"]
             if "alternative_title" in data:
