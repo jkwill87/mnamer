@@ -50,14 +50,14 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 | --noguess              |                  | disable best guess fallback; e.g. when no matches, network down |
 | --nostyle              |                  | disable colours and uses ASCII characters for prompts           |
 | --blacklist            | pattern          | ignore files including these words (regex)                      |
-| --extension_mask       | extention(s)     | only process files with given extensions                        |
+| --extension-mask       | extension(s)     | only process files with given extensions                        |
 | --hits                 | number           | limit the maximum number of hits for each query                 |
-| --movie_api            | `imdb` or `tmdb` | set movie api provider                                          |
-| --movie_directory      | path             | set movie relocation directory                                  |
-| --movie_format         | format           | set movie renaming format                                       |
-| --television_api       | `tvdb`           | set television api provider                                     |
-| --television_directory | path             | set television relocation directory                             |
-| --television_format    | format           | set television renaming format                                  |
+| --movie-api            | `imdb` or `tmdb` | set movie api provider                                          |
+| --movie-directory      | path             | set movie relocation directory                                  |
+| --movie-format         | format           | set movie renaming format                                       |
+| --television-api       | `tvdb`           | set television api provider                                     |
+| --television-directory | path             | set television relocation directory                             |
+| --television-format    | format           | set television renaming format                                  |
 
 **Protip:** Quickly save your current preference set on MacOS or *nix by running `mnamer --config > ~/.mnamer.conf`.
 
@@ -68,11 +68,11 @@ Whereas preferences configure how mnamer works, directives are one-off parameter
 
 | Option          | Arguments               | Description                             |
 | :-------------- | :---------------------- | :-------------------------------------- |
-| --config_dump   |                         | prints config JSON to stdout then exits |
-| --config_ignore |                         | skips loading config file for session   |
+| --config-dump   |                         | prints config JSON to stdout then exits |
+| --config-ignore |                         | skips loading config file for session   |
 | --id            | id                      | explicitly specify movie or series id   |
-| --media_force   | `movie` or `television` | override media detection                |
-| --media_mask    | `movie` or `television` | only process given media type           |
+| --media-force   | `movie` or `television` | override media detection                |
+| --media-mask    | `movie` or `television` | only process given media type           |
 | --test          |                         | mocks the renaming and moving of files  |
 
 

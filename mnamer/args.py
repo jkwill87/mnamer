@@ -6,14 +6,13 @@ from mapi.providers import API_MOVIE, API_TELEVISION
 
 from mnamer import DIRECTIVE_KEYS, PREFERENCE_KEYS, USAGE
 from mnamer.utils import dict_merge
-from mnamer.tty import LogLevel
 
 __all__ = ["Arguments"]
 
 
 class Arguments:
     def __init__(self):
-        p = ArgumentParser(
+        parser = ArgumentParser(
             prog="mnamer",
             add_help=False,
             epilog="visit https://github.com/jkwill87/mnamer for more info",
@@ -22,39 +21,42 @@ class Arguments:
         )
 
         # Target Parameters
-        p.add_argument("targets", nargs="*", default=[])
+        main = parser.add_mutually_exclusive_group()
+        main.add_argument("targets", nargs="*", default=[])
 
         # Configuration Parameters
-        p.add_argument("-b", "--batch", action="store_true")
-        p.add_argument("-l", "--lowercase", action="store_true")
-        p.add_argument("-r", "--recurse", action="store_true")
-        p.add_argument("-s", "--scene", action="store_true")
-        p.add_argument("-v", "--verbose", action="count", default=0)
-        p.add_argument("--nocache", action="store_true")
-        p.add_argument("--noguess", action="store_true")
-        p.add_argument("--nostyle", action="store_true")
-        p.add_argument("--blacklist", nargs="+")
-        p.add_argument("--extension_mask", nargs="+")
-        p.add_argument("--hits", type=int)
-        p.add_argument("--movie_api", choices=API_MOVIE)
-        p.add_argument("--movie_directory")
-        p.add_argument("--movie_format")
-        p.add_argument("--television_api", choices=API_TELEVISION)
-        p.add_argument("--television_directory")
-        p.add_argument("--television_format")
+        config = main.add_argument_group()
+        config.add_argument("-b", "--batch", action="store_true")
+        config.add_argument("-l", "--lowercase", action="store_true")
+        config.add_argument("-r", "--recurse", action="store_true")
+        config.add_argument("-s", "--scene", action="store_true")
+        config.add_argument("-v", "--verbose", action="count", default=0)
+        config.add_argument("--nocache", action="store_true")
+        config.add_argument("--noguess", action="store_true")
+        config.add_argument("--nostyle", action="store_true")
+        config.add_argument("--blacklist", nargs="+")
+        config.add_argument("--extensions", nargs="+")
+        config.add_argument("--hits", type=int)
+        config.add_argument("--movie-api", choices=API_MOVIE)
+        config.add_argument("--movie-directory")
+        config.add_argument("--movie-format")
+        config.add_argument("--television-api", choices=API_TELEVISION)
+        config.add_argument("--television-directory")
+        config.add_argument("--television-format")
 
         # Directive Parameters
-        p.add_argument("--help", action="store_true")
-        p.add_argument("--config_dump", action="store_true")
-        p.add_argument("--config_ignore", action="store_true")
-        p.add_argument("--id")
-        p.add_argument("--media_type", choices=("movie", "television"))
-        p.add_argument("--media_mask", choices=("movie", "television"))
-        p.add_argument("--test", action="store_true")
-        p.add_argument("-V", "--version", action="store_true")
+        directives = main.add_argument_group()
+        directives.add_argument("--test", action="store_true")
+        directives.add_argument("--config-ignore", action="store_true")
+        directives.add_argument("--id")
+        media = directives.add_mutually_exclusive_group()
+        media.add_argument("--media-type", choices=("movie", "television"))
+        media.add_argument("--media-mask", choices=("movie", "television"))
+        main.add_argument("--help", action="store_true")
+        main.add_argument("--config-dump", action="store_true")
+        main.add_argument("-V", "--version", action="store_true")
 
-        args: Dict[str, str] = vars(p.parse_args())
-
+        args: Dict[str, str] = vars(parser.parse_args())
         targets = args.get("targets", None)
         self.targets = set(targets) if targets else set()
         self.directives = {}
