@@ -29,7 +29,6 @@ class NoticeLevel(Enum):
 
 @total_ordering
 class LogLevel(Enum):
-    SILENT = None
     STANDARD = 0
     VERBOSE = 1
     DEBUG = 2
@@ -62,7 +61,7 @@ class Tty:
         self.hits: int = hits
         self.noguess: bool = noguess
         self.nostyle: bool = nostyle
-        self.log_level: LogLevel = LogLevel(verbose)
+        self.log_level: LogLevel = LogLevel(verbose or 0)
 
         mapi_log = logging.getLogger("mapi")
         if self.log_level == LogLevel.DEBUG:

@@ -42,7 +42,7 @@ class TestPreferences:
         return Arguments().preferences
 
     def test_none(self):
-        assert self.preferences == {"verbose": LogLevel.STANDARD.value}
+        assert self.preferences == {}
 
     @pytest.mark.parametrize("param", ("-b", "--batch"))
     def test_batch(self, param: str):
@@ -65,7 +65,7 @@ class TestPreferences:
         assert self.preferences.get("scene") is True
 
     def test_log_level__standard(self):
-        assert self.preferences.get("verbose") == LogLevel.STANDARD.value
+        assert self.preferences.get("verbose") is None
 
     @pytest.mark.parametrize("param", ("-v", "--verbose"))
     def test_log_level__verbose(self, param: str):
@@ -260,7 +260,7 @@ class TestConfiguration:
         return Arguments().configuration
 
     def test_none(self):
-        assert self.configuration == {"verbose": LogLevel.STANDARD.value}
+        assert self.configuration == {}
 
     def test_preferences_single(self):
         argv.append("--verbose")
@@ -269,19 +269,12 @@ class TestConfiguration:
     def test_preferences_multi(self):
         argv.append("--recurse")
         argv.append("--help")
-        assert self.configuration == {
-            "recurse": True,
-            "help": True,
-            "verbose": LogLevel.STANDARD.value,
-        }
+        assert self.configuration == {"recurse": True, "help": True}
 
     @pytest.mark.parametrize("param", ("config_dump", "config-dump"))
     def test_directives_single(self, param: str):
         argv.append(f"--{param}")
-        assert self.configuration == {
-            "config_dump": True,
-            "verbose": LogLevel.STANDARD.value,
-        }
+        assert self.configuration == {"config_dump": True}
 
     @pytest.mark.parametrize("param2", ("config_dump", "config-dump"))
     @pytest.mark.parametrize("param1", ("config_ignore", "config-ignore"))
@@ -291,5 +284,4 @@ class TestConfiguration:
         assert self.configuration == {
             "config_dump": True,
             "config_ignore": True,
-            "verbose": LogLevel.STANDARD.value,
         }
