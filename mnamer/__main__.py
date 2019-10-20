@@ -39,15 +39,6 @@ def main():
         clear_cache()
         tty.p(f"cache cleared", style=NoticeLevel.ALERT)
 
-    # Exit early if no media files are found
-    total_count = len(targets)
-    if total_count == 0:
-        tty.p(
-            "No media files found. Run mnamer --help for usage information.",
-            style=NoticeLevel.ALERT,
-        )
-        exit(0)
-
     # Print configuration details
     if config_file:
         tty.p(f"loaded config from {config_file}", style=NoticeLevel.ALERT)
@@ -60,6 +51,15 @@ def main():
     tty.p("\nTargets", LogLevel.VERBOSE, NoticeLevel.NOTICE)
     tty.ul(targets, LogLevel.VERBOSE)
     tty.p(f"\n{'-' * 80}\n", LogLevel.VERBOSE, NoticeLevel.ALERT)
+
+    # Exit early if no media files are found
+    total_count = len(targets)
+    if total_count == 0:
+        tty.p(
+            "No media files found. Run mnamer --help for usage information.",
+            style=NoticeLevel.ALERT,
+        )
+        exit(0)
 
     # Main program loop
     tty.p("Starting mnamer", style=NoticeLevel.NOTICE)
