@@ -58,7 +58,7 @@ PREFERENCE_DEFAULTS = {
     "lowercase": False,
     "recurse": False,
     "scene": False,
-    "verbose": False,
+    "verbose": 0,
     "nocache": False,
     "noguess": False,
     "nostyle": False,
