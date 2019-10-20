@@ -37,23 +37,31 @@ class Arguments:
         config.add_argument("--blacklist", nargs="+")
         config.add_argument("--extensions", nargs="+")
         config.add_argument("--hits", type=int)
-        config.add_argument("--movie-api", choices=API_MOVIE)
-        config.add_argument("--movie-directory")
-        config.add_argument("--movie-format")
-        config.add_argument("--television-api", choices=API_TELEVISION)
-        config.add_argument("--television-directory")
-        config.add_argument("--television-format")
+        config.add_argument("--movie-api", "--movie_api", choices=API_MOVIE)
+        config.add_argument("--movie-directory", "--movie_directory")
+        config.add_argument("--movie-format", "--movie_format")
+        config.add_argument(
+            "--television-api", "--television_api", choices=API_TELEVISION
+        )
+        config.add_argument("--television-directory", "--television_directory")
+        config.add_argument("--television-format", "--television_format")
 
         # Directive Parameters
         directives = main.add_argument_group()
         directives.add_argument("--test", action="store_true")
-        directives.add_argument("--config-ignore", action="store_true")
+        directives.add_argument(
+            "--config-ignore", "--config_ignore", action="store_true"
+        )
         directives.add_argument("--id")
         media = directives.add_mutually_exclusive_group()
-        media.add_argument("--media-type", choices=("movie", "television"))
-        media.add_argument("--media-mask", choices=("movie", "television"))
+        media.add_argument(
+            "--media-type", "--media_type", choices=("movie", "television")
+        )
+        media.add_argument(
+            "--media-mask", "--media_mask", choices=("movie", "television")
+        )
         main.add_argument("--help", action="store_true")
-        main.add_argument("--config-dump", action="store_true")
+        main.add_argument("--config-dump", "--config_dump", action="store_true")
         main.add_argument("-V", "--version", action="store_true")
 
         args: Dict[str, str] = vars(parser.parse_args())

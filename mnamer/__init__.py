@@ -27,14 +27,14 @@ PREFERENCES:
     --noguess: disable best guess fallback; e.g. when no matches, network down
     --nostyle: print to stdout without using colour or fancy unicode characters
     --blacklist=<word,...>: ignore files matching these regular expressions
-    --extension_mask=<ext,...>: only process given file types
+    --extensions=<ext,...>: only process given file types
     --hits=<number>: limit the maximum number of hits for each query
-    --movie_api={tmdb,omdb}: set movie api provider
-    --movie_directory=<path>: set movie relocation directory
-    --movie_format=<format>: set movie renaming format specification
-    --television_api={tvdb}: set television api provider
-    --television_directory=<path>: set television relocation directory
-    --television_format=<format>: set television renaming format specification
+    --movie-api={tmdb,omdb}: set movie api provider
+    --movie-directory=<path>: set movie relocation directory
+    --movie-format=<format>: set movie renaming format specification
+    --television-api={tvdb}: set television api provider
+    --television-directory=<path>: set television relocation directory
+    --television-format=<format>: set television renaming format specification
 
 DIRECTIVES:
     Directives are one-off parameters that are used to perform secondary tasks
@@ -44,8 +44,8 @@ DIRECTIVES:
     --config_dump: prints current config JSON to stdout then exits
     --config_ignore: skips loading config file for session
     --id=<id>: explicitly specifies a movie or series id
-    --media_type={movie,television}: override media detection
-    --media_mask={movie,television}: only process given media type
+    --media-type={movie,television}: override media detection
+    --media-mask={movie,television}: only process given media type
     --test: mocks the renaming and moving of files
     --version: displays the running mnamer version number then exits
 
@@ -63,7 +63,7 @@ PREFERENCE_DEFAULTS = {
     "noguess": False,
     "nostyle": False,
     "blacklist": [".*sample.*", "^RARBG.*"],
-    "extension_mask": ["avi", "m4v", "mp4", "mkv", "ts", "wmv"],
+    "extensions": ["avi", "m4v", "mp4", "mkv", "ts", "wmv"],
     "hits": 5,
     # Movie related
     "movie_api": "tmdb",

@@ -88,12 +88,12 @@ class Target:
     ) -> Set["Target"]:
         """Creates a list of Target objects for media files found in paths."""
         recurse = config.get("recurse", False)
-        extension_mask = config.get("extension_mask", ())
+        extensions = config.get("extensions", ())
         blacklist = config.get("blacklist", ())
         media_mask = config.get("media_mask")
         paths = crawl_in(paths, recurse)
         paths = filter_blacklist(paths, blacklist)
-        paths = filter_extensions(paths, extension_mask)
+        paths = filter_extensions(paths, extensions)
         targets = {cls(path, **config) for path in paths}
         if media_mask:
             targets = {

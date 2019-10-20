@@ -50,7 +50,7 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 | --noguess              |                  | disable best guess fallback; e.g. when no matches, network down |
 | --nostyle              |                  | disable colours and uses ASCII characters for prompts           |
 | --blacklist            | pattern          | ignore files including these words (regex)                      |
-| --extension-mask       | extension(s)     | only process files with given extensions                        |
+| --extensions           | extension(s)     | only process files with given extensions                        |
 | --hits                 | number           | limit the maximum number of hits for each query                 |
 | --movie-api            | `imdb` or `tmdb` | set movie api provider                                          |
 | --movie-directory      | path             | set movie relocation directory                                  |

@@ -94,12 +94,12 @@ class TestPreferences:
         argv.append("orange")
         assert self.preferences.get("blacklist") == ["apple", "orange"]
 
-    def test_extension_mask(self):
-        argv.append("--extension_mask")
+    def test_extensions(self):
+        argv.append("--extensions")
         argv.append("avi")
         argv.append("mkv")
         argv.append("mp4")
-        assert self.preferences.get("extension_mask") == ["avi", "mkv", "mp4"]
+        assert self.preferences.get("extensions") == ["avi", "mkv", "mp4"]
 
     def test_hits(self):
         argv.append("--hits")
@@ -265,18 +265,9 @@ class TestConfiguration:
 
     def test_directives_multi(self):
         argv.append("--config_dump")
-        argv.append("--help")
+        argv.append("--config_ignore")
         assert self.configuration == {
             "config_dump": True,
-            "help": True,
-            "verbose": LogLevel.STANDARD.value,
-        }
-
-    def test_mixed(self):
-        argv.append("--help")
-        argv.append("--config_dump")
-        assert self.configuration == {
-            "help": True,
-            "config_dump": True,
+            "config_ignore": True,
             "verbose": LogLevel.STANDARD.value,
         }
