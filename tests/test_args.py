@@ -44,32 +44,32 @@ class TestPreferences:
     def test_none(self):
         assert self.preferences == {"verbose": LogLevel.STANDARD.value}
 
-    @pytest.mark.parametrize("value", ("-b", "--batch"))
-    def test_batch(self, value):
-        argv.append(value)
+    @pytest.mark.parametrize("param", ("-b", "--batch"))
+    def test_batch(self, param: str):
+        argv.append(param)
         assert self.preferences.get("batch") is True
 
-    @pytest.mark.parametrize("value", ("-r", "--recurse"))
-    def test_recurse(self, value):
-        argv.append(value)
+    @pytest.mark.parametrize("param", ("-r", "--recurse"))
+    def test_recurse(self, param: str):
+        argv.append(param)
         assert self.preferences.get("recurse") is True
 
-    @pytest.mark.parametrize("value", ("-l", "--lowercase"))
-    def test_lowercase(self, value):
-        argv.append(value)
+    @pytest.mark.parametrize("param", ("-l", "--lowercase"))
+    def test_lowercase(self, param: str):
+        argv.append(param)
         assert self.preferences.get("lowercase") is True
 
-    @pytest.mark.parametrize("value", ("-s", "--scene"))
-    def test_scene(self, value):
-        argv.append(value)
+    @pytest.mark.parametrize("param", ("-s", "--scene"))
+    def test_scene(self, param: str):
+        argv.append(param)
         assert self.preferences.get("scene") is True
 
     def test_log_level__standard(self):
         assert self.preferences.get("verbose") == LogLevel.STANDARD.value
 
-    @pytest.mark.parametrize("value", ("-v", "--verbose"))
-    def test_log_level__verbose(self, value):
-        argv.append(value)
+    @pytest.mark.parametrize("param", ("-v", "--verbose"))
+    def test_log_level__verbose(self, param: str):
+        argv.append(param)
         assert self.preferences.get("verbose") == LogLevel.VERBOSE.value
 
     def test_log_level__debug(self):
@@ -113,64 +113,78 @@ class TestPreferences:
             self.preferences.get("hits")
         assert e.type == SystemExit
 
+    @pytest.mark.parametrize("param", ("movie_api", "movie-api"))
     @pytest.mark.parametrize("value", ("tmdb", "omdb"))
-    def test_movie_api(self, value):
-        argv.append(f"--movie_api={value}")
+    def test_movie_api(self, value: str, param: str):
+        argv.append(f"--{param}={value}")
         assert self.preferences.get("movie_api") == value
 
-    def test_movie_api__invalid(self):
-        argv.append("--movie_api")
+    @pytest.mark.parametrize("param", ("movie_api", "movie-api"))
+    def test_movie_api__invalid(self, param: str):
+        argv.append(f"--{param}")
         argv.append(JUNK_TEXT)
         with pytest.raises(SystemExit) as e:
             self.preferences.get("movie_api")
         assert e.type == SystemExit
 
+    @pytest.mark.parametrize("param", ("movie_directory", "movie-directory"))
     @pytest.mark.usefixtures("tmp_path")
-    def test_movie_directory(self, tmp_path: Path):
+    def test_movie_directory(self, tmp_path: Path, param: str):
         path = str(tmp_path)
         argv.append("--movie_directory")
         argv.append(path)
         assert self.preferences.get("movie_directory") == path
 
-    def test_movie_directory__invalid(self):
-        argv.append("--movie_directory")
+    @pytest.mark.parametrize("param", ("movie_directory", "movie-directory"))
+    def test_movie_directory__invalid(self, param: str):
+        argv.append(f"--{param}")
         argv.append(JUNK_TEXT)
         with pytest.raises(SystemExit) as e:
             self.preferences.get("movie_directory")
         assert e.type == SystemExit
 
-    def test_movie_format(self):
-        argv.append("--movie_format={title}{year}")
+    @pytest.mark.parametrize("param", ("movie_format", "movie-format"))
+    def test_movie_format(self, param: str):
+        argv.append(f"--{param}={{title}}{{year}}")
         assert self.preferences.get("movie_format") == "{title}{year}"
 
-    def test_television_api(self):
-        argv.append("--television_api")
+    @pytest.mark.parametrize("param", ("television_api", "television-api"))
+    def test_television_api(self, param: str):
+        argv.append(f"--{param}")
         argv.append("tvdb")
         assert self.preferences.get("television_api") == "tvdb"
 
-    def test_television_api__invalid(self):
-        argv.append("--television_api")
+    @pytest.mark.parametrize("param", ("television_api", "television-api"))
+    def test_television_api__invalid(self, param: str):
+        argv.append(f"--{param}")
         argv.append(JUNK_TEXT)
         with pytest.raises(SystemExit) as e:
             self.preferences.get("television_api")
         assert e.type == SystemExit
 
+    @pytest.mark.parametrize(
+        "param", ("television_directory", "television-directory")
+    )
     @pytest.mark.usefixtures("tmp_path")
-    def test_television_directory(self, tmp_path: Path):
+    def test_television_directory(self, tmp_path: Path, param: str):
         path = str(tmp_path)
-        argv.append("--television_directory")
+        argv.append(f"--{param}")
         argv.append(path)
         assert self.preferences.get("television_directory") == path
 
-    def test_television_directory__invalid(self):
-        argv.append("--television_directory")
+    @pytest.mark.parametrize(
+        "param", ("television_directory", "television-directory")
+    )
+    def test_television_directory__invalid(self, param: str):
+        argv.append(f"--{param}")
         argv.append(JUNK_TEXT)
         with pytest.raises(SystemExit) as e:
             self.preferences.get("television_directory")
         assert e.type == SystemExit
 
-    def test_television_format(self):
-        argv.append("--movie_format={title}{season}{episode}")
+    @pytest.mark.parametrize("param", ("movie_format", "movie-format"))
+    def test_television_format(self, param: str):
+        argv.append(f"--{param}={{title}}{{season}}{{episode}}")
         assert (
             self.preferences.get("movie_format") == "{title}{season}{episode}"
         )
@@ -189,8 +203,9 @@ class TestDirectives:
         argv.append("--help")
         assert self.directives.get("help") is True
 
-    def test_config_dump(self):
-        argv.append("--config_dump")
+    @pytest.mark.parametrize("param", ("config_dump", "config-dump"))
+    def test_config_dump(self, param: str):
+        argv.append(f"--{param}")
         assert self.directives.get("config_dump") is True
 
     def test_id(self):
@@ -198,27 +213,31 @@ class TestDirectives:
         argv.append("1234")
         assert self.directives.get("id") == "1234"
 
+    @pytest.mark.parametrize("param", ("media_type", "media-type"))
     @pytest.mark.parametrize("value", ("television", "movie"))
-    def test_media_force(self, value):
-        argv.append("--media_type")
+    def test_media_force(self, value, param: str):
+        argv.append(f"--{param}")
         argv.append(value)
         assert self.directives.get("media_type") == value
 
-    def test_media_force__invalid(self):
-        argv.append("--media_type")
+    @pytest.mark.parametrize("param", ("media_type", "media-type"))
+    def test_media_force__invalid(self, param: str):
+        argv.append(f"--{param}")
         argv.append(JUNK_TEXT)
         with pytest.raises(SystemExit) as e:
             self.directives.get("media_type")
         assert e.type == SystemExit
 
+    @pytest.mark.parametrize("param", ("media_type", "media-type"))
     @pytest.mark.parametrize("value", ("television", "movie"))
-    def test_media_mask(self, value):
-        argv.append("--media_type")
+    def test_media_mask(self, value, param: str):
+        argv.append(f"--{param}")
         argv.append(value)
         assert self.directives.get("media_type") == value
 
-    def test_media_mask__invalid(self):
-        argv.append("--media_mask")
+    @pytest.mark.parametrize("param", ("media_type", "media-type"))
+    def test_media_mask__invalid(self, param: str):
+        argv.append(f"--{param}")
         argv.append(JUNK_TEXT)
         with pytest.raises(SystemExit) as e:
             self.directives.get("media_mask")
@@ -256,16 +275,19 @@ class TestConfiguration:
             "verbose": LogLevel.STANDARD.value,
         }
 
-    def test_directives_single(self):
-        argv.append("--config_dump")
+    @pytest.mark.parametrize("param", ("config_dump", "config-dump"))
+    def test_directives_single(self, param: str):
+        argv.append(f"--{param}")
         assert self.configuration == {
             "config_dump": True,
             "verbose": LogLevel.STANDARD.value,
         }
 
-    def test_directives_multi(self):
-        argv.append("--config_dump")
-        argv.append("--config_ignore")
+    @pytest.mark.parametrize("param2", ("config_dump", "config-dump"))
+    @pytest.mark.parametrize("param1", ("config_ignore", "config-ignore"))
+    def test_directives_multi(self, param1: str, param2: str):
+        argv.append(f"--{param1}")
+        argv.append(f"--{param2}")
         assert self.configuration == {
             "config_dump": True,
             "config_ignore": True,
