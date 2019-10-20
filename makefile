@@ -76,4 +76,5 @@ setup-demo: clean
 	    "made up movie.mp4" \
 	    "archer.2009.s10e07.webrip.x264-lucidtv.mp4" \
 	    "Planet Earth II S01E06 - Cities (2016) (2160p).mp4" \
-	    "O.J. - Made in America S01EP03 (2016) (1080p).mp4"
+	    "O.J. - Made in America S01EP03 (2016) (1080p).mp4" \
+	    "s.w.a.t.2017.s02e01.mkv"
