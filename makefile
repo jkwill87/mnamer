@@ -1,13 +1,15 @@
+help:
+	@echo
+	@echo 'deployment:  build, publish, tag'
+	@echo 'versioning:  bump-patch, bump-minor, bump-major'
+	@echo 'setup:       setup-deps, setup-env, setup-demo'
+
+# Testing helpers --------------------------------------------------------------
+
 clean:
 	$(info cleaning demo directory)
 	@find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__
 	@rm -rvf build dist *.egg-info demo
-
-
-# Testing helpers --------------------------------------------------------------
-
-demo: demo-setup
-	@mnamer --batch --recurse demo
 
 
 # Deployment Helpers -----------------------------------------------------------
@@ -20,6 +22,9 @@ publish:
 
 tag:
 	git tag `vbump | egrep -o '[0-9].*'`
+
+
+# Version Helpers --------------------------------------------------------------
 
 bump-patch:
 	vbump --patch
@@ -55,6 +60,7 @@ setup-env:
 	deactivate || true
 	rm -rf venv
 	virtualenv venv
+	./venv/bin/pip install -r requirements-dev.txt
 
 setup-demo: clean
 	$(info setting up demo directory)
