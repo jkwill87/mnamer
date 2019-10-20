@@ -30,7 +30,7 @@ class Arguments:
         config.add_argument("-l", "--lowercase", action="store_true")
         config.add_argument("-r", "--recurse", action="store_true")
         config.add_argument("-s", "--scene", action="store_true")
-        config.add_argument("-v", "--verbose", action="count", default=0)
+        config.add_argument("-v", "--verbose", action="count")
         config.add_argument("--nocache", action="store_true")
         config.add_argument("--noguess", action="store_true")
         config.add_argument("--nostyle", action="store_true")

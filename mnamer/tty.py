@@ -29,6 +29,7 @@ class NoticeLevel(Enum):
 
 @total_ordering
 class LogLevel(Enum):
+    SILENT = None
     STANDARD = 0
     VERBOSE = 1
     DEBUG = 2
