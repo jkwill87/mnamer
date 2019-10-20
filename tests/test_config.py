@@ -72,7 +72,6 @@ class TestLoadFile:
 
 def test_dunder__getitem():
     config = Configuration(recurse=True)
-    assert config["verbose"] is False
     assert config["recurse"] is True
 
 
