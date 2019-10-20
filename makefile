@@ -1,73 +1,52 @@
 clean:
-	$(info cleaning demo directory...)
+	$(info cleaning demo directory)
 	@find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__
-	@rm -rf build dist *.egg-info demo
+	@rm -rvf build dist *.egg-info demo
 
 
 # Testing helpers --------------------------------------------------------------
 
 demo: demo-setup
-	@python3 -m mnamer --batch --recurse demo
-
-
-# Sync Helpers -----------------------------------------------------------------
-
-sync: setup-poetry sync-deps sync-version
-
-sync-deps:
-	python3 -m poetry export --without-hashes -f requirements.txt \
-	    > requirements.txt
-	python3 -m poetry export --without-hashes -f requirements.txt --dev \
-	    > requirements-dev.txt
-
-sync-version:
-	@echo VERSION = \"`python3 -m poetry version | egrep -o '[0-9].*'`\" \
-	    > mnamer/__version__.py
-	@cat mnamer/__version__.py
+	@mnamer --batch --recurse demo
 
 
 # Deployment Helpers -----------------------------------------------------------
 
-build: sync
-	rm -rvf build dist *.egg-info
-	python3 -m poetry build
+build: clean
+	python3 setup.py sdist bdist_wheel --universal
 
 publish:
-	python3 -m poetry publish
+	twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
 
 tag:
-    git tag python3 -m poetry version | egrep -o '[0-9].*'`
+	git tag `vbump | egrep -o '[0-9].*'`
 
 bump-patch:
-    python3 -m poetry version patch
-    make sync-version
-    git reset --
-    git add mnamer/__version__.py
-    git add pyproject.toml
-    git commit -m "Patch version bump"
+	vbump --patch
+	make sync-version
+	git reset --
+	git add mnamer/__version__.py
+	git add pyproject.toml
+	git commit -m "Patch version bump"
 
 bump-minor:
-    python3 -m poetry version minor
-    make sync-version
-    git reset --
-    git add mnamer/__version__.py
-    git add pyproject.toml
-    git commit -m "Minor version bump"
+	vbump --minor
+	make sync-version
+	git reset --
+	git add mnamer/__version__.py
+	git add pyproject.toml
+	git commit -m "Minor version bump"
 
 bump-major:
-    python3 -m poetry version major
-    make sync-version
-    git reset --
-    git add mnamer/__version__.py
-    git add pyproject.toml
-    git commit -m "Major version bump"
+	vbump --major
+	make sync-version
+	git reset --
+	git add mnamer/__version__.py
+	git add pyproject.toml
+	git commit -m "Major version bump"
 
 
 # Setup Helpers ----------------------------------------------------------------
-
-setup-poetry:
-	pip3 install --pre -U poetry
-	python3 -m poetry update
 
 setup-deps:
 	pip3 install -r requirements-dev.txt
@@ -75,10 +54,10 @@ setup-deps:
 setup-env:
 	deactivate || true
 	rm -rf venv
-	python3 -m virtualenv venv
+	virtualenv venv
 
 setup-demo: clean
-	$(info setting up demo directory...)
+	$(info setting up demo directory)
 	@mkdir -p \
 	    demo \
 	    'demo/Avengers Infinity War'
