@@ -2,3 +2,4 @@
 codecov
 pytest
 pytest-cov
+vbump
