@@ -43,7 +43,7 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 | :--------------------- | :--------------- | :-------------------------------------------------------------- |
 | -b, --batch            |                  | batch mode; disable interactive prompts                         |
 | -l, --lowercase        |                  | rename files using lowercase characters only                    |
-| -r, --recurse          |                  | show this help message and exit                                 |
+| -r, --recurse          |                  | search for files in nested directories                          |
 | -s, --scene            |                  | scene mode; replace non ascii-alphanumerics with `.`            |
 | -v, --verbose          |                  | increase output verbosity                                       |
 | --nocache              |                  | disable and clear result cache                                  |
@@ -66,7 +66,7 @@ mnamer attempts to load preferences from .mnamer.json in the user's home directo
 
 Whereas preferences configure how mnamer works, directives are one-off parameters that are used to perform secondary tasks like exporting the current option set to a file.
 
-| Option          | Arguments               | Description                             |
+| Directive       | Arguments               | Description                             |
 | :-------------- | :---------------------- | :-------------------------------------- |
 | --config-dump   |                         | prints config JSON to stdout then exits |
 | --config-ignore |                         | skips loading config file for session   |

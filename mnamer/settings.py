@@ -1,16 +1,67 @@
 import re
 from argparse import ArgumentParser, SUPPRESS
-from typing import Dict, List, NamedTuple, Set, get_type_hints
+from typing import List, Optional, Set, get_type_hints, Dict
+import json
 
 USAGE = "mnamer target [targets ...] [preferences] [directives]"
 EPILOG = "Visit https://github.com/jkwill87/mnamer for more information."
 
 
-class SettingDetail(NamedTuple):
-    documentation: str
-    flags: List[str]
+class Argument:
+    action: Optional[str]
     choices: Set[str]
-    type: type
+    flags: List[str]
+    nargs: Optional[str]
+
+    def __init__(self, documentation: str, rtype: type):
+        self.action = None
+        self.choices = set()
+        self.flags = []
+        self.nargs = None
+        self._lhs, self._rhs = documentation.split(": ")
+        self._rtype = rtype
+
+    def parse(self):
+        self._parse_action()
+        self._parse_choices()
+        self._parse_flags()
+        self._parse_nargs()
+
+    @staticmethod
+    def register(parser: ArgumentParser, documentation, rtype):
+        argument = Argument(documentation, rtype)
+        argument.parse()
+        kwargs = {}
+        if argument.action:
+            kwargs["action"] = argument.action
+        if argument.choices:
+            kwargs["choices"] = argument.choices
+        if argument.nargs:
+            kwargs["nargs"] = argument.nargs
+        parser.add_argument(*argument.flags, **kwargs)
+
+    def _parse_action(self):
+        if "+" in self._lhs:
+            self.action = "count"
+        elif self._rtype is bool:
+            self.action = "store_true"
+
+    def _parse_choices(self):
+        if "{" in self._lhs:
+            conditions = self._lhs.split("=")[1] if "=" in self._lhs else ""
+            self.choices = set(re.findall(r"(\w+)(?=[ ,}>])", conditions))
+
+    def _parse_flags(self):
+        flags = self._lhs.split("=")[0] if "=" in self._lhs else self._lhs
+        for flag in flags.split(", "):
+            flag = flag.replace("+", "")
+            self.flags.append(flag)
+            snake_equivalent = f"--{flag[2:].replace('-','_')}"
+            if snake_equivalent != "--" and snake_equivalent not in self.flags:
+                self.flags.append(snake_equivalent)
+
+    def _parse_nargs(self):
+        self.nargs = "+" if self._rtype is list else None
 
 
 class Settings:
@@ -23,52 +74,74 @@ class Settings:
             super().__setattr__(key, value)
             return
         # verify attribute is for one of the defined properties
-        details = self.details()
-        if key not in details:
+        fields = self.fields()
+        if key not in fields:
             raise KeyError(f"'{key}' is not a valid field")
-        detail = details[key]
         # verify value type matches property type annotation
-        if not isinstance(value, detail.type):
-            raise ValueError(f"'{key}' not of type {detail.type}")
-        # verify value is one of permitted choices if specified
-        if detail.choices and value not in detail.choices:
-            raise ValueError(f"'{value}' not one of {detail.choices}")
+        expected_type = self.type_for(key)
+        if not isinstance(value, expected_type):
+            raise ValueError(f"'{key}' not of type {expected_type}")
         self._dict[key] = value
 
     @classmethod
-    def details(cls) -> Dict[str, SettingDetail]:
-        names = [p for p in dir(cls) if isinstance(getattr(cls, p), property)]
-        details = {}
-        for name in names:
-            prop = getattr(cls, name)
-            if not prop.__doc__:
-                continue
-            lhs, _ = prop.__doc__.split(": ")
-            if "=" in lhs:
-                flags, conditions = lhs.split("=")
-            else:
-                flags, conditions = lhs, None
-            if "{" in lhs:
-                choices = set(re.findall(r"(\w+)(?=[ ,}>])", conditions))
-            else:
-                choices = set()
-            flags = flags.split(", ")
-            details[name] = SettingDetail(
-                documentation=prop.__doc__,
-                flags=[flag.replace("_", "-") for flag in flags] + flags,
-                choices=choices,
-                type=get_type_hints(getattr(prop, "fget"))["return"],
+    def fields(cls) -> Set[str]:
+        return {p for p in dir(cls) if isinstance(getattr(cls, p), property)}
+
+    @classmethod
+    def directives(cls) -> Set[str]:
+        return {
+            "help",
+            "config_dump",
+            "config_ignore",
+            "id",
+            "media_mask",
+            "media_type",
+            "test",
+            "version",
+        }
+
+    @classmethod
+    def parameters(cls) -> Set[str]:
+        return cls.fields() - cls.directives()
+
+    @classmethod
+    def type_for(cls, field) -> type:
+        prop = getattr(cls, field)
+        return get_type_hints(getattr(prop, "fget"))["return"]
+
+    @classmethod
+    def doc_for(cls, field) -> str:
+        return getattr(cls, field).fget.__doc__ or ""
+
+    @classmethod
+    def help_msg(cls):
+        param_lines = (
+            "\n".join(
+                sorted([" " * 4 + cls.doc_for(p) for p in cls.parameters()])
             )
+            .strip()
+            .replace("\n\n", "\n")
+        )
+        directive_lines = "\n".join(
+            sorted([" " * 4 + cls.doc_for(p) for p in cls.directives()])
+        ).strip()
+        return f"""
+USAGE: {USAGE}
 
-        return details
-
-
-class Preferences(Settings):
-    """
+PARAMETERS:
     The following flags can be used to customize mnamer's behaviour. Their long
     forms may also be set in a '.mnamer.json' config file, in which case cli
     arguments will take precedence.
-    """
+
+    {param_lines}    
+
+DIRECTIVES:
+    Directives are one-off arguments that are used to perform secondary tasks
+    like overriding media detection. They can't be used in '.mnamer.json'.
+    
+    {directive_lines}
+    
+{EPILOG}"""
 
     # General Options ----------------------------------------------------------
 
@@ -94,7 +167,7 @@ class Preferences(Settings):
 
     @property
     def verbose(self) -> int:
-        """-v, --verbose: increase output verbosity"""
+        """-v+, --verbose: increase output verbosity"""
         return self._dict.get("verbose", 0)
 
     @property
@@ -143,7 +216,7 @@ class Preferences(Settings):
 
     @property
     def movie_format(self) -> str:
-        """movie-format=<format>: set movie renaming format specification"""
+        """--movie-format=<format>: set movie renaming format specification"""
         return self._dict.get("movie_format", "")
 
     # Television Related -------------------------------------------------------
@@ -185,57 +258,74 @@ class Preferences(Settings):
             "replacements", {"&": "and", "@": "at", ":": ",", ";": ","}
         )
 
+    # Directives ---------------------------------------------------------------
 
-class Directives(Settings):
-    """
-    Directives are one-off arguments that are used to perform secondary tasks
-    like overriding media detection. They can't be used in '.mnamer.json'.
-    """
+    @property
+    def help(self) -> bool:
+        """--help: prints this message then exits"""
+        return self._dict.get("help", False)
 
+    @property
+    def config_dump(self) -> bool:
+        """--config-dump: prints current config JSON to stdout then exits"""
+        return self._dict.get("config_dump", False)
 
-def help_msg():
-    msg = f"USAGE: {USAGE}\n"
-    for cls in Preferences, Directives:
-        msg += f"\n{cls.__name__.upper()}:{cls.__doc__}\n"
-        for prop in dir(cls):
-            if isinstance(getattr(cls, prop), property):
-                msg += f"    {getattr(cls, prop).__doc__}\n"
-    msg += EPILOG
-    return msg
+    @property
+    def config_ignore(self) -> bool:
+        """--config-ignore: skips loading config file for session"""
+        return self._dict.get("config_ignore", False)
 
+    @property
+    def id(self) -> str:
+        """--id=<id>: explicitly specifies a movie or series id"""
+        return self._dict.get("id", "")
 
-class SettingsManager:
-    def __init__(self):
-        self.targets = []
-        self.preferences = Preferences()
-        self.directives = Directives()
-        self._parser = ArgumentParser(
+    @property
+    def media_mask(self) -> str:
+        """--media-mask={movie,television}: only process given media type"""
+        return self._dict.get("media_mask", "")
+
+    @property
+    def media_type(self) -> str:
+        """--media-type={movie,television}: override media detection"""
+        return self._dict.get("media_type", "")
+
+    @property
+    def test(self) -> bool:
+        """--test: mocks the renaming and moving of files"""
+        return self._dict.get("test", False)
+
+    @property
+    def version(self) -> bool:
+        """-V, --version: displays the running mnamer version number"""
+        return self._dict.get("version", False)
+
+    def load(self):
+        parser = ArgumentParser(
             prog="mnamer",
             add_help=False,
             epilog=EPILOG,
             usage=USAGE,
             argument_default=SUPPRESS,
         )
+        parser.add_argument("targets", nargs="*", default=[])
+        for field in self.fields():
+            documentation = self.doc_for(field)
+            if not documentation:
+                continue
+            rtype = self.type_for(field)
+            Argument.register(parser, documentation, rtype)
+        args: Dict[str, str] = vars(parser.parse_args())
+        self._dict = {**self._dict, **args}
 
-    def load(self):
-        self._parser.add_argument("targets", nargs="*", default=[])
-
-        preferences = self._parser.add_argument_group()
-        for detail in self.preferences.details().values():
-            self._load_arg(preferences, detail)
-
-        directives = self._parser.add_argument_group()
-        for detail in self.directives.details().values():
-            self._load_arg(directives, detail)
-
-    def _load_arg(self, group, detail: SettingDetail):
-        kwargs = {}
-        if detail.type is bool:
-            kwargs["action"] = "store_true"
-        elif detail.type is list:
-            kwargs["nargs"] = "+"
-        elif detail.type is int:
-            kwargs["type"] = int
-        if detail.choices:
-            kwargs["choices"] = detail.choices
-        group.add_argument(*detail.flags, **kwargs)
+    def dump(self):
+        payload = {k: getattr(self, k) for k in self.parameters()}
+        return json.dumps(
+            payload,
+            allow_nan=False,
+            check_circular=True,
+            ensure_ascii=True,
+            indent=4,
+            skipkeys=True,
+            sort_keys=True,
+        )
