@@ -1,76 +1,30 @@
-import re
 from argparse import ArgumentParser, SUPPRESS
-from typing import List, Optional, Set, get_type_hints, Dict
-import json
+from typing import Any, Dict, List, Set, get_type_hints
+
+from mnamer.argument import Argument
+from mnamer.utils import crawl_out, json_dumps, json_read
+
+__all__ = ["Settings"]
 
 USAGE = "mnamer target [targets ...] [preferences] [directives]"
 EPILOG = "Visit https://github.com/jkwill87/mnamer for more information."
 
 
-class Argument:
-    action: Optional[str]
-    choices: Set[str]
-    flags: List[str]
-    nargs: Optional[str]
-
-    def __init__(self, documentation: str, rtype: type):
-        self.action = None
-        self.choices = set()
-        self.flags = []
-        self.nargs = None
-        self._lhs, self._rhs = documentation.split(": ")
-        self._rtype = rtype
-
-    def parse(self):
-        self._parse_action()
-        self._parse_choices()
-        self._parse_flags()
-        self._parse_nargs()
-
-    @staticmethod
-    def register(parser: ArgumentParser, documentation, rtype):
-        argument = Argument(documentation, rtype)
-        argument.parse()
-        kwargs = {}
-        if argument.action:
-            kwargs["action"] = argument.action
-        if argument.choices:
-            kwargs["choices"] = argument.choices
-        if argument.nargs:
-            kwargs["nargs"] = argument.nargs
-        parser.add_argument(*argument.flags, **kwargs)
-
-    def _parse_action(self):
-        if "+" in self._lhs:
-            self.action = "count"
-        elif self._rtype is bool:
-            self.action = "store_true"
-
-    def _parse_choices(self):
-        if "{" in self._lhs:
-            conditions = self._lhs.split("=")[1] if "=" in self._lhs else ""
-            self.choices = set(re.findall(r"(\w+)(?=[ ,}>])", conditions))
-
-    def _parse_flags(self):
-        flags = self._lhs.split("=")[0] if "=" in self._lhs else self._lhs
-        for flag in flags.split(", "):
-            flag = flag.replace("+", "")
-            self.flags.append(flag)
-            snake_equivalent = f"--{flag[2:].replace('-','_')}"
-            if snake_equivalent != "--" and snake_equivalent not in self.flags:
-                self.flags.append(snake_equivalent)
-
-    def _parse_nargs(self):
-        self.nargs = "+" if self._rtype is list else None
-
-
 class Settings:
     def __init__(self):
         self._dict = {}
+        self._parser = ArgumentParser(
+            prog="mnamer",
+            add_help=False,
+            epilog=EPILOG,
+            usage=USAGE,
+            argument_default=SUPPRESS,
+        )
+        self.config_file = None
 
     def __setattr__(self, key, value):
         # skip private attributes, e.g. self._dict
-        if key.startswith("_"):
+        if key in ("_dict", "_parser", "config_file"):
             super().__setattr__(key, value)
             return
         # verify attribute is for one of the defined properties
@@ -78,10 +32,14 @@ class Settings:
         if key not in fields:
             raise KeyError(f"'{key}' is not a valid field")
         # verify value type matches property type annotation
-        expected_type = self.type_for(key)
+        expected_type = self._type_for(key)
         if not isinstance(value, expected_type):
             raise ValueError(f"'{key}' not of type {expected_type}")
         self._dict[key] = value
+
+    def as_json(self):
+        payload = {k: getattr(self, k) for k in self.parameters()}
+        return json_dumps(payload)
 
     @classmethod
     def fields(cls) -> Set[str]:
@@ -93,7 +51,7 @@ class Settings:
             "help",
             "config_dump",
             "config_ignore",
-            "id",
+            "id_key",
             "media_mask",
             "media_type",
             "test",
@@ -105,25 +63,25 @@ class Settings:
         return cls.fields() - cls.directives()
 
     @classmethod
-    def type_for(cls, field) -> type:
+    def _type_for(cls, field) -> type:
         prop = getattr(cls, field)
         return get_type_hints(getattr(prop, "fget"))["return"]
 
     @classmethod
-    def doc_for(cls, field) -> str:
+    def _doc_for(cls, field) -> str:
         return getattr(cls, field).fget.__doc__ or ""
 
     @classmethod
     def help_msg(cls):
         param_lines = (
             "\n".join(
-                sorted([" " * 4 + cls.doc_for(p) for p in cls.parameters()])
+                sorted([" " * 4 + cls._doc_for(p) for p in cls.parameters()])
             )
             .strip()
             .replace("\n\n", "\n")
         )
         directive_lines = "\n".join(
-            sorted([" " * 4 + cls.doc_for(p) for p in cls.directives()])
+            sorted([" " * 4 + cls._doc_for(p) for p in cls.directives()])
         ).strip()
         return f"""
 USAGE: {USAGE}
@@ -141,7 +99,39 @@ DIRECTIVES:
     
     {directive_lines}
     
-{EPILOG}"""
+{EPILOG}
+"""
+
+    def _load_args(self) -> Dict[str, Any]:
+        self._parser.add_argument("targets", nargs="*", default=[])
+        for field in self.fields():
+            documentation = self._doc_for(field)
+            if not documentation:
+                continue
+            rtype = self._type_for(field)
+            argument = Argument(documentation, rtype)
+            kwargs = {}
+            if argument.action:
+                kwargs["action"] = argument.action
+            if argument.choices:
+                kwargs["choices"] = argument.choices
+            if argument.nargs:
+                kwargs["nargs"] = argument.nargs
+            self._parser.add_argument(*argument.flags, **kwargs)
+        return vars(self._parser.parse_args())
+
+    def _load_config(self) -> Dict[str, Any]:
+        self.config_file = crawl_out(".mnamer.json")
+        return json_read(self.config_file) if self.config_file else {}
+
+    def load(self) -> List[str]:
+        overrides = self._load_args()
+        if "config_ignore" not in overrides:
+            overrides = {**overrides, **self._load_config()}
+        targets = overrides.pop("targets")
+        for k, v in overrides.items():
+            setattr(self, k, v)
+        return targets
 
     # General Options ----------------------------------------------------------
 
@@ -276,9 +266,9 @@ DIRECTIVES:
         return self._dict.get("config_ignore", False)
 
     @property
-    def id(self) -> str:
-        """--id=<id>: explicitly specifies a movie or series id"""
-        return self._dict.get("id", "")
+    def id_key(self) -> str:
+        """--id_key=<id>: explicitly specifies a movie or series id"""
+        return self._dict.get("id_key", "")
 
     @property
     def media_mask(self) -> str:
@@ -299,33 +289,3 @@ DIRECTIVES:
     def version(self) -> bool:
         """-V, --version: displays the running mnamer version number"""
         return self._dict.get("version", False)
-
-    def load(self):
-        parser = ArgumentParser(
-            prog="mnamer",
-            add_help=False,
-            epilog=EPILOG,
-            usage=USAGE,
-            argument_default=SUPPRESS,
-        )
-        parser.add_argument("targets", nargs="*", default=[])
-        for field in self.fields():
-            documentation = self.doc_for(field)
-            if not documentation:
-                continue
-            rtype = self.type_for(field)
-            Argument.register(parser, documentation, rtype)
-        args: Dict[str, str] = vars(parser.parse_args())
-        self._dict = {**self._dict, **args}
-
-    def dump(self):
-        payload = {k: getattr(self, k) for k in self.parameters()}
-        return json.dumps(
-            payload,
-            allow_nan=False,
-            check_circular=True,
-            ensure_ascii=True,
-            indent=4,
-            skipkeys=True,
-            sort_keys=True,
-        )

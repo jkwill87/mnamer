@@ -160,7 +160,7 @@ def json_dumps(d: Dict[str, Any]):
     )
 
 
-def json_read(path: str, skip_nil: bool = True):
+def json_read(path: str, skip_nil: bool = True) -> Dict[str, Any]:
     """Reads a JSON file from disk."""
     try:
         templated_path = Template(path).substitute(environ)
