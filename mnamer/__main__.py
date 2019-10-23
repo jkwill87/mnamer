@@ -12,28 +12,9 @@ __all__ = ["main"]
 
 
 def main():
-    # Setup arguments and runtime configuration
+    # Setup arguments and load runtime configuration
     settings = Settings()
-    paths = settings.load()
-    targets = Target.populate_paths(
-        paths,
-        blacklist=settings.blacklist,
-        hits=settings.hits,
-        id_key=settings.id_key,
-        lowercase=settings.lowercase,
-        media_type=settings.media_type,
-        movie_format=settings.movie_format,
-        nocache=settings.nocache,
-        replacements=settings.replacements,
-        scene=settings.scene,
-        television_format=settings.television_format,
-        extensions=settings.extensions,
-        recurse=settings.recurse,
-        media_mask=settings.media_mask,
-        api_key_omdb=settings.api_key_omdb,
-        api_key_tmdb=settings.api_key_tmdb,
-        api_key_tvdb=settings.api_key_tvdb,
-    )
+    targets = Target.populate_paths(settings)
     tty = Tty(
         batch=settings.batch,
         hits=settings.hits,

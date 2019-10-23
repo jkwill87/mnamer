@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, SUPPRESS
-from typing import Any, Dict, List, Set, get_type_hints
+from typing import Any, Dict, List, Optional, Set, get_type_hints
 
 from mnamer.argument import Argument
 from mnamer.utils import crawl_out, json_dumps, json_read
@@ -11,7 +11,10 @@ EPILOG = "Visit https://github.com/jkwill87/mnamer for more information."
 
 
 class Settings:
-    def __init__(self):
+    config_file: Optional[str]
+    file_paths: List[str]
+
+    def __init__(self, load_args: bool = True, load_config: bool = True):
         self._dict = {}
         self._parser = ArgumentParser(
             prog="mnamer",
@@ -21,10 +24,17 @@ class Settings:
             argument_default=SUPPRESS,
         )
         self.config_file = None
+        self.file_paths = []
+        if load_args and load_config:
+            self._load_all()
+        elif load_args:
+            self._load_args()
+        elif load_config:
+            self._load_config()
 
     def __setattr__(self, key, value):
-        # skip private attributes, e.g. self._dict
-        if key in ("_dict", "_parser", "config_file"):
+        # skip private attributes
+        if key in ("_dict", "_parser", "config_file", "file_paths"):
             super().__setattr__(key, value)
             return
         # verify attribute is for one of the defined properties
@@ -124,14 +134,13 @@ DIRECTIVES:
         self.config_file = crawl_out(".mnamer.json")
         return json_read(self.config_file) if self.config_file else {}
 
-    def load(self) -> List[str]:
+    def _load_all(self):
         overrides = self._load_args()
         if "config_ignore" not in overrides:
             overrides = {**overrides, **self._load_config()}
-        targets = overrides.pop("targets")
+        self.file_paths = overrides.pop("targets")
         for k, v in overrides.items():
             setattr(self, k, v)
-        return targets
 
     # General Options ----------------------------------------------------------
 

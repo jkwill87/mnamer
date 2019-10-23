@@ -1,7 +1,7 @@
 from os import makedirs
 from os.path import isdir, join, split
 from shutil import move
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, Optional, Set
 
 from guessit import guessit
 from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
@@ -10,6 +10,7 @@ from mapi.utils import year_parse
 
 from mnamer.exceptions import MnamerException
 from mnamer.path import Path
+from mnamer.settings import Settings
 from mnamer.utils import (
     crawl_in,
     file_extension,
@@ -29,36 +30,20 @@ class Target:
 
     _providers: Dict[str, Provider] = {}
 
-    def __init__(
-        self,
-        path: str,
-        *,
-        hits: int,
-        id_key: str,
-        lowercase: bool,
-        media_type: str,
-        movie_format: str,
-        nocache: bool,
-        replacements: Dict[str, str],
-        scene: bool,
-        television_format: str,
-        **api_keys,
-    ):
-        args = locals()
+    def __init__(self, path: str, settings: Settings):
         self.source: Path = Path.parse(path)
-
-        self.metadata: Metadata = self.parse(path, media_type)
-        media: str = self.metadata.get("media", "unknown")
-        self.api: str = api_keys.get(media + "_api", "")
-        self.api_key: str = args.get("api_key_" + self.api, "")
-        self.directory: Optional[str] = args.get(media + "_directory")
-        self.formatting: str = args.get(media + "_format")
-        self.hits: Optional[int] = hits
-        self.id_key: str = id_key
-        self.cache: bool = nocache
-        self.replacements: Dict[str, str] = replacements
-        self.scene: bool = scene
-        self.lowercase: bool = lowercase
+        self.metadata: Metadata = self.parse(path, settings.media_type)
+        media = self.metadata["media"]
+        self.api: str = getattr(settings, f"{media}_api")
+        self.api_key: str = getattr(settings, f"api_key_{self.api}")
+        self.directory: Optional[str] = getattr(settings, f"{media}_directory")
+        self.formatting: str = getattr(settings, f"{media}_format")
+        self.hits: Optional[int] = settings.hits
+        self.id_key: str = settings.id_key
+        self.cache: bool = settings.nocache
+        self.replacements: Dict[str, str] = settings.replacements
+        self.scene: bool = settings.scene
+        self.lowercase: bool = settings.lowercase
         self._has_moved: bool = False
         self._has_renamed: bool = False
 
@@ -99,50 +84,17 @@ class Target:
         return Path.parse(destination)
 
     @classmethod
-    def populate_paths(
-        cls,
-        paths: List[str],
-        *,
-        blacklist: List[str],
-        extensions: List[str],
-        hits: int,
-        id_key: str,
-        lowercase: bool,
-        media_mask: str,
-        media_type: str,
-        movie_format: str,
-        nocache: bool,
-        recurse: bool,
-        replacements: Dict[str, str],
-        scene: bool,
-        television_format: str,
-        **api_keys,
-    ) -> Set["Target"]:
+    def populate_paths(cls, settings: Settings) -> Set["Target"]:
         """Creates a list of Target objects for media files found in paths."""
-        paths = crawl_in(paths, recurse)
-        paths = filter_blacklist(paths, blacklist)
-        paths = filter_extensions(paths, extensions)
-        targets = {
-            cls(
-                path,
-                hits=hits,
-                id_key=id_key,
-                lowercase=lowercase,
-                media_type=media_type,
-                movie_format=movie_format,
-                nocache=nocache,
-                replacements=replacements,
-                scene=scene,
-                television_format=television_format,
-                **api_keys,
-            )
-            for path in paths
-        }
-        if media_mask:
+        paths = crawl_in(settings.file_paths, settings.recurse)
+        paths = filter_blacklist(paths, settings.blacklist)
+        paths = filter_extensions(paths, settings.extensions)
+        targets = {cls(path, settings) for path in paths}
+        if settings.media_mask:
             targets = {
                 target
                 for target in targets
-                if target.metadata["media"] == media_mask
+                if target.metadata["media"] == settings.media_mask
             }
         return targets
 
