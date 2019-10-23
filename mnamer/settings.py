@@ -11,8 +11,10 @@ EPILOG = "Visit https://github.com/jkwill87/mnamer for more information."
 
 
 class Settings:
-    config_file: Optional[str]
-    file_paths: List[str]
+    config: Dict[str, Any]
+    args: Dict[str, Any]
+    config_path: Optional[str] = crawl_out(".mnamer.json")
+    file_paths: Set[str]
 
     def __init__(self, load_args: bool = True, load_config: bool = True):
         self._dict = {}
@@ -23,18 +25,17 @@ class Settings:
             usage=USAGE,
             argument_default=SUPPRESS,
         )
-        self.config_file = None
-        self.file_paths = []
-        if load_args and load_config:
-            self._load_all()
-        elif load_args:
-            self._load_args()
-        elif load_config:
-            self._load_config()
+        self.config = self._load_config()
+        self.args = self._load_args()
+        self.file_paths = set(self.args.pop("targets"))
+        if load_config and not (load_args and self.args.get("config_ignore")):
+            self._bulk_apply(self.config)
+        if load_args:
+            self._bulk_apply(self.args)
 
     def __setattr__(self, key, value):
         # skip private attributes
-        if key in ("_dict", "_parser", "config_file", "file_paths"):
+        if key not in self.fields():
             super().__setattr__(key, value)
             return
         # verify attribute is for one of the defined properties
@@ -112,6 +113,10 @@ DIRECTIVES:
 {EPILOG}
 """
 
+    def _bulk_apply(self, d: Dict[str, Any]):
+        for k, v in d.items():
+            setattr(self, k, v)
+
     def _load_args(self) -> Dict[str, Any]:
         self._parser.add_argument("targets", nargs="*", default=[])
         for field in self.fields():
@@ -131,16 +136,8 @@ DIRECTIVES:
         return vars(self._parser.parse_args())
 
     def _load_config(self) -> Dict[str, Any]:
-        self.config_file = crawl_out(".mnamer.json")
-        return json_read(self.config_file) if self.config_file else {}
-
-    def _load_all(self):
-        overrides = self._load_args()
-        if "config_ignore" not in overrides:
-            overrides = {**overrides, **self._load_config()}
-        self.file_paths = overrides.pop("targets")
-        for k, v in overrides.items():
-            setattr(self, k, v)
+        self.config_path = crawl_out(".mnamer.json")
+        return json_read(self.config_path) if self.config_path else {}
 
     # General Options ----------------------------------------------------------
 

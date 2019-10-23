@@ -38,9 +38,9 @@ def main():
         tty.p(f"cache cleared", style=NoticeLevel.ALERT)
 
     # Print configuration details
-    if settings.config_file:
+    if settings.config_path:
         tty.p(
-            f"loaded config from {settings.config_file}",
+            f"loaded config from {settings.config_path}",
             style=NoticeLevel.ALERT,
         )
     tty.p("\nSettings", LogLevel.VERBOSE, NoticeLevel.NOTICE)
