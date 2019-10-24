@@ -1,13 +1,11 @@
-from argparse import ArgumentParser, SUPPRESS
-from typing import Any, Dict, List, Optional, Set, get_type_hints
+from os import path
+from typing import Any, Dict, Optional, Set, get_type_hints
 
-from mnamer.argument import Argument
+from mnamer.argument import ArgumentParser
+from mnamer.exceptions import MnamerSettingsException
 from mnamer.utils import crawl_out, json_dumps, json_read
 
 __all__ = ["Settings"]
-
-USAGE = "mnamer target [targets ...] [preferences] [directives]"
-EPILOG = "Visit https://github.com/jkwill87/mnamer for more information."
 
 
 class Settings:
@@ -18,13 +16,7 @@ class Settings:
 
     def __init__(self, load_args: bool = True, load_config: bool = True):
         self._dict = {}
-        self._parser = ArgumentParser(
-            prog="mnamer",
-            add_help=False,
-            epilog=EPILOG,
-            usage=USAGE,
-            argument_default=SUPPRESS,
-        )
+        self._parser = ArgumentParser()
         self.config = self._load_config()
         self.args = self._load_args()
         self.file_paths = set(self.args.pop("targets"))
@@ -41,11 +33,18 @@ class Settings:
         # verify attribute is for one of the defined properties
         fields = self.fields()
         if key not in fields:
-            raise KeyError(f"'{key}' is not a valid field")
+            raise MnamerSettingsException(f"'{key}' is not a valid field")
         # verify value type matches property type annotation
         expected_type = self._type_for(key)
         if not isinstance(value, expected_type):
-            raise ValueError(f"'{key}' not of type {expected_type}")
+            raise MnamerSettingsException(
+                f"'{key}' not of type {expected_type}"
+            )
+        # ensure directory exists
+        if key.endswith("_directory") and not path.isdir(value):
+            raise MnamerSettingsException(
+                f"mnamer: error: {key} '{value}' cannot be found"
+            )
         self._dict[key] = value
 
     def as_json(self):
@@ -95,22 +94,22 @@ class Settings:
             sorted([" " * 4 + cls._doc_for(p) for p in cls.directives()])
         ).strip()
         return f"""
-USAGE: {USAGE}
+USAGE: {ArgumentParser.USAGE}
 
 PARAMETERS:
     The following flags can be used to customize mnamer's behaviour. Their long
     forms may also be set in a '.mnamer.json' config file, in which case cli
     arguments will take precedence.
 
-    {param_lines}    
+    {param_lines}
 
 DIRECTIVES:
     Directives are one-off arguments that are used to perform secondary tasks
     like overriding media detection. They can't be used in '.mnamer.json'.
-    
+
     {directive_lines}
-    
-{EPILOG}
+
+{ArgumentParser.EPILOG}
 """
 
     def _bulk_apply(self, d: Dict[str, Any]):
@@ -124,15 +123,7 @@ DIRECTIVES:
             if not documentation:
                 continue
             rtype = self._type_for(field)
-            argument = Argument(documentation, rtype)
-            kwargs = {}
-            if argument.action:
-                kwargs["action"] = argument.action
-            if argument.choices:
-                kwargs["choices"] = argument.choices
-            if argument.nargs:
-                kwargs["nargs"] = argument.nargs
-            self._parser.add_argument(*argument.flags, **kwargs)
+            self._parser.add_spec(documentation, rtype)
         return vars(self._parser.parse_args())
 
     def _load_config(self) -> Dict[str, Any]:

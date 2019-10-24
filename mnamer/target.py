@@ -68,19 +68,19 @@ class Target:
         else:
             dir_head = self.source.directory
         if self.formatting:
-            path = format(self.metadata, self.formatting)
+            file_path = format(self.metadata, self.formatting)
             if self.replacements:
-                path = filename_replace(path, self.replacements)
-            path = filename_sanitize(path)
+                file_path = filename_replace(file_path, self.replacements)
+            file_path = filename_sanitize(file_path)
         else:
-            path = f"{self.source.filename}.{self.source.extension}"
-        dir_tail, filename = split(path)
-        directory = join(dir_head, dir_tail)
+            file_path = f"{self.source.filename}.{self.source.extension}"
+        dir_tail, filename = path.split(file_path)
+        directory = path.join(dir_head, dir_tail)
         if self.scene:
             filename = filename_scenify(filename)
         if self.lowercase:
             filename = filename.lower()
-        destination = join(directory, filename)
+        destination = path.join(directory, filename)
         return Path.parse(destination)
 
     @classmethod
@@ -193,6 +193,6 @@ class Target:
     def relocate(self):
         """Performs the action of renaming and/or moving a file."""
         destination = self.destination
-        if not isdir(destination.directory):
+        if not path.isdir(destination.directory):
             makedirs(destination.directory)
-        move(self.source.full, join(destination.full))
+        move(self.source.full, path.join(destination.full))

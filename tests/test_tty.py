@@ -1,6 +1,6 @@
 import pytest
 
-from mnamer.tty import NoticeLevel, Tty, LogLevel
+from mnamer.tty import LogLevel, NoticeLevel, Tty
 from tests import IS_WINDOWS
 
 
