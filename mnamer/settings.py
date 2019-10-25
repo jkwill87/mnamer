@@ -58,10 +58,9 @@ class Settings:
     @classmethod
     def directives(cls) -> Set[str]:
         return {
-            "help",
             "config_dump",
             "config_ignore",
-            "id_key",
+            "id",
             "media_mask",
             "media_type",
             "test",
@@ -81,40 +80,10 @@ class Settings:
     def _doc_for(cls, field) -> str:
         return getattr(cls, field).fget.__doc__ or ""
 
-    @classmethod
-    def help_msg(cls):
-        param_lines = (
-            "\n".join(
-                sorted([" " * 4 + cls._doc_for(p) for p in cls.parameters()])
-            )
-            .strip()
-            .replace("\n\n", "\n")
-        )
-        directive_lines = "\n".join(
-            sorted([" " * 4 + cls._doc_for(p) for p in cls.directives()])
-        ).strip()
-        return f"""
-USAGE: {ArgumentParser.USAGE}
-
-PARAMETERS:
-    The following flags can be used to customize mnamer's behaviour. Their long
-    forms may also be set in a '.mnamer.json' config file, in which case cli
-    arguments will take precedence.
-
-    {param_lines}
-
-DIRECTIVES:
-    Directives are one-off arguments that are used to perform secondary tasks
-    like overriding media detection. They can't be used in '.mnamer.json'.
-
-    {directive_lines}
-
-{ArgumentParser.EPILOG}
-"""
-
     def _bulk_apply(self, d: Dict[str, Any]):
         for k, v in d.items():
-            setattr(self, k, v)
+            if v not in (None, ""):
+                setattr(self, k, v)
 
     def _load_args(self) -> Dict[str, Any]:
         self._parser.add_argument("targets", nargs="*", default=[])
@@ -123,7 +92,10 @@ DIRECTIVES:
             if not documentation:
                 continue
             rtype = self._type_for(field)
-            self._parser.add_spec(documentation, rtype)
+            if field in self.directives():
+                self._parser.add_directive(documentation, rtype)
+            else:
+                self._parser.add_parameter(documentation, rtype)
         return vars(self._parser.parse_args())
 
     def _load_config(self) -> Dict[str, Any]:
@@ -164,7 +136,7 @@ DIRECTIVES:
 
     @property
     def noguess(self) -> bool:
-        """--noguess: disable best guess; e.g. when no matches, network down"""
+        """--noguess: disable best guess; e.g. no matches or network down"""
         return self._dict.get("noguess", False)
 
     @property
@@ -233,11 +205,11 @@ DIRECTIVES:
 
     @property
     def api_key_tvdb(self) -> str:
-        return self._dict.get("api_key_tmdb", "E69C7A2CEF2F3152")
+        return self._dict.get("api_key_tvdb", "E69C7A2CEF2F3152")
 
     @property
     def api_key_omdb(self) -> str:
-        return self._dict.get("api_key_tmdb", "61652c15")
+        return self._dict.get("api_key_omdb", "61652c15")
 
     @property
     def replacements(self) -> dict:
@@ -246,11 +218,6 @@ DIRECTIVES:
         )
 
     # Directives ---------------------------------------------------------------
-
-    @property
-    def help(self) -> bool:
-        """--help: prints this message then exits"""
-        return self._dict.get("help", False)
 
     @property
     def config_dump(self) -> bool:
@@ -263,9 +230,9 @@ DIRECTIVES:
         return self._dict.get("config_ignore", False)
 
     @property
-    def id_key(self) -> str:
-        """--id_key=<id>: explicitly specifies a movie or series id"""
-        return self._dict.get("id_key", "")
+    def id(self) -> str:
+        """--id=<id>: explicitly specifies a movie or series id"""
+        return self._dict.get("id", "")
 
     @property
     def media_mask(self) -> str:

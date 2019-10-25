@@ -16,6 +16,6 @@ class MnamerAbortException(MnamerException):
     """
 
 
-class MnamerConfigException(MnamerException):
+class MnamerSettingsException(MnamerException):
     """Raised when an error has occurred either loading or saving a config file
     """

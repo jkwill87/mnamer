@@ -24,10 +24,7 @@ def main():
     )
 
     # Handle directives and configuration
-    if settings.help:
-        print(settings.help_msg(), end="")
-        exit(0)
-    elif settings.version:
+    if settings.version:
         tty.p(f"mnamer version {VERSION}")
         exit(0)
     elif settings.config_dump:
@@ -40,14 +37,15 @@ def main():
     # Print configuration details
     if settings.config_path:
         tty.p(
-            f"loaded config from {settings.config_path}",
+            f"loaded config from {settings.config_path}\n",
             style=NoticeLevel.ALERT,
         )
-    tty.p("\nSettings", LogLevel.VERBOSE, NoticeLevel.NOTICE)
+    tty.p("Settings:", LogLevel.VERBOSE, NoticeLevel.NOTICE)
     tty.ul(settings._dict, LogLevel.VERBOSE)
-    tty.p("\nTargets", LogLevel.VERBOSE, NoticeLevel.NOTICE)
+    tty.p(f"{'╰'+'─' * 79}\n", LogLevel.VERBOSE, NoticeLevel.ALERT)
+    tty.p("Targets:", LogLevel.VERBOSE, NoticeLevel.NOTICE)
     tty.ul(targets, LogLevel.VERBOSE)
-    tty.p(f"\n{'-' * 80}\n", LogLevel.VERBOSE, NoticeLevel.ALERT)
+    tty.p(f"{'╰'+'─' * 79}\n", LogLevel.VERBOSE, NoticeLevel.ALERT)
 
     # Exit early if no media files are found
     total_count = len(targets)

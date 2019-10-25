@@ -1,5 +1,4 @@
-from os import makedirs
-from os.path import isdir, join, split
+from os import makedirs, path
 from shutil import move
 from typing import Any, Dict, Optional, Set
 
@@ -39,7 +38,7 @@ class Target:
         self.directory: Optional[str] = getattr(settings, f"{media}_directory")
         self.formatting: str = getattr(settings, f"{media}_format")
         self.hits: Optional[int] = settings.hits
-        self.id_key: str = settings.id_key
+        self.id: str = settings.id
         self.cache: bool = settings.nocache
         self.replacements: Dict[str, str] = settings.replacements
         self.scene: bool = settings.scene
@@ -184,7 +183,7 @@ class Target:
         else:
             provider = Target._providers[media]
         hit = 0
-        for result in provider.search(self.id_key, **self.metadata):
+        for result in provider.search(self.id, **self.metadata):
             if self.hits and self.hits == hit:
                 break
             hit += 1
