@@ -29,9 +29,9 @@ class Target:
 
     _providers: Dict[str, Provider] = {}
 
-    def __init__(self, path: str, settings: Settings):
-        self.source: Path = Path.parse(path)
-        self.metadata: Metadata = self.parse(path, settings.media_type)
+    def __init__(self, file_path: str, settings: Settings):
+        self.source: Path = Path.parse(file_path)
+        self.metadata: Metadata = self.parse(file_path, settings.media_type)
         media = self.metadata["media"]
         self.api: str = getattr(settings, f"{media}_api")
         self.api_key: str = getattr(settings, f"api_key_{self.api}")
@@ -85,10 +85,10 @@ class Target:
     @classmethod
     def populate_paths(cls, settings: Settings) -> Set["Target"]:
         """Creates a list of Target objects for media files found in paths."""
-        paths = crawl_in(settings.file_paths, settings.recurse)
-        paths = filter_blacklist(paths, settings.blacklist)
-        paths = filter_extensions(paths, settings.extensions)
-        targets = {cls(path, settings) for path in paths}
+        file_paths = crawl_in(settings.file_paths, settings.recurse)
+        file_paths = filter_blacklist(file_paths, settings.blacklist)
+        file_paths = filter_extensions(file_paths, settings.extensions)
+        targets = {cls(file_path, settings) for file_path in file_paths}
         if settings.media_mask:
             targets = {
                 target
@@ -98,7 +98,7 @@ class Target:
         return targets
 
     @staticmethod
-    def parse(path: str, media: str) -> Metadata:
+    def parse(file_path: str, media: str) -> Metadata:
         """Uses guessit to parse metadata from a filename."""
         country_codes = {"AU", "RUS", "UK", "US", "USA"}
         media = {
@@ -106,8 +106,8 @@ class Target:
             "tv": "episode",
             "movie": "movie",
         }.get(media)
-        data = dict(guessit(path, {"type": media}))
-        media_type = data.get("type") if path else "unknown"
+        data = dict(guessit(file_path, {"type": media}))
+        media_type = data.get("type") if file_path else "unknown"
 
         # Parse movie metadata
         if media_type == "movie":
@@ -167,7 +167,7 @@ class Target:
                 meta["series"] += " (%s)" % release_group.upper()
             else:
                 meta["group"] = data["release_group"]
-        meta["extension"] = file_extension(path)
+        meta["extension"] = file_extension(file_path)
         return meta
 
     def query(self) -> Metadata:

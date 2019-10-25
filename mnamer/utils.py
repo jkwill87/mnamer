@@ -1,20 +1,10 @@
 """A collection of utility functions non-specific to mnamer's domain logic."""
 
 import json
-from os import environ, getcwd, walk
-from os.path import (
-    basename,
-    exists,
-    expanduser,
-    isfile,
-    join,
-    realpath,
-    splitext,
-)
+from os import environ, getcwd, path, walk
 from re import IGNORECASE, search, sub
 from string import Template
 from typing import Any, Collection, Dict, Optional, Union
-
 from unicodedata import normalize
 
 __all__ = [
@@ -34,21 +24,21 @@ __all__ = [
 ]
 
 
-def crawl_in(paths: Union[Collection[str], str] = ".", recurse: bool = False):
+def crawl_in(file_paths: Union[Collection[str], str], recurse: bool = False):
     """Looks for files amongst or within paths provided."""
-    if not isinstance(paths, (list, tuple, set)):
-        paths = [paths]
+    if not isinstance(file_paths, (list, tuple, set)):
+        file_paths = [file_paths]
     found_files = set()
-    for path in paths:
-        path = realpath(path)
-        if not exists(path):
+    for file_path in file_paths:
+        file_path = path.realpath(file_path)
+        if not path.exists(file_path):
             continue
-        if isfile(path):
-            found_files.add(path)
+        if path.isfile(file_path):
+            found_files.add(file_path)
             continue
-        for root, _dirs, files in walk(path):
+        for root, _dirs, files in walk(file_path):
             for file in files:
-                found_files.add(join(root, file))
+                found_files.add(path.join(root, file))
             if not recurse:
                 break
     return found_files
@@ -58,15 +48,15 @@ def crawl_out(filename: str):
     """Looks for a file in the home directory and each directory up from cwd."""
     working_dir = getcwd()
     while True:
-        parent_dir = realpath(join(working_dir, ".."))
+        parent_dir = path.realpath(path.join(working_dir, ".."))
         if parent_dir == working_dir:  # e.g. fs root or error
             break
-        target = join(working_dir, filename)
-        if isfile(target):
+        target = path.join(working_dir, filename)
+        if path.isfile(target):
             return target
         working_dir = parent_dir
-    target = join(expanduser("~"), filename)
-    return target if isfile(target) else None
+    target = path.join(path.expanduser("~"), filename)
+    return target if path.isfile(target) else None
 
 
 def dict_merge(d1: Dict[Any, Any], *dn: Dict[Any, Any]):
@@ -77,19 +67,19 @@ def dict_merge(d1: Dict[Any, Any], *dn: Dict[Any, Any]):
     return res
 
 
-def file_extension(path: str):
+def file_extension(file_path: str):
     """Gets the extension for a path; period omitted."""
-    return splitext(path)[1].lstrip(".")
+    return path.splitext(file_path)[1].lstrip(".")
 
 
-def file_stem(path: str):
+def file_stem(file_path: str):
     """Gets the filename for a path with any extension removed."""
-    return splitext(basename(path))[0]
+    return path.splitext(path.basename(file_path))[0]
 
 
 def filename_replace(filename: str, replacements: Dict[str, str]):
     """Replaces keys in replacements dict with their values."""
-    base, ext = splitext(filename)
+    base, ext = path.splitext(filename)
     for word, replacement in replacements.items():
         if word in filename:
             base = sub(r"%s\b" % word, replacement, base, flags=IGNORECASE)
@@ -98,7 +88,7 @@ def filename_replace(filename: str, replacements: Dict[str, str]):
 
 def filename_sanitize(filename: str):
     """Removes illegal filename characters and condenses whitespace."""
-    base, ext = splitext(filename)
+    base, ext = path.splitext(filename)
     base = sub(r"\s+", " ", base)
     base = sub(r'[<>:"|?*&%=+@#`^]', "", base)
     return base.strip("-., ") + ext
@@ -133,21 +123,25 @@ def filter_blacklist(
 
 
 def filter_extensions(
-    paths: Union[Collection[str], str],
+    file_paths: Union[Collection[str], str],
     valid_extensions: Optional[Union[Collection[str], str]],
 ):
     """Filters (set intersection) a collection of extensions."""
     if not valid_extensions:
-        return paths
+        return file_paths
     if isinstance(valid_extensions, str):
         valid_extensions = (valid_extensions,)
-    if isinstance(paths, str):
-        paths = (paths,)
+    if isinstance(file_paths, str):
+        file_paths = (file_paths,)
     valid_extensions = {e.lstrip(".") for e in valid_extensions}
-    return {path for path in paths if file_extension(path) in valid_extensions}
+    return {
+        file_path
+        for file_path in file_paths
+        if file_extension(file_path) in valid_extensions
+    }
 
 
-def json_dumps(d: Dict[str, Any]):
+def json_dumps(d: Dict[str, Any]) -> Dict[str, Any]:
     """A wrapper for json.dumps."""
     return json.dumps(
         d,
@@ -160,10 +154,10 @@ def json_dumps(d: Dict[str, Any]):
     )
 
 
-def json_read(path: str, skip_nil: bool = True) -> Dict[str, Any]:
+def json_read(file_path: str, skip_nil: bool = True) -> Dict[str, Any]:
     """Reads a JSON file from disk."""
     try:
-        templated_path = Template(path).substitute(environ)
+        templated_path = Template(file_path).substitute(environ)
         with open(templated_path, mode="r") as file_pointer:
             data = json.load(file_pointer)
     except IOError as e:
@@ -173,9 +167,9 @@ def json_read(path: str, skip_nil: bool = True) -> Dict[str, Any]:
     return {k: v for k, v in data.items() if not (v is None and skip_nil)}
 
 
-def json_write(path: str, obj: Any):
+def json_write(file_path: str, obj: Any):
     """Writes a JSON file to disk."""
-    templated_path = Template(path).substitute(environ)
+    templated_path = Template(file_path).substitute(environ)
     try:
         json_data = json.dumps(obj)
         open(templated_path, mode="w").write(json_data)

@@ -1,5 +1,5 @@
 from os import path
-from typing import Any, Dict, Optional, Set, get_type_hints
+from typing import Any, Dict, Optional, Set, Union, get_type_hints
 
 from mnamer.argument import ArgumentParser
 from mnamer.exceptions import MnamerSettingsException
@@ -25,7 +25,7 @@ class Settings:
         if load_args:
             self._bulk_apply(self.args)
 
-    def __setattr__(self, key, value):
+    def __setattr__(self, key: str, value: Union[str, int, bool]):
         # skip private attributes
         if key not in self.fields():
             super().__setattr__(key, value)
