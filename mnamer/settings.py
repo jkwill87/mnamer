@@ -3,27 +3,30 @@ from typing import Any, Dict, Optional, Set, Union, get_type_hints
 
 from mnamer.argument import ArgumentParser
 from mnamer.exceptions import MnamerSettingsException
+from mnamer.log import LogLevel
 from mnamer.utils import crawl_out, json_dumps, json_read
 
 __all__ = ["Settings"]
 
 
 class Settings:
-    config: Dict[str, Any]
-    args: Dict[str, Any]
+    configuration: Dict[str, Any]
+    arguments: Dict[str, Any]
     config_path: Optional[str] = crawl_out(".mnamer.json")
     file_paths: Set[str]
 
     def __init__(self, load_args: bool = True, load_config: bool = True):
         self._dict = {}
         self._parser = ArgumentParser()
-        self.config = self._load_config()
-        self.args = self._load_args()
-        self.file_paths = set(self.args.pop("targets"))
-        if load_config and not (load_args and self.args.get("config_ignore")):
-            self._bulk_apply(self.config)
+        self.configuration = self._load_config()
+        self.arguments = self._load_args()
+        self.file_paths = set(self.arguments.pop("targets"))
+        if load_config and not (
+            load_args and self.arguments.get("config_ignore")
+        ):
+            self._bulk_apply(self.configuration)
         if load_args:
-            self._bulk_apply(self.args)
+            self._bulk_apply(self.arguments)
 
     def __setattr__(self, key: str, value: Union[str, int, bool]):
         # skip private attributes
@@ -82,8 +85,9 @@ class Settings:
 
     def _bulk_apply(self, d: Dict[str, Any]):
         for k, v in d.items():
-            if v not in (None, ""):
-                setattr(self, k, v)
+            if k == "verbose":
+                v = LogLevel(v)
+            setattr(self, k, v)
 
     def _load_args(self) -> Dict[str, Any]:
         self._parser.add_argument("targets", nargs="*", default=[])
@@ -100,7 +104,10 @@ class Settings:
 
     def _load_config(self) -> Dict[str, Any]:
         self.config_path = crawl_out(".mnamer.json")
-        return json_read(self.config_path) if self.config_path else {}
+        try:
+            return json_read(self.config_path) if self.config_path else {}
+        except RuntimeError:
+            raise MnamerSettingsException("invalid JSON")
 
     # General Options ----------------------------------------------------------
 
@@ -125,9 +132,10 @@ class Settings:
         return self._dict.get("scene", False)
 
     @property
-    def verbose(self) -> int:
-        """-v+, --verbose: increase output verbosity"""
-        return self._dict.get("verbose", 0)
+    def verbose(self) -> LogLevel:
+        """-v, --verbose: increase output verbosity"""
+        level = self._dict.get("verbose", 0)
+        return LogLevel(level)
 
     @property
     def nocache(self) -> bool:
@@ -188,12 +196,12 @@ class Settings:
     @property
     def television_directory(self) -> str:
         """--television-directory=<path>: set television relocation directory"""
-        return self._dict.get("movie_directory", "")
+        return self._dict.get("television_directory", "")
 
     @property
     def television_format(self) -> str:
         """--television-format=<format>: set television renaming format spec"""
-        return self._dict.get("movie_format", "")
+        return self._dict.get("television_format", "")
 
     # Non-CLI preferences ------------------------------------------------------
 

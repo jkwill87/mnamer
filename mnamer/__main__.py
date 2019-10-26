@@ -3,25 +3,29 @@
 from mapi.utils import clear_cache
 
 from mnamer.__version__ import VERSION
-from mnamer.exceptions import MnamerAbortException, MnamerSkipException
+from mnamer.exceptions import (
+    MnamerAbortException,
+    MnamerException,
+    MnamerSettingsException,
+    MnamerSkipException,
+)
+from mnamer.log import LogLevel
 from mnamer.settings import Settings
 from mnamer.target import Target
-from mnamer.tty import LogLevel, NoticeLevel, Tty
+from mnamer.tty import NoticeLevel, Tty
 
 __all__ = ["main"]
 
 
 def main():
     # Setup arguments and load runtime configuration
-    settings = Settings()
+    try:
+        settings = Settings()
+    except MnamerSettingsException as e:
+        print(e)
+        exit(1)
     targets = Target.populate_paths(settings)
-    tty = Tty(
-        batch=settings.batch,
-        hits=settings.hits,
-        noguess=settings.noguess,
-        nostyle=settings.nostyle,
-        verbose=LogLevel(settings.verbose),
-    )
+    tty = Tty(settings)
 
     # Handle directives and configuration
     if settings.version:
@@ -40,12 +44,13 @@ def main():
             f"loaded config from {settings.config_path}\n",
             style=NoticeLevel.ALERT,
         )
-    tty.p("Settings:", LogLevel.VERBOSE, NoticeLevel.NOTICE)
+    tty.p(f"{'- ' * 40}\n", LogLevel.VERBOSE, NoticeLevel.ALERT)
+    tty.p("Settings", LogLevel.VERBOSE, NoticeLevel.NOTICE)
     tty.ul(settings._dict, LogLevel.VERBOSE)
-    tty.p(f"{'╰'+'─' * 79}\n", LogLevel.VERBOSE, NoticeLevel.ALERT)
-    tty.p("Targets:", LogLevel.VERBOSE, NoticeLevel.NOTICE)
+    tty.p(f"\n{'- ' * 40}\n", LogLevel.VERBOSE, NoticeLevel.ALERT)
+    tty.p("Targets", LogLevel.VERBOSE, NoticeLevel.NOTICE)
     tty.ul(targets, LogLevel.VERBOSE)
-    tty.p(f"{'╰'+'─' * 79}\n", LogLevel.VERBOSE, NoticeLevel.ALERT)
+    tty.p(f"\n{'- ' * 40}\n", LogLevel.VERBOSE, NoticeLevel.ALERT)
 
     # Exit early if no media files are found
     total_count = len(targets)
@@ -67,7 +72,7 @@ def main():
         tty.p(f'\nProcessing {media} "{filename}"', style=NoticeLevel.NOTICE)
 
         # List details
-        tty.ul(target.metadata, LogLevel.DEBUG)
+        tty.ul(target.metadata, LogLevel.VERBOSE)
 
         # Update metadata
         try:
@@ -80,12 +85,15 @@ def main():
         tty.p(f"moving to {target.destination.full}")
 
         # Do rename
-        if not settings.test:
+        if settings.test:
+            continue
+        try:
             target.relocate()
-
-        # Done!
-        tty.p("OK!", style=NoticeLevel.SUCCESS)
-        success_count += 1
+        except MnamerException:
+            tty.p("FAILED!", style=NoticeLevel.ERROR)
+        else:
+            tty.p("OK!", style=NoticeLevel.SUCCESS)
+            success_count += 1
 
     # Report result summary
     if success_count == 0:

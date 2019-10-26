@@ -1,6 +1,8 @@
 import argparse
 import re
 
+from mnamer.log import LogLevel
+
 __all__ = ["ArgumentParser"]
 
 
@@ -30,7 +32,7 @@ class ArgumentParser(argparse.ArgumentParser):
         lhs = documentation.split(": ")[0]
         # action
         action = None
-        if "+" in lhs:
+        if rtype is LogLevel:
             action = "count"
         elif rtype is bool:
             action = "store_true"
@@ -64,7 +66,7 @@ class ArgumentParser(argparse.ArgumentParser):
         if nargs:
             kwargs["nargs"] = nargs
         if type_:
-            kwargs["type"] = type
+            kwargs["type"] = type_
         return args, kwargs
 
     def format_help(self):

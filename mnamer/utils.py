@@ -144,7 +144,7 @@ def filter_extensions(
 def json_dumps(d: Dict[str, Any]) -> Dict[str, Any]:
     """A wrapper for json.dumps."""
     return json.dumps(
-        d,
+        {k: getattr(v, "value", v) for k, v in d.items()},
         allow_nan=False,
         check_circular=True,
         ensure_ascii=True,
@@ -154,17 +154,20 @@ def json_dumps(d: Dict[str, Any]) -> Dict[str, Any]:
     )
 
 
-def json_read(file_path: str, skip_nil: bool = True) -> Dict[str, Any]:
+def json_read(file_path: str) -> Dict[str, Any]:
     """Reads a JSON file from disk."""
     try:
         templated_path = Template(file_path).substitute(environ)
         with open(templated_path, mode="r") as file_pointer:
-            data = json.load(file_pointer)
+            contents = file_pointer.read()
+            if contents:
+                return {k: v for k, v in json.loads(contents).items() if v}
+            else:
+                return {}
     except IOError as e:
         raise RuntimeError(str(e.strerror).lower())
     except (TypeError, ValueError):
         raise RuntimeError("invalid JSON")
-    return {k: v for k, v in data.items() if not (v is None and skip_nil)}
 
 
 def json_write(file_path: str, obj: Any):

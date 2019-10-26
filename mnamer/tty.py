@@ -1,7 +1,6 @@
 import logging
 from collections.abc import Mapping
 from enum import Enum
-from functools import total_ordering
 from itertools import chain, islice
 from typing import Any, Collection, Dict, Optional, Union
 
@@ -12,11 +11,13 @@ from teletype.components import ChoiceHelper, SelectOne
 from teletype.io import style_format
 
 from mnamer.exceptions import MnamerAbortException, MnamerSkipException
+from mnamer.log import LogLevel
+from mnamer.settings import Settings
 from mnamer.target import Target
 
 StyleType = Optional[Union["NoticeLevel", str, Collection[str]]]
 
-__all__ = ["LogLevel", "NoticeLevel", "Tty"]
+__all__ = ["NoticeLevel", "Tty"]
 
 
 class NoticeLevel(Enum):
@@ -27,53 +28,24 @@ class NoticeLevel(Enum):
     ERROR = "red"
 
 
-@total_ordering
-class LogLevel(Enum):
-    STANDARD = 0
-    VERBOSE = 1
-    DEBUG = 2
-
-    def __eq__(self, other: Union["LogLevel", int]):
-        return (
-            self.value == other.value if isinstance(other, LogLevel) else other
-        )
-
-    def __lt__(self, other: Union["LogLevel", int]):
-        return (
-            self.value < other.value if isinstance(other, LogLevel) else other
-        )
-
-
 class Tty:
     """Captures user input and manager cli output."""
 
-    def __init__(
-        self,
-        *,
-        batch: bool,
-        hits: int,
-        noguess: bool,
-        nostyle: bool,
-        verbose: LogLevel,
-        **_,
-    ):
-        self.batch: bool = batch
-        self.hits: int = hits
-        self.noguess: bool = noguess
-        self.nostyle: bool = nostyle
-        self.log_level: LogLevel = LogLevel(verbose or 0)
+    settings: Settings
 
+    def __init__(self, settings: Settings):
+        self.settings = settings
         mapi_log = logging.getLogger("mapi")
-        if self.log_level == LogLevel.DEBUG:
+        if self.settings.verbose == LogLevel.DEBUG:
             mapi_log.setLevel(logging.DEBUG)
-        elif self.log_level == LogLevel.VERBOSE:
+        elif self.settings.verbose == LogLevel.VERBOSE:
             mapi_log.setLevel(logging.WARNING)
         else:
             mapi_log.setLevel(logging.FATAL)
 
     @property
     def prompt_chars(self) -> Dict[str, str]:
-        if self.nostyle:
+        if self.settings.nostyle:
             prompt_chars = CHARS_ASCII.copy()
         else:
             prompt_chars = {
@@ -89,17 +61,17 @@ class Tty:
         style: StyleType = None,
     ):
         """Prints a paragraph to stdout."""
-        if self.log_level < verbosity:
+        if self.settings.verbose < verbosity:
             return
         if isinstance(style, NoticeLevel):
             style = style.value
-        if not self.nostyle and style:
+        if not self.settings.nostyle and style:
             text = style_format(text, style)
         print(text)
 
     def ul(self, listing: Any, verbosity: LogLevel = LogLevel.STANDARD):
         """Prints an unordered listing to stdout."""
-        if self.log_level < verbosity:
+        if self.settings.verbose < verbosity:
             return
         if not listing:
             listing = "None"
@@ -125,14 +97,14 @@ class Tty:
         # Query provider for options
         options = None
         try:
-            options = tuple(islice(target.query(), self.hits))
+            options = tuple(islice(target.query(), self.settings.hits))
         except MapiNotFoundException:
             self.p("No matches found", style=NoticeLevel.ALERT)
-            if self.noguess:
+            if self.settings.noguess:
                 self._choose_skip()
         except MapiNetworkException:
             self.p("Network Failure", style=NoticeLevel.ALERT)
-            if self.noguess:
+            if self.settings.noguess:
                 self._choose_skip()
         except KeyboardInterrupt:
             self.p("ABORTING", style=NoticeLevel.ERROR)
@@ -140,13 +112,13 @@ class Tty:
         # Add best guess option as fallback
         if not options:
             label = style_format(
-                "(Best Guess)", None if self.nostyle else "magenta"
+                "(Best Guess)", None if self.settings.nostyle else "magenta"
             )
             options = [
                 ChoiceHelper(target.metadata, f"{target.metadata} {label}")
             ]
         # Add skip and quit actions
-        if self.nostyle:
+        if self.settings.nostyle:
             actions = (
                 ChoiceHelper(MnamerSkipException, "skip", None, "[s]"),
                 ChoiceHelper(MnamerAbortException, "quit", None, "[q]"),
@@ -158,7 +130,7 @@ class Tty:
             )
         choices = chain(options, actions)
         # Select first choice if running using batch mode
-        if self.batch:
+        if self.settings.batch:
             choice = next(choices)
             if isinstance(choice, ChoiceHelper):
                 choice = choice.value

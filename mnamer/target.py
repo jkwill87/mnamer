@@ -194,4 +194,7 @@ class Target:
         destination = self.destination
         if not path.isdir(destination.directory):
             makedirs(destination.directory)
-        move(self.source.full, path.join(destination.full))
+        try:
+            move(self.source.full, path.join(destination.full))
+        except OSError:
+            raise MnamerException
