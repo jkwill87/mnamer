@@ -23,17 +23,17 @@ def main():
         settings = Settings()
     except MnamerSettingsException as e:
         print(e)
-        exit(1)
+        raise SystemExit(1)
     targets = Target.populate_paths(settings)
     tty = Tty(settings)
 
     # Handle directives and configuration
     if settings.version:
         tty.p(f"mnamer version {VERSION}")
-        exit(0)
+        raise SystemExit(0)
     elif settings.config_dump:
         print(settings.as_json())
-        exit(0)
+        raise SystemExit(0)
     elif settings.nocache:
         clear_cache()
         tty.p(f"cache cleared", style=NoticeLevel.ALERT)
@@ -59,7 +59,7 @@ def main():
             "No media files found. Run mnamer --help for usage information.",
             style=NoticeLevel.ALERT,
         )
-        exit(0)
+        raise SystemExit(0)
 
     # Main program loop
     tty.p("Starting mnamer", style=NoticeLevel.NOTICE)
