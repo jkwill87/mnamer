@@ -68,7 +68,7 @@ def main():
 
         # Announce file
         media = target.metadata["media"].title()
-        filename = target.source.filename
+        filename = target.source.name
         tty.p(f'\nProcessing {media} "{filename}"', style=NoticeLevel.NOTICE)
 
         # List details
@@ -82,7 +82,8 @@ def main():
             continue
         except MnamerAbortException:
             break
-        tty.p(f"moving to {target.destination.full}")
+        destination = target.destination.absolute()
+        tty.p(f"moving to {destination}")
 
         # Do rename
         if settings.test:

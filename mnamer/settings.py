@@ -1,4 +1,4 @@
-from os import path
+from pathlib import Path
 from typing import Any, Dict, Optional, Set, Union, get_type_hints
 
 from mnamer.argument import ArgumentParser
@@ -37,16 +37,21 @@ class Settings:
         fields = self.fields()
         if key not in fields:
             raise MnamerSettingsException(f"'{key}' is not a valid field")
+        # store paths as Path type
+        if key.endswith("_directory"):
+            value = Path(value).resolve()
+            # ensure path exists
+            if not value.exists():
+                raise MnamerSettingsException(
+                    f"mnamer: error: {key} '{value}' cannot be found"
+                )
+            expected_type = (Path, str)
+        else:
+            expected_type = self._type_for(key)
         # verify value type matches property type annotation
-        expected_type = self._type_for(key)
         if not isinstance(value, expected_type):
             raise MnamerSettingsException(
                 f"'{key}' not of type {expected_type}"
-            )
-        # ensure directory exists
-        if key.endswith("_directory") and not path.isdir(value):
-            raise MnamerSettingsException(
-                f"mnamer: error: {key} '{value}' cannot be found"
             )
         self._dict[key] = value
 
@@ -177,7 +182,7 @@ class Settings:
         return self._dict.get("movie_api", "tmdb")
 
     @property
-    def movie_directory(self) -> str:
+    def movie_directory(self) -> Path:
         """--movie-directory=<path>: set movie relocation directory"""
         return self._dict.get("movie_directory", "")
 
@@ -194,7 +199,7 @@ class Settings:
         return self._dict.get("television_api", "tvdb")
 
     @property
-    def television_directory(self) -> str:
+    def television_directory(self) -> Path:
         """--television-directory=<path>: set television relocation directory"""
         return self._dict.get("television_directory", "")
 

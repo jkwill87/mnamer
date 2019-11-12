@@ -11,7 +11,6 @@ __all__ = [
     "crawl_in",
     "crawl_out",
     "dict_merge",
-    "file_extension",
     "file_stem",
     "filename_replace",
     "filename_sanitize",
@@ -65,11 +64,6 @@ def dict_merge(d1: Dict[Any, Any], *dn: Dict[Any, Any]):
     for d in dn:
         res.update(d)
     return res
-
-
-def file_extension(file_path: str):
-    """Gets the extension for a path; period omitted."""
-    return path.splitext(file_path)[1].lstrip(".")
 
 
 def file_stem(file_path: str):
@@ -137,7 +131,7 @@ def filter_extensions(
     return {
         file_path
         for file_path in file_paths
-        if file_extension(file_path) in valid_extensions
+        if path.splitext(file_path)[1].lstrip(".") in valid_extensions
     }
 
 
