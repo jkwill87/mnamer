@@ -1,4 +1,5 @@
 from pathlib import Path
+from textwrap import indent
 from typing import Any, Dict, Optional, Set, Union, get_type_hints
 
 from mnamer.argument import ArgumentParser
@@ -54,6 +55,12 @@ class Settings:
                 f"'{key}' not of type {expected_type}"
             )
         self._dict[key] = value
+
+    def __repr__(self):
+        fields = [f"{k} = {v}" for k, v in self._dict.items()]
+        fields.sort()
+        body = indent(",\n".join(fields), "  - ")
+        return f"Settings:\n{body}\n"
 
     def as_json(self):
         payload = {k: getattr(self, k) for k in self.parameters()}
