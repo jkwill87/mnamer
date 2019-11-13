@@ -1,4 +1,4 @@
-from pathlib import Path
+from pathlib import PurePath
 from textwrap import indent
 from typing import Any, Dict, Optional, Set, Union, get_type_hints
 
@@ -21,13 +21,15 @@ class Settings:
         self._parser = ArgumentParser()
         self.configuration = self._load_config()
         self.arguments = self._load_args()
-        self.file_paths = set(self.arguments.pop("targets"))
         if load_config and not (
             load_args and self.arguments.get("config_ignore")
         ):
             self._bulk_apply(self.configuration)
         if load_args:
+            self.file_paths = set(self.arguments.pop("targets"))
             self._bulk_apply(self.arguments)
+        else:
+            self.file_paths = set()
 
     def __setattr__(self, key: str, value: Union[str, int, bool]):
         # skip private attributes
@@ -38,21 +40,14 @@ class Settings:
         fields = self.fields()
         if key not in fields:
             raise MnamerSettingsException(f"'{key}' is not a valid field")
-        # store paths as Path type
+        # coerce directory properties into PurePaths
         if key.endswith("_directory"):
-            value = Path(value).resolve()
-            # ensure path exists
-            if not value.exists():
-                raise MnamerSettingsException(
-                    f"mnamer: error: {key} '{value}' cannot be found"
-                )
-            expected_type = (Path, str)
-        else:
-            expected_type = self._type_for(key)
+            value = PurePath(value)
         # verify value type matches property type annotation
-        if not isinstance(value, expected_type):
+        expected_types = self._type_for(key)
+        if not isinstance(value, expected_types):
             raise MnamerSettingsException(
-                f"'{key}' not of type {expected_type}"
+                f"'{key}' not of type {expected_types}"
             )
         self._dict[key] = value
 
@@ -188,7 +183,7 @@ class Settings:
         return self._dict.get("movie_api", "tmdb")
 
     @property
-    def movie_directory(self) -> Path:
+    def movie_directory(self) -> PurePath:
         """--movie-directory=<path>: set movie relocation directory"""
         return self._dict.get("movie_directory", "")
 
@@ -205,7 +200,7 @@ class Settings:
         return self._dict.get("television_api", "tvdb")
 
     @property
-    def television_directory(self) -> Path:
+    def television_directory(self) -> PurePath:
         """--television-directory=<path>: set television relocation directory"""
         return self._dict.get("television_directory", "")
 
