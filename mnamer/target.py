@@ -209,7 +209,7 @@ class Target:
 
     def relocate(self):
         """Performs the action of renaming and/or moving a file."""
-        self.destination.mkdir(parents=True, exist_ok=True)
+        self.destination.parent.mkdir(parents=True, exist_ok=True)
         try:
             move(str(self.source.resolve()), str(self.destination.absolute()))
         except OSError:
