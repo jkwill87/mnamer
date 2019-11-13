@@ -115,7 +115,6 @@ class Settings:
         return vars(self._parser.parse_args())
 
     def _load_config(self) -> Dict[str, Any]:
-        self.config_path = crawl_out(".mnamer.json")
         try:
             return json_read(self.config_path) if self.config_path else {}
         except RuntimeError:
