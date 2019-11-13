@@ -196,7 +196,7 @@ class Settings:
     @property
     def movie_format(self) -> str:
         """--movie-format=<format>: set movie renaming format specification"""
-        return self._dict.get("movie_format", "")
+        return self._dict.get("movie_format", "{title} ({year}){extension}")
 
     # Television Related -------------------------------------------------------
 
@@ -213,7 +213,10 @@ class Settings:
     @property
     def television_format(self) -> str:
         """--television-format=<format>: set television renaming format spec"""
-        return self._dict.get("television_format", "")
+        return self._dict.get(
+            "television_format",
+            "{series} - S{season:02}E{episode:02} - {title}{extension}",
+        )
 
     # Non-CLI preferences ------------------------------------------------------
 
