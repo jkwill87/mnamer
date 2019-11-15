@@ -2,6 +2,8 @@ from enum import Enum
 from functools import total_ordering
 from typing import Union
 
+__all__ = ["LogLevel", "MediaType", "NoticeLevel"]
+
 
 @total_ordering
 class LogLevel(Enum):
@@ -18,3 +20,16 @@ class LogLevel(Enum):
         return (
             self.value < other.value if isinstance(other, LogLevel) else other
         )
+
+
+class MediaType(Enum):
+    TELEVISION = "television"
+    MOVIE = "movie"
+
+
+class NoticeLevel(Enum):
+    INFO = None
+    NOTICE = "bold"
+    SUCCESS = "green"
+    ALERT = "yellow"
+    ERROR = "red"

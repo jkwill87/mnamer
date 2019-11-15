@@ -2,10 +2,18 @@
 
 import json
 from os import environ, getcwd, path, walk
+from pathlib import Path
 from re import IGNORECASE, search, sub
 from string import Template
 from typing import Any, Collection, Dict, Optional, Union
 from unicodedata import normalize
+
+from guessit import guessit
+from mapi.metadata import Metadata, MetadataMovie, MetadataTelevision
+from mapi.utils import year_parse
+
+from mnamer.exceptions import MnamerException
+from mnamer.types import MediaType
 
 __all__ = [
     "crawl_in",
@@ -17,9 +25,14 @@ __all__ = [
     "filename_scenify",
     "filter_blacklist",
     "filter_extensions",
+    "inspect_metadata",
     "json_dumps",
     "json_read",
     "json_write",
+    "parse_all",
+    "parse_extras",
+    "parse_movie",
+    "parse_television",
 ]
 
 
@@ -76,7 +89,7 @@ def filename_replace(filename: str, replacements: Dict[str, str]):
     base, ext = path.splitext(filename)
     for word, replacement in replacements.items():
         if word in filename:
-            base = sub(r"%s\b" % word, replacement, base, flags=IGNORECASE)
+            base = sub(rf"{word}\b", replacement, base, flags=IGNORECASE)
     return base + ext
 
 
@@ -174,3 +187,90 @@ def json_write(file_path: str, obj: Any):
         RuntimeError(e.strerror)
     except (TypeError, ValueError):
         RuntimeError("invalid JSON")
+
+
+def inspect_metadata(
+    file_path: Union[str, Path], media_type: Optional[MediaType] = None
+) -> Dict[str, str]:
+    if isinstance(file_path, Path):
+        file_path = str(file_path.resolve())
+    media_override = None
+    if media_type is MediaType.TELEVISION:
+        media_override = "episode"
+    elif media_type is MediaType.MOVIE:
+        media_override = "movie"
+    return dict(guessit(file_path, {"type": media_override}))
+
+
+def parse_movie(raw_metadata: Dict[str, str]) -> MetadataMovie:
+    metadata = MetadataMovie()
+    if "title" in raw_metadata:
+        metadata["title"] = raw_metadata["title"]
+    if "year" in raw_metadata:
+        metadata["year"] = year_parse(raw_metadata["year"])
+    metadata["media"] = "movie"
+    return metadata
+
+
+def parse_television(raw_metadata: Dict[str, str]) -> MetadataTelevision:
+    metadata = MetadataTelevision()
+    if "title" in raw_metadata:
+        metadata["series"] = raw_metadata["title"]
+    if "alternative_title" in raw_metadata:
+        metadata["title"] = raw_metadata["alternative_title"]
+    if "season" in raw_metadata:
+        metadata["season"] = str(raw_metadata["season"])
+    if "episode" in raw_metadata:
+        if isinstance(raw_metadata["episode"], (list, tuple)):
+            metadata["episode"] = str(sorted(raw_metadata["episode"])[0])
+        else:
+            metadata["episode"] = str(raw_metadata["episode"])
+    if "date" in raw_metadata:
+        metadata["date"] = str(raw_metadata["date"])
+    elif "year" in raw_metadata:
+        metadata["year"] = raw_metadata["year"]
+    metadata["media"] = "television"
+    return metadata
+
+
+def parse_extras(raw_metadata: Dict[str, str]) -> Metadata:
+    metadata = Metadata()
+    country_codes = {"AU", "RUS", "UK", "US", "USA"}
+    quality_fields = [
+        field
+        for field in raw_metadata
+        if field
+        in [
+            "audio_codec",
+            "audio_profile",
+            "screen_size",
+            "video_codec",
+            "video_profile",
+        ]
+    ]
+    for field in quality_fields:
+        if "quality" not in raw_metadata:
+            metadata["quality"] = raw_metadata[field]
+        else:
+            metadata["quality"] += " " + raw_metadata[field]
+    if "release_group" in raw_metadata:
+        release_group = raw_metadata["release_group"]
+        # Sometimes country codes can get incorrectly detected as a group
+        if "series" in raw_metadata and release_group.upper() in country_codes:
+            metadata["series"] += f" ({release_group.upper()})"
+        else:
+            metadata["group"] = raw_metadata["release_group"]
+    metadata["extension"] = raw_metadata["container"]
+    return metadata
+
+
+def parse_all(raw_metadata: Dict[str, str]) -> Metadata:
+    if raw_metadata["type"] == "movie":
+        metadata = parse_movie(raw_metadata)
+    elif raw_metadata["type"] == "episode":
+        metadata = parse_television(raw_metadata)
+    else:
+        raise MnamerException("cannot determine target type for path")
+    extras = parse_extras(raw_metadata)
+    metadata.update(extras)
+    return metadata

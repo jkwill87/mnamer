@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional, Set, Union, get_type_hints
 
 from mnamer.argument import ArgumentParser
 from mnamer.exceptions import MnamerSettingsException
-from mnamer.log import LogLevel
+from mnamer.types import LogLevel, MediaType
 from mnamer.utils import crawl_out, json_dumps, json_read
 
 __all__ = ["Settings"]
@@ -43,6 +43,8 @@ class Settings:
         # coerce directory properties into PurePaths
         if key.endswith("_directory"):
             value = PurePath(value)
+        elif key == "media_type":
+            value = MediaType(value)
         # verify value type matches property type annotation
         expected_types = self._type_for(key)
         if not isinstance(value, expected_types):
@@ -257,7 +259,7 @@ class Settings:
         return self._dict.get("media_mask", "")
 
     @property
-    def media_type(self) -> str:
+    def media_type(self) -> MediaType:
         """--media-type={movie,television}: override media detection"""
         return self._dict.get("media_type", "")
 

@@ -9,10 +9,10 @@ from mnamer.exceptions import (
     MnamerSettingsException,
     MnamerSkipException,
 )
-from mnamer.log import LogLevel
 from mnamer.settings import Settings
 from mnamer.target import Target
-from mnamer.tty import NoticeLevel, Tty
+from mnamer.tty import Tty
+from mnamer.types import LogLevel, NoticeLevel
 
 __all__ = ["main"]
 
@@ -69,7 +69,9 @@ def main():
         # Announce file
         media = target.metadata["media"].title()
         filename = target.source.name
-        tty.p(f'\nProcessing {media} "{filename}"', style=NoticeLevel.NOTICE)
+        tty.p(
+            f'\nProcessing {media} File: "{filename}"', style=NoticeLevel.NOTICE
+        )
 
         # List details
         tty.ul(target.metadata, LogLevel.VERBOSE)

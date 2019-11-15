@@ -1,6 +1,5 @@
 import logging
 from collections.abc import Mapping
-from enum import Enum
 from itertools import chain, islice
 from typing import Any, Collection, Dict, Optional, Union
 
@@ -11,21 +10,13 @@ from teletype.components import ChoiceHelper, SelectOne
 from teletype.io import style_format
 
 from mnamer.exceptions import MnamerAbortException, MnamerSkipException
-from mnamer.log import LogLevel
 from mnamer.settings import Settings
 from mnamer.target import Target
+from mnamer.types import LogLevel, NoticeLevel
 
 StyleType = Optional[Union["NoticeLevel", str, Collection[str]]]
 
-__all__ = ["NoticeLevel", "Tty"]
-
-
-class NoticeLevel(Enum):
-    INFO = None
-    NOTICE = "bold"
-    SUCCESS = "green"
-    ALERT = "yellow"
-    ERROR = "red"
+__all__ = ["Tty"]
 
 
 class Tty:
