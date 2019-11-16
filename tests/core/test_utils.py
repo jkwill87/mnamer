@@ -1,17 +1,24 @@
-import json
 from contextlib import contextmanager
-from os import chdir, environ, getcwd
-from os.path import join, relpath
+from os import chdir
 from unittest.mock import mock_open, patch
 
 import pytest
+from requests import Session
 
-from mnamer.utils import *
+from mnamer.core.utils import *
+from mnamer.core.utils import (
+    AGENT_ALL,
+    clean_dict,
+    d2l,
+    get_user_agent,
+    request_json,
+)
 from tests import (
     BAD_JSON,
     DUMMY_DIR,
     DUMMY_FILE,
     MOVIE_DIR,
+    MockRequestResponse,
     OPEN_TARGET,
     TEST_FILES,
 )
@@ -19,7 +26,7 @@ from tests import (
 
 def prepend_temp_path(*paths: str):
     """Prepends file path with testing directory."""
-    return {join(getcwd(), path) for path in paths}
+    return {path.join(getcwd(), p) for p in paths}
 
 
 @contextmanager
@@ -43,7 +50,7 @@ class TestDirCrawlIn:
     """
 
     def test_files__none(self):
-        data = join(getcwd(), DUMMY_DIR)
+        data = path.join(getcwd(), DUMMY_DIR)
         assert crawl_in(data) == set()
 
     def test_files__flat(self):
@@ -53,7 +60,7 @@ class TestDirCrawlIn:
             "scan_001.tiff",
             "game.of.thrones.01x05-eztv.mp4",
         )
-        actual = crawl_in()
+        actual = crawl_in(".")
         assert expected == actual
 
     def test_dirs__single(self):
@@ -63,15 +70,15 @@ class TestDirCrawlIn:
             "scan_001.tiff",
             "game.of.thrones.01x05-eztv.mp4",
         )
-        actual = crawl_in()
+        actual = crawl_in(".")
         assert expected == actual
 
     def test_dirs__multiple(self):
         paths = prepend_temp_path("Desktop", "Documents", "Downloads")
         expected = prepend_temp_path(
             *{
-                relpath(path)
-                for path in {
+                path.relpath(file_path)
+                for file_path in {
                     "Desktop/temp.zip",
                     "Documents/Skiing Trip.mp4",
                     "Downloads/Return of the Jedi 1080p.mkv",
@@ -86,7 +93,7 @@ class TestDirCrawlIn:
 
     def test_dirs__recurse(self):
         expected = prepend_temp_path(*TEST_FILES)
-        actual = crawl_in(recurse=True)
+        actual = crawl_in(".", recurse=True)
         assert expected == actual
 
 
@@ -96,23 +103,23 @@ class TestCrawlOut:
     """
 
     def test_walking(self):
-        expected = join(getcwd(), "avengers infinity war.wmv")
+        expected = path.join(getcwd(), "avengers infinity war.wmv")
         actual = crawl_out("avengers infinity war.wmv")
         assert expected == actual
 
-    @patch("mnamer.utils.expanduser")
+    @patch("mnamer.utils.path.expanduser")
     def test_home(self, expanduser):
         mock_home_directory = getcwd()
-        mock_users_directory = join(mock_home_directory, "..")
+        mock_users_directory = path.join(mock_home_directory, "..")
         expanduser.return_value = mock_home_directory
         chdir(mock_users_directory)
-        expected = join(mock_home_directory, "avengers infinity war.wmv")
+        expected = path.join(mock_home_directory, "avengers infinity war.wmv")
         actual = crawl_out("avengers infinity war.wmv")
         assert expected == actual
 
     def test_no_match(self):
-        path = join(getcwd(), DUMMY_DIR, "avengers infinity war.wmv")
-        assert crawl_out(path) is None
+        file_path = path.join(getcwd(), DUMMY_DIR, "avengers infinity war.wmv")
+        assert crawl_out(file_path) is None
 
 
 class TestDictMerge:
@@ -143,55 +150,26 @@ class TestDictMerge:
         assert expected == actual
 
 
-class TestFileExtension:
-    """Unit tests for mnamer/utils.py:file_extension().
-    """
-
-    def test_abs_path(self):
-        path = MOVIE_DIR + "Spaceballs (1987).mkv"
-        expected = "mkv"
-        actual = file_extension(path)
-        assert expected == actual
-
-    def test_rel_path(self):
-        path = "Spaceballs (1987).mkv"
-        expected = "mkv"
-        actual = file_extension(path)
-        assert expected == actual
-
-    def test_no_extension(self):
-        path = "Spaceballs (1987)"
-        expected = ""
-        actual = file_extension(path)
-        assert expected == actual
-
-    def test_multiple_extensions(self):
-        path = "Spaceballs (1987).mkv.mkv"
-        expected = "mkv"
-        actual = file_extension(path)
-        assert expected == actual
-
-
 class TestFileStem:
     """Unit tests for mnamer/utils.py:test_file_stem().
     """
 
     def test_abs_path(self):
-        path = MOVIE_DIR + "Spaceballs (1987).mkv"
+        file_path = MOVIE_DIR + "Spaceballs (1987).mkv"
         expected = "Spaceballs (1987)"
-        actual = file_stem(path)
+        actual = file_stem(file_path)
         assert expected == actual
 
     def test_rel_path(self):
-        path = "Spaceballs (1987).mkv"
+        file_path = "Spaceballs (1987).mkv"
         expected = "Spaceballs (1987)"
-        actual = file_stem(path)
+        actual = file_stem(file_path)
         assert expected == actual
 
     def test_dir_only(self):
-        path = MOVIE_DIR
+        file_path = MOVIE_DIR
         expected = ""
-        actual = file_stem(path)
+        actual = file_stem(file_path)
         assert expected == actual
 
 
@@ -287,16 +265,16 @@ class TestFilterBlacklist:
 
     def test_filter_multiple_paths_single_pattern(self):
         expected = TEST_FILES - {
-            join("Documents", "Photos", "DCM0001.jpg"),
-            join("Documents", "Photos", "DCM0002.jpg"),
+            path.join("Documents", "Photos", "DCM0001.jpg"),
+            path.join("Documents", "Photos", "DCM0002.jpg"),
         }
         actual = filter_blacklist(TEST_FILES, "dcm")
         assert expected == actual
 
     def test_filter_multiple_paths_multiple_patterns(self):
         expected = TEST_FILES - {
-            join("Desktop", "temp.zip"),
-            join("Downloads", "the.goonies.1985.sample.mp4"),
+            path.join("Desktop", "temp.zip"),
+            path.join("Downloads", "the.goonies.1985.sample.mp4"),
         }
         actual = filter_blacklist(TEST_FILES, ("temp", "sample"))
         assert expected == actual
@@ -324,8 +302,8 @@ class TestFilterBlacklist:
     def test_regex(self):
         pattern = r"\s+"
         expected = TEST_FILES - {
-            join("Downloads", "Return of the Jedi 1080p.mkv"),
-            join("Documents", "Skiing Trip.mp4"),
+            path.join("Downloads", "Return of the Jedi 1080p.mkv"),
+            path.join("Documents", "Skiing Trip.mp4"),
             "avengers infinity war.wmv",
             "Ninja Turtles (1990).mkv",
         }
@@ -347,8 +325,8 @@ class TestFilterExtensions:
 
     def test_filter_multiple_paths_single_pattern(self):
         expected = {
-            join("Documents", "Photos", "DCM0001.jpg"),
-            join("Documents", "Photos", "DCM0002.jpg"),
+            path.join("Documents", "Photos", "DCM0001.jpg"),
+            path.join("Documents", "Photos", "DCM0002.jpg"),
         }
         actual = filter_extensions(TEST_FILES, "jpg")
         assert expected == actual
@@ -357,9 +335,11 @@ class TestFilterExtensions:
 
     def test_filter_multiple_paths_multiple_patterns(self):
         expected = {
-            join("Desktop", "temp.zip"),
-            join("Downloads", "Return of the Jedi 1080p.mkv"),
-            join("Downloads", "archer.2009.s10e07.webrip.x264-lucidtv.mkv"),
+            path.join("Desktop", "temp.zip"),
+            path.join("Downloads", "Return of the Jedi 1080p.mkv"),
+            path.join(
+                "Downloads", "archer.2009.s10e07.webrip.x264-lucidtv.mkv"
+            ),
             "Ninja Turtles (1990).mkv",
         }
         actual = filter_extensions(TEST_FILES, ("mkv", "zip"))
@@ -441,3 +421,271 @@ class TestJsonWrite:
             patched_open.side_effect = RuntimeError
             with pytest.raises(RuntimeError):
                 json_write(DUMMY_FILE, {"dots": True})
+
+
+class TestInspectMetadata:
+    """Unit tests for mnamer/utils.py:inspect_metadata"""
+
+    def test_file_path__str(self):
+        pass
+
+    def test_file_path__path(self):
+        pass
+
+
+class TestParseMovie:
+    """Unit tests for mnamer/utils.py:test_movie"""
+
+    def test_title(self):
+        pass
+
+    def test_year(self):
+        pass
+
+    def test_media(self):
+        pass
+
+
+class TestParseTelevision:
+    pass
+
+
+class TestParseExtras:
+    def test_group(self):
+        pass
+
+    def test_group__none(self):
+        pass
+
+    def test_quality(self):
+        pass
+
+    def test_quality__note(self):
+        pass
+
+    def test_extension(self):
+        pass
+
+    def test_extension__none(self):
+        pass
+
+
+class TestParseAll:
+    pass
+
+
+@pytest.mark.parametrize("code", [200, 201, 209, 400, 500])
+@patch("mnamer.utils.requests_cache.CachedSession.request")
+def test_request_json__status(mock_request, code):
+    mock_response = MockRequestResponse(code, "{}")
+    mock_request.return_value = mock_response
+    status, _ = request_json("http://...", cache=False)
+    assert status == code
+
+
+@pytest.mark.parametrize(
+    "code, truthy", [(200, True), (299, True), (400, False), (500, False)]
+)
+@patch("mnamer.utils.requests_cache.CachedSession.request")
+def test_request_json__data(mock_request, code, truthy):
+    mock_response = MockRequestResponse(code, '{"status":true}')
+    mock_request.return_value = mock_response
+    _, content = request_json("http://...", cache=False)
+    assert content if truthy else not content
+
+
+@patch("mnamer.utils.requests_cache.CachedSession.request")
+def test_request_json__json_data(mock_request):
+    json_data = """{
+        "status": true,
+        "data": {
+            "title": "The Matrix",
+            "year": 1999,
+            "genre": null
+        }
+    }"""
+    json_dict = {
+        "status": True,
+        "data": {"title": "The Matrix", "year": 1999, "genre": None},
+    }
+    mock_response = MockRequestResponse(200, json_data)
+    mock_request.return_value = mock_response
+    status, content = request_json("http://...", cache=False)
+    assert status == 200
+    assert content == json_dict
+
+
+@patch("mnamer.utils.requests_cache.CachedSession.request")
+def test_request_json__xml_data(mock_request):
+    xml_data = """
+        <?xml version="1.0" encoding="UTF-8" ?>
+        <status>true</status>
+        <data>
+            <title>The Matrix</title>
+            <year>1999</year>
+            <genre />
+        </data>
+    """
+
+    mock_response = MockRequestResponse(200, xml_data)
+    mock_request.return_value = mock_response
+    status, content = request_json("http://...", cache=False)
+    assert status == 500
+    assert content is None
+
+
+@patch("mnamer.utils.requests_cache.CachedSession.request")
+def test_request_json__html_data(mock_request):
+    html_data = """
+        <!DOCTYPE html>
+        <html>
+            <body>
+                <h1>Data</h1>
+                <ul>
+                <li>Title: The Matrix</li>
+                <li>Year: 1999</li>
+                <li>Genre: ???</li>
+                </ul>
+            </body>
+        </html>
+    """
+    mock_response = MockRequestResponse(200, html_data)
+    mock_request.return_value = mock_response
+    status, content = request_json("http://...", cache=False)
+    assert status == 500
+    assert content is None
+
+
+@patch("mnamer.utils.requests_cache.CachedSession.request")
+def test_request_json__get_headers(mock_request):
+    mock_request.side_effect = Session().request
+    request_json(
+        url="http://google.com", headers={"apple": "pie", "orange": None}
+    )
+    _, kwargs = mock_request.call_args
+    assert kwargs["method"] == "GET"
+    assert len(kwargs["headers"]) == 2
+    assert kwargs["headers"]["apple"] == "pie"
+    assert "user-agent" in kwargs["headers"]
+
+
+@patch("mnamer.utils.requests_cache.CachedSession.request")
+def test_request_json__get_parameters(mock_request):
+    test_parameters = {"apple": "pie"}
+    mock_request.side_effect = Session().request
+    request_json(url="http://google.com", parameters=test_parameters)
+    _, kwargs = mock_request.call_args
+    assert kwargs["method"] == "GET"
+    assert kwargs["params"] == d2l(test_parameters)
+
+
+def test_request_json__get_invalid_url():
+    status, content = request_json("mapi rulez", cache=False)
+    assert status == 500
+    assert content is None
+
+
+@patch("mnamer.utils.requests_cache.CachedSession.request")
+def test_request_json__post_body(mock_request):
+    data = {"apple": "pie"}
+    mock_request.side_effect = Session().request
+    request_json(url="http://google.com", body=data)
+    _, kwargs = mock_request.call_args
+    assert kwargs["method"] == "POST"
+    assert data == kwargs["json"]
+
+
+@patch("mnamer.utils.requests_cache.CachedSession.request")
+def test_request_json__post_parameters(mock_request):
+    mock_request.side_effect = Session().request
+    data = {"apple": "pie", "orange": None}
+    request_json(url="http://google.com", body=data, parameters=data)
+    _, kwargs = mock_request.call_args
+    assert kwargs["method"] == "POST"
+    assert kwargs["params"] == d2l(clean_dict(data))
+
+
+@patch("mnamer.utils.requests_cache.CachedSession.request")
+def test_request_json__post_headers(mock_request):
+    mock_request.side_effect = Session().request
+    data = {"apple": "pie", "orange": None}
+    request_json(url="http://google.com", body=data, headers=data)
+    _, kwargs = mock_request.call_args
+    assert kwargs["method"] == "POST"
+    assert "apple" in kwargs["headers"]
+    assert "orange" not in kwargs["headers"]
+
+
+@patch("mnamer.utils.requests_cache.CachedSession.request")
+def test_request_json__failure(mock_request):
+    mock_request.side_effect = Exception
+    status, content = request_json(url="http://google.com")
+    assert status == 500
+    assert content is None
+
+
+def test_clean_dict__str_values():
+    dict_in = {"apple": "pie", "candy": "corn", "bologna": "sandwich"}
+    dict_out = clean_dict(dict_in)
+    assert dict_in == dict_out
+
+
+def test_clean_dict__some_none():
+    dict_in = {
+        "super": "mario",
+        "sonic": "hedgehog",
+        "samus": None,
+        "princess": "zelda",
+        "bowser": None,
+    }
+    dict_expect = {"super": "mario", "sonic": "hedgehog", "princess": "zelda"}
+    dict_out = clean_dict(dict_in)
+    assert dict_expect == dict_out
+
+
+def test_clean_dict__all_falsy():
+    dict_in = {"who": None, "let": 0, "the": False, "dogs": [], "out": ()}
+    dict_expect = {"let": "0", "the": "False"}
+    dict_out = clean_dict(dict_in)
+    assert dict_expect == dict_out
+
+
+def test_clean_dict__int_values():
+    dict_in = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4}
+    dict_expect = {"0": "0", "1": "1", "2": "2", "3": "3", "4": "4"}
+    dict_out = clean_dict(dict_in)
+    assert dict_expect == dict_out
+
+
+def test_clean_dict__not_a_dict():
+    with pytest.raises(AssertionError):
+        clean_dict("mama mia pizza pie")
+
+
+def test_clean_dict__str_strip():
+    dict_in = {
+        "please": ".",
+        "fix ": ".",
+        " my spacing": ".",
+        "  issues  ": ".",
+    }
+    dict_expect = {"please": ".", "fix": ".", "my spacing": ".", "issues": "."}
+    dict_out = clean_dict(dict_in)
+    assert dict_expect == dict_out
+
+
+def test_clean_dict__whitelist():
+    whitelist = {"apple", "raspberry", "pecan"}
+    dict_in = {"apple": "pie", "pecan": "pie", "pumpkin": "pie"}
+    dict_out = {"apple": "pie", "pecan": "pie"}
+    assert clean_dict(dict_in, whitelist) == dict_out
+
+
+@pytest.mark.parametrize("platform", ["chrome", "edge", "ios"])
+def test_get_user_agent__explicit(platform):
+    assert get_user_agent(platform) in AGENT_ALL
+
+
+def test_get_user_agent__random():
+    for _ in range(10):
+        assert get_user_agent(get_user_agent()) in AGENT_ALL

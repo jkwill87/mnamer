@@ -1,7 +1,7 @@
 import argparse
 import re
 
-from mnamer.types import LogLevel
+from mnamer.core.types import LogLevel
 
 __all__ = ["ArgumentParser"]
 

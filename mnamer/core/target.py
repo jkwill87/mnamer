@@ -1,15 +1,13 @@
-from os.path import split
+from os import path
 from pathlib import Path
 from shutil import move
 from typing import Any, Dict, Generator, Optional, Set, Union
 
-from mapi.metadata import Metadata
-from mapi.providers import Provider, provider_factory
-
-from mnamer.exceptions import MnamerException
-from mnamer.settings import Settings
-from mnamer.types import MediaType
-from mnamer.utils import (
+from mnamer.api.metadata import Metadata
+from mnamer.api.providers import Provider, provider_factory
+from mnamer.core.settings import Settings
+from mnamer.core.types import MediaType
+from mnamer.core.utils import (
     crawl_in,
     filename_replace,
     filename_sanitize,
@@ -19,6 +17,7 @@ from mnamer.utils import (
     inspect_metadata,
     parse_all,
 )
+from mnamer.exceptions import MnamerException
 
 __all__ = ["Target"]
 
@@ -35,12 +34,12 @@ class Target:
     _parsed_metadata: Metadata
     source: Path
 
-    def __init__(self, path: Union[str, Path], settings: Settings):
+    def __init__(self, file_path: Union[str, Path], settings: Settings):
         self._settings = settings
         self._has_moved: False
         self._has_renamed: False
-        self.source = Path(path).resolve()
-        raw_metadata = inspect_metadata(path, self._settings.media_type)
+        self.source = Path(file_path).resolve()
+        raw_metadata = inspect_metadata(file_path, self._settings.media_type)
         self.metadata = parse_all(raw_metadata)
 
     def __hash__(self) -> int:
@@ -110,7 +109,7 @@ class Target:
             file_path = Path(file_path)
         else:
             file_path = self.source.name
-        dir_tail, filename = split(file_path)
+        dir_tail, filename = path.split(file_path)
         directory = Path(dir_head, dir_tail)
         if self._settings.scene:
             filename = filename_scenify(filename)

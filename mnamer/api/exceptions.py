@@ -1,0 +1,1 @@
+"""Exceptions used by mapi."""

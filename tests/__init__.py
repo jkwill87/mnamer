@@ -1,7 +1,9 @@
 """Shared constants used by mnamer's test."""
 
 from logging import getLogger
-from os import name as os_name, path
+from os import path
+
+from mnamer import IS_WINDOWS
 
 getLogger("mnamer").disabled = True
 
@@ -9,12 +11,14 @@ __all__ = [
     "BAD_JSON",
     "DUMMY_DIR",
     "DUMMY_FILE",
-    "IS_WINDOWS",
     "JUNK_TEXT",
     "MOVIE_DIR",
+    "MOVIE_META",
+    "TELEVISION_META",
     "OPEN_TARGET",
     "TELEVISION_DIR",
     "TEST_FILES",
+    "MockRequestResponse",
 ]
 
 BAD_JSON = "{'some_key':True"
@@ -22,8 +26,6 @@ BAD_JSON = "{'some_key':True"
 DUMMY_DIR = "some_dir"
 
 DUMMY_FILE = "some_file"
-
-IS_WINDOWS = os_name == "nt"
 
 JUNK_TEXT = "asdf#$@#g9765sdfg54hggaw"
 
@@ -50,6 +52,7 @@ TEST_FILES = {
 
 USER_HOME_DIR = path.expanduser("~")
 
+getLogger("mapi").disabled = True
 
 JUNK_TEXT = "asdf#$@#g9765sdfg54hggaw"
 

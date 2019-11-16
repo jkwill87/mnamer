@@ -6,16 +6,16 @@ import tempfile
 from shutil import rmtree
 
 import pytest
-from teletype.io import strip_format
 
 from mnamer.__main__ import main
+from mnamer.io import strip_format
 from tests import TEST_FILES
 
 sys.argv = ["mnamer"]
 
 
 @pytest.fixture
-def reset_params():
+def reset_args():
     """Clears argv before and after running test."""
     del sys.argv[:]
     sys.argv.append("mnamer")

@@ -1,4 +1,4 @@
 appdirs==1.*
-guessit==3.1.0
-mapi==3.9.*
-teletype==1.*
+guessit==3.1.*
+requests==2.*
+requests_cache>=0.5
