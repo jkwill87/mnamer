@@ -16,6 +16,7 @@ from mnamer.exceptions import (
 __all__ = ["main"]
 
 
+# noinspection PyProtectedMember
 def main():
     # Setup arguments and load runtime configuration
     try:

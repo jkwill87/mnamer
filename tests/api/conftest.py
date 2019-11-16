@@ -8,7 +8,7 @@ import pytest
 @pytest.fixture
 def metadata():
     """Creates a Metadata object."""
-    from mnamer.api.metadata import Metadata
+    from mnamer.core.metadata import Metadata
 
     return Metadata(title="Home Movies", date="2019-05-23")
 
@@ -16,7 +16,7 @@ def metadata():
 @pytest.fixture
 def movie_metadata():
     """Creates a MetadataMovie object."""
-    from mnamer.api.metadata import MetadataMovie
+    from mnamer.core.metadata import MetadataMovie
 
     return MetadataMovie(media="movie", title="saw iii", date="2006-01-01")
 
@@ -24,7 +24,7 @@ def movie_metadata():
 @pytest.fixture
 def television_metadata():
     """Creates a MetadataTelevision object."""
-    from mnamer.api.metadata import MetadataTelevision
+    from mnamer.core.metadata import MetadataTelevision
 
     return MetadataTelevision(
         media="television",

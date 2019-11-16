@@ -7,7 +7,7 @@ from os import environ
 
 from mnamer.api import log
 from mnamer.api.endpoints import *
-from mnamer.api.metadata import *
+from mnamer.core.metadata import *
 from mnamer.core.utils import year_expand
 from mnamer.exceptions import (
     MnamerException,

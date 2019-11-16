@@ -3,8 +3,8 @@ from pathlib import Path
 from shutil import move
 from typing import Any, Dict, Generator, Optional, Set, Union
 
-from mnamer.api.metadata import Metadata
 from mnamer.api.providers import Provider, provider_factory
+from mnamer.core.metadata import Metadata
 from mnamer.core.settings import Settings
 from mnamer.core.types import MediaType
 from mnamer.core.utils import (

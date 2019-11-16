@@ -69,6 +69,7 @@ class ArgumentParser(argparse.ArgumentParser):
             kwargs["type"] = type_
         return args, kwargs
 
+    # noinspection PyProtectedMember
     def format_help(self):
         parameters = [a.help for a in self._parameter_group._group_actions]
         parameters.sort()

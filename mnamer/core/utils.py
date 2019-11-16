@@ -17,7 +17,7 @@ from guessit import guessit
 from requests.adapters import HTTPAdapter
 
 from mnamer.api import log
-from mnamer.api.metadata import Metadata, MetadataMovie, MetadataTelevision
+from mnamer.core.metadata import Metadata, MetadataMovie, MetadataTelevision
 from mnamer.core.types import MediaType
 from mnamer.exceptions import MnamerException
 
@@ -325,6 +325,7 @@ def get_user_agent(platform=None):
     )
 
 
+# noinspection PyProtectedMember
 def request_json(
     url, parameters=None, body=None, headers=None, cache=True, agent=None
 ):

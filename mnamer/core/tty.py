@@ -4,8 +4,8 @@ from itertools import chain, islice
 from typing import Any, Collection, Dict, Optional, Union
 
 from mnamer import codes, io
-from mnamer.api.metadata import Metadata
 from mnamer.codes import CHARS_ASCII, CHARS_DEFAULT
+from mnamer.core.metadata import Metadata
 from mnamer.core.settings import Settings
 from mnamer.core.target import Target
 from mnamer.core.types import LogLevel, NoticeLevel

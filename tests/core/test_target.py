@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from mnamer.api.metadata import MetadataMovie, MetadataTelevision
+from mnamer.core.metadata import MetadataMovie, MetadataTelevision
 from mnamer.core.settings import Settings
 from mnamer.core.target import Target
 from tests import MOVIE_DIR
