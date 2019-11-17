@@ -3,23 +3,38 @@
 import json
 import random
 import re
+from datetime import date
 from os import environ, getcwd, path, walk
-from pathlib import Path
 from re import IGNORECASE, search, sub
-from string import Template
+from string import Template, capwords
 from sys import version_info
 from typing import Any, Collection, Dict, Optional, Union
 from unicodedata import normalize
 
 import requests_cache
 from appdirs import user_cache_dir
-from guessit import guessit
 from requests.adapters import HTTPAdapter
 
 from mnamer.api import log
-from mnamer.core.metadata import Metadata, MetadataMovie, MetadataTelevision
-from mnamer.core.types import MediaType
-from mnamer.exceptions import MnamerException
+
+AGENT_CHROME = (
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0_1 like Mac OS X) AppleWebKit/601.1"
+    " (KHTML, like Gecko) CriOS/53.0.2785.86 Mobile/14A403 Safari/601.1.46"
+)
+AGENT_EDGE = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like "
+    "Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393"
+)
+AGENT_IOS = (
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0_1 like Mac OS X) "
+    "AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/14A403 "
+    "Safari/602.1"
+)
+AGENT_ALL = (AGENT_CHROME, AGENT_EDGE, AGENT_IOS)
+CACHE_PATH = path.join(
+    user_cache_dir(),
+    f"mnamer-py{version_info.major}.{version_info.minor}.sqlite",
+)
 
 
 def crawl_in(file_paths: Union[Collection[str], str], recurse: bool = False):
@@ -55,14 +70,6 @@ def crawl_out(filename: str):
         working_dir = parent_dir
     target = path.join(path.expanduser("~"), filename)
     return target if path.isfile(target) else None
-
-
-def dict_merge(d1: Dict[Any, Any], *dn: Dict[Any, Any]):
-    """Merges two or more dictionaries."""
-    res = d1.copy()
-    for d in dn:
-        res.update(d)
-    return res
 
 
 def file_stem(file_path: str):
@@ -175,113 +182,6 @@ def json_write(file_path: str, obj: Any):
         RuntimeError("invalid JSON")
 
 
-def inspect_metadata(
-    file_path: Union[str, Path], media_type: Optional[MediaType] = None
-) -> Dict[str, str]:
-    if isinstance(file_path, Path):
-        file_path = str(file_path.resolve())
-    media_override = None
-    if media_type is MediaType.TELEVISION:
-        media_override = "episode"
-    elif media_type is MediaType.MOVIE:
-        media_override = "movie"
-    return dict(guessit(file_path, {"type": media_override}))
-
-
-def parse_movie(raw_metadata: Dict[str, str]) -> MetadataMovie:
-    metadata = MetadataMovie()
-    if "title" in raw_metadata:
-        metadata["title"] = raw_metadata["title"]
-    if "year" in raw_metadata:
-        metadata["year"] = year_parse(raw_metadata["year"])
-    metadata["media"] = "movie"
-    return metadata
-
-
-def parse_television(raw_metadata: Dict[str, str]) -> MetadataTelevision:
-    metadata = MetadataTelevision()
-    if "title" in raw_metadata:
-        metadata["series"] = raw_metadata["title"]
-    if "alternative_title" in raw_metadata:
-        metadata["title"] = raw_metadata["alternative_title"]
-    if "season" in raw_metadata:
-        metadata["season"] = str(raw_metadata["season"])
-    if "episode" in raw_metadata:
-        if isinstance(raw_metadata["episode"], (list, tuple)):
-            metadata["episode"] = str(sorted(raw_metadata["episode"])[0])
-        else:
-            metadata["episode"] = str(raw_metadata["episode"])
-    if "date" in raw_metadata:
-        metadata["date"] = str(raw_metadata["date"])
-    elif "year" in raw_metadata:
-        metadata["year"] = raw_metadata["year"]
-    metadata["media"] = "television"
-    return metadata
-
-
-def parse_extras(raw_metadata: Dict[str, str]) -> Metadata:
-    metadata = Metadata()
-    country_codes = {"AU", "RUS", "UK", "US", "USA"}
-    quality_fields = [
-        field
-        for field in raw_metadata
-        if field
-        in [
-            "audio_codec",
-            "audio_profile",
-            "screen_size",
-            "video_codec",
-            "video_profile",
-        ]
-    ]
-    for field in quality_fields:
-        if "quality" not in raw_metadata:
-            metadata["quality"] = raw_metadata[field]
-        else:
-            metadata["quality"] += " " + raw_metadata[field]
-    if "release_group" in raw_metadata:
-        release_group = raw_metadata["release_group"]
-        # Sometimes country codes can get incorrectly detected as a group
-        if "series" in raw_metadata and release_group.upper() in country_codes:
-            metadata["series"] += f" ({release_group.upper()})"
-        else:
-            metadata["group"] = raw_metadata["release_group"]
-    metadata["extension"] = raw_metadata["container"]
-    return metadata
-
-
-def parse_all(raw_metadata: Dict[str, str]) -> Metadata:
-    if raw_metadata["type"] == "movie":
-        metadata = parse_movie(raw_metadata)
-    elif raw_metadata["type"] == "episode":
-        metadata = parse_television(raw_metadata)
-    else:
-        raise MnamerException("cannot determine target type for path")
-    extras = parse_extras(raw_metadata)
-    metadata.update(extras)
-    return metadata
-
-
-AGENT_CHROME = (
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0_1 like Mac OS X) AppleWebKit/601.1"
-    " (KHTML, like Gecko) CriOS/53.0.2785.86 Mobile/14A403 Safari/601.1.46"
-)
-AGENT_EDGE = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like "
-    "Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393"
-)
-AGENT_IOS = (
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0_1 like Mac OS X) "
-    "AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/14A403 "
-    "Safari/602.1"
-)
-AGENT_ALL = (AGENT_CHROME, AGENT_EDGE, AGENT_IOS)
-CACHE_PATH = path.join(
-    user_cache_dir(),
-    f"mnamer-py{version_info.major}.{version_info.minor}.sqlite",
-)
-
-
 def clean_dict(target_dict, whitelist=None):
     """Convenience function that removes a dicts keys that have falsy values."""
     assert isinstance(target_dict, dict)
@@ -386,16 +286,6 @@ def request_json(
     return status, content
 
 
-def year_parse(s):
-    """Parses a year from a string."""
-    regex = r"((?:19|20)\d{2})(?:$|[-/]\d{2}[-/]\d{2})"
-    try:
-        year = int(re.findall(regex, str(s))[0])
-    except IndexError:
-        year = None
-    return year
-
-
 def year_expand(s):
     """Parses a year or dash-delimited year range."""
     regex = r"^((?:19|20)\d{2})?(\s*-\s*)?((?:19|20)\d{2})?$"
@@ -406,3 +296,172 @@ def year_expand(s):
     except AttributeError:
         return 1900, 2099
     return (int(start), int(end)) if dash else (int(start), int(start))
+
+
+def year_parse(s):
+    """Parses a year from a string."""
+    regex = r"((?:19|20)\d{2})(?:$|[-/]\d{2}[-/]\d{2})"
+    try:
+        year = int(re.findall(regex, str(s))[0])
+    except IndexError:
+        year = None
+    return year
+
+
+def str_title_case(s):
+    lowercase_exceptions = {
+        "a",
+        "an",
+        "and",
+        "as",
+        "at",
+        "but",
+        "by",
+        "ces",
+        "de",
+        "des",
+        "du",
+        "for",
+        "from",
+        "in",
+        "is",
+        "la",
+        "le",
+        "nor",
+        "of",
+        "on",
+        "or",
+        "the",
+        "to",
+        "un",
+        "une",
+        "with",
+        "via",
+        "h264",
+        "h265",
+    }
+    uppercase_exceptions = {
+        "i",
+        "ii",
+        "iii",
+        "iv",
+        "v",
+        "vi",
+        "vii",
+        "viii",
+        "ix",
+        "x",
+        "2d",
+        "3d",
+        "au",
+        "aka",
+        "atm",
+        "bbc",
+        "bff",
+        "cia",
+        "csi",
+        "dc",
+        "doa",
+        "espn",
+        "fbi",
+        "ira",
+        "jfk",
+        "la",
+        "lol",
+        "mlb",
+        "mlk",
+        "mtv",
+        "nba",
+        "nfl",
+        "nhl",
+        "nsfw",
+        "nyc",
+        "omg",
+        "pga",
+        "oj",
+        "rsvp",
+        "tnt",
+        "tv",
+        "ufc",
+        "ufo",
+        "uk",
+        "usa",
+        "vip",
+        "wtf",
+        "wwe",
+        "wwi",
+        "wwii",
+        "xxx",
+        "yolo",
+    }
+    padding_chars = ".- "
+    punctuation_chars = "[\"!?$'(),-./:;<>@[]_`{}]"
+    string_lower = s.lower()
+    string_length = len(s)
+    s = capwords(s)
+
+    # process lowercase transformations
+    for exception in lowercase_exceptions:
+        pos = string_lower.find(exception)
+        if pos == -1:
+            continue
+        starts = pos < 2
+        if starts:
+            continue
+        prev_char = string_lower[pos - 1]
+        leading_char = string_lower[pos - 2]
+        left_partitioned = (
+            prev_char in padding_chars and leading_char not in punctuation_chars
+        )
+        word_length = len(exception)
+        ends = pos + word_length == string_length
+        next_char = "" if ends else string_lower[pos + word_length]
+        right_partitioned = ends or next_char in padding_chars
+        if left_partitioned and right_partitioned:
+            s = s[:pos] + exception.lower() + s[pos + word_length :]
+
+    # process uppercase transformations
+    for exception in uppercase_exceptions:
+        pos = string_lower.find(exception)
+        if pos == -1:
+            continue
+        starts = pos == 0
+        prev_char = None if starts else string_lower[pos - 1]
+        left_partitioned = starts or prev_char in padding_chars
+        word_length = len(exception)
+        ends = pos + word_length == string_length
+        next_char = "" if ends else string_lower[pos + word_length]
+        right_partitioned = (
+            ends or next_char in padding_chars + punctuation_chars
+        )
+        if left_partitioned and right_partitioned:
+            s = s[:pos] + exception.upper() + s[pos + word_length :]
+    s = re.sub(r"(\w\.)+", lambda p: p.group(0).upper(), s)
+    return s
+
+
+def str_fix_whitespace(s: str):
+    # Concatenate dashes
+    s = re.sub(r"-\s*-", "-", s)
+    # Remove empty brackets
+    s = s.replace("()", "")
+    s = s.replace("[]", "")
+    # Strip leading/ trailing dashes
+    s = re.sub(r"-\s*$|^\s*-", "", s)
+    # Concatenate whitespace
+    s = re.sub(r"\s+", " ", s)
+    # Strip leading/ trailing whitespace
+    s = s.strip()
+    return s
+
+
+def format_extension(s: str):
+    if s and s[0] != ".":
+        s = f".{s}"
+    return s.lower()
+
+
+def convert_date(value: [str, date]) -> date:
+    if isinstance(value, str):
+        value = date.fromisoformat(value)
+    return value

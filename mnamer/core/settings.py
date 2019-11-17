@@ -194,24 +194,24 @@ class Settings:
         """--movie-format=<format>: set movie renaming format specification"""
         return self._dict.get("movie_format", "{title} ({year}){extension}")
 
-    # Television Related -------------------------------------------------------
+    # Episode Related -------------------------------------------------------
 
     @property
-    def television_api(self) -> str:
-        """--television-api={tvdb}: set television api provider"""
-        return self._dict.get("television_api", "tvdb")
+    def episode_api(self) -> str:
+        """--episode-api={tvdb}: set television api provider"""
+        return self._dict.get("episode_api", "tvdb")
 
     @property
-    def television_directory(self) -> PurePath:
-        """--television-directory=<path>: set television relocation directory"""
-        return self._dict.get("television_directory", "")
+    def episode_directory(self) -> PurePath:
+        """--episode-directory=<path>: set television relocation directory"""
+        return self._dict.get("episode_directory", "")
 
     @property
-    def television_format(self) -> str:
-        """--television-format=<format>: set television renaming format spec"""
+    def episode_format(self) -> str:
+        """--episode-format=<format>: set television renaming format spec"""
         return self._dict.get(
-            "television_format",
-            "{series} - S{season:02}E{episode:02} - {title}{extension}",
+            "episode_format",
+            "{series_name} - S{season_number:02}E{episode_number:02} - {title}{extension}",
         )
 
     # Non-CLI preferences ------------------------------------------------------
@@ -261,7 +261,7 @@ class Settings:
     @property
     def media_type(self) -> MediaType:
         """--media-type={movie,television}: override media detection"""
-        return self._dict.get("media_type", "")
+        return self._dict.get("media_type", None)
 
     @property
     def test(self) -> bool:

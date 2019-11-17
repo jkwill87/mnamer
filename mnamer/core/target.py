@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from os import path
 from pathlib import Path
 from shutil import move
@@ -14,8 +15,6 @@ from mnamer.core.utils import (
     filename_scenify,
     filter_blacklist,
     filter_extensions,
-    inspect_metadata,
-    parse_all,
 )
 from mnamer.exceptions import MnamerException
 
@@ -39,8 +38,9 @@ class Target:
         self._has_moved: False
         self._has_renamed: False
         self.source = Path(file_path).resolve()
-        raw_metadata = inspect_metadata(file_path, self._settings.media_type)
-        self.metadata = parse_all(raw_metadata)
+        self.metadata = Metadata.parse(
+            file_path=file_path, media_type=settings.media_type
+        )
 
     def __hash__(self) -> int:
         return self.source.__hash__()
@@ -80,7 +80,7 @@ class Target:
 
     @property
     def media(self) -> MediaType:
-        return MediaType(self.metadata["media"])
+        return self.metadata.media_type
 
     @property
     def directory(self) -> Optional[Path]:
@@ -137,7 +137,9 @@ class Target:
         """Queries the target's respective media provider for metadata."""
         provider = self._get_provider()
         hit = 0
-        for result in provider.search(self._settings.id, **self.metadata):
+        for result in provider.search(
+            self._settings.id, **asdict(self.metadata)
+        ):
             if self._settings.hits and self._settings.hits == hit:
                 break
             hit += 1
@@ -150,3 +152,8 @@ class Target:
             move(str(self.source.resolve()), str(self.destination.absolute()))
         except OSError:
             raise MnamerException
+
+    def update_metadata(self, metadata: Metadata):
+        for key, value in vars(metadata).items():
+            if value:
+                setattr(self.metadata, key, value)

@@ -67,10 +67,11 @@ def main():
     for target in targets:
 
         # Announce file
-        media = target.metadata["media"].title()
-        filename = target.source.name
+        media_label = target.metadata.media_type.value.title()
+        filename_label = target.source.name
         tty.p(
-            f'\nProcessing {media} File: "{filename}"', style=NoticeLevel.NOTICE
+            f'\nProcessing {media_label} File: "{filename_label}"',
+            style=NoticeLevel.NOTICE,
         )
 
         # List details
@@ -79,7 +80,7 @@ def main():
         # Update metadata
         try:
             new_meta = tty.choose(target)
-            target.metadata.update(new_meta)
+            target.update_metadata(new_meta)
         except MnamerSkipException:
             continue
         except MnamerAbortException:

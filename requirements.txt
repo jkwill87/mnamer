@@ -2,3 +2,4 @@ appdirs==1.*
 guessit==3.1.*
 requests==2.*
 requests_cache>=0.5
+dataclasses; python_version < '3.7'

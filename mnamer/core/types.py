@@ -23,7 +23,7 @@ class LogLevel(Enum):
 
 
 class MediaType(Enum):
-    TELEVISION = "television"
+    EPISODE = "episode"
     MOVIE = "movie"
 
 
