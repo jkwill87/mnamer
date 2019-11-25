@@ -1,11 +1,8 @@
 """Shared constants used by mnamer's test."""
 
-from logging import getLogger
 from os import path
 
 from mnamer import IS_WINDOWS
-
-getLogger("mnamer").disabled = True
 
 __all__ = [
     "BAD_JSON",

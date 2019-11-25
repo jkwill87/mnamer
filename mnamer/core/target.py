@@ -1,13 +1,11 @@
-from dataclasses import asdict
 from os import path
 from pathlib import Path
 from shutil import move
-from typing import Any, Dict, Generator, Optional, Set, Union
+from typing import Any, Dict, Generator, List, Optional, Union
 
-from mnamer.api.providers import Provider, provider_factory
+from mnamer.api.providers import Provider
 from mnamer.core.metadata import Metadata
 from mnamer.core.settings import Settings
-from mnamer.core.types import MediaType
 from mnamer.core.utils import (
     crawl_in,
     filename_replace,
@@ -17,6 +15,7 @@ from mnamer.core.utils import (
     filter_extensions,
 )
 from mnamer.exceptions import MnamerException
+from mnamer.types import MediaType, ProviderType
 
 __all__ = ["Target"]
 
@@ -26,7 +25,8 @@ class Target:
     """
 
     _settings: Settings
-    _providers: Dict[str, Provider] = {}
+    _providers: Dict[ProviderType, Provider] = {}
+    _provider: Provider
     _has_moved: bool
     _has_renamed: bool
     _raw_metadata: Dict[str, str]
@@ -41,6 +41,12 @@ class Target:
         self.metadata = Metadata.parse(
             file_path=file_path, media_type=settings.media_type
         )
+        provider_type = settings.api_for(self.metadata.media_type)
+        if provider_type not in self._providers:
+            self._providers[provider_type] = Provider.provider_factory(
+                provider_type, self._settings
+            )
+        self._provider = self._providers[provider_type]
 
     def __hash__(self) -> int:
         return self.source.__hash__()
@@ -52,39 +58,44 @@ class Target:
         return str(self.source.resolve())
 
     @classmethod
-    def populate_paths(cls, settings: Settings) -> Set["Target"]:
+    def populate_paths(cls, settings: Settings) -> List["Target"]:
         """Creates a list of Target objects for media files found in paths."""
-        file_paths = crawl_in(settings.file_paths, settings.recurse)
-        file_paths = filter_blacklist(file_paths, settings.blacklist)
-        file_paths = filter_extensions(file_paths, settings.extensions)
-        targets = {cls(file_path, settings) for file_path in file_paths}
-        if settings.media_mask:
-            targets = {
-                target
-                for target in targets
-                if target.metadata["media"] == settings.media_mask
-            }
+        file_paths = crawl_in(settings.targets, settings.recurse)
+        file_paths = filter_blacklist(file_paths, settings.ignore)
+        file_paths = filter_extensions(file_paths, settings.mask)
+        targets = [cls(file_path, settings) for file_path in file_paths]
+        targets = list(dict.fromkeys(targets))  # unique values
+        targets = list(filter(cls._matches_mask, targets))
+        targets = list(filter(cls._matches_media_type, targets))
         return targets
 
-    @property
-    def _api(self) -> str:
-        return getattr(self._settings, f"{self.media.value}_api")
+    @staticmethod
+    def _matches_media_type(target: "Target") -> bool:
+        if not target._settings.media_type:
+            return True
+        else:
+            return target._settings.media_type is target.metadata.media_type
 
-    @property
-    def _api_key(self) -> str:
-        return getattr(self._settings, f"api_key_{self._api}")
+    @staticmethod
+    def _matches_mask(target: "Target") -> bool:
+        if not target._settings.mask:
+            return True
+        else:
+            return target.source.suffix in target._settings.mask
 
     @property
     def _formatting(self) -> str:
-        return getattr(self._settings, f"{self.media.value}_format")
+        return getattr(self._settings, f"{self.media_type.value}_format")
 
     @property
-    def media(self) -> MediaType:
+    def media_type(self) -> MediaType:
         return self.metadata.media_type
 
     @property
     def directory(self) -> Optional[Path]:
-        directory = getattr(self._settings, f"{self.media.value}_directory")
+        directory = getattr(
+            self._settings, f"{self.media_type.value}_directory"
+        )
         return Path(directory) if directory else None
 
     @property
@@ -113,37 +124,19 @@ class Target:
         directory = Path(dir_head, dir_tail)
         if self._settings.scene:
             filename = filename_scenify(filename)
-        if self._settings.lowercase:
+        if self._settings.lower:
             filename = filename.lower()
         return Path(directory, filename)
 
-    def _get_provider(self):
-        if self._api is None:
-            raise MnamerException(
-                f"No provider specified for {self.media.value} type"
-            )
-        if self.media.value not in Target._providers:
-            provider = provider_factory(
-                self._api,
-                api_key=self._api_key,
-                cache=not self._settings.nocache,
-            )
-            Target._providers[self.media.value] = provider
-        else:
-            provider = Target._providers[self.media.value]
-        return provider
-
-    def query(self) -> Generator[Metadata, None, None]:
+    def query(self) -> List[Metadata]:
         """Queries the target's respective media provider for metadata."""
-        provider = self._get_provider()
-        hit = 0
-        for result in provider.search(
-            self._settings.id, **asdict(self.metadata)
-        ):
-            if self._settings.hits and self._settings.hits == hit:
+        results = self._provider.search(self.metadata)
+        response = []
+        for idx, result in enumerate(results):
+            response.append(result)
+            if idx is self._settings.hits:
                 break
-            hit += 1
-            yield result
+        return response
 
     def relocate(self):
         """Performs the action of renaming and/or moving a file."""
@@ -152,8 +145,3 @@ class Target:
             move(str(self.source.resolve()), str(self.destination.absolute()))
         except OSError:
             raise MnamerException
-
-    def update_metadata(self, metadata: Metadata):
-        for key, value in vars(metadata).items():
-            if value:
-                setattr(self.metadata, key, value)

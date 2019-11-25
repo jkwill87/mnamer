@@ -1,7 +1,5 @@
 from sys import stdin
 from termios import TCSADRAIN, tcgetattr, tcsetattr
-
-# noinspection PyProtectedMember
 from tty import setraw
 
 from mnamer import codes

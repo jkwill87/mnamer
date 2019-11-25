@@ -1,9 +1,51 @@
 import argparse
-import re
+from dataclasses import dataclass
+from typing import Any, Dict, List, Tuple
 
-from mnamer.core.types import LogLevel
+from mnamer.core.utils import filter_dict
+from mnamer.types import SettingsType
 
-__all__ = ["ArgumentParser"]
+__all__ = ["ArgumentParser", "ArgParseSpec"]
+
+
+@dataclass(frozen=True)
+class ArgParseSpec:
+    group: SettingsType
+    action: str = None
+    choices: List[str] = None
+    flags: List[str] = None
+    help: str = None
+    nargs: str = None
+    type: type = None
+
+    @classmethod
+    def deserialize(cls, d: Dict[str, Any]):
+        return cls(**d)
+
+    def serialize(self) -> Dict[str, Any]:
+        return {k: v for k, v in vars(self).items() if k}
+
+    __call__ = serialize
+
+    @property
+    def registration(self) -> Tuple[List[str], Dict[str, str]]:
+        names = self.flags
+        options = {
+            "action": self.action,
+            "choices": self.choices,
+            "default": None,
+            "help": self.help,
+            "nargs": self.nargs,
+            "type": self.type,
+        }
+        return names, filter_dict(options)
+
+    @staticmethod
+    def has_short(spec: "ArgParseSpec"):
+        for flag in spec.flags:
+            if len(flag) is 2 and flag[0] == "-":
+                return True
+        return False
 
 
 class ArgumentParser(argparse.ArgumentParser):
@@ -16,86 +58,48 @@ class ArgumentParser(argparse.ArgumentParser):
             *args,
             **kwargs,
         )
+        self._positional_group = self.add_argument_group()
         self._parameter_group = self.add_argument_group()
         self._directive_group = self.add_argument_group()
 
-    def add_parameter(self, documentation: str, rtype: type):
-        args, kwargs = self._add_spec(documentation, rtype)
-        self._parameter_group.add_argument(*args, **kwargs)
+    def add_spec(self, spec: ArgParseSpec):
+        # set options
+        if spec.group is SettingsType.PARAMETER:
+            group = self._parameter_group
+        elif spec.group is SettingsType.DIRECTIVE:
+            group = self._directive_group
+        elif spec.group is SettingsType.POSITIONAL:
+            group = self._positional_group
+        else:
+            raise RuntimeError("Cannot assign argument to group")
+        args, kwargs = spec.registration
+        group.add_argument(*args, **kwargs)
 
-    def add_directive(self, documentation: str, rtype: type):
-        args, kwargs = self._add_spec(documentation, rtype)
-        self._directive_group.add_argument(*args, **kwargs)
+    __iadd__ = add_spec
 
-    @staticmethod
-    def _add_spec(documentation: str, rtype: type):
-        lhs = documentation.split(": ")[0]
-        # action
-        action = None
-        if rtype is LogLevel:
-            action = "count"
-        elif rtype is bool:
-            action = "store_true"
-        # type
-        type_ = None
-        if not action and rtype is int:
-            type_ = int
-        # choices
-        choices = set()
-        if "{" in lhs:
-            conditions = lhs.split("=")[1] if "=" in lhs else ""
-            choices = set(re.findall(r"(\w+)(?=[ ,}>])", conditions))
-        # flags
-        args = []
-        raw_flags = lhs.split("=")[0] if "=" in lhs else lhs
-        raw_flags = raw_flags.split(", ")
-        for flag in raw_flags:
-            flag = flag.replace("+", "")
-            args.append(flag)
-            snake_equivalent = f"--{flag[2:].replace('-', '_')}"
-            if snake_equivalent != "--" and snake_equivalent not in args:
-                args.append(snake_equivalent)
-        # nargs
-        nargs = "+" if rtype is list else None
-        # add argument
-        kwargs = {"help": documentation}
-        if action:
-            kwargs["action"] = action
-        if choices:
-            kwargs["choices"] = choices
-        if nargs:
-            kwargs["nargs"] = nargs
-        if type_:
-            kwargs["type"] = type_
-        return args, kwargs
+    def _help_for_group(self, group_name: str) -> str:
+        actions = getattr(self, f"_{group_name}_group")._group_actions
+        return "\n  ".join([action.help for action in actions])
 
-    # noinspection PyProtectedMember
     def format_help(self):
-        parameters = [a.help for a in self._parameter_group._group_actions]
-        parameters.sort()
-        parameters.sort(key=lambda s: s.count(", "), reverse=True)
-        parameters = "\n  ".join(parameters)
-
-        directives = [a.help for a in self._directive_group._group_actions]
-        directives.sort()
-        directives.sort(key=lambda s: s.count(", "), reverse=True)
-        directives = "\n  ".join(directives)
-
         return f"""
 USAGE: {self.usage}
+
+POSITIONAL:
+  {self._help_for_group("positional")}
 
 PARAMETERS:
   The following flags can be used to customize mnamer's behaviour. Their long
   forms may also be set in a '.mnamer.json' config file, in which case cli
   arguments will take precedence.
 
-  {parameters}
+  {self._help_for_group("parameter")}
 
 DIRECTIVES:
   Directives are one-off arguments that are used to perform secondary tasks
   like overriding media detection. They can't be used in '.mnamer.json'.
 
-  {directives}
+  {self._help_for_group("directive")}
 
 {self.epilog}
 """

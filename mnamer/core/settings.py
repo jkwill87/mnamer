@@ -1,274 +1,374 @@
-from pathlib import PurePath
-from textwrap import indent
-from typing import Any, Dict, Optional, Set, Union, get_type_hints
+import dataclasses
+import json
+from os import environ
+from pathlib import Path, PurePath
+from string import Template
+from typing import Any, Dict, List, Optional, Set, Union
 
-from mnamer.core.argument import ArgumentParser
-from mnamer.core.types import LogLevel, MediaType
-from mnamer.core.utils import crawl_out, json_dumps, json_read
-from mnamer.exceptions import MnamerSettingsException
+from mnamer.core.argument import ArgParseSpec, ArgumentParser
+from mnamer.core.utils import (
+    crawl_out,
+    normalize_extensions,
+)
+from mnamer.types import MediaType, ProviderType, SettingsType
 
-__all__ = ["Settings"]
 
-
+@dataclasses.dataclass
 class Settings:
-    configuration: Dict[str, Any]
-    arguments: Dict[str, Any]
-    config_path: Optional[str] = crawl_out(".mnamer.json")
-    file_paths: Set[str]
+    # attributes ===============================================================
 
-    def __init__(self, load_args: bool = True, load_config: bool = True):
-        self._dict = {}
-        self._parser = ArgumentParser()
-        self.configuration = self._load_config()
-        self.arguments = self._load_args()
-        if load_config and not (
-            load_args and self.arguments.get("config_ignore")
-        ):
-            self._bulk_apply(self.configuration)
-        if load_args:
-            self.file_paths = set(self.arguments.pop("targets"))
-            self._bulk_apply(self.arguments)
+    # positional ---------------------------------------------------------------
+
+    targets: Set[Path] = dataclasses.field(
+        default_factory=lambda: [],
+        metadata=ArgParseSpec(
+            flags=["targets"],
+            group=SettingsType.POSITIONAL,
+            help="[TARGET,...]: media file file path(s) to process",
+            nargs="*",
+        )(),
+    )
+
+    # parameter ----------------------------------------------------------------
+
+    batch: bool = dataclasses.field(
+        default=False,
+        metadata=ArgParseSpec(
+            action="store_true",
+            flags=["-b", "--batch"],
+            group=SettingsType.PARAMETER,
+            help="-b, --batch: process automatically without interactive prompts",
+        )(),
+    )
+    lower: bool = dataclasses.field(
+        default=False,
+        metadata=ArgParseSpec(
+            action="store_true",
+            flags=["-l", "--lowercase"],
+            group=SettingsType.PARAMETER,
+            help="-l, --lower: rename files using lowercase characters",
+        )(),
+    )
+    recurse: bool = dataclasses.field(
+        default=False,
+        metadata=ArgParseSpec(
+            action="store_true",
+            flags=["-r", "--recurse"],
+            group=SettingsType.PARAMETER,
+            help="-r, --recurse: search for files within nested directories",
+        )(),
+    )
+    scene: bool = dataclasses.field(
+        default=False,
+        metadata=ArgParseSpec(
+            action="store_true",
+            flags=["-s", "--scene"],
+            group=SettingsType.PARAMETER,
+            help="-s, --scene: use dots in place of alphanumeric chars",
+        )(),
+    )
+    verbose: bool = dataclasses.field(
+        default=False,
+        metadata=ArgParseSpec(
+            action="store_true",
+            flags=["-v", "--verbose"],
+            group=SettingsType.PARAMETER,
+            help="-v, --verbose: increase output verbosity",
+        )(),
+    )
+    hits: int = dataclasses.field(
+        default=False,
+        metadata=ArgParseSpec(
+            flags=["--hits"],
+            group=SettingsType.PARAMETER,
+            help="--hits=<NUMBER>: limit the maximum number of hits for each query",
+            type=int,
+        )(),
+    )
+    ignore: List[str] = dataclasses.field(
+        default_factory=lambda: [".*sample.*", "^RARBG.*"],
+        metadata=ArgParseSpec(
+            flags=["--ignore"],
+            group=SettingsType.PARAMETER,
+            help="--ignore=<PATTERN,...>: ignore files matching these regular expressions",
+            nargs="+",
+        )(),
+    )
+    mask: List[str] = dataclasses.field(
+        default_factory=lambda: ["avi", "m4v", "mp4", "mkv", "ts", "wmv"],
+        metadata=ArgParseSpec(
+            flags=["--mask"],
+            group=SettingsType.PARAMETER,
+            help="--mask=<EXTENSION,...>: only process given file types",
+            nargs="+",
+        )(),
+    )
+    no_cache: bool = dataclasses.field(
+        default=False,
+        metadata=ArgParseSpec(
+            action="store_true",
+            flags=["--nocache", "--no_cache", "--no-cache"],
+            group=SettingsType.PARAMETER,
+            help="--nocache: disable and clear request cache",
+        )(),
+    )
+    no_guess: bool = dataclasses.field(
+        default=False,
+        metadata=ArgParseSpec(
+            action="store_true",
+            flags=["--noguess", "--no_guess", "--no-guess"],
+            group=SettingsType.PARAMETER,
+            help="--noguess: disable best guess; e.g. when no matches or network down",
+        )(),
+    )
+    no_style: bool = dataclasses.field(
+        default=False,
+        metadata=ArgParseSpec(
+            action="store_true",
+            flags=["--nostyle", "--no_style", "--no-style"],
+            group=SettingsType.PARAMETER,
+            help="--nostyle: print to stdout without using colour or unicode chars",
+        )(),
+    )
+    movie_api: Union[ProviderType, str] = dataclasses.field(
+        default=ProviderType.TMDB,
+        metadata=ArgParseSpec(
+            choices=[ProviderType.TMDB.value, ProviderType.OMDB.value],
+            flags=["--movie_api", "--movie-api"],
+            group=SettingsType.PARAMETER,
+            help="--movie-api={tmdb,omdb}: set movie api provider",
+        )(),
+    )
+    movie_directory: Optional[PurePath] = dataclasses.field(
+        default=None,
+        metadata=ArgParseSpec(
+            flags=["--movie_directory", "--movie-directory"],
+            group=SettingsType.PARAMETER,
+            help="--movie-directory: set movie relocation directory",
+        )(),
+    )
+    movie_format: str = dataclasses.field(
+        default="{title} ({year}){extension}",
+        metadata=ArgParseSpec(
+            flags=["--movie_format", "--movie-format"],
+            group=SettingsType.PARAMETER,
+            help="--movie-format: set movie renaming format specification",
+        )(),
+    )
+    episode_api: Union[ProviderType, str] = dataclasses.field(
+        default=ProviderType.TVDB,
+        metadata=ArgParseSpec(
+            choices=[ProviderType.TVDB.value],
+            flags=["--episode_api", "--episode-api"],
+            group=SettingsType.PARAMETER,
+            help="--episode-api={tvdb}: set episode api provider",
+        )(),
+    )
+    episode_directory: PurePath = dataclasses.field(
+        default=None,
+        metadata=ArgParseSpec(
+            flags=["--episode_directory", "--episode-directory"],
+            group=SettingsType.PARAMETER,
+            help="--episode-directory: set episode relocation directory",
+        )(),
+    )
+    episode_format: str = dataclasses.field(
+        default="{series_name} - S{season_number:02}E{episode_number:02} - {title}{extension}",
+        metadata=ArgParseSpec(
+            flags=["--episode_format", "--episode-format"],
+            group=SettingsType.PARAMETER,
+            help="--episode-format: set episode renaming format specification",
+        )(),
+    )
+
+    # directive ----------------------------------------------------------------
+
+    version: bool = dataclasses.field(
+        default=False,
+        metadata=ArgParseSpec(
+            action="store_true",
+            flags=["-V", "--version"],
+            group=SettingsType.DIRECTIVE,
+            help="-V, --version: display the running mnamer version number",
+        )(),
+    )
+    config_dump: bool = dataclasses.field(
+        default=False,
+        metadata=ArgParseSpec(
+            action="store_true",
+            flags=["--config_dump", "--config-dump"],
+            group=SettingsType.DIRECTIVE,
+            help="--config-dump: prints current config JSON to stdout then exits",
+        )(),
+    )
+    id: str = dataclasses.field(
+        default=None,
+        metadata=ArgParseSpec(
+            flags=["--id"],
+            group=SettingsType.DIRECTIVE,
+            help="--id=<ID>: specify a movie or series id for a given provider",
+        )(),
+    )
+    media_type: Optional[Union[MediaType, str]] = dataclasses.field(
+        default=None,
+        metadata=ArgParseSpec(
+            choices=list(MediaType),
+            flags=["--media-type", "--media_type"],
+            group=SettingsType.DIRECTIVE,
+            help="--media={movie,episode}: override media detection",
+        )(),
+    )
+    noconfig: bool = dataclasses.field(
+        default=False,
+        metadata=ArgParseSpec(
+            action="store_true",
+            flags=["--noconfig", "--no-config", "--no_config"],
+            group=SettingsType.DIRECTIVE,
+            help="--noconfig: skips loading config file for session",
+        )(),
+    )
+    test: bool = dataclasses.field(
+        default=False,
+        metadata=ArgParseSpec(
+            action="store_true",
+            flags=["--test"],
+            group=SettingsType.DIRECTIVE,
+            help="--test: mocks the renaming and moving of files",
+        )(),
+    )
+
+    # config-only --------------------------------------------------------------
+
+    api_key_omdb: bool = dataclasses.field(
+        default=getattr(environ, "API_KEY_OMDB", "61652c15"),
+        metadata=ArgParseSpec(group=SettingsType.CONFIGURATION)(),
+    )
+    api_key_tmdb: bool = dataclasses.field(
+        default=getattr(
+            environ, "API_KEY_TMDB", "db972a607f2760bb19ff8bb34074b4c7"
+        ),
+        metadata=ArgParseSpec(group=SettingsType.CONFIGURATION)(),
+    )
+    api_key_tvdb: bool = dataclasses.field(
+        default=getattr(environ, "API_KEY_TVDB", "E69C7A2CEF2F3152"),
+        metadata=ArgParseSpec(group=SettingsType.CONFIGURATION)(),
+    )
+    replacements: Dict[str, str] = dataclasses.field(
+        default_factory=lambda: {"&": "and", "@": "at", ":": ",", ";": ","},
+        metadata=ArgParseSpec(group=SettingsType.CONFIGURATION)(),
+    )
+
+    # ==========================================================================
+
+    load_configuration: dataclasses.InitVar[bool] = True
+    load_arguments: dataclasses.InitVar[bool] = True
+    configuration_path: dataclasses.InitVar[Optional[Path]] = crawl_out(
+        ".mnamer.json"
+    )
+
+    def __post_init__(
+        self,
+        load_configuration: bool,
+        load_arguments: bool,
+        configuration_path: Optional[Path],
+    ):
+        self._arg_data = {}
+        self._config_data = {}
+        # load cli arguments
+        if load_arguments:
+            self._load_arguments()
         else:
-            self.file_paths = set()
-
-    def __setattr__(self, key: str, value: Union[str, int, bool]):
-        # skip private attributes
-        if key not in self.fields():
-            super().__setattr__(key, value)
-            return
-        # verify attribute is for one of the defined properties
-        fields = self.fields()
-        if key not in fields:
-            raise MnamerSettingsException(f"'{key}' is not a valid field")
-        # coerce directory properties into PurePaths
-        if key.endswith("_directory"):
-            value = PurePath(value)
-        elif key == "media_type":
-            value = MediaType(value)
-        # verify value type matches property type annotation
-        expected_types = self._type_for(key)
-        if not isinstance(value, expected_types):
-            raise MnamerSettingsException(
-                f"'{key}' not of type {expected_types}"
-            )
-        self._dict[key] = value
-
-    def __repr__(self):
-        fields = [f"{k} = {v}" for k, v in self._dict.items()]
-        fields.sort()
-        body = indent(",\n".join(fields), "  - ")
-        return f"Settings:\n{body}\n"
-
-    def as_json(self):
-        payload = {k: getattr(self, k) for k in self.parameters()}
-        return json_dumps(payload)
+            self.noconfig = self._arg_data.get("config_ignore", False)
+        # load and apply configuration
+        if configuration_path and load_configuration and not self.noconfig:
+            self._load_config(configuration_path)
+            self._bulk_apply(self._config_data)
+        # apply cli arguments
+        if self._arg_data:
+            self._bulk_apply(self._arg_data)
 
     @classmethod
-    def fields(cls) -> Set[str]:
-        return {p for p in dir(cls) if isinstance(getattr(cls, p), property)}
-
-    @classmethod
-    def directives(cls) -> Set[str]:
+    def _attribute_metadata(cls) -> Dict[str, ArgParseSpec]:
         return {
-            "config_dump",
-            "config_ignore",
-            "id",
-            "media_mask",
-            "media_type",
-            "test",
-            "version",
+            f.name: ArgParseSpec(**f.metadata)
+            for f in dataclasses.fields(cls)
+            if f.metadata
         }
 
-    @classmethod
-    def parameters(cls) -> Set[str]:
-        return cls.fields() - cls.directives()
+    def __setattr__(self, key: str, value: Any):
+        if not key.startswith("_") and key not in self._attribute_metadata():
+            raise RuntimeError(f"invalid setting: {key}")
+        converter = {
+            "movie_api": ProviderType,
+            "movie_directory": PurePath,
+            "episode_api": ProviderType,
+            "episode_directory": PurePath,
+            "mask": normalize_extensions,
+        }.get(key)
+        if value is not None and converter:
+            value = converter(value)
+        super().__setattr__(key, value)
 
-    @classmethod
-    def _type_for(cls, field) -> type:
-        prop = getattr(cls, field)
-        return get_type_hints(getattr(prop, "fget"))["return"]
+    @property
+    def as_dict(self):
+        return dataclasses.asdict(self)
 
-    @classmethod
-    def _doc_for(cls, field) -> str:
-        return getattr(cls, field).fget.__doc__ or ""
+    @property
+    def as_json(self):
+        payload = {
+            k: getattr(v, "value", v)
+            for k, v in self.as_dict.items()
+            if k in self._attribute_metadata()
+        }
+        return json.dumps(
+            payload,
+            allow_nan=False,
+            check_circular=False,
+            ensure_ascii=True,
+            indent=4,
+            skipkeys=True,
+            sort_keys=True,
+        )
 
-    def _bulk_apply(self, d: Dict[str, Any]):
-        for k, v in d.items():
-            if k == "verbose":
-                v = LogLevel(v)
-            setattr(self, k, v)
+    def _bulk_apply(self, data: Dict[str, Any]):
+        [setattr(self, k, v) for k, v in data.items() if v]
 
-    def _load_args(self) -> Dict[str, Any]:
-        self._parser.add_argument("targets", nargs="*", default=[])
-        for field in self.fields():
-            documentation = self._doc_for(field)
-            if not documentation:
-                continue
-            rtype = self._type_for(field)
-            if field in self.directives():
-                self._parser.add_directive(documentation, rtype)
-            else:
-                self._parser.add_parameter(documentation, rtype)
-        return vars(self._parser.parse_args())
+    def _load_arguments(self):
+        arg_parser = ArgumentParser()
+        for spec in self._attribute_metadata().values():
+            if spec.group in (
+                SettingsType.DIRECTIVE,
+                SettingsType.PARAMETER,
+                SettingsType.POSITIONAL,
+            ):
+                arg_parser.add_spec(spec)
+        arguments = arg_parser.parse_args()
+        self._arg_data = vars(arguments)
 
-    def _load_config(self) -> Dict[str, Any]:
+    def _load_config(self, path: Union[Path, str]):
+        path = Template(str(path)).substitute(environ)
+        with open(path, mode="r") as file_pointer:
+            data = file_pointer.read()
+        self._config_data = json.loads(data)
+
+    def write_config(self, path: Union[PurePath, str]):
+        path = Template(str(path)).substitute(environ)
         try:
-            return json_read(self.config_path) if self.config_path else {}
-        except RuntimeError:
-            raise MnamerSettingsException("invalid JSON")
+            open(path, mode="w").write(self.as_json)
+        except IOError as e:  # e.g. permission error
+            RuntimeError(e.strerror)
+        except (TypeError, ValueError):
+            RuntimeError("invalid JSON")
 
-    # General Options ----------------------------------------------------------
+    def api_for(self, media_type: MediaType) -> ProviderType:
+        return getattr(self, f"{media_type.value}_api")
 
-    @property
-    def batch(self) -> bool:
-        """-b, --batch: batch mode; disable interactive prompts"""
-        return self._dict.get("batch", False)
+    def api_key_for(self, provider: ProviderType) -> Optional[str]:
+        return getattr(self, f"api_key_{provider.value}_")
 
-    @property
-    def lowercase(self) -> bool:
-        """-l, --lowercase: rename filenames as lowercase"""
-        return self._dict.get("lowercase", False)
-
-    @property
-    def recurse(self) -> bool:
-        """-r, --recurse: search for files in nested directories"""
-        return self._dict.get("recurse", False)
-
-    @property
-    def scene(self) -> bool:
-        """-s, --scene: scene mode; use dots in place of alphanumeric chars"""
-        return self._dict.get("scene", False)
-
-    @property
-    def verbose(self) -> LogLevel:
-        """-v, --verbose: increase output verbosity"""
-        level = self._dict.get("verbose", 0)
-        return LogLevel(level)
-
-    @property
-    def nocache(self) -> bool:
-        """--nocache: disable and clear request cache"""
-        return self._dict.get("nocache", False)
-
-    @property
-    def noguess(self) -> bool:
-        """--noguess: disable best guess; e.g. no matches or network down"""
-        return self._dict.get("noguess", False)
-
-    @property
-    def nostyle(self) -> bool:
-        """--nostyle: print to stdout without using colour or unicode chars"""
-        return self._dict.get("nostyle", False)
-
-    @property
-    def blacklist(self) -> list:
-        """--blacklist=<word,...>: ignore matching these regular expressions"""
-        return self._dict.get("blacklist", [".*sample.*", "^RARBG.*"])
-
-    @property
-    def extensions(self) -> list:
-        """--extensions=<ext,...>: only process given file types"""
-        return self._dict.get(
-            "extensions", ["avi", "m4v", "mp4", "mkv", "ts", "wmv"]
-        )
-
-    @property
-    def hits(self) -> int:
-        """--hits=<number>: limit the maximum number of hits for each query"""
-        return self._dict.get("hits", 5)
-
-    # Movie Related ------------------------------------------------------------
-
-    @property
-    def movie_api(self) -> str:
-        """--movie-api={tmdb,omdb}: set movie api provider"""
-        return self._dict.get("movie_api", "tmdb")
-
-    @property
-    def movie_directory(self) -> PurePath:
-        """--movie-directory=<path>: set movie relocation directory"""
-        return self._dict.get("movie_directory", "")
-
-    @property
-    def movie_format(self) -> str:
-        """--movie-format=<format>: set movie renaming format specification"""
-        return self._dict.get("movie_format", "{title} ({year}){extension}")
-
-    # Episode Related -------------------------------------------------------
-
-    @property
-    def episode_api(self) -> str:
-        """--episode-api={tvdb}: set television api provider"""
-        return self._dict.get("episode_api", "tvdb")
-
-    @property
-    def episode_directory(self) -> PurePath:
-        """--episode-directory=<path>: set television relocation directory"""
-        return self._dict.get("episode_directory", "")
-
-    @property
-    def episode_format(self) -> str:
-        """--episode-format=<format>: set television renaming format spec"""
-        return self._dict.get(
-            "episode_format",
-            "{series_name} - S{season_number:02}E{episode_number:02} - {title}{extension}",
-        )
-
-    # Non-CLI preferences ------------------------------------------------------
-
-    @property
-    def api_key_tmdb(self) -> str:
-        return self._dict.get(
-            "api_key_tmdb", "db972a607f2760bb19ff8bb34074b4c7"
-        )
-
-    @property
-    def api_key_tvdb(self) -> str:
-        return self._dict.get("api_key_tvdb", "E69C7A2CEF2F3152")
-
-    @property
-    def api_key_omdb(self) -> str:
-        return self._dict.get("api_key_omdb", "61652c15")
-
-    @property
-    def replacements(self) -> dict:
-        return self._dict.get(
-            "replacements", {"&": "and", "@": "at", ":": ",", ";": ","}
-        )
-
-    # Directives ---------------------------------------------------------------
-
-    @property
-    def config_dump(self) -> bool:
-        """--config-dump: prints current config JSON to stdout then exits"""
-        return self._dict.get("config_dump", False)
-
-    @property
-    def config_ignore(self) -> bool:
-        """--config-ignore: skips loading config file for session"""
-        return self._dict.get("config_ignore", False)
-
-    @property
-    def id(self) -> str:
-        """--id=<id>: explicitly specifies a movie or series id"""
-        return self._dict.get("id", "")
-
-    @property
-    def media_mask(self) -> str:
-        """--media-mask={movie,television}: only process given media type"""
-        return self._dict.get("media_mask", "")
-
-    @property
-    def media_type(self) -> MediaType:
-        """--media-type={movie,television}: override media detection"""
-        return self._dict.get("media_type", None)
-
-    @property
-    def test(self) -> bool:
-        """--test: mocks the renaming and moving of files"""
-        return self._dict.get("test", False)
-
-    @property
-    def version(self) -> bool:
-        """-V, --version: displays the running mnamer version number"""
-        return self._dict.get("version", False)
+    def update(self, settings: "Settings"):
+        for field in dataclasses.asdict(self).keys():
+            value = getattr(settings, field)
+            if value is None:
+                continue
+            setattr(self, field, value)

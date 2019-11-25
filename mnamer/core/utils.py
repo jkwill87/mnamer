@@ -4,18 +4,17 @@ import json
 import random
 import re
 from datetime import date
-from os import environ, getcwd, path, walk
+from os import path, walk
+from pathlib import Path
 from re import IGNORECASE, search, sub
-from string import Template, capwords
+from string import capwords
 from sys import version_info
-from typing import Any, Collection, Dict, Optional, Union
+from typing import Any, Collection, Dict, List, Optional, Union
 from unicodedata import normalize
 
 import requests_cache
 from appdirs import user_cache_dir
 from requests.adapters import HTTPAdapter
-
-from mnamer.api import log
 
 AGENT_CHROME = (
     "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0_1 like Mac OS X) AppleWebKit/601.1"
@@ -37,7 +36,7 @@ CACHE_PATH = path.join(
 )
 
 
-def crawl_in(file_paths: Union[Collection[str], str], recurse: bool = False):
+def crawl_in(file_paths: Union[Collection[Path], Path], recurse: bool = False):
     """Looks for files amongst or within paths provided."""
     if not isinstance(file_paths, (list, tuple, set)):
         file_paths = [file_paths]
@@ -57,19 +56,19 @@ def crawl_in(file_paths: Union[Collection[str], str], recurse: bool = False):
     return found_files
 
 
-def crawl_out(filename: str):
+def crawl_out(filename: str) -> Optional[Path]:
     """Looks for a file in the home directory and each directory up from cwd."""
-    working_dir = getcwd()
+    working_dir = Path.cwd()
     while True:
-        parent_dir = path.realpath(path.join(working_dir, ".."))
+        parent_dir = working_dir.parent
         if parent_dir == working_dir:  # e.g. fs root or error
             break
-        target = path.join(working_dir, filename)
-        if path.isfile(target):
+        target = working_dir / filename
+        if target.exists():
             return target
         working_dir = parent_dir
-    target = path.join(path.expanduser("~"), filename)
-    return target if path.isfile(target) else None
+    target = Path.home() / filename
+    return target if target.exists() else None
 
 
 def file_stem(file_path: str):
@@ -141,6 +140,10 @@ def filter_extensions(
     }
 
 
+def filter_dict(d: dict):
+    return {k: v for k, v in d.items() if v is not None}
+
+
 def json_dumps(d: Dict[str, Any]) -> Dict[str, Any]:
     """A wrapper for json.dumps."""
     return json.dumps(
@@ -152,34 +155,6 @@ def json_dumps(d: Dict[str, Any]) -> Dict[str, Any]:
         skipkeys=True,
         sort_keys=True,
     )
-
-
-def json_read(file_path: str) -> Dict[str, Any]:
-    """Reads a JSON file from disk."""
-    try:
-        templated_path = Template(file_path).substitute(environ)
-        with open(templated_path, mode="r") as file_pointer:
-            contents = file_pointer.read()
-            if contents:
-                return {k: v for k, v in json.loads(contents).items() if v}
-            else:
-                return {}
-    except IOError as e:
-        raise RuntimeError(str(e.strerror).lower())
-    except (TypeError, ValueError):
-        raise RuntimeError("invalid JSON")
-
-
-def json_write(file_path: str, obj: Any):
-    """Writes a JSON file to disk."""
-    templated_path = Template(file_path).substitute(environ)
-    try:
-        json_data = json.dumps(obj)
-        open(templated_path, mode="w").write(json_data)
-    except IOError as e:  # e.g. permission error
-        RuntimeError(e.strerror)
-    except (TypeError, ValueError):
-        RuntimeError("invalid JSON")
 
 
 def clean_dict(target_dict, whitelist=None):
@@ -208,7 +183,7 @@ def get_session():
     if not hasattr(get_session, "session"):
         get_session.session = requests_cache.CachedSession(
             cache_name=CACHE_PATH.rstrip(".sqlite"),
-            expire_after=518400,  # 6 days
+            expire_after=518_400,  # 6 days
         )
         adapter = HTTPAdapter(max_retries=3)
         get_session.session.mount("http://", adapter)
@@ -238,8 +213,8 @@ def request_json(
     assert url
     session = get_session()
 
-    log.info("-" * 80)
-    log.info("url: %s", url)
+    # log.info("-" * 80)
+    # log.info("url: %s", url)
 
     if isinstance(headers, dict):
         headers = clean_dict(headers)
@@ -273,14 +248,14 @@ def request_json(
     except Exception as e:
         content = None
         status = 500
-        log.debug(e, exc_info=True)
-    else:
-        log.debug("method: %s", method)
-        log.debug("headers: %r", headers)
-        log.debug("parameters: %r", parameters)
-        log.debug("cache: %r", cache)
-        log.info("status: %d", status)
-        log.debug("content: %s", content)
+        # log.debug(e, exc_info=True)
+    # else:
+    #     log.debug("method: %s", method)
+    #     log.debug("headers: %r", headers)
+    #     log.debug("parameters: %r", parameters)
+    #     log.debug("cache: %r", cache)
+    #     log.info("status: %d", status)
+    #     log.debug("content: %s", content)
     finally:
         session._is_cache_disabled = initial_cache_state
     return status, content
@@ -455,10 +430,14 @@ def str_fix_whitespace(s: str):
     return s
 
 
-def format_extension(s: str):
+def normalize_extension(s: str):
     if s and s[0] != ".":
         s = f".{s}"
     return s.lower()
+
+
+def normalize_extensions(l: List[str]):
+    return [normalize_extension(s) for s in l]
 
 
 def convert_date(value: [str, date]) -> date:

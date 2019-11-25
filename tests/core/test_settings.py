@@ -4,8 +4,8 @@ from sys import argv
 import pytest
 
 from mnamer.core.settings import Settings
-from mnamer.core.types import LogLevel
 from tests import JUNK_TEXT
+from types import LogType
 
 
 @pytest.mark.usefixtures("reset_args")
@@ -62,7 +62,7 @@ class TestArguments:
     def test_lowercase(self, param: str):
         argv.append(param)
         assert self.settings.arguments["lowercase"] is True
-        assert self.settings.lowercase is True
+        assert self.settings.lower is True
 
     @pytest.mark.parametrize("param", ("-s", "--scene"))
     def test_scene(self, param: str):
@@ -73,13 +73,13 @@ class TestArguments:
     @pytest.mark.parametrize("param", ("-v", "--verbose"))
     def test_log_level__verbose(self, param: str):
         argv.append(param)
-        assert self.settings.arguments["verbose"] == LogLevel.VERBOSE.value
-        assert self.settings.verbose == LogLevel.VERBOSE.value
+        assert self.settings.arguments["verbose"] == LogType.VERBOSE.value
+        assert self.settings.verbose == LogType.VERBOSE.value
 
     def test_log_level__debug(self):
         argv.append("-vv")
-        assert self.settings.arguments["verbose"] == LogLevel.DEBUG.value
-        assert self.settings.verbose == LogLevel.DEBUG.value
+        assert self.settings.arguments["verbose"] == LogType.DEBUG.value
+        assert self.settings.verbose == LogType.DEBUG.value
 
     def test_nocache(self):
         argv.append("--nocache")
@@ -246,7 +246,7 @@ class TestConfiguration:
 
     def test_preferences_single(self):
         argv.append("--verbose")
-        assert self.configuration == {"verbose": LogLevel.VERBOSE.value}
+        assert self.configuration == {"verbose": LogType.VERBOSE.value}
 
     def test_preferences_multi(self):
         argv.append("--recurse")

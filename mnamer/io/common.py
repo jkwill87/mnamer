@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from re import sub
 from sys import stdout
 
@@ -69,7 +67,7 @@ def strip_format(text):
     return sub(r"(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]", "", text)
 
 
-def style_format(text, style, reset=True):
+def style_format(text: str, style: str, reset: bool = True):
     """ Wraps texts in terminal control sequences
 
     Style can be passed as either a collection or space delimited string.

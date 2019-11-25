@@ -1,112 +1,66 @@
 """Provides a high-level interface for metadata media providers."""
 
-import re
 from abc import ABC, abstractmethod
 from datetime import date, datetime as dt
-from os import environ
 
-from mnamer.api import log
 from mnamer.api.endpoints import *
 from mnamer.core.metadata import Metadata
-from mnamer.core.types import MediaType
+from mnamer.core.settings import Settings
 from mnamer.core.utils import year_expand
 from mnamer.exceptions import (
-    MnamerException,
     MnamerNotFoundException,
     MnamerProviderException,
 )
-
-__all__ = [
-    "API_ALL",
-    "API_MOVIE",
-    "API_EPISODE",
-    "OMDb",
-    "Provider",
-    "provider_factory",
-    "has_provider",
-    "has_provider_support",
-    "TMDb",
-    "TVDb",
-]
-
-API_EPISODE = {"tvdb"}
-API_MOVIE = {"tmdb", "omdb"}
-API_ALL = API_EPISODE | API_MOVIE
+from mnamer.types import MediaType, ProviderType
 
 
 class Provider(ABC):
     """ABC for Providers, high-level interfaces for metadata media providers.
     """
 
-    def __init__(self, **options):
+    def __init__(self, settings: Settings):
         """Initializes the provider."""
-        cls_name = self.__class__.__name__
-        self._api_key = options.get(
-            "api_key", environ.get("API_KEY_%s" % cls_name.upper())
-        )
-        self._cache = options.get("cache", True)
+        api_field = f"api_key_{self.__class__.__name__.lower()}"
+        self.api_key = getattr(settings, api_field)
+        self.cache = not settings.no_cache
 
     @abstractmethod
-    def search(self, id_key=None, **parameters):
+    def search(self, parameters: Metadata = None):
         pass
 
-    @property
-    def api_key(self):
-        return self._api_key
-
-    @property
-    def cache(self):
-        return self._cache
-
-
-def has_provider(provider):
-    """Verifies that module has support for requested API provider."""
-    return provider.lower() in API_ALL
-
-
-def has_provider_support(provider, media_type):
-    """Verifies if API provider has support for requested media type."""
-    if provider.lower() not in API_ALL:
-        return False
-    provider_const = "API_" + media_type.upper()
-    return provider in globals().get(provider_const, {})
-
-
-def provider_factory(provider, **options):
-    """Factory function for DB Provider concrete classes."""
-    providers = {"tmdb": TMDb, "tvdb": TVDb, "omdb": OMDb}
-    try:
-        return providers[provider.lower()](**options)
-    except KeyError:
-        msg = "Attempted to initialize non-existing DB Provider"
-        log.error(msg)
-        raise MnamerException(msg)
+    @staticmethod
+    def provider_factory(
+        provider: ProviderType, settings: Settings
+    ) -> "Provider":
+        """Factory function for DB Provider concrete classes."""
+        provider = {
+            ProviderType.TMDB: TMDb,
+            ProviderType.TVDB: TVDb,
+            ProviderType.OMDB: OMDb,
+        }[provider]
+        return provider(settings)
 
 
 class OMDb(Provider):
     """Queries the OMDb API.
     """
 
-    def __init__(self, **options):
-        super(OMDb, self).__init__(**options)
+    def __init__(self, settings: Settings):
+        super().__init__(settings)
         if not self.api_key:
             raise MnamerProviderException("OMDb require API key")
 
-    def search(self, id_key=None, **parameters):
-        title = parameters.get("title")
-        year = parameters.get("year")
-        id_imdb = id_key or parameters.get("id_imdb")
-
-        if id_imdb:
-            results = self._lookup_movie(id_imdb)
-        elif title:
-            results = self._search_movie(title, year)
+    def search(self, parameters: Metadata = None):
+        if parameters.id:
+            results = self._lookup_movie(parameters.id)
+        elif parameters.title:
+            results = self._search_movie(parameters.title, parameters.year)
         else:
             raise MnamerNotFoundException
         yield from results
 
     def _lookup_movie(self, id_imdb):
-        response = omdb_title(self.api_key, id_imdb, cache=self._cache)
+        response = omdb_title(self.api_key, id_imdb, cache=self.cache)
         try:
             episode_date = dt.strptime(
                 response["Released"], "%d %b %Y"
@@ -156,24 +110,17 @@ class TMDb(Provider):
     """Queries the TMDb API.
     """
 
-    def __init__(self, **options):
-        super(TMDb, self).__init__(**options)
+    def __init__(self, settings: Settings):
+        super().__init__(settings)
         if not self.api_key:
             raise MnamerProviderException("TMDb requires an API key")
 
-    def search(self, id_key=None, **parameters):
+    def search(self, parameters: Metadata = None):
         """Searches TMDb for movie metadata."""
-        id_tmdb = id_key or parameters.get("id_tmdb")
-        id_imdb = parameters.get("id_imdb")
-        title = parameters.get("title")
-        year = parameters.get("year")
-
-        if id_tmdb:
-            results = self._search_id_tmdb(id_tmdb)
-        elif id_imdb:
-            results = self._search_id_imdb(id_imdb)
-        elif title:
-            results = self._search_title(title, year)
+        if parameters.id:
+            results = self._search_id_tmdb(parameters.id)
+        elif parameters.title:
+            results = self._search_title(parameters.title, parameters.year)
         else:
             raise MnamerNotFoundException
         yield from results
@@ -236,8 +183,8 @@ class TVDb(Provider):
     """Queries the TVDb API.
     """
 
-    def __init__(self, **options):
-        super(TVDb, self).__init__(**options)
+    def __init__(self, settings: Settings):
+        super().__init__(settings)
         if not self.api_key:
             raise MnamerProviderException("TVDb requires an API key")
         self.token = "" if self.cache else self._login()
@@ -245,45 +192,38 @@ class TVDb(Provider):
     def _login(self):
         return tvdb_login(self.api_key)
 
-    def search(self, id_key=None, **parameters):
+    def search(self, parameters: Metadata = None):
         """Searches TVDb for movie metadata.
-
-        TODO: Consider making parameters for episode ids
         """
-        episode = parameters.get("episode")
-        id_tvdb = id_key or parameters.get("id_tvdb")
-        id_imdb = parameters.get("id_imdb")
-        season = parameters.get("season_number")
-        series = parameters.get("series_name")
-        episode_date = parameters.get("date")
-        date_fmt = r"(19|20)\d{2}(-(?:0[1-9]|1[012])(-(?:[012][1-9]|3[01]))?)?"
-
         try:
-            if id_tvdb and episode_date:
-                results = self._search_tvdb_date(id_tvdb, episode_date)
-            elif id_tvdb:
-                results = self._search_id_tvdb(id_tvdb, season, episode)
-            elif id_imdb:
-                results = self._search_id_imdb(id_imdb, season, episode)
-            elif series and episode_date:
-                if not re.match(date_fmt, episode_date):
-                    raise MnamerProviderException(
-                        "Date format must be YYYY-MM-DD"
-                    )
-                results = self._search_series_date(series, episode_date)
-            elif series:
-                results = self._search_series(series, season, episode)
+            if parameters.id and parameters.episode_date:
+                results = self._search_tvdb_date(
+                    parameters.id, parameters.episode_date
+                )
+            elif parameters.id:
+                results = self._search_id_tvdb(
+                    parameters.id,
+                    parameters.season_number,
+                    parameters.episode_number,
+                )
+            elif parameters.series_name and parameters.episode_date:
+                results = self._search_series_date(
+                    parameters.series_name, parameters.episode_date
+                )
+            elif parameters.series_name:
+                results = self._search_series(
+                    parameters.series_name,
+                    parameters.season_number,
+                    parameters.episode_number,
+                )
             else:
                 raise MnamerNotFoundException
             for result in results:
                 yield result
         except MnamerProviderException:
             if not self.token:
-                log.info(
-                    "Result not cached; logging in and reattempting search"
-                )
                 self.token = self._login()
-                for result in self.search(id_key, **parameters):
+                for result in self.search(parameters):
                     yield result
             else:
                 raise

@@ -160,7 +160,7 @@ class TestDestination:
         assert target.destination == expected
 
     def test_lowercase(self):
-        self.settings.lowercase = True
+        self.settings.lower = True
         target = Target("Garden State (2004).mp4", self.settings)
         assert target.destination.name == "garden state (2004).mp4"
 

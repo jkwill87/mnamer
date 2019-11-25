@@ -3,7 +3,7 @@ import pytest
 from mnamer import IS_WINDOWS
 from mnamer.core.settings import Settings
 from mnamer.core.tty import Tty
-from mnamer.core.types import LogLevel, NoticeLevel
+from types import LogType, NoticeLevel
 
 
 @pytest.fixture()
@@ -13,13 +13,13 @@ def tty():
     settings.hits = 10
     settings.noguess = False
     settings.nostyle = False
-    settings.verbose = LogLevel.STANDARD
+    settings.verbose = LogType.STANDARD
     return Tty(settings)
 
 
 def log_permutations(msg):
-    for log_level in LogLevel:
-        for verbosity in LogLevel:
+    for log_level in LogType:
+        for verbosity in LogType:
             output = msg if log_level >= verbosity else ""
             yield log_level, verbosity, output
 

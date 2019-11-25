@@ -4,111 +4,104 @@ from mnamer.__version__ import VERSION
 from mnamer.core.settings import Settings
 from mnamer.core.target import Target
 from mnamer.core.tty import Tty
-from mnamer.core.types import LogLevel, NoticeLevel
 from mnamer.core.utils import clear_cache
 from mnamer.exceptions import (
     MnamerAbortException,
     MnamerException,
     MnamerSettingsException,
     MnamerSkipException,
+    MnamerNetworkException,
 )
+from mnamer.types import MessageType
 
 __all__ = ["main"]
 
 
-# noinspection PyProtectedMember
 def main():
-    # Setup arguments and load runtime configuration
+    tty = Tty()
+    # setup arguments and load runtime configuration
     try:
         settings = Settings()
     except MnamerSettingsException as e:
-        print(e)
+        tty.msg(e, MessageType.ERROR)
         raise SystemExit(1)
     targets = Target.populate_paths(settings)
-    tty = Tty(settings)
+    tty.configure(settings)
 
-    # Handle directives and configuration
+    # handle directives and configuration
     if settings.version:
-        tty.p(f"mnamer version {VERSION}")
+        tty.msg(f" - mnamer version {VERSION}")
         raise SystemExit(0)
     elif settings.config_dump:
         print(settings.as_json())
         raise SystemExit(0)
-    elif settings.nocache:
+    elif settings.no_cache:
         clear_cache()
-        tty.p(f"cache cleared", style=NoticeLevel.ALERT)
+        tty.msg(f" - cache cleared", MessageType.ALERT)
 
-    # Print configuration details
-    if settings.config_path:
-        tty.p(
-            f"loaded config from {settings.config_path}\n",
-            style=NoticeLevel.ALERT,
-        )
-    tty.p(f"{'- ' * 40}\n", LogLevel.VERBOSE, NoticeLevel.ALERT)
-    tty.p("Settings", LogLevel.VERBOSE, NoticeLevel.NOTICE)
-    tty.ul(settings._dict, LogLevel.VERBOSE)
-    tty.p(f"\n{'- ' * 40}\n", LogLevel.VERBOSE, NoticeLevel.ALERT)
-    tty.p("Targets", LogLevel.VERBOSE, NoticeLevel.NOTICE)
-    tty.ul(targets, LogLevel.VERBOSE)
-    tty.p(f"\n{'- ' * 40}\n", LogLevel.VERBOSE, NoticeLevel.ALERT)
+    tty.msg("Starting mnamer", MessageType.HEADING)
 
-    # Exit early if no media files are found
+    # print configuration details
+    tty.msg("\nSettings:", MessageType.ALERT, debug=True)
+    tty.msg(settings.as_dict, debug=True)
+    tty.msg("\nTargets:", MessageType.ALERT, debug=True)
+    tty.msg(targets or [None], debug=True)
+
+    # exit early if no media files are found
     total_count = len(targets)
     if total_count == 0:
-        tty.p(
+        tty.msg(
             "No media files found. Run mnamer --help for usage information.",
-            style=NoticeLevel.ALERT,
+            MessageType.ALERT,
         )
         raise SystemExit(0)
 
-    # Main program loop
-    tty.p("Starting mnamer", style=NoticeLevel.NOTICE)
+    # main program loop
     success_count = 0
     for target in targets:
 
-        # Announce file
+        # announce file
         media_label = target.metadata.media_type.value.title()
         filename_label = target.source.name
-        tty.p(
-            f'\nProcessing {media_label} File: "{filename_label}"',
-            style=NoticeLevel.NOTICE,
-        )
+        tty.msg(f'\nProcessing {media_label} "{filename_label}":')
 
-        # List details
-        tty.ul(target.metadata, LogLevel.VERBOSE)
-
-        # Update metadata
+        # list details
+        tty.msg("\nMetadata:", MessageType.ALERT, debug=True)
+        tty.msg(target.metadata.as_dict, debug=True)
+        # query for match
         try:
-            new_meta = tty.choose(target)
-            target.update_metadata(new_meta)
+            matches = target.query()
+            match = tty.prompt(matches)
         except MnamerSkipException:
             continue
         except MnamerAbortException:
             break
-        destination = target.destination.absolute()
-        tty.p(f"moving to {destination}")
 
-        # Do rename
+        # update metadata
+        target.metadata.update(match)
+        tty.msg(f"moving to {target.destination.absolute()}")
+
+        # rename and move file
         if settings.test:
             continue
         try:
             target.relocate()
         except MnamerException:
-            tty.p("FAILED!", style=NoticeLevel.ERROR)
+            tty.msg("FAILED!", MessageType.ERROR)
         else:
-            tty.p("OK!", style=NoticeLevel.SUCCESS)
+            tty.msg("OK!", MessageType.SUCCESS)
             success_count += 1
 
-    # Report result summary
+    # report results
     if success_count == 0:
-        notice_level = NoticeLevel.ERROR
+        message_type = MessageType.ERROR
     elif success_count == total_count:
-        notice_level = NoticeLevel.SUCCESS
+        message_type = MessageType.SUCCESS
     else:
-        notice_level = NoticeLevel.ALERT
-    tty.p(
+        message_type = MessageType.ALERT
+    tty.msg(
         f"\n{success_count} out of {total_count} files processed successfully",
-        style=notice_level,
+        message_type,
     )
 
 

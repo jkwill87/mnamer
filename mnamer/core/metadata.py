@@ -1,7 +1,8 @@
 """Metadata data class."""
 
+import dataclasses
+import json
 import re
-from dataclasses import asdict, dataclass
 from datetime import date
 from pathlib import Path
 from string import Formatter
@@ -9,14 +10,14 @@ from typing import Union
 
 from guessit import guessit
 
-from mnamer.core.types import MediaType
 from mnamer.core.utils import (
     convert_date,
-    format_extension,
+    normalize_extension,
     str_fix_whitespace,
     str_title_case,
     year_parse,
 )
+from mnamer.types import MediaType
 
 __all__ = ["Metadata"]
 
@@ -26,7 +27,7 @@ class MetaFormatter(Formatter):
         return format(v, f) if v else ""
 
 
-@dataclass
+@dataclasses.dataclass
 class Metadata:
     # common fields
     media_type: Union[MediaType, str]
@@ -36,6 +37,7 @@ class Metadata:
     synopsis: str = None
     title: str = None
     year: Union[int, str] = None
+    id: str = None
     # episode-specific fields
     series_name: str = None
     season_number: int = None
@@ -84,18 +86,15 @@ class Metadata:
             "year": year_parse,
             "synopsis": str.capitalize,
             "title": str_title_case,
-            "extension": format_extension,
+            "extension": normalize_extension,
             "group": str.upper,
             "quality": str.lower,
             "series_name": str_title_case,
             "series_number": int,
             "episode_number": int,
         }.get(key)
-        if value is not None:
-            if converter:
-                value = converter(value)
-            if key == "date" and not self.year:
-                super().__setattr__("year", value.year)
+        if value is not None and converter:
+            value = converter(value)
         super().__setattr__(key, value)
 
     def __format__(self, format_spec):
@@ -115,9 +114,22 @@ class Metadata:
     def __str__(self):
         return self.__format__(None)
 
+    @property
+    def as_dict(self):
+        return dataclasses.asdict(self)
+
     def _format_repl(self, mobj):
         format_string, key = mobj.groups()
-        value = MetaFormatter().vformat(format_string, None, asdict(self))
+        value = MetaFormatter().vformat(
+            format_string, None, dataclasses.asdict(self)
+        )
         if key not in {"quality", "group", "extension"}:
             value = str_title_case(value)
         return value
+
+    def update(self, metadata: "Metadata"):
+        for field in dataclasses.asdict(self).keys():
+            value = getattr(metadata, field)
+            if value is None:
+                continue
+            setattr(self, field, value)
