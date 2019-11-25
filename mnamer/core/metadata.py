@@ -1,7 +1,6 @@
 """Metadata data class."""
 
 import dataclasses
-import json
 import re
 from datetime import date
 from pathlib import Path

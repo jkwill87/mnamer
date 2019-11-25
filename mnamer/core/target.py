@@ -1,7 +1,7 @@
 from os import path
 from pathlib import Path
 from shutil import move
-from typing import Any, Dict, Generator, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from mnamer.api.providers import Provider
 from mnamer.core.metadata import Metadata

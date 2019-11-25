@@ -10,7 +10,6 @@ from mnamer.exceptions import (
     MnamerException,
     MnamerSettingsException,
     MnamerSkipException,
-    MnamerNetworkException,
 )
 from mnamer.types import MessageType
 
