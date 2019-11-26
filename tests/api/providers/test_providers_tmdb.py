@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from mnamer.api.providers import TMDb
+from mnamer.api.providers import Tmdb
 from mnamer.exceptions import MnamerProviderException
 from tests import JUNK_TEXT, MOVIE_META
 
@@ -12,12 +12,12 @@ from tests import JUNK_TEXT, MOVIE_META
 def test_tmdb_provider__api_key__missing():
     with patch.dict("os.environ", {}, clear=True):
         with pytest.raises(MnamerProviderException):
-            TMDb()
+            Tmdb()
 
 
 def test_tmdb_provider__api_key__env_fallback_ok():
     with patch.dict("os.environ", {"API_KEY_TMDB": JUNK_TEXT}, clear=True):
-        TMDb()  # should not raise exception
+        Tmdb()  # should not raise exception
 
 
 @pytest.mark.usefixtures("tmdb_provider")

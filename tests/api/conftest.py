@@ -47,9 +47,9 @@ def omdb_api_key():
 @pytest.mark.usefixtures("omdb_api_key")
 def omdb_provider(omdb_api_key):
     """Returns a fresh OMDb provider object."""
-    from mnamer.api.providers import OMDb
+    from mnamer.api.providers import Omdb
 
-    return OMDb(api_key=omdb_api_key)
+    return Omdb(api_key=omdb_api_key)
 
 
 @pytest.fixture()
@@ -64,9 +64,9 @@ def tmdb_api_key():
 @pytest.mark.usefixtures("tmdb_api_key")
 def tmdb_provider(tmdb_api_key):
     """Returns a fresh TMDb provider object."""
-    from mnamer.api.providers import TMDb
+    from mnamer.api.providers import Tmdb
 
-    return TMDb(api_key=tmdb_api_key)
+    return Tmdb(api_key=tmdb_api_key)
 
 
 @pytest.fixture()
@@ -81,9 +81,9 @@ def tvdb_api_key():
 @pytest.mark.usefixtures("tvdb_api_key")
 def tvdb_provider(tvdb_api_key):
     """Returns a fresh TVDb provider object."""
-    from mnamer.api.providers import TVDb
+    from mnamer.api.providers import Tvdb
 
-    return TVDb(api_key=tvdb_api_key)
+    return Tvdb(api_key=tvdb_api_key)
 
 
 @pytest.fixture()

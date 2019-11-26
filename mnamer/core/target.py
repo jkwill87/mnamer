@@ -17,8 +17,6 @@ from mnamer.core.utils import (
 from mnamer.exceptions import MnamerException
 from mnamer.types import MediaType, ProviderType
 
-__all__ = ["Target"]
-
 
 class Target:
     """Manages metadata state for a media file and facilitates its relocation.

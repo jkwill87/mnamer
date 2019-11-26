@@ -11,6 +11,5 @@ An intelligent and highly configurable media file organization tool.
 
 import os
 
-__all__ = ["IS_WINDOWS"]
 
 IS_WINDOWS = os.name in ("nt", "cygwin")

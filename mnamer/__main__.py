@@ -8,12 +8,12 @@ from mnamer.core.utils import clear_cache
 from mnamer.exceptions import (
     MnamerAbortException,
     MnamerException,
+    MnamerNetworkException,
+    MnamerNotFoundException,
     MnamerSettingsException,
     MnamerSkipException,
 )
 from mnamer.types import MessageType
-
-__all__ = ["main"]
 
 
 def main():
@@ -29,29 +29,37 @@ def main():
 
     # handle directives and configuration
     if settings.version:
-        tty.msg(f" - mnamer version {VERSION}")
+        tty.msg(f"mnamer version {VERSION}")
         raise SystemExit(0)
-    elif settings.config_dump:
-        print(settings.as_json())
+
+    if settings.config_dump:
+        print(settings.as_json)
         raise SystemExit(0)
-    elif settings.no_cache:
-        clear_cache()
-        tty.msg(f" - cache cleared", MessageType.ALERT)
 
     tty.msg("Starting mnamer", MessageType.HEADING)
+    if settings.no_cache:
+        clear_cache()
+        tty.msg("cache cleared", MessageType.ALERT)
+    if settings.test:
+        tty.msg("testing mode", MessageType.ALERT)
+    if settings.configuration_path:
+        tty.msg(
+            f"loaded config from '{settings.configuration_path}'",
+            MessageType.ALERT,
+        )
 
     # print configuration details
-    tty.msg("\nSettings:", MessageType.ALERT, debug=True)
+    tty.msg("\nSettings", MessageType.HEADING, debug=True)
     tty.msg(settings.as_dict, debug=True)
-    tty.msg("\nTargets:", MessageType.ALERT, debug=True)
+    tty.msg("\nTargets", MessageType.HEADING, debug=True)
     tty.msg(targets or [None], debug=True)
 
     # exit early if no media files are found
     total_count = len(targets)
     if total_count == 0:
+        tty.msg("", debug=True)
         tty.msg(
-            "No media files found. Run mnamer --help for usage information.",
-            MessageType.ALERT,
+            "no media files found", MessageType.ALERT,
         )
         raise SystemExit(0)
 
@@ -62,18 +70,35 @@ def main():
         # announce file
         media_label = target.metadata.media_type.value.title()
         filename_label = target.source.name
-        tty.msg(f'\nProcessing {media_label} "{filename_label}":')
+        tty.msg(
+            f'\nProcessing {media_label} "{filename_label}"',
+            MessageType.HEADING,
+        )
 
         # list details
-        tty.msg("\nMetadata:", MessageType.ALERT, debug=True)
+        tty.msg("\nMetadata", MessageType.HEADING, debug=True)
         tty.msg(target.metadata.as_dict, debug=True)
-        # query for match
+        tty.msg("", debug=True)
+
+        # find match for target
         try:
-            matches = target.query()
-            match = tty.prompt(matches)
+            # using api provider
+            try:
+                matches = target.query()
+                tty.msg("Results", MessageType.HEADING)
+                match = tty.prompt(matches)
+            # using best guess
+            except MnamerNotFoundException:
+                tty.msg("No matches found", MessageType.ALERT)
+                match = tty.confirm_guess(target.metadata)
+            except MnamerNetworkException:
+                tty.msg("Network Error", MessageType.ALERT)
+                match = tty.confirm_guess(target.metadata)
         except MnamerSkipException:
+            tty.msg("Skipping as per user request", MessageType.ALERT)
             continue
         except MnamerAbortException:
+            tty.msg("Aborting as per user request", MessageType.ALERT)
             break
 
         # update metadata
@@ -82,6 +107,7 @@ def main():
 
         # rename and move file
         if settings.test:
+            success_count += 1
             continue
         try:
             target.relocate()

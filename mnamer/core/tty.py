@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, List, Optional, Union
 
 from teletype import codes
 from teletype.components import ChoiceHelper, SelectOne
@@ -8,7 +8,6 @@ from mnamer.core.metadata import Metadata
 from mnamer.core.settings import Settings
 from mnamer.exceptions import (
     MnamerAbortException,
-    MnamerException,
     MnamerSkipException,
 )
 from mnamer.types import MessageType
@@ -33,6 +32,30 @@ class Tty:
         Tty.verbose = settings.verbose
         Tty.no_style = settings.no_style
 
+    @property
+    def _chars(self):
+        if self.no_style:
+            chars = codes.CHARS_ASCII
+        else:
+            chars = codes.CHARS_DEFAULT
+            chars["arrow"] = style_format(chars["arrow"], "magenta")
+        return chars
+
+    @property
+    def _abort_helpers(self):
+        if self.no_style:
+            style = None
+            skip_mnemonic = "[s]"
+            quit_mnemonic = "[q]"
+        else:
+            style = "dark"
+            skip_mnemonic = "s"
+            quit_mnemonic = "q"
+        return [
+            ChoiceHelper(MnamerSkipException, "skip", style, skip_mnemonic),
+            ChoiceHelper(MnamerAbortException, "quit", style, quit_mnemonic),
+        ]
+
     def msg(
         self,
         body: Any,
@@ -52,39 +75,24 @@ class Tty:
             body = getattr(body, "value", body)
         style_print(body, style=message_type.value)
 
-    @property
-    def _prompt_chars(self) -> Dict[str, str]:
-        if self.no_style:
-            chars = codes.CHARS_ASCII
-        else:
-            chars = codes.CHARS_DEFAULT
-            chars["arrow"] = style_format(chars["arrow"], "magenta")
-        return chars
-
-    def _prompt_choices(self, matches: List[Metadata]) -> List[Any]:
-        if self.no_style:
-            style = None
-            skip_mnemonic = "[s]"
-            quit_mnemonic = "[q]"
-        else:
-            style = "dark"
-            skip_mnemonic = "s"
-            quit_mnemonic = "q"
-        choices: List[Any] = matches.copy()
-        choices.append(
-            ChoiceHelper(MnamerSkipException, "skip", style, skip_mnemonic)
-        )
-        choices.append(
-            ChoiceHelper(MnamerAbortException, "quit", style, quit_mnemonic)
-        )
-        return choices
-
     def prompt(self, matches: List[Metadata]) -> Optional[Metadata]:
-        selector = SelectOne(
-            self._prompt_choices(matches), **self._prompt_chars
-        )
-        result = selector.prompt()
-        if issubclass(result, MnamerException):
-            raise result
+        selector = SelectOne(matches + self._abort_helpers, **self._chars)
+        choice = selector.prompt()
+        if choice in (MnamerAbortException, MnamerSkipException):
+            raise choice
         else:
-            return result
+            return choice
+
+    def confirm_guess(self, metadata: Metadata) -> Optional[Metadata]:
+        label = str(metadata)
+        if self.no_style:
+            label += " (best guess)"
+        else:
+            label += style_format(" (best guess)", "blue")
+        option = ChoiceHelper(metadata, label)
+        selector = SelectOne([option] + self._abort_helpers, **self._chars)
+        choice = selector.prompt()
+        if choice in (MnamerAbortException, MnamerSkipException):
+            raise choice
+        else:
+            return choice

@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
-from mnamer.api.providers import OMDb
+from mnamer.api.providers import Omdb
 from mnamer.exceptions import MnamerNotFoundException, MnamerProviderException
 from tests import JUNK_TEXT, MOVIE_META
 
@@ -12,12 +12,12 @@ from tests import JUNK_TEXT, MOVIE_META
 def test_omdb_provider__api_key__missing():
     with patch.dict("os.environ", {}, clear=True):
         with pytest.raises(MnamerProviderException):
-            OMDb()
+            Omdb()
 
 
 def test_omdb_provider__api_key__env_fallback_ok():
     with patch.dict("os.environ", {"API_KEY_OMDB": JUNK_TEXT}, clear=True):
-        OMDb()  # should not raise exception
+        Omdb()  # should not raise exception
 
 
 @pytest.mark.usefixtures("omdb_provider")

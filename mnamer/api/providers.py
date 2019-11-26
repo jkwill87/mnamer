@@ -34,21 +34,21 @@ class Provider(ABC):
     ) -> "Provider":
         """Factory function for DB Provider concrete classes."""
         provider = {
-            ProviderType.TMDB: TMDb,
-            ProviderType.TVDB: TVDb,
-            ProviderType.OMDB: OMDb,
+            ProviderType.TMDB: Tmdb,
+            ProviderType.TVDB: Tvdb,
+            ProviderType.OMDB: Omdb,
         }[provider]
         return provider(settings)
 
 
-class OMDb(Provider):
+class Omdb(Provider):
     """Queries the OMDb API.
     """
 
     def __init__(self, settings: Settings):
         super().__init__(settings)
         if not self.api_key:
-            raise MnamerProviderException("OMDb require API key")
+            raise MnamerProviderException("OMDb requires API key")
 
     def search(self, parameters: Metadata = None):
         if parameters.id:
@@ -106,7 +106,7 @@ class OMDb(Provider):
             raise MnamerNotFoundException
 
 
-class TMDb(Provider):
+class Tmdb(Provider):
     """Queries the TMDb API.
     """
 
@@ -179,7 +179,7 @@ class TMDb(Provider):
             raise MnamerNotFoundException
 
 
-class TVDb(Provider):
+class Tvdb(Provider):
     """Queries the TVDb API.
     """
 

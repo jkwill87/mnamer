@@ -3,8 +3,8 @@
 import pytest
 
 from mnamer.api.providers import (
-    TMDb,
-    TVDb,
+    Tmdb,
+    Tvdb,
     has_provider,
     has_provider_support,
     provider_factory,
@@ -42,13 +42,13 @@ def test_has_provider_support__invalid_mtype():
 @pytest.mark.usefixtures("tmdb_api_key")
 def test_provider_factory__tmdb(tmdb_api_key):
     client = provider_factory("tmdb", api_key=tmdb_api_key)
-    assert isinstance(client, TMDb)
+    assert isinstance(client, Tmdb)
 
 
 @pytest.mark.usefixtures("tvdb_api_key")
 def test_provider_factory__tvdb(tvdb_api_key):
     client = provider_factory("tvdb", api_key=tvdb_api_key)
-    assert isinstance(client, TVDb)
+    assert isinstance(client, Tvdb)
 
 
 def test_non_existant():

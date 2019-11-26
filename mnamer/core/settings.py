@@ -44,7 +44,7 @@ class Settings:
         default=False,
         metadata=ArgParseSpec(
             action="store_true",
-            flags=["-l", "--lowercase"],
+            flags=["-l", "--lower"],
             group=SettingsType.PARAMETER,
             help="-l, --lower: rename files using lowercase characters",
         )(),
@@ -275,17 +275,16 @@ class Settings:
         self._arg_data = {}
         self._config_data = {}
         # load cli arguments
-        if load_arguments:
-            self._load_arguments()
-        else:
-            self.noconfig = self._arg_data.get("config_ignore", False)
-        # load and apply configuration
-        if configuration_path and load_configuration and not self.noconfig:
+        self._load_arguments(directive_only=self._arg_data.get("ignore", False))
+        self._bulk_apply(self._arg_data)
+        # load configuration
+        if (
+            configuration_path
+            and load_configuration
+            and not any((self.noconfig, self.config_dump))
+        ):
             self._load_config(configuration_path)
             self._bulk_apply(self._config_data)
-        # apply cli arguments
-        if self._arg_data:
-            self._bulk_apply(self._arg_data)
 
     @classmethod
     def _attribute_metadata(cls) -> Dict[str, ArgParseSpec]:
@@ -315,10 +314,16 @@ class Settings:
 
     @property
     def as_json(self):
+        serializable_fields = {
+            field.name
+            for field in dataclasses.fields(self)
+            if field.metadata.get("group")
+            in {SettingsType.PARAMETER, SettingsType.CONFIGURATION}
+        }
         payload = {
             k: getattr(v, "value", v)
             for k, v in self.as_dict.items()
-            if k in self._attribute_metadata()
+            if k in serializable_fields
         }
         return json.dumps(
             payload,
@@ -333,14 +338,13 @@ class Settings:
     def _bulk_apply(self, data: Dict[str, Any]):
         [setattr(self, k, v) for k, v in data.items() if v]
 
-    def _load_arguments(self):
+    def _load_arguments(self, directive_only: bool):
         arg_parser = ArgumentParser()
+        groups = {SettingsType.DIRECTIVE}
+        if not directive_only:
+            groups |= {SettingsType.PARAMETER, SettingsType.POSITIONAL}
         for spec in self._attribute_metadata().values():
-            if spec.group in (
-                SettingsType.DIRECTIVE,
-                SettingsType.PARAMETER,
-                SettingsType.POSITIONAL,
-            ):
+            if spec.group in groups:
                 arg_parser.add_spec(spec)
         arguments = arg_parser.parse_args()
         self._arg_data = vars(arguments)

@@ -1,7 +1,5 @@
 from enum import Enum
 
-__all__ = ["MediaType", "MessageType", "ProviderType", "SettingsType"]
-
 
 class MediaType(Enum):
     EPISODE = "episode"
@@ -13,7 +11,7 @@ class MessageType(Enum):
     ALERT = "yellow"
     ERROR = "red"
     SUCCESS = "green"
-    HEADING = "magenta bold"
+    HEADING = "bold"
 
 
 class ProviderType(Enum):

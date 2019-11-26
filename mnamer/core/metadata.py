@@ -18,8 +18,6 @@ from mnamer.core.utils import (
 )
 from mnamer.types import MediaType
 
-__all__ = ["Metadata"]
-
 
 class MetaFormatter(Formatter):
     def format_field(self, v, f):

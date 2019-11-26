@@ -379,7 +379,7 @@ def test_tvdb_series_id_episodes_query__success_id_tvdb_season(tvdb_token):
 
 @pytest.mark.usefixtures("tvdb_token")
 def test_tvdb_series_id_episodes_query__success_id_tvdb_season_episode(
-    tvdb_token
+    tvdb_token,
 ):
     expected_top_level_keys = {
         "absoluteNumber",

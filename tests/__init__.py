@@ -4,20 +4,6 @@ from os import path
 
 from mnamer import IS_WINDOWS
 
-__all__ = [
-    "BAD_JSON",
-    "DUMMY_DIR",
-    "DUMMY_FILE",
-    "JUNK_TEXT",
-    "MOVIE_DIR",
-    "MOVIE_META",
-    "TELEVISION_META",
-    "OPEN_TARGET",
-    "TELEVISION_DIR",
-    "TEST_FILES",
-    "MockRequestResponse",
-]
-
 BAD_JSON = "{'some_key':True"
 
 DUMMY_DIR = "some_dir"
