@@ -2,7 +2,7 @@
 
 from os import path
 
-from mnamer.const import IS_WINDOWS
+from mnamer import IS_WINDOWS
 
 BAD_JSON = "{'some_key':True"
 

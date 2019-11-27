@@ -1,6 +1,7 @@
 import pytest
 
-from mnamer.endpoints import (
+from mnamer import API_KEY_TVDB
+from mnamer.api.endpoints import (
     tvdb_episodes_id,
     tvdb_login,
     tvdb_refresh_token,
@@ -9,9 +10,11 @@ from mnamer.endpoints import (
     tvdb_series_id_episodes,
     tvdb_series_id_episodes_query,
 )
-from mnamer.exceptions import MnamerNotFoundException, MnamerProviderException
+from mnamer.exceptions import (
+    MnamerNotFoundException,
+    MnamerProviderException,
+)
 from tests import JUNK_TEXT
-from mnamer.const import API_KEY_TVDB
 
 LOST_TVDB_ID_EPISODE = 127131
 LOST_TVDB_ID_SERIES = 73739

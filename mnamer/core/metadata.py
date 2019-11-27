@@ -7,8 +7,8 @@ from typing import Optional, Union
 
 from guessit import guessit
 
-from mnamer.types import MediaType
-from mnamer.utils import (
+from mnamer.core.types import MediaType
+from mnamer.core.utils import (
     convert_date,
     normalize_extension,
     str_fix_whitespace,

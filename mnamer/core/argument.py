@@ -2,8 +2,8 @@ import argparse
 from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple
 
-from mnamer.types import SettingsType
-from mnamer.utils import filter_dict
+from mnamer.core.types import SettingsType
+from mnamer.core.utils import filter_dict
 
 
 @dataclass(frozen=True)

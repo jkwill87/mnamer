@@ -1,9 +1,12 @@
 import pytest
 
-from mnamer.endpoints import tmdb_find, tmdb_movies, tmdb_search_movies
-from mnamer.exceptions import MnamerNotFoundException, MnamerProviderException
+from mnamer import API_KEY_TMDB
+from mnamer.api.endpoints import tmdb_find, tmdb_movies, tmdb_search_movies
+from mnamer.exceptions import (
+    MnamerNotFoundException,
+    MnamerProviderException,
+)
 from tests import JUNK_TEXT
-from mnamer.const import API_KEY_TMDB
 
 GOONIES_IMDB_ID = "tt0089218"
 GOONIES_TMDB_ID = 9340

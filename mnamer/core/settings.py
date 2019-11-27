@@ -5,10 +5,10 @@ from pathlib import Path, PurePath
 from string import Template
 from typing import Any, Dict, List, Optional, Set, Union
 
-from mnamer.argument import ArgumentParser, ArgumentSpec
-from mnamer.const import API_KEY_OMDB, API_KEY_TMDB, API_KEY_TVDB
-from mnamer.types import MediaType, ProviderType, SettingsType
-from mnamer.utils import (
+from mnamer import API_KEY_OMDB, API_KEY_TMDB, API_KEY_TVDB
+from mnamer.core.argument import ArgumentParser, ArgumentSpec
+from mnamer.core.types import MediaType, ProviderType, SettingsType
+from mnamer.core.utils import (
     crawl_out,
     normalize_extensions,
 )

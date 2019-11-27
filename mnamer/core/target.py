@@ -3,12 +3,11 @@ from pathlib import Path
 from shutil import move
 from typing import Any, Dict, List, Optional, Union
 
-from mnamer.exceptions import MnamerException
-from mnamer.metadata import Metadata
-from mnamer.providers import Provider
-from mnamer.settings import Settings
-from mnamer.types import MediaType, ProviderType
-from mnamer.utils import (
+from mnamer.api.providers import Provider
+from mnamer.core.metadata import Metadata
+from mnamer.core.settings import Settings
+from mnamer.core.types import MediaType, ProviderType
+from mnamer.core.utils import (
     crawl_in,
     filename_replace,
     filename_sanitize,
@@ -16,6 +15,7 @@ from mnamer.utils import (
     filter_blacklist,
     filter_extensions,
 )
+from mnamer.exceptions import MnamerException
 
 
 class Target:

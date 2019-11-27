@@ -4,14 +4,14 @@ from teletype import codes
 from teletype.components import ChoiceHelper, SelectOne
 from teletype.io import style_format, style_print
 
+from mnamer.core.metadata import Metadata
+from mnamer.core.settings import Settings
+from mnamer.core.types import MessageType
+from mnamer.core.utils import format_dict, format_iter
 from mnamer.exceptions import (
     MnamerAbortException,
     MnamerSkipException,
 )
-from mnamer.metadata import Metadata
-from mnamer.settings import Settings
-from mnamer.types import MessageType
-from mnamer.utils import format_dict, format_iter
 
 
 class Tty:

@@ -3,15 +3,15 @@
 from abc import ABC, abstractmethod
 from datetime import datetime as dt
 
-from mnamer.endpoints import *
+from mnamer.api.endpoints import *
+from mnamer.core.metadata import Metadata
+from mnamer.core.settings import Settings
+from mnamer.core.types import MediaType, ProviderType
+from mnamer.core.utils import convert_date, year_expand
 from mnamer.exceptions import (
     MnamerNotFoundException,
     MnamerProviderException,
 )
-from mnamer.metadata import Metadata
-from mnamer.settings import Settings
-from mnamer.types import MediaType, ProviderType
-from mnamer.utils import convert_date, year_expand
 
 
 class Provider(ABC):
