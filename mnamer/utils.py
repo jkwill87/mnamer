@@ -16,25 +16,6 @@ import requests_cache
 from appdirs import user_cache_dir
 from requests.adapters import HTTPAdapter
 
-AGENT_CHROME = (
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0_1 like Mac OS X) AppleWebKit/601.1"
-    " (KHTML, like Gecko) CriOS/53.0.2785.86 Mobile/14A403 Safari/601.1.46"
-)
-AGENT_EDGE = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like "
-    "Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393"
-)
-AGENT_IOS = (
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0_1 like Mac OS X) "
-    "AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/14A403 "
-    "Safari/602.1"
-)
-AGENT_ALL = (AGENT_CHROME, AGENT_EDGE, AGENT_IOS)
-CACHE_PATH = path.join(
-    user_cache_dir(),
-    f"mnamer-py{version_info.major}.{version_info.minor}.sqlite",
-)
-
 
 def crawl_in(file_paths: Union[Collection[Path], Path], recurse: bool = False):
     """Looks for files amongst or within paths provided."""
@@ -180,9 +161,13 @@ def d2l(d):
 
 def get_session():
     """Convenience function that returns request-cache session singleton."""
+    cache_path = path.join(
+        user_cache_dir(),
+        f"mnamer-py{version_info.major}.{version_info.minor}.sqlite",
+    )
     if not hasattr(get_session, "session"):
         get_session.session = requests_cache.CachedSession(
-            cache_name=CACHE_PATH.rstrip(".sqlite"),
+            cache_name=cache_path.rstrip(".sqlite"),
             expire_after=518_400,  # 6 days
         )
         adapter = HTTPAdapter(max_retries=3)
@@ -193,14 +178,27 @@ def get_session():
 
 def get_user_agent(platform=None):
     """Convenience function that looks up a user agent string, random if N/A."""
+    agent_chrome = (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0_1 like Mac OS X) "
+        "AppleWebKit/601.1 (KHTML, like Gecko) CriOS/53.0.2785.86 "
+        "Mobile/14A403 Safari/601.1.46"
+    )
+    agent_edge = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, "
+        "like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393"
+    )
+    agent_ios = (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0_1 like Mac OS X) "
+        "AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/14A403 "
+        "Safari/602.1"
+    )
     if isinstance(platform, str):
         platform = platform.upper()
-    return {"chrome": AGENT_CHROME, "edge": AGENT_EDGE, "ios": AGENT_IOS}.get(
-        platform, random.choice(AGENT_ALL)
+    return {"chrome": agent_chrome, "edge": agent_edge, "ios": agent_ios}.get(
+        platform, random.choice((agent_chrome, agent_edge, agent_ios))
     )
 
 
-# noinspection PyProtectedMember
 def request_json(
     url, parameters=None, body=None, headers=None, cache=True, agent=None
 ):
@@ -212,9 +210,6 @@ def request_json(
     """
     assert url
     session = get_session()
-
-    # log.info("-" * 80)
-    # log.info("url: %s", url)
 
     if isinstance(headers, dict):
         headers = clean_dict(headers)
@@ -244,18 +239,9 @@ def request_json(
         )
         status = response.status_code
         content = response.json() if status // 100 == 2 else None
-        cache = getattr(response, "from_cache", False)
-    except Exception as e:
+    except:
         content = None
         status = 500
-        # log.debug(e, exc_info=True)
-    # else:
-    #     log.debug("method: %s", method)
-    #     log.debug("headers: %r", headers)
-    #     log.debug("parameters: %r", parameters)
-    #     log.debug("cache: %r", cache)
-    #     log.info("status: %d", status)
-    #     log.debug("content: %s", content)
     finally:
         session._is_cache_disabled = initial_cache_state
     return status, content
@@ -430,17 +416,27 @@ def str_fix_whitespace(s: str):
     return s
 
 
-def normalize_extension(s: str):
-    if s and s[0] != ".":
-        s = f".{s}"
-    return s.lower()
+def normalize_extension(extension: str):
+    if extension and extension[0] != ".":
+        extension = f".{extension}"
+    return extension.lower()
 
 
-def normalize_extensions(l: List[str]):
-    return [normalize_extension(s) for s in l]
+def normalize_extensions(extension_list: List[str]):
+    return [normalize_extension(extension) for extension in extension_list]
 
 
 def convert_date(value: [str, date]) -> date:
     if isinstance(value, str):
         value = date.fromisoformat(value)
     return value
+
+
+def format_iter(body: Union[str, list]):
+    return "\n".join(sorted([f" - {getattr(v, 'value', v)}" for v in body]))
+
+
+def format_dict(body: dict):
+    return "\n".join(
+        sorted([f" - {k} = {getattr(v, 'value', v)}" for k, v in body.items()])
+    )

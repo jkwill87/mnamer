@@ -2,13 +2,14 @@ import argparse
 from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple
 
-from mnamer.core.utils import filter_dict
 from mnamer.types import SettingsType
+from mnamer.utils import filter_dict
 
 
 @dataclass(frozen=True)
-class ArgParseSpec:
+class ArgumentSpec:
     group: SettingsType
+    dest: str = None
     action: str = None
     choices: List[str] = None
     flags: List[str] = None
@@ -32,6 +33,7 @@ class ArgParseSpec:
             "action": self.action,
             "choices": self.choices,
             "default": None,
+            "dest": self.dest,
             "help": self.help,
             "nargs": self.nargs,
             "type": self.type,
@@ -39,7 +41,7 @@ class ArgParseSpec:
         return names, filter_dict(options)
 
     @staticmethod
-    def has_short(spec: "ArgParseSpec"):
+    def has_short(spec: "ArgumentSpec"):
         for flag in spec.flags:
             if len(flag) is 2 and flag[0] == "-":
                 return True
@@ -60,7 +62,7 @@ class ArgumentParser(argparse.ArgumentParser):
         self._parameter_group = self.add_argument_group()
         self._directive_group = self.add_argument_group()
 
-    def add_spec(self, spec: ArgParseSpec):
+    def add_spec(self, spec: ArgumentSpec):
         # set options
         if spec.group is SettingsType.PARAMETER:
             group = self._parameter_group

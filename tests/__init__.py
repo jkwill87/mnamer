@@ -2,7 +2,7 @@
 
 from os import path
 
-from mnamer import IS_WINDOWS
+from mnamer.const import IS_WINDOWS
 
 BAD_JSON = "{'some_key':True"
 
@@ -34,8 +34,6 @@ TEST_FILES = {
 }
 
 USER_HOME_DIR = path.expanduser("~")
-
-getLogger("mapi").disabled = True
 
 JUNK_TEXT = "asdf#$@#g9765sdfg54hggaw"
 

@@ -68,6 +68,8 @@ setup-demo: clean
 	    demo \
 	    'demo/Avengers Infinity War'
 	@cd demo && touch \
+	    "aladdin.1992.avi" \
+	    "aladdin.2019.avi" \
 	    "Avengers Infinity War/Avengers.Infinity.War.wmv" \
 	    "Avengers Infinity War/Avengers.Infinity.War.srt" \
 	    "game.of.thrones.01x05-eztv.mp4" \

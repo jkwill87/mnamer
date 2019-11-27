@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
 from mnamer.__version__ import VERSION
-from mnamer.core.settings import Settings
-from mnamer.core.target import Target
-from mnamer.core.tty import Tty
-from mnamer.core.utils import clear_cache
 from mnamer.exceptions import (
     MnamerAbortException,
     MnamerException,
@@ -13,7 +9,11 @@ from mnamer.exceptions import (
     MnamerSettingsException,
     MnamerSkipException,
 )
+from mnamer.settings import Settings
+from mnamer.target import Target
+from mnamer.tty import Tty
 from mnamer.types import MessageType
+from mnamer.utils import clear_cache
 
 
 def main():
@@ -68,7 +68,7 @@ def main():
     for target in targets:
 
         # announce file
-        media_label = target.metadata.media_type.value.title()
+        media_label = target.metadata.media.value.title()
         filename_label = target.source.name
         tty.msg(
             f'\nProcessing {media_label} "{filename_label}"',
@@ -98,12 +98,14 @@ def main():
             tty.msg("Skipping as per user request", MessageType.ALERT)
             continue
         except MnamerAbortException:
-            tty.msg("Aborting as per user request", MessageType.ALERT)
+            tty.msg("Aborting as per user request", MessageType.ERROR)
             break
 
         # update metadata
         target.metadata.update(match)
-        tty.msg(f"moving to {target.destination.absolute()}")
+        tty.msg(
+            f"moving to {target.destination.absolute()}", MessageType.SUCCESS
+        )
 
         # rename and move file
         if settings.test:

@@ -1,17 +1,17 @@
 """Provides a high-level interface for metadata media providers."""
 
 from abc import ABC, abstractmethod
-from datetime import date, datetime as dt
+from datetime import datetime as dt
 
-from mnamer.api.endpoints import *
-from mnamer.core.metadata import Metadata
-from mnamer.core.settings import Settings
-from mnamer.core.utils import year_expand
+from mnamer.endpoints import *
 from mnamer.exceptions import (
     MnamerNotFoundException,
     MnamerProviderException,
 )
+from mnamer.metadata import Metadata
+from mnamer.settings import Settings
 from mnamer.types import MediaType, ProviderType
+from mnamer.utils import convert_date, year_expand
 
 
 class Provider(ABC):
@@ -62,17 +62,17 @@ class Omdb(Provider):
     def _lookup_movie(self, id_imdb):
         response = omdb_title(self.api_key, id_imdb, cache=self.cache)
         try:
-            episode_date = dt.strptime(
+            release_date = dt.strptime(
                 response["Released"], "%d %b %Y"
             ).strftime("%Y-%m-%d")
         except (KeyError, ValueError):
             if response.get("Year") in (None, "N/A"):
-                episode_date = None
+                release_date = None
             else:
-                episode_date = "%s-01-01" % response["Year"]
-        meta = episode_date(
+                release_date = "%s-01-01" % response["Year"]
+        meta = Metadata(
             title=response["Title"],
-            episode_date=episode_date,
+            date=release_date,
             synopsis=response["Plot"],
         )
         if meta.synopsis == "N/A":
@@ -88,7 +88,7 @@ class Omdb(Provider):
             try:
                 response = omdb_search(
                     api_key=self.api_key,
-                    media_type="movie",
+                    media="movie",
                     query=title,
                     page=page,
                     cache=self.cache,
@@ -130,9 +130,9 @@ class Tmdb(Provider):
             self.api_key, "imdb_id", id_imdb, cache=self.cache
         )["movie_results"][0]
         yield Metadata(
-            media_type=MediaType.MOVIE,
+            media=MediaType.MOVIE,
             title=response["title"],
-            episode_date=response["release_date"],
+            date=response["release_date"],
             synopsis=response["overview"],
         )
 
@@ -140,9 +140,9 @@ class Tmdb(Provider):
         assert id_tmdb
         response = tmdb_movies(self.api_key, id_tmdb, cache=self.cache)
         yield Metadata(
-            media_type=MediaType.MOVIE,
+            media=MediaType.MOVIE,
             title=response["title"],
-            episode_date=response["release_date"],
+            date=response["release_date"],
             synopsis=response["overview"],
         )
 
@@ -160,16 +160,16 @@ class Tmdb(Provider):
             for entry in response["results"]:
                 try:
                     meta = Metadata(
-                        media_type=MediaType.MOVIE,
+                        media=MediaType.MOVIE,
                         title=entry["title"],
-                        episode_date=entry["release_date"],
+                        date=entry["release_date"],
                         synopsis=entry["overview"],
                     )
-                except ValueError:
+                    if year_from <= meta.date.year <= year_to:
+                        yield meta
+                        found = True
+                except (AttributeError, ValueError):
                     continue
-                if year_from <= meta.episode_date.year <= year_to:
-                    yield meta
-                    found = True
             if page == response["total_pages"]:
                 break
             elif page >= page_max:
@@ -196,19 +196,17 @@ class Tvdb(Provider):
         """Searches TVDb for movie metadata.
         """
         try:
-            if parameters.id and parameters.episode_date:
-                results = self._search_tvdb_date(
-                    parameters.id, parameters.episode_date
-                )
+            if parameters.id and parameters.date:
+                results = self._search_tvdb_date(parameters.id, parameters.date)
             elif parameters.id:
                 results = self._search_id_tvdb(
                     parameters.id,
                     parameters.season_number,
                     parameters.episode_number,
                 )
-            elif parameters.series_name and parameters.episode_date:
+            elif parameters.series_name and parameters.date:
                 results = self._search_series_date(
-                    parameters.series_name, parameters.episode_date
+                    parameters.series_name, parameters.date
                 )
             elif parameters.series_name:
                 results = self._search_series(
@@ -252,13 +250,13 @@ class Tvdb(Provider):
             for entry in episode_data["data"]:
                 try:
                     yield Metadata(
-                        media_type=MediaType.EPISODE,
+                        media=MediaType.EPISODE,
                         series_name=series_data["data"]["seriesName"],
                         season_number=entry["airedSeason"],
                         episode_number=entry["airedEpisodeNumber"],
-                        episode_date=entry["firstAired"],
+                        date=entry["firstAired"],
                         title=entry["episodeName"].split(";", 1)[0],
-                        synopsis=(entry["overview"] or "")
+                        synopsis=(entry["overview"] or None)
                         .replace("\r\n", "")
                         .replace("  ", "")
                         .strip(),
@@ -280,6 +278,8 @@ class Tvdb(Provider):
         for series_id in [entry["id"] for entry in series_data["data"][:5]]:
             try:
                 for data in self._search_id_tvdb(series_id, season, episode):
+                    if not data.series_name or not data.season_number:
+                        continue
                     found = True
                     yield data
             except MnamerNotFoundException:
@@ -287,25 +287,23 @@ class Tvdb(Provider):
         if not found:
             raise MnamerNotFoundException
 
-    def _search_tvdb_date(self, id_tvdb, episode_date):
+    def _search_tvdb_date(self, id_tvdb, release_date):
         found = False
         for meta in self._search_id_tvdb(id_tvdb):
-            if meta.episode_date and meta.episode_date == date.fromisoformat(
-                episode_date
-            ):
+            if meta.date and meta.date == convert_date(release_date):
                 found = True
                 yield meta
         if not found:
             raise MnamerNotFoundException
 
-    def _search_series_date(self, series, episode_date):
-        assert series and episode_date
+    def _search_series_date(self, series, release_date):
+        assert series and release_date
         series_data = tvdb_search_series(self.token, series, cache=self.cache)
         tvdb_ids = [entry["id"] for entry in series_data["data"]][:5]
         found = False
         for tvdb_id in tvdb_ids:
             try:
-                yield from self._search_tvdb_date(tvdb_id, episode_date)
+                yield from self._search_tvdb_date(tvdb_id, release_date)
                 found = True
             except MnamerNotFoundException:
                 continue

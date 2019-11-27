@@ -1,26 +1,17 @@
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional
 
 from teletype import codes
 from teletype.components import ChoiceHelper, SelectOne
 from teletype.io import style_format, style_print
 
-from mnamer.core.metadata import Metadata
-from mnamer.core.settings import Settings
 from mnamer.exceptions import (
     MnamerAbortException,
     MnamerSkipException,
 )
+from mnamer.metadata import Metadata
+from mnamer.settings import Settings
 from mnamer.types import MessageType
-
-
-def _format_iter(body: Union[str, list]):
-    return "\n".join(sorted([f" - {getattr(v, 'value', v)}" for v in body]))
-
-
-def _format_dict(body: dict):
-    return "\n".join(
-        sorted([f" - {k} = {getattr(v, 'value', v)}" for k, v in body.items()])
-    )
+from mnamer.utils import format_dict, format_iter
 
 
 class Tty:
@@ -65,9 +56,10 @@ class Tty:
         if not self.verbose and debug:
             return
         converter = {
-            dict: _format_dict,
-            list: _format_iter,
-            set: _format_iter,
+            dict: format_dict,
+            list: format_iter,
+            tuple: format_iter,
+            set: format_iter,
         }.get(type(body))
         if converter:
             body = converter(body)

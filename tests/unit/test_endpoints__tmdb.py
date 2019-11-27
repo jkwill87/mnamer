@@ -1,18 +1,16 @@
-"""Unit tests for mapi/endpoints/tmdb.py."""
-
 import pytest
 
-from mnamer.api.endpoints import tmdb_find, tmdb_movies, tmdb_search_movies
+from mnamer.endpoints import tmdb_find, tmdb_movies, tmdb_search_movies
 from mnamer.exceptions import MnamerNotFoundException, MnamerProviderException
 from tests import JUNK_TEXT
+from mnamer.const import API_KEY_TMDB
 
 GOONIES_IMDB_ID = "tt0089218"
 GOONIES_TMDB_ID = 9340
 JUNK_IMDB_ID = "tt1234567890"
 
 
-@pytest.mark.usefixtures("tmdb_api_key")
-def test_tmdb_find__imdb_success(tmdb_api_key):
+def test_tmdb_find__imdb_success():
     expected_top_level_keys = {
         "movie_results",
         "person_results",
@@ -36,7 +34,7 @@ def test_tmdb_find__imdb_success(tmdb_api_key):
         "vote_average",
         "vote_count",
     }
-    result = tmdb_find(tmdb_api_key, "imdb_id", GOONIES_IMDB_ID)
+    result = tmdb_find(API_KEY_TMDB, "imdb_id", GOONIES_IMDB_ID)
     assert isinstance(result, dict)
     assert set(result.keys()) == expected_top_level_keys
     assert len(result.get("movie_results", {})) > 0
@@ -45,26 +43,22 @@ def test_tmdb_find__imdb_success(tmdb_api_key):
     )
 
 
-@pytest.mark.usefixtures("tmdb_api_key")
 def test_tmdb_find__api_key_fail():
     with pytest.raises(MnamerProviderException):
         tmdb_find(JUNK_TEXT, "imdb_id", GOONIES_IMDB_ID, cache=False)
 
 
-@pytest.mark.usefixtures("tmdb_api_key")
-def test_tmdb_find__invalid_id_imdb(tmdb_api_key):
+def test_tmdb_find__invalid_id_imdb():
     with pytest.raises(MnamerProviderException):
-        tmdb_find(tmdb_api_key, "imdb_id", JUNK_TEXT, cache=False)
+        tmdb_find(API_KEY_TMDB, "imdb_id", JUNK_TEXT, cache=False)
 
 
-@pytest.mark.usefixtures("tmdb_api_key")
-def test_tmdb_find__not_found(tmdb_api_key):
+def test_tmdb_find__not_found():
     with pytest.raises(MnamerNotFoundException):
-        tmdb_find(tmdb_api_key, "imdb_id", JUNK_IMDB_ID)
+        tmdb_find(API_KEY_TMDB, "imdb_id", JUNK_IMDB_ID)
 
 
-@pytest.mark.usefixtures("tmdb_api_key")
-def test_tmdb_movies__success(tmdb_api_key):
+def test_tmdb_movies__success():
     expected_top_level_keys = {
         "adult",
         "backdrop_path",
@@ -92,7 +86,7 @@ def test_tmdb_movies__success(tmdb_api_key):
         "vote_average",
         "vote_count",
     }
-    result = tmdb_movies(tmdb_api_key, GOONIES_TMDB_ID)
+    result = tmdb_movies(API_KEY_TMDB, GOONIES_TMDB_ID)
     assert isinstance(result, dict)
     assert set(result.keys()) == expected_top_level_keys
     assert result.get("original_title") == "The Goonies"
@@ -103,20 +97,17 @@ def test_tmdb_movies__api_key_fail():
         tmdb_movies(JUNK_TEXT, "", cache=False)
 
 
-@pytest.mark.usefixtures("tmdb_api_key")
-def test_tmdb_movies__id_tmdb_fail(tmdb_api_key):
+def test_tmdb_movies__id_tmdb_fail():
     with pytest.raises(MnamerProviderException):
-        tmdb_movies(tmdb_api_key, JUNK_TEXT, cache=False)
+        tmdb_movies(API_KEY_TMDB, JUNK_TEXT, cache=False)
 
 
-@pytest.mark.usefixtures("tmdb_api_key")
-def test_tmdb_movies__not_found(tmdb_api_key):
+def test_tmdb_movies__not_found():
     with pytest.raises(MnamerNotFoundException):
-        tmdb_movies(tmdb_api_key, "1" * 10)
+        tmdb_movies(API_KEY_TMDB, "1" * 10)
 
 
-@pytest.mark.usefixtures("tmdb_api_key")
-def test_tmdb_search_movies__success(tmdb_api_key):
+def test_tmdb_search_movies__success():
     expected_top_level_keys = {
         "page",
         "results",
@@ -139,14 +130,14 @@ def test_tmdb_search_movies__success(tmdb_api_key):
         "vote_average",
         "vote_count",
     }
-    result = tmdb_search_movies(tmdb_api_key, "the goonies", 1985)
+    result = tmdb_search_movies(API_KEY_TMDB, "the goonies", 1985)
     assert isinstance(result, dict)
     assert set(result.keys()) == expected_top_level_keys
     assert isinstance(result["results"], list)
     assert expected_results_keys == set(result.get("results", [{}])[0].keys())
     assert len(result["results"]) == 1
     assert result["results"][0]["original_title"] == "The Goonies"
-    result = tmdb_search_movies(tmdb_api_key, "the goonies")
+    result = tmdb_search_movies(API_KEY_TMDB, "the goonies")
     assert len(result["results"]) > 1
 
 
@@ -155,15 +146,13 @@ def test_tmdb_search_movies__bad_api_key():
         tmdb_search_movies(JUNK_TEXT, "the goonies", cache=False)
 
 
-@pytest.mark.usefixtures("tmdb_api_key")
-def test_tmdb_search_movies__bad_title(tmdb_api_key):
+def test_tmdb_search_movies__bad_title():
     with pytest.raises(MnamerNotFoundException):
-        tmdb_search_movies(tmdb_api_key, JUNK_TEXT, cache=False)
+        tmdb_search_movies(API_KEY_TMDB, JUNK_TEXT, cache=False)
 
 
-@pytest.mark.usefixtures("tmdb_api_key")
-def test_tmdb_search_movies__bad_year(tmdb_api_key):
+def test_tmdb_search_movies__bad_year():
     with pytest.raises(MnamerProviderException):
         tmdb_search_movies(
-            tmdb_api_key, "the goonies", year=JUNK_TEXT, cache=False
+            API_KEY_TMDB, "the goonies", year=JUNK_TEXT, cache=False
         )

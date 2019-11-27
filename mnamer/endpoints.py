@@ -1,13 +1,12 @@
 from re import match
 
-from mnamer.core.utils import clean_dict, request_json
 from mnamer.exceptions import (
     MnamerNetworkException,
     MnamerNotFoundException,
     MnamerProviderException,
 )
+from mnamer.utils import clean_dict, request_json
 
-OMDB_MEDIA_TYPES = {"episode", "movie", "series"}
 OMDB_PLOT_TYPES = {"short", "long"}
 TVDB_LANGUAGE_CODES = [
     "cs",
@@ -39,7 +38,7 @@ TVDB_LANGUAGE_CODES = [
 def omdb_title(
     api_key,
     id_imdb=None,
-    media_type=None,
+    media=None,
     title=None,
     season=None,
     episode=None,
@@ -56,10 +55,6 @@ def omdb_title(
         raise MnamerProviderException(
             "either id_imdb or title must be specified"
         )
-    elif media_type and media_type not in OMDB_MEDIA_TYPES:
-        raise MnamerProviderException(
-            "media_type must be one of %s" % ",".join(OMDB_MEDIA_TYPES)
-        )
     elif plot and plot not in OMDB_PLOT_TYPES:
         raise MnamerProviderException(
             "plot must be one of %s" % ",".join(OMDB_PLOT_TYPES)
@@ -72,7 +67,7 @@ def omdb_title(
         "y": year,
         "season": season,
         "episode": episode,
-        "type": media_type,
+        "type": media,
         "plot": plot,
     }
     parameters = clean_dict(parameters)
@@ -87,16 +82,12 @@ def omdb_title(
     return content
 
 
-def omdb_search(api_key, query, year=None, media_type=None, page=1, cache=True):
+def omdb_search(api_key, query, year=None, media=None, page=1, cache=True):
     """
     Search for media using the Open Movie Database.
 
     Online docs: http://www.omdbapi.com/#parameters.
     """
-    if media_type and media_type not in OMDB_MEDIA_TYPES:
-        raise MnamerProviderException(
-            "media_type must be one of %s" % ",".join(OMDB_MEDIA_TYPES)
-        )
     if 1 > page > 100:
         raise MnamerProviderException("page must be between 1 and 100")
     url = "http://www.omdbapi.com"
@@ -104,7 +95,7 @@ def omdb_search(api_key, query, year=None, media_type=None, page=1, cache=True):
         "apikey": api_key,
         "s": query,
         "y": year,
-        "type": media_type,
+        "type": media,
         "page": page,
     }
     parameters = clean_dict(parameters)

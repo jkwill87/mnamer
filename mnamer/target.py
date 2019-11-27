@@ -3,10 +3,12 @@ from pathlib import Path
 from shutil import move
 from typing import Any, Dict, List, Optional, Union
 
-from mnamer.api.providers import Provider
-from mnamer.core.metadata import Metadata
-from mnamer.core.settings import Settings
-from mnamer.core.utils import (
+from mnamer.exceptions import MnamerException
+from mnamer.metadata import Metadata
+from mnamer.providers import Provider
+from mnamer.settings import Settings
+from mnamer.types import MediaType, ProviderType
+from mnamer.utils import (
     crawl_in,
     filename_replace,
     filename_sanitize,
@@ -14,8 +16,6 @@ from mnamer.core.utils import (
     filter_blacklist,
     filter_extensions,
 )
-from mnamer.exceptions import MnamerException
-from mnamer.types import MediaType, ProviderType
 
 
 class Target:
@@ -37,9 +37,9 @@ class Target:
         self._has_renamed: False
         self.source = Path(file_path).resolve()
         self.metadata = Metadata.parse(
-            file_path=file_path, media_type=settings.media_type
+            file_path=file_path, media=settings.media
         )
-        provider_type = settings.api_for(self.metadata.media_type)
+        provider_type = settings.api_for(self.metadata.media)
         if provider_type not in self._providers:
             self._providers[provider_type] = Provider.provider_factory(
                 provider_type, self._settings
@@ -64,15 +64,15 @@ class Target:
         targets = [cls(file_path, settings) for file_path in file_paths]
         targets = list(dict.fromkeys(targets))  # unique values
         targets = list(filter(cls._matches_mask, targets))
-        targets = list(filter(cls._matches_media_type, targets))
+        targets = list(filter(cls._matches_media, targets))
         return targets
 
     @staticmethod
-    def _matches_media_type(target: "Target") -> bool:
-        if not target._settings.media_type:
+    def _matches_media(target: "Target") -> bool:
+        if not target._settings.media:
             return True
         else:
-            return target._settings.media_type is target.metadata.media_type
+            return target._settings.media is target.metadata.media
 
     @staticmethod
     def _matches_mask(target: "Target") -> bool:
@@ -83,17 +83,15 @@ class Target:
 
     @property
     def _formatting(self) -> str:
-        return getattr(self._settings, f"{self.media_type.value}_format")
+        return getattr(self._settings, f"{self.media.value}_format")
 
     @property
-    def media_type(self) -> MediaType:
-        return self.metadata.media_type
+    def media(self) -> MediaType:
+        return self.metadata.media
 
     @property
     def directory(self) -> Optional[Path]:
-        directory = getattr(
-            self._settings, f"{self.media_type.value}_directory"
-        )
+        directory = getattr(self._settings, f"{self.media.value}_directory")
         return Path(directory) if directory else None
 
     @property
@@ -129,9 +127,13 @@ class Target:
     def query(self) -> List[Metadata]:
         """Queries the target's respective media provider for metadata."""
         results = self._provider.search(self.metadata)
+        seen = set()
         response = []
         for idx, result in enumerate(results):
+            if str(result) in seen:
+                continue
             response.append(result)
+            seen.add(str(result))
             if idx is self._settings.hits:
                 break
         return response

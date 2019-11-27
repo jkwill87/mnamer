@@ -1,22 +1,19 @@
-"""Metadata data class."""
-
 import dataclasses
 import re
 from datetime import date
 from pathlib import Path
 from string import Formatter
-from typing import Union
+from typing import Optional, Union
 
 from guessit import guessit
 
-from mnamer.core.utils import (
+from mnamer.types import MediaType
+from mnamer.utils import (
     convert_date,
     normalize_extension,
     str_fix_whitespace,
     str_title_case,
-    year_parse,
 )
-from mnamer.types import MediaType
 
 
 class MetaFormatter(Formatter):
@@ -27,28 +24,28 @@ class MetaFormatter(Formatter):
 @dataclasses.dataclass
 class Metadata:
     # common fields
-    media_type: Union[MediaType, str]
+    media: Union[MediaType, str]
     extension: str = None
     group: str = None
     quality: str = None
     synopsis: str = None
     title: str = None
-    year: Union[int, str] = None
     id: str = None
     # episode-specific fields
     series_name: str = None
     season_number: int = None
     episode_number: int = None
-    episode_date: date = None
+    date: date = None
+    year: int = None
 
     @classmethod
-    def parse(cls, file_path: Path, media_type: MediaType = None):
+    def parse(cls, file_path: Path, media: MediaType = None):
         filename = str(file_path)
-        type_override = media_type.value if media_type else None
+        type_override = media.value if media else None
         # inspect path data
         path_data = dict(guessit(filename, {"type": type_override}))
         # set common attributes
-        metadata = Metadata(media_type=path_data["type"])
+        metadata = Metadata(media=path_data["type"])
         quality_keys = path_data.keys() & {
             "audio_codec",
             "audio_profile",
@@ -61,26 +58,30 @@ class Metadata:
         )
         metadata.group = path_data.get("release_group")
         metadata.extension = path_data.get("container")
+        year_data = path_data.get("year")
+        alt_title = path_data.get("alternative_title")
         # parse episode-specific metadata
-        if metadata.media_type is MediaType.EPISODE:
-            metadata.episode_date = path_data.get("date")
+        if metadata.media is MediaType.EPISODE:
+            metadata.date = path_data.get("date")
             metadata.episode_number = path_data.get("episode")
             metadata.season_number = path_data.get("season")
             metadata.series_name = path_data.get("title")
-            metadata.title = path_data.get("episode_title")
+            # if metadata.series_name:
+            #     if alt_title:
+            #         metadata.series_name += f" {alt_title}"
+            #     if year_data:
+            #         metadata.series_name += f" ({year_data})"
         # parse movie-specific metadata
-        metadata.title = path_data.get("title")
-        year_data = path_data.get("year")
-        if year_data:
-            year_regex = r"((?:19|20)\d{2})(?:$|[-/]\d{2}[-/]\d{2})"
-            metadata.year = int(re.findall(year_regex, str(year_data))[0])
+        else:
+            metadata.title = path_data.get("title")
+            if year_data:
+                metadata.date = date(year_data, 1, 1)
         return metadata
 
     def __setattr__(self, key, value):
         converter = {
-            "media_type": MediaType,
-            "episode_date": convert_date,
-            "year": year_parse,
+            "media": MediaType,
+            "date": convert_date,
             "synopsis": str.capitalize,
             "title": str_title_case,
             "extension": normalize_extension,
@@ -92,13 +93,14 @@ class Metadata:
         }.get(key)
         if value is not None and converter:
             value = converter(value)
-        super().__setattr__(key, value)
+        if key != "year":
+            super().__setattr__(key, value)
 
     def __format__(self, format_spec):
         if not format_spec:
-            if self.media_type is MediaType.EPISODE:
+            if self.media is MediaType.EPISODE:
                 format_spec = "{series_name} - {season_number:02}x{episode_number:02} - {title}"
-            elif self.media_type is MediaType.MOVIE:
+            elif self.media is MediaType.MOVIE:
                 format_spec = "{title} ({year})"
             else:
                 format_spec = "metadata?"
@@ -112,14 +114,17 @@ class Metadata:
         return self.__format__(None)
 
     @property
+    def year(self) -> Optional[int]:
+        if self.date:
+            return self.date.year
+
+    @property
     def as_dict(self):
         return dataclasses.asdict(self)
 
     def _format_repl(self, mobj):
         format_string, key = mobj.groups()
-        value = MetaFormatter().vformat(
-            format_string, None, dataclasses.asdict(self)
-        )
+        value = MetaFormatter().vformat(format_string, None, self.as_dict)
         if key not in {"quality", "group", "extension"}:
             value = str_title_case(value)
         return value
