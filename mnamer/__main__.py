@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from mnamer.__version__ import VERSION
+from mnamer import VERSION
 
 from mnamer.core.settings import Settings
 from mnamer.core.target import Target
@@ -59,9 +59,7 @@ def main():
     total_count = len(targets)
     if total_count == 0:
         tty.msg("", debug=True)
-        tty.msg(
-            "no media files found", MessageType.ALERT,
-        )
+        tty.msg("no media files found", MessageType.ALERT)
         raise SystemExit(0)
 
     # main program loop

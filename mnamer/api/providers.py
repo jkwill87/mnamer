@@ -8,10 +8,7 @@ from mnamer.core.metadata import Metadata
 from mnamer.core.settings import Settings
 from mnamer.core.types import MediaType, ProviderType
 from mnamer.core.utils import convert_date, year_expand
-from mnamer.exceptions import (
-    MnamerNotFoundException,
-    MnamerProviderException,
-)
+from mnamer.exceptions import MnamerNotFoundException, MnamerProviderException
 
 
 class Provider(ABC):
@@ -71,6 +68,7 @@ class Omdb(Provider):
             else:
                 release_date = "%s-01-01" % response["Year"]
         meta = Metadata(
+            media=MediaType.MOVIE,
             title=response["Title"],
             date=release_date,
             synopsis=response["Plot"],
@@ -88,7 +86,7 @@ class Omdb(Provider):
             try:
                 response = omdb_search(
                     api_key=self.api_key,
-                    media="movie",
+                    media=MediaType.MOVIE,
                     query=title,
                     page=page,
                     cache=self.cache,

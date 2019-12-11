@@ -6,12 +6,9 @@ from string import Template
 from typing import Any, Dict, List, Optional, Set, Union
 
 from mnamer import API_KEY_OMDB, API_KEY_TMDB, API_KEY_TVDB
-from mnamer.core.argument import ArgumentParser, ArgumentSpec
+from mnamer.core.argument import ArgParser, ArgSpec
 from mnamer.core.types import MediaType, ProviderType, SettingsType
-from mnamer.core.utils import (
-    crawl_out,
-    normalize_extensions,
-)
+from mnamer.core.utils import crawl_out, normalize_extensions
 
 
 @dataclasses.dataclass
@@ -22,7 +19,7 @@ class Settings:
 
     targets: Set[Path] = dataclasses.field(
         default_factory=lambda: [],
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             flags=["targets"],
             group=SettingsType.POSITIONAL,
             help="[TARGET,...]: media file file path(s) to process",
@@ -34,7 +31,7 @@ class Settings:
 
     batch: bool = dataclasses.field(
         default=False,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             action="store_true",
             dest="batch",
             flags=["-b", "--batch"],
@@ -44,7 +41,7 @@ class Settings:
     )
     lower: bool = dataclasses.field(
         default=False,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             action="store_true",
             flags=["-l", "--lower"],
             group=SettingsType.PARAMETER,
@@ -53,7 +50,7 @@ class Settings:
     )
     recurse: bool = dataclasses.field(
         default=False,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             action="store_true",
             flags=["-r", "--recurse"],
             group=SettingsType.PARAMETER,
@@ -62,7 +59,7 @@ class Settings:
     )
     scene: bool = dataclasses.field(
         default=False,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             action="store_true",
             flags=["-s", "--scene"],
             group=SettingsType.PARAMETER,
@@ -71,7 +68,7 @@ class Settings:
     )
     verbose: bool = dataclasses.field(
         default=False,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             action="store_true",
             flags=["-v", "--verbose"],
             group=SettingsType.PARAMETER,
@@ -80,7 +77,7 @@ class Settings:
     )
     hits: int = dataclasses.field(
         default=False,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             flags=["--hits"],
             group=SettingsType.PARAMETER,
             help="--hits=<NUMBER>: limit the maximum number of hits for each query",
@@ -89,7 +86,7 @@ class Settings:
     )
     ignore: List[str] = dataclasses.field(
         default_factory=lambda: [".*sample.*", "^RARBG.*"],
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             flags=["--ignore"],
             group=SettingsType.PARAMETER,
             help="--ignore=<PATTERN,...>: ignore files matching these regular expressions",
@@ -98,7 +95,7 @@ class Settings:
     )
     mask: List[str] = dataclasses.field(
         default_factory=lambda: ["avi", "m4v", "mp4", "mkv", "ts", "wmv"],
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             flags=["--mask"],
             group=SettingsType.PARAMETER,
             help="--mask=<EXTENSION,...>: only process given file types",
@@ -107,7 +104,7 @@ class Settings:
     )
     no_cache: bool = dataclasses.field(
         default=False,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             action="store_true",
             dest="no_cache",
             flags=["--nocache", "--no_cache", "--no-cache"],
@@ -117,7 +114,7 @@ class Settings:
     )
     no_guess: bool = dataclasses.field(
         default=False,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             action="store_true",
             dest="no_guess",
             flags=["--noguess", "--no_guess", "--no-guess"],
@@ -127,7 +124,7 @@ class Settings:
     )
     no_style: bool = dataclasses.field(
         default=False,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             action="store_true",
             dest="no_style",
             flags=["--nostyle", "--no_style", "--no-style"],
@@ -137,7 +134,7 @@ class Settings:
     )
     movie_api: Union[ProviderType, str] = dataclasses.field(
         default=ProviderType.TMDB,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             choices=[ProviderType.TMDB.value, ProviderType.OMDB.value],
             dest="movie_api",
             flags=["--movie_api", "--movie-api"],
@@ -147,7 +144,7 @@ class Settings:
     )
     movie_directory: Optional[PurePath] = dataclasses.field(
         default=None,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             dest="movie_directory",
             flags=["--movie_directory", "--movie-directory"],
             group=SettingsType.PARAMETER,
@@ -156,7 +153,7 @@ class Settings:
     )
     movie_format: str = dataclasses.field(
         default="{title} ({year}){extension}",
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             dest="movie_format",
             flags=["--movie_format", "--movie-format"],
             group=SettingsType.PARAMETER,
@@ -165,7 +162,7 @@ class Settings:
     )
     episode_api: Union[ProviderType, str] = dataclasses.field(
         default=ProviderType.TVDB,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             choices=[ProviderType.TVDB.value],
             dest="episode_api",
             flags=["--episode_api", "--episode-api"],
@@ -175,7 +172,7 @@ class Settings:
     )
     episode_directory: PurePath = dataclasses.field(
         default=None,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             dest="episode_directory",
             flags=["--episode_directory", "--episode-directory"],
             group=SettingsType.PARAMETER,
@@ -184,7 +181,7 @@ class Settings:
     )
     episode_format: str = dataclasses.field(
         default="{series_name} - S{season_number:02}E{episode_number:02} - {title}{extension}",
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             dest="episode_format",
             flags=["--episode_format", "--episode-format"],
             group=SettingsType.PARAMETER,
@@ -196,7 +193,7 @@ class Settings:
 
     version: bool = dataclasses.field(
         default=False,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             action="store_true",
             flags=["-V", "--version"],
             group=SettingsType.DIRECTIVE,
@@ -205,7 +202,7 @@ class Settings:
     )
     config_dump: bool = dataclasses.field(
         default=False,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             action="store_true",
             dest="config_dump",
             flags=["--config_dump", "--config-dump"],
@@ -215,7 +212,7 @@ class Settings:
     )
     id: str = dataclasses.field(
         default=None,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             flags=["--id"],
             group=SettingsType.DIRECTIVE,
             help="--id=<ID>: specify a movie or series id for a given provider",
@@ -223,7 +220,7 @@ class Settings:
     )
     media: Optional[Union[MediaType, str]] = dataclasses.field(
         default=None,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             choices=list(MediaType),
             flags=["--media"],
             group=SettingsType.DIRECTIVE,
@@ -232,7 +229,7 @@ class Settings:
     )
     no_config: bool = dataclasses.field(
         default=False,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             action="store_true",
             dest="no_config",
             flags=["--noconfig", "--no-config", "--no_config"],
@@ -242,7 +239,7 @@ class Settings:
     )
     test: bool = dataclasses.field(
         default=False,
-        metadata=ArgumentSpec(
+        metadata=ArgSpec(
             action="store_true",
             flags=["--test"],
             group=SettingsType.DIRECTIVE,
@@ -254,19 +251,19 @@ class Settings:
 
     api_key_omdb: bool = dataclasses.field(
         default=API_KEY_OMDB,
-        metadata=ArgumentSpec(group=SettingsType.CONFIGURATION)(),
+        metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
     )
     api_key_tmdb: bool = dataclasses.field(
         default=API_KEY_TMDB,
-        metadata=ArgumentSpec(group=SettingsType.CONFIGURATION)(),
+        metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
     )
     api_key_tvdb: bool = dataclasses.field(
         default=API_KEY_TVDB,
-        metadata=ArgumentSpec(group=SettingsType.CONFIGURATION)(),
+        metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
     )
     replacements: Dict[str, str] = dataclasses.field(
         default_factory=lambda: {"&": "and", "@": "at", ":": "", ";": ","},
-        metadata=ArgumentSpec(group=SettingsType.CONFIGURATION)(),
+        metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
     )
 
     # ==========================================================================
@@ -294,13 +291,13 @@ class Settings:
             and load_configuration
             and not any((self.no_config, self.config_dump))
         ):
-            self._load_config(configuration_path)
+            self._load_configuration(configuration_path)
             self._bulk_apply(self._config_data)
 
     @classmethod
-    def _attribute_metadata(cls) -> Dict[str, ArgumentSpec]:
+    def _attribute_metadata(cls) -> Dict[str, ArgSpec]:
         return {
-            f.name: ArgumentSpec(**f.metadata)
+            f.name: ArgSpec(**f.metadata)
             for f in dataclasses.fields(cls)
             if f.metadata
         }
@@ -348,7 +345,7 @@ class Settings:
         [setattr(self, k, v) for k, v in data.items() if v]
 
     def _load_arguments(self, load_arguments: bool):
-        arg_parser = ArgumentParser()
+        arg_parser = ArgParser()
         groups = {SettingsType.DIRECTIVE}
         if load_arguments:
             groups |= {SettingsType.PARAMETER, SettingsType.POSITIONAL}
@@ -360,7 +357,7 @@ class Settings:
         if load_arguments and unknowns:
             raise RuntimeError(f"invalid setting: {unknowns}")
 
-    def _load_config(self, path: Union[Path, str]):
+    def _load_configuration(self, path: Union[Path, str]):
         path = Template(str(path)).substitute(environ)
         with open(path, mode="r") as file_pointer:
             data = file_pointer.read()
@@ -373,14 +370,7 @@ class Settings:
         return getattr(self, f"{media.value}_api")
 
     def api_key_for(self, provider: ProviderType) -> Optional[str]:
-        return getattr(self, f"api_key_{provider.value}_")
-
-    def update(self, settings: "Settings"):
-        for field in dataclasses.asdict(self).keys():
-            value = getattr(settings, field)
-            if value is None:
-                continue
-            setattr(self, field, value)
+        return getattr(self, f"api_key_{provider.value}")
 
     def write_config(self, path: Union[PurePath, str]):
         path = Template(str(path)).substitute(environ)

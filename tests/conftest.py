@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 from mnamer import API_KEY_TVDB
@@ -11,3 +13,10 @@ def tvdb_token():
 
         tvdb_token.token = tvdb_login(API_KEY_TVDB)
     return tvdb_token.token
+
+
+@pytest.fixture(autouse=True)
+def reset_args():
+    """Clears argv before and after running test."""
+    del sys.argv[:]
+    sys.argv.append("mnamer")

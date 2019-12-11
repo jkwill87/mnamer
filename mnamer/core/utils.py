@@ -426,8 +426,10 @@ def normalize_extensions(extension_list: List[str]):
     return [normalize_extension(extension) for extension in extension_list]
 
 
-def convert_date(value: [str, date]) -> date:
+def convert_date(value: Union[str, date]) -> date:
     if isinstance(value, str):
+        value = value.replace("/", "-")
+        value = value.replace(".", "-")
         value = date.fromisoformat(value)
     return value
 

@@ -4,10 +4,7 @@ import pytest
 
 from mnamer import API_KEY_OMDB
 from mnamer.api.endpoints import omdb_search, omdb_title
-from mnamer.exceptions import (
-    MnamerNotFoundException,
-    MnamerProviderException,
-)
+from mnamer.exceptions import MnamerNotFoundException, MnamerProviderException
 from tests import JUNK_TEXT, MockRequestResponse
 
 

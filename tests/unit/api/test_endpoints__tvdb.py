@@ -10,10 +10,7 @@ from mnamer.api.endpoints import (
     tvdb_series_id_episodes,
     tvdb_series_id_episodes_query,
 )
-from mnamer.exceptions import (
-    MnamerNotFoundException,
-    MnamerProviderException,
-)
+from mnamer.exceptions import MnamerNotFoundException, MnamerProviderException
 from tests import JUNK_TEXT
 
 LOST_TVDB_ID_EPISODE = 127131
@@ -54,7 +51,6 @@ def test_tvdb_episodes_id__invalid_id_imdb(tvdb_token):
         tvdb_episodes_id(tvdb_token, JUNK_TEXT, cache=False)
 
 
-@pytest.mark.skip("After v3 update this endpoint now 500s on error")
 def test_tvdb_episodes_id__no_hits(tvdb_token):
     with pytest.raises(MnamerNotFoundException):
         tvdb_episodes_id(tvdb_token, LOST_TVDB_ID_EPISODE ** 2)

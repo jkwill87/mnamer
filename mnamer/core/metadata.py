@@ -1,7 +1,7 @@
 import dataclasses
 import re
 from datetime import date
-from pathlib import Path
+from pathlib import PurePath
 from string import Formatter
 from typing import Optional, Union
 
@@ -33,20 +33,20 @@ class Metadata:
     id: str = None
     # episode-specific fields
     series_name: str = None
-    season_number: int = None
-    episode_number: int = None
-    date: date = None
+    season_number: Union[int, str] = None
+    episode_number: Union[int, str] = None
+    date: Union[date, str] = None
     year: int = None
 
     @classmethod
-    def parse(cls, file_path: Path, media: MediaType = None):
+    def parse(cls, file_path: PurePath, media: MediaType = None):
         filename = str(file_path)
         type_override = media.value if media else None
         # inspect path data
         path_data = dict(guessit(filename, {"type": type_override}))
         # set common attributes
         metadata = Metadata(media=path_data["type"])
-        quality_keys = path_data.keys() & {
+        quality_keys = {
             "audio_codec",
             "audio_profile",
             "screen_size",
@@ -54,23 +54,23 @@ class Metadata:
             "video_profile",
         }
         metadata.quality = (
-            " ".join(path_data[key] for key in quality_keys) or None
+            " ".join(
+                path_data[key]
+                for key in path_data.keys()
+                if key in quality_keys
+            )
+            or None
         )
+
         metadata.group = path_data.get("release_group")
         metadata.extension = path_data.get("container")
         year_data = path_data.get("year")
-        alt_title = path_data.get("alternative_title")
         # parse episode-specific metadata
         if metadata.media is MediaType.EPISODE:
             metadata.date = path_data.get("date")
             metadata.episode_number = path_data.get("episode")
             metadata.season_number = path_data.get("season")
             metadata.series_name = path_data.get("title")
-            # if metadata.series_name:
-            #     if alt_title:
-            #         metadata.series_name += f" {alt_title}"
-            #     if year_data:
-            #         metadata.series_name += f" ({year_data})"
         # parse movie-specific metadata
         else:
             metadata.title = path_data.get("title")
@@ -88,7 +88,7 @@ class Metadata:
             "group": str.upper,
             "quality": str.lower,
             "series_name": str_title_case,
-            "series_number": int,
+            "season_number": int,
             "episode_number": int,
         }.get(key)
         if value is not None and converter:

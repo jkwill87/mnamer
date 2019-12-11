@@ -8,10 +8,7 @@ from mnamer.core.metadata import Metadata
 from mnamer.core.settings import Settings
 from mnamer.core.types import MessageType
 from mnamer.core.utils import format_dict, format_iter
-from mnamer.exceptions import (
-    MnamerAbortException,
-    MnamerSkipException,
-)
+from mnamer.exceptions import MnamerAbortException, MnamerSkipException
 
 
 class Tty:
