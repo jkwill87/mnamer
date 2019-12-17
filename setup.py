@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 from mnamer import VERSION
 
@@ -21,7 +21,7 @@ setup(
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     name="mnamer",
-    packages=["mnamer"],
+    packages=find_packages(),
     python_requires="~=3.7",
     url="https://github.com/jkwill87/mnamer",
     version=VERSION,
