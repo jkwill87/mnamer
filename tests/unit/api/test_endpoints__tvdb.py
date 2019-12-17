@@ -17,6 +17,16 @@ LOST_TVDB_ID_EPISODE = 127131
 LOST_TVDB_ID_SERIES = 73739
 
 
+@pytest.fixture(scope="session")
+def tvdb_token():
+    """Calls mnamer.api.endpoints.tvdb_login then returns cached token."""
+    if not hasattr(tvdb_token, "token"):
+        from mnamer.api.endpoints import tvdb_login
+
+        tvdb_token.token = tvdb_login(API_KEY_TVDB)
+    return tvdb_token.token
+
+
 def test_tvdb_login__login_success():
     assert tvdb_login(API_KEY_TVDB) is not None
 
@@ -448,7 +458,3 @@ def test_tvdb_search_series__success_series(tvdb_token):
     data = result["data"]
     assert len(data) == 100
     assert expected_top_level_keys == set(data[0].keys())
-
-
-def test_tvdb_search_series__success_series_id_zap2it():
-    pass  # TODO -- not currently used by mapi

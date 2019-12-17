@@ -66,7 +66,8 @@ setup-demo: clean
 	$(info setting up demo directory)
 	@mkdir -p \
 	    demo \
-	    'demo/Avengers Infinity War'
+	    'demo/Avengers Infinity War' \
+	    'demo/Sample'
 	@cd demo && touch \
 	    "aladdin.1992.avi" \
 	    "aladdin.2019.avi" \
@@ -79,4 +80,5 @@ setup-demo: clean
 	    "archer.2009.s10e07.webrip.x264-lucidtv.mp4" \
 	    "Planet Earth II S01E06 - Cities (2016) (2160p).mp4" \
 	    "O.J. - Made in America S01EP03 (2016) (1080p).mp4" \
-	    "s.w.a.t.2017.s02e01.mkv"
+	    "s.w.a.t.2017.s02e01.mkv" \
+        "Sample/the mandalorian s01x02.mp4"

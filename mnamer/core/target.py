@@ -1,5 +1,5 @@
 from os import path
-from pathlib import Path
+from pathlib import Path, PurePath
 from shutil import move
 from typing import Any, Dict, List, Optional, Union
 
@@ -31,7 +31,7 @@ class Target:
     _parsed_metadata: Metadata
     source: Path
 
-    def __init__(self, file_path: Union[str, Path], settings: Settings):
+    def __init__(self, file_path: Union[str, PurePath], settings: Settings):
         self._settings = settings
         self._has_moved: False
         self._has_renamed: False
@@ -68,18 +68,18 @@ class Target:
         return targets
 
     @staticmethod
-    def _matches_media(target: "Target") -> bool:
-        if not target._settings.media:
-            return True
-        else:
-            return target._settings.media is target.metadata.media
-
-    @staticmethod
     def _matches_mask(target: "Target") -> bool:
         if not target._settings.mask:
             return True
         else:
             return target.source.suffix in target._settings.mask
+
+    @staticmethod
+    def _matches_media(target: "Target") -> bool:
+        if not target._settings.media:
+            return True
+        else:
+            return target._settings.media is target.metadata.media
 
     @property
     def _formatting(self) -> str:

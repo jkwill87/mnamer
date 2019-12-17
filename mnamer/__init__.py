@@ -11,7 +11,6 @@ An intelligent and highly configurable media file organization tool.
 
 import os
 
-
 API_KEY_OMDB = os.environ.get("API_KEY_OMDB", "477a7ebc")
 API_KEY_TMDB = os.environ.get(
     "API_KEY_TMDB", "db972a607f2760bb19ff8bb34074b4c7"

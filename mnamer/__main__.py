@@ -81,24 +81,27 @@ def main():
 
         # find match for target
         try:
-            # using api provider
+            matches = target.query()
+        except MnamerNotFoundException:
+            tty.msg("No matches found", MessageType.ALERT)
+            matches = []
+        except MnamerNetworkException:
+            tty.msg("Network Error", MessageType.ALERT)
+            matches = []
+        if settings.batch:
+            match = matches[0] if matches else target.metadata
+        elif not matches:
+            match = tty.confirm_guess(target.metadata)
+        else:
             try:
-                matches = target.query()
                 tty.msg("Results", MessageType.HEADING)
                 match = tty.prompt(matches)
-            # using best guess
-            except MnamerNotFoundException:
-                tty.msg("No matches found", MessageType.ALERT)
-                match = tty.confirm_guess(target.metadata)
-            except MnamerNetworkException:
-                tty.msg("Network Error", MessageType.ALERT)
-                match = tty.confirm_guess(target.metadata)
-        except MnamerSkipException:
-            tty.msg("Skipping as per user request", MessageType.ALERT)
-            continue
-        except MnamerAbortException:
-            tty.msg("Aborting as per user request", MessageType.ERROR)
-            break
+            except MnamerSkipException:
+                tty.msg("Skipping as per user request", MessageType.ALERT)
+                continue
+            except MnamerAbortException:
+                tty.msg("Aborting as per user request", MessageType.ERROR)
+                break
 
         # update metadata
         target.metadata.update(match)

@@ -4,12 +4,12 @@ import json
 import random
 import re
 from datetime import date
-from os import path, walk
-from pathlib import Path
-from re import IGNORECASE, search, sub
+from os import walk
+from os.path import splitext
+from pathlib import Path, PurePath
 from string import capwords
 from sys import version_info
-from typing import Any, Collection, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 from unicodedata import normalize
 
 import requests_cache
@@ -17,24 +17,45 @@ from appdirs import user_cache_dir
 from requests.adapters import HTTPAdapter
 
 
-def crawl_in(file_paths: Union[Collection[Path], Path], recurse: bool = False):
+def clear_cache():
+    """Clears requests-cache cache."""
+    get_session().cache.clear()
+
+
+def clean_dict(target_dict: Dict[Any, Any], whitelist=None) -> Dict[Any, Any]:
+    """Convenience function that removes a dicts keys that have falsy values."""
+    return {
+        str(k).strip(): str(v).strip()
+        for k, v in target_dict.items()
+        if v not in (None, Ellipsis, [], (), "")
+        and (not whitelist or k in whitelist)
+    }
+
+
+def convert_date(value: Union[str, date]) -> date:
+    if isinstance(value, str):
+        value = value.replace("/", "-")
+        value = value.replace(".", "-")
+        value = date.fromisoformat(value)
+    return value
+
+
+def crawl_in(file_paths: List[Path], recurse: bool = False) -> List[Path]:
     """Looks for files amongst or within paths provided."""
-    if not isinstance(file_paths, (list, tuple, set)):
-        file_paths = [file_paths]
     found_files = set()
     for file_path in file_paths:
-        file_path = path.realpath(file_path)
-        if not path.exists(file_path):
+        file_path = file_path.absolute()
+        if not file_path.exists():
             continue
-        if path.isfile(file_path):
-            found_files.add(file_path)
+        if file_path.is_file():
+            found_files.add(Path(file_path))
             continue
         for root, _dirs, files in walk(file_path):
             for file in files:
-                found_files.add(path.join(root, file))
+                found_files.add(Path(root, file).absolute())
             if not recurse:
                 break
-    return found_files
+    return sorted(list(found_files))
 
 
 def crawl_out(filename: str) -> Optional[Path]:
@@ -52,123 +73,86 @@ def crawl_out(filename: str) -> Optional[Path]:
     return target if target.exists() else None
 
 
-def file_stem(file_path: str):
-    """Gets the filename for a path with any extension removed."""
-    return path.splitext(path.basename(file_path))[0]
+def d2lt(d: Dict[Any, Any]) -> List[tuple]:
+    """Convenience function that converts a dict into a sorted tuples list."""
+    return sorted(tuple((k, v) for k, v in d.items()))
 
 
-def filename_replace(filename: str, replacements: Dict[str, str]):
+def filename_replace(filename: str, replacements: Dict[str, str]) -> str:
     """Replaces keys in replacements dict with their values."""
-    base, ext = path.splitext(filename)
+    base, ext = splitext(filename)
     for word, replacement in replacements.items():
         if word in filename:
-            base = sub(rf"{word}\b", replacement, base, flags=IGNORECASE)
+            base = re.sub(rf"{word}\b", replacement, base, flags=re.IGNORECASE)
     return base + ext
 
 
-def filename_sanitize(filename: str):
+def filename_sanitize(filename: str) -> str:
     """Removes illegal filename characters and condenses whitespace."""
-    base, ext = path.splitext(filename)
-    base = sub(r"\s+", " ", base)
-    base = sub(r'[<>:"|?*&%=+@#`^]', "", base)
+    base, ext = splitext(filename)
+    base = re.sub(r"\s+", " ", base)
+    base = re.sub(r'[<>:"|?*&%=+@#`^]', "", base)
     return base.strip("-., ") + ext
 
 
-def filename_scenify(filename: str):
+def filename_scenify(filename: str) -> str:
     """Replaces non ascii-alphanumerics with dots."""
     filename = normalize("NFKD", filename)
     filename.encode("ascii", "ignore")
-    filename = sub(r"\s+", ".", filename)
-    filename = sub(r"[^.\d\w/]", "", filename)
-    filename = sub(r"\.+", ".", filename)
+    filename = re.sub(r"\s+", ".", filename)
+    filename = re.sub(r"[^.\d\w/]", "", filename)
+    filename = re.sub(r"\.+", ".", filename)
     return filename.lower().strip(".")
 
 
 def filter_blacklist(
-    paths: Union[Collection[str], str],
-    blacklist: Optional[Union[Collection[str], str]],
-):
+    paths: List[PurePath], blacklist: List[str],
+) -> List[PurePath]:
     """Filters (set difference) paths by a collection of regex pattens."""
-    if not blacklist:
-        return {p for p in paths}
-    elif isinstance(blacklist, str):
-        blacklist = (blacklist,)
-    if isinstance(paths, str):
-        paths = (paths,)
-    return {
-        p
-        for p in paths
-        if not any(search(b, file_stem(p), IGNORECASE) for b in blacklist)
-    }
+    return [
+        path
+        for path in paths
+        if not any(
+            re.search(pattern, str(path), re.IGNORECASE)
+            for pattern in blacklist
+            if pattern
+        )
+    ]
 
 
-def filter_extensions(
-    file_paths: Union[Collection[str], str],
-    valid_extensions: Optional[Union[Collection[str], str]],
-):
-    """Filters (set intersection) a collection of extensions."""
-    if not valid_extensions:
-        return file_paths
-    if isinstance(valid_extensions, str):
-        valid_extensions = (valid_extensions,)
-    if isinstance(file_paths, str):
-        file_paths = (file_paths,)
-    valid_extensions = {e.lstrip(".") for e in valid_extensions}
-    return {
-        file_path
-        for file_path in file_paths
-        if path.splitext(file_path)[1].lstrip(".") in valid_extensions
-    }
-
-
-def filter_dict(d: dict):
+def filter_dict(d: Dict[Any, Any]) -> Dict[Any, Any]:
     return {k: v for k, v in d.items() if v is not None}
 
 
-def json_dumps(d: Dict[str, Any]) -> Dict[str, Any]:
-    """A wrapper for json.dumps."""
-    return json.dumps(
-        {k: getattr(v, "value", v) for k, v in d.items()},
-        allow_nan=False,
-        check_circular=True,
-        ensure_ascii=True,
-        indent=4,
-        skipkeys=True,
-        sort_keys=True,
+def filter_extensions(
+    file_paths: List[PurePath], valid_extensions: List[str],
+) -> List[PurePath]:
+    """Filters (set intersection) a collection of extensions."""
+    return [
+        file_path
+        for file_path in file_paths
+        if file_path.suffix in valid_extensions
+    ]
+
+
+def format_dict(body: Dict[Any, Any]) -> str:
+    return "\n".join(
+        sorted([f" - {k} = {getattr(v, 'value', v)}" for k, v in body.items()])
     )
 
 
-def clean_dict(target_dict, whitelist=None):
-    """Convenience function that removes a dicts keys that have falsy values."""
-    assert isinstance(target_dict, dict)
-    return {
-        str(k).strip(): str(v).strip()
-        for k, v in target_dict.items()
-        if v not in (None, Ellipsis, [], (), "")
-        and (not whitelist or k in whitelist)
-    }
+def format_iter(body: Union[str, list]) -> str:
+    return "\n".join(sorted([f" - {getattr(v, 'value', v)}" for v in body]))
 
 
-def clear_cache():
-    """Clears requests-cache cache."""
-    get_session().cache.clear()
-
-
-def d2l(d):
-    """Convenience function that converts a dict into a sorted tuples list."""
-    return sorted([(k, v) for k, v in d.items()])
-
-
-def get_session():
+def get_session() -> requests_cache.CachedSession:
     """Convenience function that returns request-cache session singleton."""
-    cache_path = path.join(
-        user_cache_dir(),
-        f"mnamer-py{version_info.major}.{version_info.minor}.sqlite",
-    )
+    cache_path = Path(
+        user_cache_dir(), f"mnamer-py{version_info.major}.{version_info.minor}",
+    ).absolute()
     if not hasattr(get_session, "session"):
         get_session.session = requests_cache.CachedSession(
-            cache_name=cache_path.rstrip(".sqlite"),
-            expire_after=518_400,  # 6 days
+            cache_name=str(cache_path), expire_after=518_400  # 6 days
         )
         adapter = HTTPAdapter(max_retries=3)
         get_session.session.mount("http://", adapter)
@@ -176,7 +160,7 @@ def get_session():
     return get_session.session
 
 
-def get_user_agent(platform=None):
+def get_user_agent(platform: Optional[str] = None) -> Dict[str, str]:
     """Convenience function that looks up a user agent string, random if N/A."""
     agent_chrome = (
         "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0_1 like Mac OS X) "
@@ -199,9 +183,32 @@ def get_user_agent(platform=None):
     )
 
 
+def json_dumps(d: Dict[str, Any]) -> Dict[str, Any]:
+    """A wrapper for json.dumps."""
+    return json.dumps(
+        {k: getattr(v, "value", v) for k, v in d.items()},
+        allow_nan=False,
+        check_circular=True,
+        ensure_ascii=True,
+        indent=4,
+        skipkeys=True,
+        sort_keys=True,
+    )
+
+
+def normalize_extension(extension: str) -> str:
+    if extension and extension[0] != ".":
+        extension = f".{extension}"
+    return extension.lower()
+
+
+def normalize_extensions(extension_list: List[str]) -> List[str]:
+    return [normalize_extension(extension) for extension in extension_list]
+
+
 def request_json(
     url, parameters=None, body=None, headers=None, cache=True, agent=None
-):
+) -> Tuple[int, Optional[str]]:
     """
     Queries a url for json data.
 
@@ -216,7 +223,7 @@ def request_json(
     else:
         headers = dict()
     if isinstance(parameters, dict):
-        parameters = d2l(clean_dict(parameters))
+        parameters = d2lt(clean_dict(parameters))
     if body:
         method = "POST"
         headers["content-type"] = "application/json"
@@ -247,29 +254,22 @@ def request_json(
     return status, content
 
 
-def year_expand(s):
-    """Parses a year or dash-delimited year range."""
-    regex = r"^((?:19|20)\d{2})?(\s*-\s*)?((?:19|20)\d{2})?$"
-    try:
-        start, dash, end = re.match(regex, str(s)).groups()
-        start = start or 1900
-        end = end or 2099
-    except AttributeError:
-        return 1900, 2099
-    return (int(start), int(end)) if dash else (int(start), int(start))
+def str_fix_whitespace(s: str) -> str:
+    # Concatenate dashes
+    s = re.sub(r"-\s*-", "-", s)
+    # Remove empty brackets
+    s = s.replace("()", "")
+    s = s.replace("[]", "")
+    # Strip leading/ trailing dashes
+    s = re.sub(r"-\s*$|^\s*-", "", s)
+    # Concatenate whitespace
+    s = re.sub(r"\s+", " ", s)
+    # Strip leading/ trailing whitespace
+    s = s.strip()
+    return s
 
 
-def year_parse(s):
-    """Parses a year from a string."""
-    regex = r"((?:19|20)\d{2})(?:$|[-/]\d{2}[-/]\d{2})"
-    try:
-        year = int(re.findall(regex, str(s))[0])
-    except IndexError:
-        year = None
-    return year
-
-
-def str_title_case(s):
+def str_title_case(s: str) -> str:
     lowercase_exceptions = {
         "a",
         "an",
@@ -401,44 +401,23 @@ def str_title_case(s):
     return s
 
 
-def str_fix_whitespace(s: str):
-    # Concatenate dashes
-    s = re.sub(r"-\s*-", "-", s)
-    # Remove empty brackets
-    s = s.replace("()", "")
-    s = s.replace("[]", "")
-    # Strip leading/ trailing dashes
-    s = re.sub(r"-\s*$|^\s*-", "", s)
-    # Concatenate whitespace
-    s = re.sub(r"\s+", " ", s)
-    # Strip leading/ trailing whitespace
-    s = s.strip()
-    return s
+def year_expand(s: str) -> Tuple[int, int]:
+    """Parses a year or dash-delimited year range."""
+    regex = r"^((?:19|20)\d{2})?(\s*-\s*)?((?:19|20)\d{2})?$"
+    try:
+        start, dash, end = re.match(regex, str(s)).groups()
+        start = start or 1900
+        end = end or 2099
+    except AttributeError:
+        return 1900, 2099
+    return (int(start), int(end)) if dash else (int(start), int(start))
 
 
-def normalize_extension(extension: str):
-    if extension and extension[0] != ".":
-        extension = f".{extension}"
-    return extension.lower()
-
-
-def normalize_extensions(extension_list: List[str]):
-    return [normalize_extension(extension) for extension in extension_list]
-
-
-def convert_date(value: Union[str, date]) -> date:
-    if isinstance(value, str):
-        value = value.replace("/", "-")
-        value = value.replace(".", "-")
-        value = date.fromisoformat(value)
-    return value
-
-
-def format_iter(body: Union[str, list]):
-    return "\n".join(sorted([f" - {getattr(v, 'value', v)}" for v in body]))
-
-
-def format_dict(body: dict):
-    return "\n".join(
-        sorted([f" - {k} = {getattr(v, 'value', v)}" for k, v in body.items()])
-    )
+def year_parse(s: str) -> int:
+    """Parses a year from a string."""
+    regex = r"((?:19|20)\d{2})(?:$|[-/]\d{2}[-/]\d{2})"
+    try:
+        year = int(re.findall(regex, str(s))[0])
+    except IndexError:
+        year = None
+    return year

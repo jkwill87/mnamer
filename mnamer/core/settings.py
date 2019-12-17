@@ -3,7 +3,7 @@ import json
 from os import environ
 from pathlib import Path, PurePath
 from string import Template
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Union
 
 from mnamer import API_KEY_OMDB, API_KEY_TMDB, API_KEY_TVDB
 from mnamer.core.argument import ArgParser, ArgSpec
@@ -17,7 +17,7 @@ class Settings:
 
     # positional ---------------------------------------------------------------
 
-    targets: Set[Path] = dataclasses.field(
+    targets: List[Path] = dataclasses.field(
         default_factory=lambda: [],
         metadata=ArgSpec(
             flags=["targets"],
