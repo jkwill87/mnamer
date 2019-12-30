@@ -1,7 +1,7 @@
 import dataclasses
 import json
 from os import environ
-from pathlib import Path, PurePath
+from pathlib import Path
 from string import Template
 from typing import Any, Dict, List, Optional, Union
 
@@ -142,7 +142,7 @@ class Settings:
             help="--movie-api={tmdb,omdb}: set movie api provider",
         )(),
     )
-    movie_directory: Optional[PurePath] = dataclasses.field(
+    movie_directory: Optional[Path] = dataclasses.field(
         default=None,
         metadata=ArgSpec(
             dest="movie_directory",
@@ -170,7 +170,7 @@ class Settings:
             help="--episode-api={tvdb}: set episode api provider",
         )(),
     )
-    episode_directory: PurePath = dataclasses.field(
+    episode_directory: Path = dataclasses.field(
         default=None,
         metadata=ArgSpec(
             dest="episode_directory",
@@ -304,11 +304,12 @@ class Settings:
 
     def __setattr__(self, key: str, value: Any):
         converter = {
-            "movie_api": ProviderType,
-            "movie_directory": PurePath,
             "episode_api": ProviderType,
-            "episode_directory": PurePath,
+            "episode_directory": Path,
             "mask": normalize_extensions,
+            "movie_api": ProviderType,
+            "movie_directory": Path,
+            "targets": lambda targets: [Path(target) for target in targets],
         }.get(key)
         if value is not None and converter:
             value = converter(value)
@@ -372,7 +373,7 @@ class Settings:
     def api_key_for(self, provider: ProviderType) -> Optional[str]:
         return getattr(self, f"api_key_{provider.value}")
 
-    def write_config(self, path: Union[PurePath, str]):
+    def write_config(self, path: Union[Path, str]):
         path = Template(str(path)).substitute(environ)
         try:
             open(path, mode="w").write(self.as_json)

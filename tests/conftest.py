@@ -1,6 +1,7 @@
 import os
 import sys
 import tempfile
+from pathlib import Path
 from shutil import rmtree
 
 import pytest
@@ -25,12 +26,11 @@ def setup_test_path():
     """Creates mixed media file types for testing in a temporary directory."""
     orig_dir = os.getcwd()
     tmp_dir = tempfile.mkdtemp()
-    for test_file in TEST_FILES:
-        path = os.path.join(tmp_dir, test_file)
-        directory, _ = os.path.split(path)
-        if directory and not os.path.isdir(directory):
-            os.makedirs(directory)
-        open(path, "a").close()  # touch file
+    for test_file in TEST_FILES.values():
+        path = Path(tmp_dir, test_file)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.open("w").close()
+        print(f"touching {path}")
     os.chdir(tmp_dir)
     yield
     os.chdir(orig_dir)

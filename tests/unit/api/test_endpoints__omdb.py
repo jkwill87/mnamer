@@ -5,7 +5,18 @@ import pytest
 from mnamer import API_KEY_OMDB
 from mnamer.api.endpoints import omdb_search, omdb_title
 from mnamer.exceptions import MnamerNotFoundException, MnamerProviderException
-from tests import JUNK_TEXT, MockRequestResponse
+from tests import JUNK_TEXT
+
+
+class MockRequestResponse:
+    def __init__(self, status, content):
+        self.status_code = status
+        self.content = content
+
+    def json(self):
+        from json import loads
+
+        return loads(self.content)
 
 
 @patch("mnamer.core.utils.requests_cache.CachedSession.request")

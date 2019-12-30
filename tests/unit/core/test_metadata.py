@@ -1,5 +1,5 @@
 from datetime import date
-from pathlib import PurePath
+from pathlib import Path
 
 import pytest
 
@@ -10,55 +10,55 @@ TEXT_CASES = ["test", "Test", "TEST", "TeSt"]
 
 
 def test_quality():
-    file_path = PurePath("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mkv")
+    file_path = Path("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mkv")
     metadata = Metadata.parse(file_path)
     assert metadata.quality == "1080p dolby digital"
 
 
 def test_group():
-    file_path = PurePath("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mkv")
+    file_path = Path("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mkv")
     metadata = Metadata.parse(file_path)
     assert metadata.group == "RARGB"
 
 
 def test_extension():
-    file_path = PurePath("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mp4")
+    file_path = Path("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mp4")
     metadata = Metadata.parse(file_path)
     assert metadata.extension == ".mp4"
 
 
 def test_date():
-    file_path = PurePath("the.colbert.show.2010.10.01.avi")
+    file_path = Path("the.colbert.show.2010.10.01.avi")
     metadata = Metadata.parse(file_path)
     assert metadata.date == date(2010, 10, 1)
 
 
 def test_episode_number():
-    file_path = PurePath("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mp4")
+    file_path = Path("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mp4")
     metadata = Metadata.parse(file_path)
     assert metadata.episode_number == 4
 
 
 def test_season_number():
-    file_path = PurePath("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mp4")
+    file_path = Path("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mp4")
     metadata = Metadata.parse(file_path)
     assert metadata.season_number == 1
 
 
 def test_series_name():
-    file_path = PurePath("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mp4")
+    file_path = Path("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mp4")
     metadata = Metadata.parse(file_path)
     assert metadata.series_name == "Ninja Turtles"
 
 
 def test_title():
-    file_path = PurePath("the.goonies.1985")
+    file_path = Path("the.goonies.1985")
     metadata = Metadata.parse(file_path)
     assert metadata.title == "The Goonies"
 
 
 def test_year():
-    file_path = PurePath("the.goonies.1985")
+    file_path = Path("the.goonies.1985")
     metadata = Metadata.parse(file_path)
     assert metadata.year == 1985
 

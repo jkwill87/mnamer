@@ -1,5 +1,5 @@
 from os import path
-from pathlib import Path, PurePath
+from pathlib import Path
 from shutil import move
 from typing import Any, Dict, List, Optional, Union
 
@@ -31,7 +31,7 @@ class Target:
     _parsed_metadata: Metadata
     source: Path
 
-    def __init__(self, file_path: Union[str, PurePath], settings: Settings):
+    def __init__(self, file_path: Union[str, Path], settings: Settings):
         self._settings = settings
         self._has_moved: False
         self._has_renamed: False

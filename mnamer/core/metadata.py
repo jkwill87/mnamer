@@ -1,7 +1,7 @@
 import dataclasses
 import re
 from datetime import date
-from pathlib import PurePath
+from pathlib import Path
 from string import Formatter
 from typing import Optional, Union
 
@@ -39,7 +39,7 @@ class Metadata:
     year: int = None
 
     @classmethod
-    def parse(cls, file_path: PurePath, media: MediaType = None):
+    def parse(cls, file_path: Path, media: MediaType = None):
         filename = str(file_path)
         type_override = media.value if media else None
         # inspect path data

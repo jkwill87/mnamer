@@ -6,7 +6,7 @@ import re
 from datetime import date
 from os import walk
 from os.path import splitext
-from pathlib import Path, PurePath
+from pathlib import Path
 from string import capwords
 from sys import version_info
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -44,11 +44,10 @@ def crawl_in(file_paths: List[Path], recurse: bool = False) -> List[Path]:
     """Looks for files amongst or within paths provided."""
     found_files = set()
     for file_path in file_paths:
-        file_path = file_path.absolute()
         if not file_path.exists():
             continue
         if file_path.is_file():
-            found_files.add(Path(file_path))
+            found_files.add(Path(file_path).absolute())
             continue
         for root, _dirs, files in walk(file_path):
             for file in files:
@@ -71,11 +70,6 @@ def crawl_out(filename: str) -> Optional[Path]:
         working_dir = parent_dir
     target = Path.home() / filename
     return target if target.exists() else None
-
-
-def d2lt(d: Dict[Any, Any]) -> List[tuple]:
-    """Convenience function that converts a dict into a sorted tuples list."""
-    return sorted(tuple((k, v) for k, v in d.items()))
 
 
 def filename_replace(filename: str, replacements: Dict[str, str]) -> str:
@@ -105,12 +99,10 @@ def filename_scenify(filename: str) -> str:
     return filename.lower().strip(".")
 
 
-def filter_blacklist(
-    paths: List[PurePath], blacklist: List[str],
-) -> List[PurePath]:
+def filter_blacklist(paths: List[Path], blacklist: List[str]) -> List[Path]:
     """Filters (set difference) paths by a collection of regex pattens."""
     return [
-        path
+        path.absolute()
         for path in paths
         if not any(
             re.search(pattern, str(path), re.IGNORECASE)
@@ -125,24 +117,15 @@ def filter_dict(d: Dict[Any, Any]) -> Dict[Any, Any]:
 
 
 def filter_extensions(
-    file_paths: List[PurePath], valid_extensions: List[str],
-) -> List[PurePath]:
+    file_paths: List[Path], valid_extensions: List[str],
+) -> List[Path]:
     """Filters (set intersection) a collection of extensions."""
     return [
         file_path
         for file_path in file_paths
-        if file_path.suffix in valid_extensions
+        if not valid_extensions
+        or file_path.suffix in normalize_extensions(valid_extensions)
     ]
-
-
-def format_dict(body: Dict[Any, Any]) -> str:
-    return "\n".join(
-        sorted([f" - {k} = {getattr(v, 'value', v)}" for k, v in body.items()])
-    )
-
-
-def format_iter(body: Union[str, list]) -> str:
-    return "\n".join(sorted([f" - {getattr(v, 'value', v)}" for v in body]))
 
 
 def get_session() -> requests_cache.CachedSession:
@@ -223,7 +206,7 @@ def request_json(
     else:
         headers = dict()
     if isinstance(parameters, dict):
-        parameters = d2lt(clean_dict(parameters))
+        parameters = [(k, v) for k, v in clean_dict(parameters).items()]
     if body:
         method = "POST"
         headers["content-type"] = "application/json"

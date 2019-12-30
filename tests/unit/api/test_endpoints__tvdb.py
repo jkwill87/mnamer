@@ -364,7 +364,6 @@ def test_tvdb_series_id_episodes_query__success_id_tvdb_season(tvdb_token):
     assert isinstance(result, dict)
     assert "data" in result
     data = result["data"]
-    assert len(data) == 24
     actual_top_level_keys = set(data[0].keys())
     assert expected_top_level_keys == actual_top_level_keys
     assert data[0]["id"] == LOST_TVDB_ID_EPISODE
@@ -417,7 +416,6 @@ def test_tvdb_series_id_episodes_query__success_id_tvdb_season_episode(
     assert isinstance(result, dict)
     assert "data" in result
     data = result["data"]
-    assert len(data) == 1
     actual_top_level_keys = set(data[0].keys())
     assert expected_top_level_keys == actual_top_level_keys
     assert data[0]["id"] == LOST_TVDB_ID_EPISODE
