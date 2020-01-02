@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 
 from mnamer import VERSION
-
-from mnamer.core.settings import Settings
-from mnamer.core.target import Target
-from mnamer.core.tty import Tty
-from mnamer.core.types import MessageType
-from mnamer.core.utils import clear_cache
 from mnamer.exceptions import (
     MnamerAbortException,
     MnamerException,
@@ -15,6 +9,11 @@ from mnamer.exceptions import (
     MnamerSettingsException,
     MnamerSkipException,
 )
+from mnamer.settings import Settings
+from mnamer.target import Target
+from mnamer.tty import Tty
+from mnamer.types import MessageType
+from mnamer.utils import clear_cache
 
 
 def main():

@@ -3,12 +3,12 @@
 from abc import ABC, abstractmethod
 from datetime import datetime as dt
 
-from mnamer.api.endpoints import *
-from mnamer.core.metadata import Metadata
-from mnamer.core.settings import Settings
-from mnamer.core.types import MediaType, ProviderType
-from mnamer.core.utils import convert_date, year_expand
+from mnamer.endpoints import *
 from mnamer.exceptions import MnamerNotFoundException, MnamerProviderException
+from mnamer.metadata import Metadata
+from mnamer.settings import Settings
+from mnamer.types import MediaType, ProviderType
+from mnamer.utils import convert_date, year_range_parse
 
 
 class Provider(ABC):
@@ -78,7 +78,7 @@ class Omdb(Provider):
         yield meta
 
     def _search_movie(self, title, year):
-        year_from, year_to = year_expand(year)
+        year_from, year_to = year_range_parse(year)
         found = False
         page = 1
         page_max = 10  # each page yields a maximum of 10 results
@@ -147,7 +147,7 @@ class Tmdb(Provider):
     def _search_title(self, title, year):
         assert title
         found = False
-        year_from, year_to = year_expand(year)
+        year_from, year_to = year_range_parse(year)
         page = 1
         page_max = 5  # each page yields a maximum of 20 results
 

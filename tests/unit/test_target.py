@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from mnamer.core.settings import Settings
-from mnamer.core.target import Target
-from mnamer.core.types import MediaType
+from mnamer.settings import Settings
+from mnamer.target import Target
+from mnamer.types import MediaType
 
 
 def test_media__movie():

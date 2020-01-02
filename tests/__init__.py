@@ -19,3 +19,14 @@ TEST_FILES: Dict[str, Path] = {
         "scan001.tiff",
     )
 }
+
+
+class MockRequestResponse:
+    def __init__(self, status, content):
+        self.status_code = status
+        self.content = content
+
+    def json(self):
+        from json import loads
+
+        return loads(self.content)

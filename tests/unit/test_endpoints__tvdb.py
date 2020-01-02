@@ -1,7 +1,7 @@
 import pytest
 
 from mnamer import API_KEY_TVDB
-from mnamer.api.endpoints import (
+from mnamer.endpoints import (
     tvdb_episodes_id,
     tvdb_login,
     tvdb_refresh_token,
@@ -19,9 +19,9 @@ LOST_TVDB_ID_SERIES = 73739
 
 @pytest.fixture(scope="session")
 def tvdb_token():
-    """Calls mnamer.api.endpoints.tvdb_login then returns cached token."""
+    """Calls mnamer.endpoints.tvdb_login then returns cached token."""
     if not hasattr(tvdb_token, "token"):
-        from mnamer.api.endpoints import tvdb_login
+        from mnamer.endpoints import tvdb_login
 
         tvdb_token.token = tvdb_login(API_KEY_TVDB)
     return tvdb_token.token

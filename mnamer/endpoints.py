@@ -1,11 +1,11 @@
 from re import match
 
-from mnamer.core.utils import clean_dict, request_json
 from mnamer.exceptions import (
     MnamerNetworkException,
     MnamerNotFoundException,
     MnamerProviderException,
 )
+from mnamer.utils import clean_dict, request_json
 
 OMDB_PLOT_TYPES = {"short", "long"}
 TVDB_LANGUAGE_CODES = [

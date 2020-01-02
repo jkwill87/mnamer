@@ -1,7 +1,6 @@
 """A collection of utility functions non-specific to mnamer's domain logic."""
 
 import json
-import random
 import re
 from datetime import date
 from os import walk
@@ -128,6 +127,13 @@ def filter_extensions(
     ]
 
 
+def findall(s, ss):
+    i = s.find(ss)
+    while i != -1:
+        yield i
+        i = s.find(ss, i + 1)
+
+
 def get_session() -> requests_cache.CachedSession:
     """Convenience function that returns request-cache session singleton."""
     cache_path = Path(
@@ -141,29 +147,6 @@ def get_session() -> requests_cache.CachedSession:
         get_session.session.mount("http://", adapter)
         get_session.session.mount("https://", adapter)
     return get_session.session
-
-
-def get_user_agent(platform: Optional[str] = None) -> Dict[str, str]:
-    """Convenience function that looks up a user agent string, random if N/A."""
-    agent_chrome = (
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0_1 like Mac OS X) "
-        "AppleWebKit/601.1 (KHTML, like Gecko) CriOS/53.0.2785.86 "
-        "Mobile/14A403 Safari/601.1.46"
-    )
-    agent_edge = (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, "
-        "like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393"
-    )
-    agent_ios = (
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 10_0_1 like Mac OS X) "
-        "AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/14A403 "
-        "Safari/602.1"
-    )
-    if isinstance(platform, str):
-        platform = platform.upper()
-    return {"chrome": agent_chrome, "edge": agent_edge, "ios": agent_ios}.get(
-        platform, random.choice((agent_chrome, agent_edge, agent_ios))
-    )
 
 
 def json_dumps(d: Dict[str, Any]) -> Dict[str, Any]:
@@ -190,7 +173,7 @@ def normalize_extensions(extension_list: List[str]) -> List[str]:
 
 
 def request_json(
-    url, parameters=None, body=None, headers=None, cache=True, agent=None
+    url, parameters=None, body=None, headers=None, cache=True
 ) -> Tuple[int, Optional[str]]:
     """
     Queries a url for json data.
@@ -210,11 +193,13 @@ def request_json(
     if body:
         method = "POST"
         headers["content-type"] = "application/json"
-        headers["user-agent"] = get_user_agent(agent)
         headers["content-length"] = str(len(body))
     else:
         method = "GET"
-        headers["user-agent"] = get_user_agent(agent)
+    headers["user-agent"] = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, "
+        "like Gecko) Chrome/79.0.3945.88 Safari/537.36"
+    )
 
     initial_cache_state = session._is_cache_disabled  # yes, i'm a bad person
     try:
@@ -238,17 +223,19 @@ def request_json(
 
 
 def str_fix_whitespace(s: str) -> str:
-    # Concatenate dashes
-    s = re.sub(r"-\s*-", "-", s)
     # Remove empty brackets
-    s = s.replace("()", "")
-    s = s.replace("[]", "")
-    # Strip leading/ trailing dashes
-    s = re.sub(r"-\s*$|^\s*-", "", s)
-    # Concatenate whitespace
+    s = re.sub(r"\(\s*\)", "", s)
+    s = re.sub(r"\[\s*]", "", s)
+    # Collapse dashes
+    s = re.sub(r"-+", "-", s)
+    # Collapse whitespace
     s = re.sub(r"\s+", " ", s)
+    # Collapse repeating delimiters
+    s = re.sub(r"( [-.,_])+", r"\1", s)
     # Strip leading/ trailing whitespace
     s = s.strip()
+    # Strip leading/ trailing dashes
+    s = s.strip("-")
     return s
 
 
@@ -261,7 +248,6 @@ def str_title_case(s: str) -> str:
         "at",
         "but",
         "by",
-        "ces",
         "de",
         "des",
         "du",
@@ -269,7 +255,6 @@ def str_title_case(s: str) -> str:
         "from",
         "in",
         "is",
-        "la",
         "le",
         "nor",
         "of",
@@ -346,54 +331,39 @@ def str_title_case(s: str) -> str:
 
     # process lowercase transformations
     for exception in lowercase_exceptions:
-        pos = string_lower.find(exception)
-        if pos == -1:
-            continue
-        starts = pos < 2
-        if starts:
-            continue
-        prev_char = string_lower[pos - 1]
-        leading_char = string_lower[pos - 2]
-        left_partitioned = (
-            prev_char in padding_chars and leading_char not in punctuation_chars
-        )
-        word_length = len(exception)
-        ends = pos + word_length == string_length
-        next_char = "" if ends else string_lower[pos + word_length]
-        right_partitioned = ends or next_char in padding_chars
-        if left_partitioned and right_partitioned:
-            s = s[:pos] + exception.lower() + s[pos + word_length :]
+        for pos in findall(string_lower, exception):
+            starts = pos < 2
+            if starts:
+                break
+            prev_char = string_lower[pos - 1]
+            leading_char = string_lower[pos - 2]
+            left_partitioned = (
+                prev_char in padding_chars
+                and leading_char not in punctuation_chars
+            )
+            word_length = len(exception)
+            ends = pos + word_length == string_length
+            next_char = "" if ends else string_lower[pos + word_length]
+            right_partitioned = ends or next_char in padding_chars
+            if left_partitioned and right_partitioned:
+                s = s[:pos] + exception.lower() + s[pos + word_length :]
 
     # process uppercase transformations
     for exception in uppercase_exceptions:
-        pos = string_lower.find(exception)
-        if pos == -1:
-            continue
-        starts = pos == 0
-        prev_char = None if starts else string_lower[pos - 1]
-        left_partitioned = starts or prev_char in padding_chars
-        word_length = len(exception)
-        ends = pos + word_length == string_length
-        next_char = "" if ends else string_lower[pos + word_length]
-        right_partitioned = (
-            ends or next_char in padding_chars + punctuation_chars
-        )
-        if left_partitioned and right_partitioned:
-            s = s[:pos] + exception.upper() + s[pos + word_length :]
+        for pos in findall(string_lower, exception):
+            starts = pos == 0
+            prev_char = None if starts else string_lower[pos - 1]
+            left_partitioned = starts or prev_char in padding_chars
+            word_length = len(exception)
+            ends = pos + word_length == string_length
+            next_char = "" if ends else string_lower[pos + word_length]
+            right_partitioned = (
+                ends or next_char in padding_chars + punctuation_chars
+            )
+            if left_partitioned and right_partitioned:
+                s = s[:pos] + exception.upper() + s[pos + word_length :]
     s = re.sub(r"(\w\.)+", lambda p: p.group(0).upper(), s)
     return s
-
-
-def year_expand(s: str) -> Tuple[int, int]:
-    """Parses a year or dash-delimited year range."""
-    regex = r"^((?:19|20)\d{2})?(\s*-\s*)?((?:19|20)\d{2})?$"
-    try:
-        start, dash, end = re.match(regex, str(s)).groups()
-        start = start or 1900
-        end = end or 2099
-    except AttributeError:
-        return 1900, 2099
-    return (int(start), int(end)) if dash else (int(start), int(start))
 
 
 def year_parse(s: str) -> int:
@@ -404,3 +374,21 @@ def year_parse(s: str) -> int:
     except IndexError:
         year = None
     return year
+
+
+def year_range_parse(s: str) -> Tuple[int, int]:
+    """Parses a year or dash-delimited year range."""
+    regex = r"^((?:19|20)\d{2})?([-,: ]*)?((?:19|20)\d{2})?$"
+    default_start = 1900
+    default_end = 2099
+    try:
+        start, dash, end = re.match(regex, str(s)).groups()
+    except AttributeError:
+        return default_start, default_end
+    if not start and not end:
+        return default_start, default_end
+    start = start or default_start
+    end = end or default_end
+    if dash:
+        return int(start), int(end)
+    return int(start), int(start)

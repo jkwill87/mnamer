@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from mnamer.core.metadata import Metadata
-from mnamer.core.types import MediaType
+from mnamer.metadata import Metadata
+from mnamer.types import MediaType
 
 TEXT_CASES = ["test", "Test", "TEST", "TeSt"]
 

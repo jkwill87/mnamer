@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from mnamer.core.settings import Settings
-from mnamer.core.types import MediaType, ProviderType
+from mnamer.settings import Settings
+from mnamer.types import MediaType, ProviderType
 
 DEFAULT_SETTINGS = {
     "api_key_omdb": "477a7ebc",

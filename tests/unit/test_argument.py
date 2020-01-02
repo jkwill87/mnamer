@@ -1,7 +1,7 @@
 import pytest
 
-from mnamer.core.argument import ArgParser, ArgSpec
-from mnamer.core.types import SettingsType
+from mnamer.argument import ArgParser, ArgSpec
+from mnamer.types import SettingsType
 
 
 class TestArgSpec:

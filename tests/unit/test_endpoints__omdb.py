@@ -3,37 +3,26 @@ from unittest.mock import patch
 import pytest
 
 from mnamer import API_KEY_OMDB
-from mnamer.api.endpoints import omdb_search, omdb_title
+from mnamer.endpoints import omdb_search, omdb_title
 from mnamer.exceptions import MnamerNotFoundException, MnamerProviderException
-from tests import JUNK_TEXT
+from tests import JUNK_TEXT, MockRequestResponse
 
 
-class MockRequestResponse:
-    def __init__(self, status, content):
-        self.status_code = status
-        self.content = content
-
-    def json(self):
-        from json import loads
-
-        return loads(self.content)
-
-
-@patch("mnamer.core.utils.requests_cache.CachedSession.request")
+@patch("mnamer.utils.requests_cache.CachedSession.request")
 def test_omdb_title__title_id_xnor__title(mock_request):
     mock_response = MockRequestResponse(200, '{"key":"value"}')
     mock_request.return_value = mock_response
     omdb_title(API_KEY_OMDB, title="some title")
 
 
-@patch("mnamer.core.utils.requests_cache.CachedSession.request")
+@patch("mnamer.utils.requests_cache.CachedSession.request")
 def test_omdb_title__title_id_xnor__id(mock_request):
     mock_response = MockRequestResponse(200, '{"key":"value"}')
     mock_request.return_value = mock_response
     omdb_title(API_KEY_OMDB, id_imdb=123)
 
 
-@patch("mnamer.core.utils.requests_cache.CachedSession.request")
+@patch("mnamer.utils.requests_cache.CachedSession.request")
 def test_omdb_title__title_id_xnor__both(mock_request):
     mock_response = MockRequestResponse(200, '{"key":"value"}')
     mock_request.return_value = mock_response
@@ -41,7 +30,7 @@ def test_omdb_title__title_id_xnor__both(mock_request):
         omdb_title(API_KEY_OMDB, title="some title", id_imdb=123)
 
 
-@patch("mnamer.core.utils.requests_cache.CachedSession.request")
+@patch("mnamer.utils.requests_cache.CachedSession.request")
 def test_omdb_title__title_id_xnor__neither(mock_request):
     mock_response = MockRequestResponse(200, '{"key":"value"}')
     mock_request.return_value = mock_response

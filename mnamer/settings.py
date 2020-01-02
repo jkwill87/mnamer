@@ -6,9 +6,9 @@ from string import Template
 from typing import Any, Dict, List, Optional, Union
 
 from mnamer import API_KEY_OMDB, API_KEY_TMDB, API_KEY_TVDB
-from mnamer.core.argument import ArgParser, ArgSpec
-from mnamer.core.types import MediaType, ProviderType, SettingsType
-from mnamer.core.utils import crawl_out, normalize_extensions
+from mnamer.argument import ArgParser, ArgSpec
+from mnamer.types import MediaType, ProviderType, SettingsType
+from mnamer.utils import crawl_out, normalize_extensions
 
 
 @dataclasses.dataclass
@@ -262,7 +262,7 @@ class Settings:
         metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
     )
     replacements: Dict[str, str] = dataclasses.field(
-        default_factory=lambda: {"&": "and", "@": "at", ":": "", ";": ","},
+        default_factory=lambda: {"&": "and", "@": "at", ":": "", ";": ",",},
         metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
     )
 
