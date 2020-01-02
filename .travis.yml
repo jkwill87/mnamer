@@ -4,12 +4,6 @@ python:
 install: pip install -U -r requirements-dev.txt
 dist: xenial
 os: linux
-script: >
-  python -m pytest
-  --capture=no
-  --durations=5
-  --cov-report=term
-  --cov=mnamer
-  --numprocesses=2
+script: python -m pytest
 after_success:
   - codecov

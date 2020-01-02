@@ -2,5 +2,4 @@
 codecov
 pytest
 pytest-cov
-pytest-xdist
 vbump
