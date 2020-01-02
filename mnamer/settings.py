@@ -221,7 +221,7 @@ class Settings:
     media: Optional[Union[MediaType, str]] = dataclasses.field(
         default=None,
         metadata=ArgSpec(
-            choices=list(MediaType),
+            choices=[MediaType.EPISODE.value, MediaType.MOVIE.value],
             flags=["--media"],
             group=SettingsType.DIRECTIVE,
             help="--media={movie,episode}: override media detection",
@@ -302,11 +302,21 @@ class Settings:
             if f.metadata
         }
 
+    @classmethod
+    def _serializable_fields(cls):
+        return {
+            field.name
+            for field in dataclasses.fields(cls)
+            if field.metadata.get("group")
+            in {SettingsType.PARAMETER, SettingsType.CONFIGURATION}
+        }
+
     def __setattr__(self, key: str, value: Any):
         converter = {
             "episode_api": ProviderType,
             "episode_directory": Path,
             "mask": normalize_extensions,
+            "media": MediaType,
             "movie_api": ProviderType,
             "movie_directory": Path,
             "targets": lambda targets: [Path(target) for target in targets],
@@ -321,16 +331,10 @@ class Settings:
 
     @property
     def as_json(self):
-        serializable_fields = {
-            field.name
-            for field in dataclasses.fields(self)
-            if field.metadata.get("group")
-            in {SettingsType.PARAMETER, SettingsType.CONFIGURATION}
-        }
         payload = {
             k: getattr(v, "value", v)
             for k, v in self.as_dict.items()
-            if k in serializable_fields
+            if k in self._serializable_fields()
         }
         return json.dumps(
             payload,

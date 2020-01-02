@@ -121,25 +121,34 @@ class TestDirCrawlIn:
     def test_files__flat(self):
         expected = paths_for(
             "Ninja Turtles (1990).mkv",
+            "O.J. - Made in America S01EP03 (2016) (1080p).mp4",
+            "Planet Earth II S01E06 - Cities (2016) (2160p).mp4",
+            "Skiing Trip.mp4",
+            "aladdin.1992.avi",
+            "aladdin.2019.avi",
+            "archer.2009.s10e07.webrip.x264-lucidtv.mp4",
             "avengers infinity war.wmv",
             "game.of.thrones.01x05-eztv.mp4",
+            "homework.txt",
+            "made up movie.mp4",
+            "made up show s01e10.mkv",
+            "s.w.a.t.2017.s02e01.mkv",
             "scan001.tiff",
+            "temp.zip",
         )
         actual = crawl_in([Path.cwd()])
         assert actual == expected
 
     def test_dirs__multiple(self):
         file_paths = [
-            Path(filename) for filename in ("Desktop", "Documents", "Downloads")
+            Path(filename) for filename in ("Desktop", "Downloads", "Images")
         ]
         actual = crawl_in(file_paths)
         expected = paths_for(
-            "Desktop/temp.zip",
-            "Documents/Skiing Trip.mp4",
             "Downloads/Return of the Jedi 1080p.mkv",
-            "Downloads/the.goonies.1985.sample.mp4",
             "Downloads/archer.2009.s10e07.webrip.x264-lucidtv.mkv",
             "Downloads/the.goonies.1985.mp4",
+            "Downloads/the.goonies.1985.sample.mp4",
         )
         assert actual == expected
 
@@ -152,8 +161,8 @@ class TestDirCrawlIn:
 @pytest.mark.usefixtures("setup_test_path")
 class TestCrawlOut:
     def test_walking(self):
-        expected = Path("avengers infinity war.wmv").absolute()
-        actual = crawl_out("avengers infinity war.wmv")
+        expected = Path("aladdin.2019.avi").absolute()
+        actual = crawl_out("aladdin.2019.avi")
         assert actual == expected
 
     def test_no_match(self):
@@ -241,35 +250,47 @@ class TestFilterBlacklist:
 
     def test_filter_multiple_paths_single_pattern(self):
         expected = paths_except_for(
-            "Documents/Photos/DCM0001.jpg", "Documents/Photos/DCM0002.jpg"
+            "Images/Photos/DCM0001.jpg", "Images/Photos/DCM0002.jpg"
         )
         actual = filter_blacklist(self.filenames, ["dcm"])
         assert actual == expected
 
     def test_filter_multiple_paths_multiple_patterns(self):
         expected = paths_except_for(
-            "Desktop/temp.zip", "Downloads/the.goonies.1985.sample.mp4"
+            "temp.zip",
+            "Downloads/the.goonies.1985.sample.mp4",
+            "Sample/the mandalorian s01x02.mp4",
         )
         actual = filter_blacklist(self.filenames, ["temp", "sample"])
         assert actual == expected
 
     def test_filter_single_path_single_pattern(self):
-        expected = paths_except_for("Documents/sample.file.mp4")
+        expected = paths_except_for(
+            "Images/sample.file.mp4", "Sample/the mandalorian s01x02.mp4"
+        )
         actual = filter_blacklist(expected, ["sample"])
         assert actual == expected
 
     def test_filter_single_path_multiple_patterns(self):
-        expected = paths_except_for("Documents/sample.file.mp4")
+        expected = paths_except_for(
+            "Images/sample.file.mp4", "Sample/the mandalorian s01x02.mp4"
+        )
         actual = filter_blacklist(expected, ["files", "sample"])
         assert expected == actual
 
     def test_regex(self):
         pattern = r"\s+"
         expected = paths_except_for(
+            "Avengers Infinity War/Avengers.Infinity.War.srt",
+            "Avengers Infinity War/Avengers.Infinity.War.wmv",
             "Downloads/Return of the Jedi 1080p.mkv",
-            "Documents/Skiing Trip.mp4",
-            "avengers infinity war.wmv",
+            "Skiing Trip.mp4",
             "Ninja Turtles (1990).mkv",
+            "O.J. - Made in America S01EP03 (2016) (1080p).mp4",
+            "Planet Earth II S01E06 - Cities (2016) (2160p).mp4",
+            "Sample/the mandalorian s01x02.mp4",
+            "made up movie.mp4",
+            "made up show s01e10.mkv",
         )
         actual = filter_blacklist(self.filenames, [pattern])
         assert actual == expected
@@ -286,7 +307,7 @@ class TestFilterExtensions:
     @pytest.mark.parametrize("extensions", (["jpg"], [".jpg"]))
     def test_filter_multiple_paths_single_pattern(self, extensions: List[str]):
         expected = paths_for(
-            "Documents/Photos/DCM0001.jpg", "Documents/Photos/DCM0002.jpg"
+            "Images/Photos/DCM0001.jpg", "Images/Photos/DCM0002.jpg"
         )
         actual = filter_extensions(self.filenames, extensions)
         assert expected == actual
@@ -298,13 +319,16 @@ class TestFilterExtensions:
             "Downloads/Return of the Jedi 1080p.mkv",
             "Downloads/archer.2009.s10e07.webrip.x264-lucidtv.mkv",
             "Ninja Turtles (1990).mkv",
+            "made up show s01e10.mkv",
+            "s.w.a.t.2017.s02e01.mkv",
+            "temp.zip",
         )
         actual = filter_extensions(self.filenames, extensions)
         assert expected == actual
 
     @pytest.mark.parametrize("extensions", (["mp4", "zip"], [".mp4", ".zip"]))
     def test_filter_single_path_multi_pattern(self, extensions: List[str]):
-        filepaths = paths_for("Documents/Skiing Trip.mp4")
+        filepaths = paths_for("Images/Skiing Trip.mp4")
         expected = filepaths
         actual = filter_extensions(filepaths, extensions)
         assert expected == actual
@@ -552,6 +576,13 @@ class TestStrTitleCase:
         expected = "I II III IV"
         actual = str_title_case(s)
         assert actual == expected
+
+    # TODO
+    # @pytest.mark.parametrize("s", ("spider-man", "SPIDER-MAN"))
+    # def test_title(self, s: str):
+    #     expected = "Spider-Man"
+    #     actual = str_title_case(s)
+    #     assert actual == expected
 
     def test_empty(self):
         expected = ""

@@ -15,14 +15,19 @@ class Provider(ABC):
     """ABC for Providers, high-level interfaces for metadata media providers.
     """
 
+    api_key: str
+    cache: bool
+    id_override: str
+
     def __init__(self, settings: Settings):
         """Initializes the provider."""
         api_field = f"api_key_{self.__class__.__name__.lower()}"
         self.api_key = getattr(settings, api_field)
         self.cache = not settings.no_cache
+        self.id_override = settings.id
 
     @abstractmethod
-    def search(self, parameters: Metadata = None):
+    def search(self, parameters: Metadata):
         pass
 
     @staticmethod
@@ -47,9 +52,9 @@ class Omdb(Provider):
         if not self.api_key:
             raise MnamerProviderException("OMDb requires API key")
 
-    def search(self, parameters: Metadata = None):
-        if parameters.id:
-            results = self._lookup_movie(parameters.id)
+    def search(self, parameters: Metadata):
+        if self.id_override:
+            results = self._lookup_movie(self.id_override)
         elif parameters.title:
             results = self._search_movie(parameters.title, parameters.year)
         else:
@@ -113,10 +118,10 @@ class Tmdb(Provider):
         if not self.api_key:
             raise MnamerProviderException("TMDb requires an API key")
 
-    def search(self, parameters: Metadata = None):
+    def search(self, parameters: Metadata):
         """Searches TMDb for movie metadata."""
-        if parameters.id:
-            results = self._search_id_tmdb(parameters.id)
+        if self.id_override:
+            results = self._search_id_tmdb(self.id_override)
         elif parameters.title:
             results = self._search_title(parameters.title, parameters.year)
         else:
@@ -190,15 +195,18 @@ class Tvdb(Provider):
     def _login(self):
         return tvdb_login(self.api_key)
 
-    def search(self, parameters: Metadata = None):
+    def search(self, parameters: Metadata):
         """Searches TVDb for movie metadata.
         """
         try:
-            if parameters.id and parameters.date:
-                results = self._search_tvdb_date(parameters.id, parameters.date)
-            elif parameters.id:
+
+            if self.id_override and parameters.date:
+                results = self._search_tvdb_date(
+                    self.id_override, parameters.date
+                )
+            elif self.id_override:
                 results = self._search_id_tvdb(
-                    parameters.id,
+                    self.id_override,
                     parameters.season_number,
                     parameters.episode_number,
                 )

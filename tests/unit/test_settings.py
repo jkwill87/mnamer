@@ -5,38 +5,7 @@ import pytest
 
 from mnamer.settings import Settings
 from mnamer.types import MediaType, ProviderType
-
-DEFAULT_SETTINGS = {
-    "api_key_omdb": "477a7ebc",
-    "api_key_tmdb": "db972a607f2760bb19ff8bb34074b4c7",
-    "api_key_tvdb": "E69C7A2CEF2F3152",
-    "batch": False,
-    "config_dump": False,
-    "episode_api": ProviderType.TVDB,
-    "episode_directory": None,
-    "episode_format": "{series_name} - S{season_number:02}E{episode_number:02} - "
-    "{title}{extension}",
-    "hits": False,
-    "id": None,
-    "ignore": [".*sample.*", "^RARBG.*"],
-    "lower": False,
-    "mask": [".avi", ".m4v", ".mp4", ".mkv", ".ts", ".wmv"],
-    "media": None,
-    "movie_api": ProviderType.TMDB,
-    "movie_directory": None,
-    "movie_format": "{title} ({year}){extension}",
-    "no_cache": False,
-    "no_config": False,
-    "no_guess": False,
-    "no_style": False,
-    "recurse": False,
-    "replacements": {"&": "and", ":": "", ";": ",", "@": "at"},
-    "scene": False,
-    "targets": [],
-    "test": False,
-    "verbose": False,
-    "version": False,
-}
+from tests import DEFAULT_SETTINGS
 
 
 @pytest.mark.parametrize("load_arguments", (True, False))

@@ -5,13 +5,10 @@ from pathlib import Path
 from shutil import rmtree
 
 import pytest
+from teletype.io import strip_format
 
-import mnamer
+from mnamer.__main__ import main
 from tests import TEST_FILES
-
-mnamer.API_KEY_OMDB = "477a7ebc"
-mnamer.API_KEY_TMDB = "db972a607f2760bb19ff8bb34074b4c7"
-mnamer.API_KEY_TVDB = "E69C7A2CEF2F3152"
 
 
 @pytest.fixture(autouse=True)
@@ -35,3 +32,24 @@ def setup_test_path():
     yield
     os.chdir(orig_dir)
     rmtree(tmp_dir)
+
+
+@pytest.mark.usefixtures("setup_test_path")
+@pytest.fixture
+def e2e_main(capsys):
+    """Runs main with provided arguments and returns stdout."""
+
+    def fn(*args):
+        for arg in args:
+            sys.argv.append(arg)
+        try:
+            main()
+        except SystemExit as e:
+            pass
+
+        return (
+            strip_format(capsys.readouterr().out.strip()),
+            strip_format(capsys.readouterr().err.strip()),
+        )
+
+    return fn

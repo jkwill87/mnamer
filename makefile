@@ -67,18 +67,29 @@ setup-demo: clean
 	@mkdir -p \
 	    demo \
 	    'demo/Avengers Infinity War' \
-	    'demo/Sample'
+	    'demo/Sample' \
+	    'demo/Downloads' \
+	    'demo/Images'
 	@cd demo && touch \
-	    "aladdin.1992.avi" \
-	    "aladdin.2019.avi" \
-	    "Avengers Infinity War/Avengers.Infinity.War.wmv" \
-	    "Avengers Infinity War/Avengers.Infinity.War.srt" \
-	    "game.of.thrones.01x05-eztv.mp4" \
-	    "homework.txt" \
-	    "made up show s01e10.mkv" \
-	    "made up movie.mp4" \
-	    "archer.2009.s10e07.webrip.x264-lucidtv.mp4" \
-	    "Planet Earth II S01E06 - Cities (2016) (2160p).mp4" \
-	    "O.J. - Made in America S01EP03 (2016) (1080p).mp4" \
-	    "s.w.a.t.2017.s02e01.mkv" \
-        "Sample/the mandalorian s01x02.mp4"
+        "Avengers Infinity War/Avengers.Infinity.War.srt" \
+        "Avengers Infinity War/Avengers.Infinity.War.wmv" \
+        "Downloads/Return of the Jedi 1080p.mkv" \
+        "Downloads/archer.2009.s10e07.webrip.x264-lucidtv.mkv" \
+        "Downloads/the.goonies.1985.mp4" \
+        "Images/Photos/DCM0001.jpg" \
+        "Images/Photos/DCM0002.jpg" \
+        "Ninja Turtles (1990).mkv" \
+        "O.J. - Made in America S01EP03 (2016) (1080p).mp4" \
+        "Planet Earth II S01E06 - Cities (2016) (2160p).mp4" \
+        "Sample/the mandalorian s01x02.mp4" \
+        "Skiing Trip.mp4" \
+        "aladdin.1992.avi" \
+        "aladdin.2019.avi" \
+        "archer.2009.s10e07.webrip.x264-lucidtv.mp4" \
+        "game.of.thrones.01x05-eztv.mp4" \
+        "homework.txt" \
+        "made up movie.mp4" \
+        "made up show s01e10.mkv" \
+        "s.w.a.t.2017.s02e01.mkv" \
+        "scan001.tiff" \
+        "temp.zip"
