@@ -1,9 +1,3 @@
-import os
-
-del os.environ["API_KEY_OMDB"]
-del os.environ["API_KEY_TMDB"]
-del os.environ["API_KEY_TVDB"]
-
 from pathlib import Path
 from typing import Dict
 
@@ -11,9 +5,6 @@ from mnamer.types import ProviderType
 
 
 DEFAULT_SETTINGS = {
-    "api_key_omdb": "477a7ebc",
-    "api_key_tmdb": "db972a607f2760bb19ff8bb34074b4c7",
-    "api_key_tvdb": "E69C7A2CEF2F3152",
     "batch": False,
     "config_dump": False,
     "episode_api": ProviderType.TVDB,

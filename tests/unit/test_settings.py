@@ -37,7 +37,7 @@ def test_post_init__config__no_load__path(mock_method: MagicMock):
 
 
 @pytest.mark.parametrize(
-    "item", DEFAULT_SETTINGS.items(), ids=tuple(DEFAULT_SETTINGS.keys())
+    "item", DEFAULT_SETTINGS.items(), ids=tuple(DEFAULT_SETTINGS.keys()),
 )
 def test_as_dict(item):
     settings = Settings()
@@ -45,7 +45,9 @@ def test_as_dict(item):
     assert settings.as_dict[k] == v
 
 
-@pytest.mark.parametrize("api", (ProviderType.TMDB, ProviderType.OMDB))
+@pytest.mark.parametrize(
+    "api", (ProviderType.TMDB, ProviderType.OMDB), ids=("TMDB", "OMDB"),
+)
 def test_api_for__movie(api: ProviderType):
     settings = Settings(movie_api=api)
     assert settings.api_for(MediaType.MOVIE) is api

@@ -54,6 +54,7 @@ class TestArgParser:
             SettingsType.PARAMETER,
             SettingsType.POSITIONAL,
         ),
+        ids=("directive", "parameter", "positional"),
     )
     def test_add_spec(self, settings_type: SettingsType):
         arg_parser = ArgParser()

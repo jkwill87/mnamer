@@ -1,5 +1,6 @@
 import json
-from unittest.mock import patch
+from typing import Callable
+from unittest.mock import patch, MagicMock
 
 import pytest
 
@@ -17,10 +18,14 @@ def test_version(e2e_main, flag: str):
 
 @pytest.mark.parametrize("key", Settings._serializable_fields())
 @patch("mnamer.utils.crawl_out")
-def test_directives__config_dump(mock_crawl_out, key, e2e_main):
+def test_directives__config_dump(
+    mock_crawl_out: MagicMock, key: str, e2e_main: Callable
+):
     mock_crawl_out.return_value = None
     out, err, = e2e_main("--config_dump")
     assert not err
+    if key.startswith("api_key"):
+        return
     json_out = json.loads(out)
     value = DEFAULT_SETTINGS[key]
     expected = getattr(value, "value", value)
