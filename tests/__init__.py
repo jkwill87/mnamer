@@ -1,8 +1,7 @@
 from pathlib import Path
-from typing import Dict
-
+from typing import Dict, NamedTuple
+import re
 from mnamer.types import ProviderType
-
 
 DEFAULT_SETTINGS = {
     "batch": False,
@@ -76,15 +75,17 @@ class MockRequestResponse:
         return loads(self.content)
 
 
-class E2EResult:
-    passed: int
-    total: int
-
-    def __init__(self, out: str):
-        assert out
-        self._out = out
-        last_line = out.splitlines()[-1:][0]
-        self.passed, self.total = [int(s) for s in last_line if s.isdigit()]
-
-    def has_moved(self, destination: str) -> bool:
-        return re.search(f"moving to .+{destination}", self._out) is not None
+class E2EResult(NamedTuple):
+    code: int
+    out: str
+    # passed: int
+    # total: int
+    #
+    # def __init__(self, out: str):
+    #     assert out
+    #     self._out = out
+    #     last_line = out.splitlines()[-1:][0]
+    #     self.passed, self.total = [int(s) for s in last_line if s.isdigit()]
+    #
+    # def has_moved(self, destination: str) -> bool:
+    #     return re.search(f"moving to .+{destination}", self._out) is not None

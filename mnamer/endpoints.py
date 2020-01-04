@@ -1,9 +1,9 @@
 from re import match
 
 from mnamer.exceptions import (
+    MnamerException,
     MnamerNetworkException,
     MnamerNotFoundException,
-    MnamerProviderException,
 )
 from mnamer.utils import clean_dict, request_json
 
@@ -52,11 +52,9 @@ def omdb_title(
     Online docs: http://www.omdbapi.com/#parameters
     """
     if (not title and not id_imdb) or (title and id_imdb):
-        raise MnamerProviderException(
-            "either id_imdb or title must be specified"
-        )
+        raise MnamerException("either id_imdb or title must be specified")
     elif plot and plot not in OMDB_PLOT_TYPES:
-        raise MnamerProviderException(
+        raise MnamerException(
             "plot must be one of %s" % ",".join(OMDB_PLOT_TYPES)
         )
     url = "http://www.omdbapi.com"
@@ -74,7 +72,7 @@ def omdb_title(
     status, content = request_json(url, parameters, cache=cache)
     error = content.get("Error") if isinstance(content, dict) else None
     if status == 401:
-        raise MnamerProviderException("invalid API key")
+        raise MnamerException("invalid API key")
     elif status != 200 or not isinstance(content, dict):
         raise MnamerNetworkException("OMDb down or unavailable?")
     elif error:
@@ -89,7 +87,7 @@ def omdb_search(api_key, query, year=None, media=None, page=1, cache=True):
     Online docs: http://www.omdbapi.com/#parameters.
     """
     if 1 > page > 100:
-        raise MnamerProviderException("page must be between 1 and 100")
+        raise MnamerException("page must be between 1 and 100")
     url = "http://www.omdbapi.com"
     parameters = {
         "apikey": api_key,
@@ -101,7 +99,7 @@ def omdb_search(api_key, query, year=None, media=None, page=1, cache=True):
     parameters = clean_dict(parameters)
     status, content = request_json(url, parameters, cache=cache)
     if status == 401:
-        raise MnamerProviderException("invalid API key")
+        raise MnamerException("invalid API key")
     elif content and not content.get("totalResults"):
         raise MnamerNotFoundException()
     elif not content or status != 200:  # pragma: no cover
@@ -123,9 +121,9 @@ def tmdb_find(
     """
     sources = ["imdb_id", "freebase_mid", "freebase_id", "tvdb_id", "tvrage_id"]
     if external_source not in sources:
-        raise MnamerProviderException("external_source must be in %s" % sources)
+        raise MnamerException("external_source must be in %s" % sources)
     if external_source == "imdb_id" and not match(r"tt\d+", external_id):
-        raise MnamerProviderException("invalid imdb tt-const value")
+        raise MnamerException("invalid imdb tt-const value")
     url = "https://api.themoviedb.org/3/find/" + external_id or ""
     parameters = {
         "api_key": api_key,
@@ -141,7 +139,7 @@ def tmdb_find(
     ]
     status, content = request_json(url, parameters, cache=cache)
     if status == 401:
-        raise MnamerProviderException("invalid API key")
+        raise MnamerException("invalid API key")
     elif status != 200 or not any(content.keys()):  # pragma: no cover
         raise MnamerNetworkException("TMDb down or unavailable?")
     elif status == 404 or not any(content.get(k, {}) for k in keys):
@@ -158,11 +156,11 @@ def tmdb_movies(api_key, id_tmdb, language="en-US", cache=True):
     try:
         url = "https://api.themoviedb.org/3/movie/%d" % int(id_tmdb)
     except ValueError:
-        raise MnamerProviderException("id_tmdb must be numeric")
+        raise MnamerException("id_tmdb must be numeric")
     parameters = {"api_key": api_key, "language": language}
     status, content = request_json(url, parameters, cache=cache)
     if status == 401:
-        raise MnamerProviderException("invalid API key")
+        raise MnamerException("invalid API key")
     elif status == 404:
         raise MnamerNotFoundException
     elif status != 200 or not any(content.keys()):  # pragma: no cover
@@ -183,7 +181,7 @@ def tmdb_search_movies(
         if year:
             year = int(year)
     except ValueError:
-        raise MnamerProviderException("year must be numeric")
+        raise MnamerException("year must be numeric")
     parameters = {
         "api_key": api_key,
         "query": title,
@@ -194,7 +192,7 @@ def tmdb_search_movies(
     }
     status, content = request_json(url, parameters, cache=cache)
     if status == 401:
-        raise MnamerProviderException("invalid API key")
+        raise MnamerException("invalid API key")
     elif status != 200 or not any(content.keys()):  # pragma: no cover
         raise MnamerNetworkException("TMDb down or unavailable?")
     elif status == 404 or status == 422 or not content.get("total_results"):
@@ -213,7 +211,7 @@ def tvdb_login(api_key):
     body = {"apikey": api_key}
     status, content = request_json(url, body=body, cache=False)
     if status == 401:
-        raise MnamerProviderException("invalid api key")
+        raise MnamerException("invalid api key")
     elif status != 200 or not content.get("token"):  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
     return content["token"]
@@ -229,7 +227,7 @@ def tvdb_refresh_token(token):
     headers = {"Authorization": "Bearer %s" % token}
     status, content = request_json(url, headers=headers, cache=False)
     if status == 401:
-        raise MnamerProviderException("invalid token")
+        raise MnamerException("invalid token")
     elif status != 200 or not content.get("token"):  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
     return content["token"]
@@ -242,17 +240,17 @@ def tvdb_episodes_id(token, id_tvdb, lang="en", cache=True):
     Online docs: https://api.thetvdb.com/swagger#!/Episodes.
     """
     if lang not in TVDB_LANGUAGE_CODES:
-        raise MnamerProviderException(
+        raise MnamerException(
             "'lang' must be one of %s" % ",".join(TVDB_LANGUAGE_CODES)
         )
     try:
         url = "https://api.thetvdb.com/episodes/%d" % int(id_tvdb)
     except ValueError:
-        raise MnamerProviderException("id_tvdb must be numeric")
+        raise MnamerException("id_tvdb must be numeric")
     headers = {"Accept-Language": lang, "Authorization": "Bearer %s" % token}
     status, content = request_json(url, headers=headers, cache=cache)
     if status == 401:
-        raise MnamerProviderException("invalid token")
+        raise MnamerException("invalid token")
     elif status == 404:
         raise MnamerNotFoundException
     elif status == 200 and "invalidLanguage" in content.get("errors", {}):
@@ -270,17 +268,17 @@ def tvdb_series_id(token, id_tvdb, lang="en", cache=True):
     Online docs: api.thetvdb.com/swagger#!/Series/get_series_id.
     """
     if lang not in TVDB_LANGUAGE_CODES:
-        raise MnamerProviderException(
+        raise MnamerException(
             "'lang' must be one of %s" % ",".join(TVDB_LANGUAGE_CODES)
         )
     try:
         url = "https://api.thetvdb.com/series/%d" % int(id_tvdb)
     except ValueError:
-        raise MnamerProviderException("id_tvdb must be numeric")
+        raise MnamerException("id_tvdb must be numeric")
     headers = {"Accept-Language": lang, "Authorization": "Bearer %s" % token}
     status, content = request_json(url, headers=headers, cache=cache)
     if status == 401:
-        raise MnamerProviderException("invalid token")
+        raise MnamerException("invalid token")
     elif status == 404:
         raise MnamerNotFoundException
     elif status != 200 or not content.get("data"):  # pragma: no cover
@@ -296,20 +294,20 @@ def tvdb_series_id_episodes(token, id_tvdb, page=1, lang="en", cache=True):
     Online docs: api.thetvdb.com/swagger#!/Series/get_series_id_episodes.
     """
     if lang not in TVDB_LANGUAGE_CODES:
-        raise MnamerProviderException(
+        raise MnamerException(
             "'lang' must be one of %s" % ",".join(TVDB_LANGUAGE_CODES)
         )
     try:
         url = "https://api.thetvdb.com/series/%d/episodes" % int(id_tvdb)
     except ValueError:
-        raise MnamerProviderException("id_tvdb must be numeric")
+        raise MnamerException("id_tvdb must be numeric")
     headers = {"Accept-Language": lang, "Authorization": "Bearer %s" % token}
     parameters = {"page": page}
     status, content = request_json(
         url, parameters, headers=headers, cache=cache
     )
     if status == 401:
-        raise MnamerProviderException("invalid token")
+        raise MnamerException("invalid token")
     elif status == 404:
         raise MnamerNotFoundException
     elif status != 200 or not content.get("data"):  # pragma: no cover
@@ -328,20 +326,20 @@ def tvdb_series_id_episodes_query(
     Online docs: api.thetvdb.com/swagger#!/Series/get_series_id_episodes_query.
     """
     if lang not in TVDB_LANGUAGE_CODES:
-        raise MnamerProviderException(
+        raise MnamerException(
             "'lang' must be one of %s" % ",".join(TVDB_LANGUAGE_CODES)
         )
     try:
         url = "https://api.thetvdb.com/series/%d/episodes/query" % int(id_tvdb)
     except ValueError:
-        raise MnamerProviderException("id_tvdb must be numeric")
+        raise MnamerException("id_tvdb must be numeric")
     headers = {"Accept-Language": lang, "Authorization": "Bearer %s" % token}
     parameters = {"airedSeason": season, "airedEpisode": episode, "page": page}
     status, content = request_json(
         url, parameters, headers=headers, cache=cache
     )
     if status == 401:
-        raise MnamerProviderException("invalid token")
+        raise MnamerException("invalid token")
     elif status == 404:
         raise MnamerNotFoundException
     elif status != 200 or not content.get("data"):  # pragma: no cover
@@ -359,7 +357,7 @@ def tvdb_search_series(
     Note: results a maximum of 100 entries per page, no option for pagination.
     """
     if lang not in TVDB_LANGUAGE_CODES:
-        raise MnamerProviderException(
+        raise MnamerException(
             "'lang' must be one of %s" % ",".join(TVDB_LANGUAGE_CODES)
         )
     url = "https://api.thetvdb.com/search/series"
@@ -369,9 +367,9 @@ def tvdb_search_series(
         url, parameters, headers=headers, cache=cache
     )
     if status == 401:
-        raise MnamerProviderException("invalid token")
+        raise MnamerException("invalid token")
     elif status == 405:
-        raise MnamerProviderException(
+        raise MnamerException(
             "series, id_imdb, id_zap2it parameters are mutually exclusive"
         )
     elif status == 404:  # pragma: no cover

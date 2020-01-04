@@ -2,7 +2,7 @@ import pytest
 
 from mnamer import API_KEY_TMDB
 from mnamer.endpoints import tmdb_find, tmdb_movies, tmdb_search_movies
-from mnamer.exceptions import MnamerNotFoundException, MnamerProviderException
+from mnamer.exceptions import MnamerException, MnamerNotFoundException
 from tests import JUNK_TEXT
 
 GOONIES_IMDB_ID = "tt0089218"
@@ -44,12 +44,12 @@ def test_tmdb_find__imdb_success():
 
 
 def test_tmdb_find__api_key_fail():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tmdb_find(JUNK_TEXT, "imdb_id", GOONIES_IMDB_ID, cache=False)
 
 
 def test_tmdb_find__invalid_id_imdb():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tmdb_find(API_KEY_TMDB, "imdb_id", JUNK_TEXT, cache=False)
 
 
@@ -93,12 +93,12 @@ def test_tmdb_movies__success():
 
 
 def test_tmdb_movies__api_key_fail():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tmdb_movies(JUNK_TEXT, "", cache=False)
 
 
 def test_tmdb_movies__id_tmdb_fail():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tmdb_movies(API_KEY_TMDB, JUNK_TEXT, cache=False)
 
 
@@ -142,7 +142,7 @@ def test_tmdb_search_movies__success():
 
 
 def test_tmdb_search_movies__bad_api_key():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tmdb_search_movies(JUNK_TEXT, "the goonies", cache=False)
 
 
@@ -152,7 +152,7 @@ def test_tmdb_search_movies__bad_title():
 
 
 def test_tmdb_search_movies__bad_year():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tmdb_search_movies(
             API_KEY_TMDB, "the goonies", year=JUNK_TEXT, cache=False
         )

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime as dt
 
 from mnamer.endpoints import *
-from mnamer.exceptions import MnamerNotFoundException, MnamerProviderException
+from mnamer.exceptions import MnamerException, MnamerNotFoundException
 from mnamer.metadata import Metadata
 from mnamer.settings import Settings
 from mnamer.types import MediaType, ProviderType
@@ -50,7 +50,7 @@ class Omdb(Provider):
     def __init__(self, settings: Settings):
         super().__init__(settings)
         if not self.api_key:
-            raise MnamerProviderException("OMDb requires API key")
+            raise MnamerException("OMDb requires API key")
 
     def search(self, parameters: Metadata):
         if self.id_override:
@@ -116,7 +116,7 @@ class Tmdb(Provider):
     def __init__(self, settings: Settings):
         super().__init__(settings)
         if not self.api_key:
-            raise MnamerProviderException("TMDb requires an API key")
+            raise MnamerException("TMDb requires an API key")
 
     def search(self, parameters: Metadata):
         """Searches TMDb for movie metadata."""
@@ -189,7 +189,7 @@ class Tvdb(Provider):
     def __init__(self, settings: Settings):
         super().__init__(settings)
         if not self.api_key:
-            raise MnamerProviderException("TVDb requires an API key")
+            raise MnamerException("TVDb requires an API key")
         self.token = "" if self.cache else self._login()
 
     def _login(self):
@@ -224,7 +224,7 @@ class Tvdb(Provider):
                 raise MnamerNotFoundException
             for result in results:
                 yield result
-        except MnamerProviderException:
+        except MnamerException:
             if not self.token:
                 self.token = self._login()
                 for result in self.search(parameters):

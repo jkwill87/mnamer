@@ -1,19 +1,19 @@
 import json
 from typing import Callable
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from mnamer import VERSION
+from mnamer.__version__ import VERSION
 from mnamer.settings import Settings
 from tests import DEFAULT_SETTINGS
 
 
 @pytest.mark.parametrize("flag", ("-V", "--version"))
 def test_version(e2e_main, flag: str):
-    out, err = e2e_main(flag)
-    assert out == f"mnamer version {VERSION}"
-    assert not err
+    result = e2e_main(flag)
+    assert result.code == 0
+    assert result.out == f"mnamer version {VERSION}"
 
 
 @pytest.mark.parametrize("key", Settings._serializable_fields())
@@ -22,11 +22,11 @@ def test_directives__config_dump(
     mock_crawl_out: MagicMock, key: str, e2e_main: Callable
 ):
     mock_crawl_out.return_value = None
-    out, err, = e2e_main("--config_dump")
-    assert not err
+    result = e2e_main("--config_dump")
+    assert result.code == 0
     if key.startswith("api_key"):
         return
-    json_out = json.loads(out)
+    json_out = json.loads(result.out)
     value = DEFAULT_SETTINGS[key]
     expected = getattr(value, "value", value)
     actual = json_out[key]
@@ -35,7 +35,7 @@ def test_directives__config_dump(
 
 @pytest.mark.usefixtures("setup_test_path")
 def test_id__omdb(e2e_main):
-    out, err, = e2e_main(
+    result = e2e_main(
         "--batch",
         "--movie_api",
         "omdb",
@@ -43,13 +43,12 @@ def test_id__omdb(e2e_main):
         "tt5580390",
         "aladdin.1992.avi",
     )
-    assert not err
-    assert "Shape of Water" in out
+    assert "Shape of Water" in result.out
 
 
 @pytest.mark.usefixtures("setup_test_path")
 def test_id__tmdb(e2e_main):
-    out, err, = e2e_main(
+    result = e2e_main(
         "--batch",
         "--movie_api",
         "tmdb",
@@ -57,13 +56,13 @@ def test_id__tmdb(e2e_main):
         "475557",
         "Ninja Turtles (1990).mkv",
     )
-    assert not err
-    assert "Joker" in out
+    assert result.code == 0
+    assert "Joker" in result.out
 
 
 @pytest.mark.usefixtures("setup_test_path")
 def test_id__tvdb(e2e_main):
-    out, err, = e2e_main(
+    result = e2e_main(
         "--batch",
         "--episode_api",
         "tvdb",
@@ -71,24 +70,22 @@ def test_id__tvdb(e2e_main):
         "79349",
         "game.of.thrones.01x05-eztv.mp4",
     )
-    assert not err
-    assert "Dexter" in out
+    assert result.code == 0
+    assert "Dexter" in result.out
 
 
 @pytest.mark.usefixtures("setup_test_path")
 def test_media__episode_override(e2e_main):
-    out, err, = e2e_main("--batch", "--media", "episode", "aladdin.1992.avi")
-    assert not err
-    assert "Processing Episode" in out
+    result = e2e_main("--batch", "--media", "episode", "aladdin.1992.avi")
+    assert result.code == 0
+    assert "Processing Episode" in result.out
 
 
 @pytest.mark.usefixtures("setup_test_path")
 def test_media__movie_override(e2e_main):
-    out, err, = e2e_main(
-        "--batch", "--media", "movie", "s.w.a.t.2017.s02e01.mkv"
-    )
-    assert not err
-    assert "Processing Movie" in out
+    result = e2e_main("--batch", "--media", "movie", "s.w.a.t.2017.s02e01.mkv")
+    assert result.code == 0
+    assert "Processing Movie" in result.out
 
 
 # TODO
@@ -97,6 +94,6 @@ def test_no_config(e2e_main):
 
 
 def test_test(e2e_main):
-    out, err, = e2e_main("--batch", "--test")
-    assert not err
-    assert "testing mode" in out
+    result = e2e_main("--batch", "--test")
+    assert result.code == 0
+    assert "testing mode" in result.out

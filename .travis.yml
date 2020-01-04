@@ -6,6 +6,6 @@ python:
 install: pip install -U -r requirements-dev.txt
 dist: bionic
 os: linux
-script: python -m pytest
+script: python -m pytest --tb=short --durations=5 --cov-report=term --cov=mnamer
 after_success:
   - codecov

@@ -2,6 +2,7 @@ import argparse
 from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple
 
+from mnamer.exceptions import MnamerException
 from mnamer.types import SettingsType
 from mnamer.utils import filter_dict
 
@@ -66,6 +67,14 @@ class ArgParser(argparse.ArgumentParser):
         group.add_argument(*args, **kwargs)
 
     __iadd__ = add_spec
+
+    def parse_args(self, args=None, namespace=None):
+        load_arguments, unknowns = self.parse_known_args(args, namespace)
+        if unknowns:
+            raise MnamerException(f"invalid arguments: {','.join(unknowns)}")
+        if not vars(load_arguments):
+            raise MnamerException(self.usage)
+        return load_arguments
 
     def _actions_for_group(self, group: SettingsType):
         return getattr(self, f"_{group.value}_group")._group_actions

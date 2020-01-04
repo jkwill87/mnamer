@@ -2,7 +2,7 @@
 
 import json
 import re
-from datetime import date
+from datetime import date, datetime
 from os import walk
 from os.path import splitext
 from pathlib import Path
@@ -31,11 +31,13 @@ def clean_dict(target_dict: Dict[Any, Any], whitelist=None) -> Dict[Any, Any]:
     }
 
 
-def convert_date(value: Union[str, date]) -> date:
+def convert_date(value: Union[str, date, datetime]) -> date:
     if isinstance(value, str):
         value = value.replace("/", "-")
         value = value.replace(".", "-")
-        value = date.fromisoformat(value)
+        value = datetime.strptime(value, "%Y-%m-%d")
+    if isinstance(value, datetime):
+        value = value.date()
     return value
 
 

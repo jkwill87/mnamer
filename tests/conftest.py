@@ -8,7 +8,7 @@ import pytest
 from teletype.io import strip_format
 
 from mnamer.__main__ import main
-from tests import TEST_FILES
+from tests import TEST_FILES, E2EResult
 
 
 @pytest.fixture(autouse=True)
@@ -27,7 +27,6 @@ def setup_test_path():
         path = Path(tmp_dir, test_file)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.open("w").close()
-        print(f"touching {path}")
     os.chdir(tmp_dir)
     yield
     os.chdir(orig_dir)
@@ -45,11 +44,14 @@ def e2e_main(capsys):
         try:
             main()
         except SystemExit as e:
-            pass
+            code = e.code
+        else:
+            code = 0
 
-        return (
-            strip_format(capsys.readouterr().out.strip()),
-            strip_format(capsys.readouterr().err.strip()),
+        return E2EResult(
+            code,
+            strip_format(capsys.readouterr().out.strip())
+            + strip_format(capsys.readouterr().err.strip()),
         )
 
     return fn

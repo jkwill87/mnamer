@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from mnamer import API_KEY_OMDB, API_KEY_TMDB, API_KEY_TVDB
 from mnamer.argument import ArgParser, ArgSpec
+from mnamer.exceptions import MnamerException
 from mnamer.types import MediaType, ProviderType, SettingsType
 from mnamer.utils import crawl_out, normalize_extensions
 
@@ -268,8 +269,8 @@ class Settings:
 
     # ==========================================================================
 
-    load_configuration: dataclasses.InitVar[bool] = True
-    load_arguments: dataclasses.InitVar[bool] = True
+    load_configuration: dataclasses.InitVar[bool] = False
+    load_arguments: dataclasses.InitVar[bool] = False
     configuration_path: dataclasses.InitVar[Optional[Path]] = crawl_out(
         ".mnamer.json"
     )
@@ -357,10 +358,13 @@ class Settings:
         for spec in self._attribute_metadata().values():
             if spec.group in groups:
                 arg_parser.add_spec(spec)
-        arguments, unknowns = arg_parser.parse_known_args()
-        self._arg_data = vars(arguments)
-        if load_arguments and unknowns:
-            raise RuntimeError(f"invalid setting: {unknowns}")
+        try:
+            arguments = arg_parser.parse_args()
+        except MnamerException:
+            if load_arguments:
+                raise
+        else:
+            self._arg_data = vars(arguments)
 
     def _load_configuration(self, path: Union[Path, str]):
         path = Template(str(path)).substitute(environ)
@@ -368,7 +372,7 @@ class Settings:
             data = file_pointer.read()
         for key in data:
             if key not in self._attribute_metadata():
-                raise RuntimeError(f"invalid setting: {key}")
+                raise MnamerException(f"invalid setting: {key}")
         self._config_data = json.loads(data)
 
     def api_for(self, media: MediaType) -> ProviderType:
@@ -382,6 +386,6 @@ class Settings:
         try:
             open(path, mode="w").write(self.as_json)
         except IOError as e:  # e.g. permission error
-            RuntimeError(e.strerror)
+            MnamerException(e.strerror)
         except (TypeError, ValueError):
-            RuntimeError("invalid JSON")
+            MnamerException("invalid JSON")

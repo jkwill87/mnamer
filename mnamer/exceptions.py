@@ -16,11 +16,6 @@ class MnamerAbortException(MnamerException):
     """
 
 
-class MnamerSettingsException(MnamerException):
-    """Raised when an error has occurred either loading or saving a config file
-    """
-
-
 class MnamerNetworkException(MnamerException):
     """Raised when a network request is unaccepted; ie. no internet connection.
     """
@@ -28,10 +23,4 @@ class MnamerNetworkException(MnamerException):
 
 class MnamerNotFoundException(MnamerException):
     """Raised when a lookup or search works as expected yet yields no results.
-    """
-
-
-class MnamerProviderException(MnamerException):
-    """Raised when an endpoint has been used improperly, i.e. invalid API key,
-    missing or conflicting parameters.
     """

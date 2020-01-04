@@ -10,7 +10,7 @@ from mnamer.endpoints import (
     tvdb_series_id_episodes,
     tvdb_series_id_episodes_query,
 )
-from mnamer.exceptions import MnamerNotFoundException, MnamerProviderException
+from mnamer.exceptions import MnamerException, MnamerNotFoundException
 from tests import JUNK_TEXT
 
 LOST_TVDB_ID_EPISODE = 127131
@@ -32,7 +32,7 @@ def test_tvdb_login__login_success():
 
 
 def test_tvdb_login__login_fail():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_login(JUNK_TEXT)
 
 
@@ -42,22 +42,22 @@ def test_tvdb_refresh_token__refresh_success():
 
 
 def test_tvdb_refresh_token__refresh_fail():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_refresh_token(JUNK_TEXT)
 
 
 def test_tvdb_episodes_id__invalid_token():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_episodes_id(JUNK_TEXT, LOST_TVDB_ID_EPISODE, cache=False)
 
 
 def test_tvdb_episodes_id__invalid_lang(tvdb_token):
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_episodes_id(tvdb_token, LOST_TVDB_ID_EPISODE, lang=JUNK_TEXT)
 
 
 def test_tvdb_episodes_id__invalid_id_imdb(tvdb_token):
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_episodes_id(tvdb_token, JUNK_TEXT, cache=False)
 
 
@@ -112,17 +112,17 @@ def test_tvdb_episodes_id__success(tvdb_token):
 
 
 def test_tvdb_series_id__invalid_token():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_series_id(JUNK_TEXT, LOST_TVDB_ID_SERIES, cache=False)
 
 
 def test_tvdb_series_id__invalid_lang(tvdb_token):
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_series_id(tvdb_token, LOST_TVDB_ID_SERIES, lang=JUNK_TEXT)
 
 
 def test_tvdb_series_id__invalid_id_imdb(tvdb_token):
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_series_id(tvdb_token, JUNK_TEXT, cache=False)
 
 
@@ -171,17 +171,17 @@ def test_tvdb_series_id__success(tvdb_token):
 
 
 def test_tvdb_series_id_episodes__invalid_token():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_series_id_episodes(JUNK_TEXT, LOST_TVDB_ID_SERIES, cache=False)
 
 
 def test_tvdb_series_id_episodes__invalid_lang(tvdb_token):
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_series_id_episodes(tvdb_token, LOST_TVDB_ID_SERIES, lang="xyz")
 
 
 def test_tvdb_series_id_episodes__invalid_id_imdb(tvdb_token):
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_series_id_episodes(tvdb_token, JUNK_TEXT, cache=False)
 
 
@@ -236,21 +236,21 @@ def test_tvdb_series_id_episodes__success(tvdb_token):
 
 
 def test_tvdb_series_id_episodes_query__invalid_token():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_series_id_episodes_query(
             JUNK_TEXT, LOST_TVDB_ID_SERIES, cache=False
         )
 
 
 def test_tvdb_series_id_episodes_query__invalid_lang(tvdb_token):
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_series_id_episodes_query(
             tvdb_token, LOST_TVDB_ID_SERIES, lang="xyz"
         )
 
 
 def test_tvdb_series_id_episodes_query__invalid_id_tvdb(tvdb_token):
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_series_id_episodes_query(tvdb_token, JUNK_TEXT, cache=False)
 
 
@@ -424,17 +424,17 @@ def test_tvdb_series_id_episodes_query__success_id_tvdb_season_episode(
 
 
 def test_tvdb_search_series__invalid_token():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_search_series(JUNK_TEXT, "Lost", cache=False)
 
 
 def test_tvdb_search_series__invalid_lang(tvdb_token):
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_search_series(tvdb_token, "Lost", lang="xyz")
 
 
 def test_tvdb_search_series__invalid_id_imdb(tvdb_token):
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         tvdb_search_series(tvdb_token, "Lost", id_imdb="xyz")
 
 

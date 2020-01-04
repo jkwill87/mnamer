@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
-from mnamer import VERSION
+from mnamer.__version__ import VERSION
 from mnamer.exceptions import (
     MnamerAbortException,
     MnamerException,
     MnamerNetworkException,
     MnamerNotFoundException,
-    MnamerSettingsException,
     MnamerSkipException,
 )
 from mnamer.settings import Settings
@@ -20,9 +19,9 @@ def main():
     tty = Tty()
     # setup arguments and load runtime configuration
     try:
-        settings = Settings()
-    except MnamerSettingsException as e:
-        tty.msg(e, MessageType.ERROR)
+        settings = Settings(load_configuration=True, load_arguments=True)
+    except MnamerException as e:
+        tty.msg(str(e), MessageType.ERROR)
         raise SystemExit(1)
     targets = Target.populate_paths(settings)
     tty.configure(settings)

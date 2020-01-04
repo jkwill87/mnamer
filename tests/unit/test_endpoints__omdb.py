@@ -4,7 +4,7 @@ import pytest
 
 from mnamer import API_KEY_OMDB
 from mnamer.endpoints import omdb_search, omdb_title
-from mnamer.exceptions import MnamerNotFoundException, MnamerProviderException
+from mnamer.exceptions import MnamerException, MnamerNotFoundException
 from tests import JUNK_TEXT, MockRequestResponse
 
 
@@ -26,7 +26,7 @@ def test_omdb_title__title_id_xnor__id(mock_request):
 def test_omdb_title__title_id_xnor__both(mock_request):
     mock_response = MockRequestResponse(200, '{"key":"value"}')
     mock_request.return_value = mock_response
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         omdb_title(API_KEY_OMDB, title="some title", id_imdb=123)
 
 
@@ -34,7 +34,7 @@ def test_omdb_title__title_id_xnor__both(mock_request):
 def test_omdb_title__title_id_xnor__neither(mock_request):
     mock_response = MockRequestResponse(200, '{"key":"value"}')
     mock_request.return_value = mock_response
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         omdb_title(API_KEY_OMDB)
 
 
@@ -107,12 +107,12 @@ def test_omdb_title__media__series():
 
 
 def test_omdb_title__api_key_fail():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         omdb_title(JUNK_TEXT, "", cache=False)
 
 
 def test_omdb_title__id_imdb_fail():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         omdb_title(API_KEY_OMDB, "")
 
 
@@ -144,7 +144,7 @@ def test_omdb_search__query__series():
 
 
 def test_omdb_search__api_key_fail():
-    with pytest.raises(MnamerProviderException):
+    with pytest.raises(MnamerException):
         omdb_search(JUNK_TEXT, "ninja turtles", cache=False)
 
 
