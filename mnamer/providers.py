@@ -130,28 +130,14 @@ class Tmdb(Provider):
     ) -> Generator[MetadataMovie, None, None]:
         """Searches TMDb for movie metadata."""
         if self.id_override:
-            results = self._search_id_tmdb(self.id_override)
+            results = self._search_id(self.id_override)
         elif parameters.name:
             results = self._search_name(parameters.name, parameters.year)
         else:
             raise MnamerNotFoundException
         yield from results
 
-    def _search_id_imdb(
-        self, id_imdb: str
-    ) -> Generator[MetadataMovie, None, None]:
-        response = tmdb_find(
-            self.api_key, "imdb_id", id_imdb, cache=self.cache
-        )["movie_results"][0]
-        yield MetadataMovie(
-            name=response["title"],
-            year=response["release_date"],
-            synopsis=response["overview"],
-        )
-
-    def _search_id_tmdb(
-        self, id_tmdb: str
-    ) -> Generator[MetadataMovie, None, None]:
+    def _search_id(self, id_tmdb: str) -> Generator[MetadataMovie, None, None]:
         assert id_tmdb
         response = tmdb_movies(self.api_key, id_tmdb, cache=self.cache)
         yield MetadataMovie(
@@ -217,7 +203,7 @@ class Tvdb(Provider):
                     self.id_override, parameters.date
                 )
             elif self.id_override:
-                results = self._search_id_tvdb(
+                results = self._search_id(
                     self.id_override, parameters.season, parameters.episode,
                 )
             elif parameters.series and parameters.date:
@@ -240,18 +226,7 @@ class Tvdb(Provider):
             else:
                 raise
 
-    def _search_id_imdb(
-        self, id_imdb: str, season: int = None, episode: int = None
-    ):
-        series_data = tvdb_search_series(
-            self.token, id_imdb=id_imdb, cache=self.cache
-        )
-        id_tvdb = series_data["data"][0]["id"]
-        return self._search_id_tvdb(id_tvdb, season, episode)
-
-    def _search_id_tvdb(
-        self, id_tvdb: str, season: int = None, episode: int = None
-    ):
+    def _search_id(self, id_tvdb: str, season: int = None, episode: int = None):
         found = False
         series_data = tvdb_series_id(self.token, id_tvdb, cache=self.cache)
         page = 1
@@ -295,7 +270,7 @@ class Tvdb(Provider):
 
         for series_id in [entry["id"] for entry in series_data["data"][:5]]:
             try:
-                for data in self._search_id_tvdb(series_id, season, episode):
+                for data in self._search_id(series_id, season, episode):
                     if not data.series or not data.season:
                         continue
                     found = True
@@ -309,7 +284,7 @@ class Tvdb(Provider):
         self, id_tvdb: str, release_date: Union[str, date, datetime]
     ):
         found = False
-        for meta in self._search_id_tvdb(id_tvdb):
+        for meta in self._search_id(id_tvdb):
             if meta.date and meta.date == convert_date(release_date):
                 found = True
                 yield meta

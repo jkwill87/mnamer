@@ -46,12 +46,6 @@ class Target:
             )
         self._provider = self._providers[provider_type]
 
-    def __hash__(self) -> int:
-        return self.source.__hash__()
-
-    def __eq__(self, other: Any) -> bool:
-        return hash(self) == hash(other)
-
     def __str__(self) -> str:
         return str(self.source.resolve())
 
