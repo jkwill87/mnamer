@@ -1,3 +1,4 @@
+import dataclasses
 from typing import Any, Dict, List, Optional
 
 from teletype import codes
@@ -20,6 +21,7 @@ def format_iter(body: list) -> str:
     return "\n".join(sorted([f" - {getattr(v, 'value', v)}" for v in body]))
 
 
+@dataclasses.dataclass
 class Tty:
     no_style: bool = False
     verbose: bool = False
@@ -30,7 +32,7 @@ class Tty:
         Tty.no_style = settings.no_style
 
     @property
-    def _chars(self):
+    def chars(self) -> Dict[str, str]:
         if self.no_style:
             chars = codes.CHARS_ASCII
         else:
@@ -39,7 +41,7 @@ class Tty:
         return chars
 
     @property
-    def _abort_helpers(self):
+    def abort_helpers(self) -> List[ChoiceHelper]:
         if self.no_style:
             style = None
             skip_mnemonic = "[s]"
@@ -74,7 +76,7 @@ class Tty:
         style_print(body, style=message_type.value)
 
     def prompt(self, matches: List[Metadata]) -> Optional[Metadata]:
-        selector = SelectOne(matches + self._abort_helpers, **self._chars)
+        selector = SelectOne(matches + self.abort_helpers, **self.chars)
         choice = selector.prompt()
         if choice in (MnamerAbortException, MnamerSkipException):
             raise choice
@@ -88,7 +90,7 @@ class Tty:
         else:
             label += style_format(" (best guess)", "blue")
         option = ChoiceHelper(metadata, label)
-        selector = SelectOne([option] + self._abort_helpers, **self._chars)
+        selector = SelectOne([option] + self.abort_helpers, **self.chars)
         choice = selector.prompt()
         if choice in (MnamerAbortException, MnamerSkipException):
             raise choice
