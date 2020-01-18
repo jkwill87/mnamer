@@ -1,5 +1,6 @@
 -r requirements.txt
 codecov
+pylint
 pytest
 pytest-cov
 vbump

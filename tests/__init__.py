@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import Dict, NamedTuple
-import re
+
 from mnamer.types import ProviderType
 
 DEFAULT_SETTINGS = {
@@ -8,7 +8,7 @@ DEFAULT_SETTINGS = {
     "config_dump": False,
     "episode_api": ProviderType.TVDB,
     "episode_directory": None,
-    "episode_format": "{series_name} - S{season_number:02}E{episode_number:02} - "
+    "episode_format": "{series} - S{season:02}E{episode:02} - "
     "{title}{extension}",
     "hits": False,
     "id": None,
@@ -18,7 +18,7 @@ DEFAULT_SETTINGS = {
     "media": None,
     "movie_api": ProviderType.TMDB,
     "movie_directory": None,
-    "movie_format": "{title} ({year}){extension}",
+    "movie_format": "{name} ({year}){extension}",
     "no_cache": False,
     "no_config": False,
     "no_guess": False,
@@ -62,6 +62,44 @@ TEST_FILES: Dict[str, Path] = {
         "temp.zip",
     )
 }
+
+MOVIE_META = [
+    {
+        "media": "movie",
+        "year": 1985,
+        "name": "The Goonies",
+        "id_imdb": "tt0089218",
+        "id_tmdb": "9340",
+    },
+    {
+        "media": "movie",
+        "year": 1939,
+        "name": "The Wizard of Oz",
+        "id_imdb": "tt0032138",
+        "id_tmdb": "630",
+    },
+    {
+        "media": "movie",
+        "year": 1941,
+        "name": "Citizen Kane",
+        "id_imdb": "tt0033467",
+        "id_tmdb": "15",
+    },
+    {
+        "media": "movie",
+        "year": 2017,
+        "name": "Get Out",
+        "id_imdb": "tt5052448",
+        "id_tmdb": "419430",
+    },
+    {
+        "media": "movie",
+        "year": 2002,
+        "name": u"Amélie",
+        "id_imdb": "tt0211915",
+        "id_tmdb": "194",
+    },
+]
 
 
 class MockRequestResponse:

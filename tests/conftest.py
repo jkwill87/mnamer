@@ -8,7 +8,7 @@ import pytest
 from teletype.io import strip_format
 
 from mnamer.__main__ import main
-from tests import TEST_FILES, E2EResult
+from tests import E2EResult, TEST_FILES
 
 
 @pytest.fixture(autouse=True)

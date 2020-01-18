@@ -17,10 +17,10 @@ def test_media__television():
     assert target.media is MediaType.EPISODE
 
 
-@pytest.mark.parametrize("media_type", MediaType)
-def test_media__override(media_type: MediaType):
-    target = Target(Path(), Settings(media=media_type))
-    assert target.media is media_type
+@pytest.mark.parametrize("media", MediaType)
+def test_media__override(media: MediaType):
+    target = Target(Path(), Settings(media=media))
+    assert target.media is media
 
 
 def test_directory__movie():

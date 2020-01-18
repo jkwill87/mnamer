@@ -153,7 +153,7 @@ class Settings:
         )(),
     )
     movie_format: str = dataclasses.field(
-        default="{title} ({year}){extension}",
+        default="{name} ({year}){extension}",
         metadata=ArgSpec(
             dest="movie_format",
             flags=["--movie_format", "--movie-format"],
@@ -181,7 +181,7 @@ class Settings:
         )(),
     )
     episode_format: str = dataclasses.field(
-        default="{series_name} - S{season_number:02}E{episode_number:02} - {title}{extension}",
+        default="{series} - S{season:02}E{episode:02} - {title}{extension}",
         metadata=ArgSpec(
             dest="episode_format",
             flags=["--episode_format", "--episode-format"],
@@ -250,15 +250,15 @@ class Settings:
 
     # config-only --------------------------------------------------------------
 
-    api_key_omdb: bool = dataclasses.field(
+    api_key_omdb: str = dataclasses.field(
         default=API_KEY_OMDB,
         metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
     )
-    api_key_tmdb: bool = dataclasses.field(
+    api_key_tmdb: str = dataclasses.field(
         default=API_KEY_TMDB,
         metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
     )
-    api_key_tvdb: bool = dataclasses.field(
+    api_key_tvdb: str = dataclasses.field(
         default=API_KEY_TVDB,
         metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
     )
@@ -287,11 +287,7 @@ class Settings:
         self._load_arguments(load_arguments)
         self._bulk_apply(self._arg_data)
         # load configuration
-        if (
-            configuration_path
-            and load_configuration
-            and not any((self.no_config, self.config_dump))
-        ):
+        if configuration_path and load_configuration and not self.no_config:
             self._load_configuration(configuration_path)
             self._bulk_apply(self._config_data)
 
@@ -332,11 +328,17 @@ class Settings:
 
     @property
     def as_json(self):
-        payload = {
-            k: getattr(v, "value", v)
-            for k, v in self.as_dict.items()
-            if k in self._serializable_fields()
-        }
+        payload = {}
+        # transform values into primitive JSON-serializable types
+        for k, v in self.as_dict.items():
+            if k not in self._serializable_fields():
+                continue
+            if hasattr(v, "value"):
+                payload[k] = v.value
+            elif isinstance(v, Path):
+                payload[k] = str(v.resolve())
+            else:
+                payload[k] = v
         return json.dumps(
             payload,
             allow_nan=False,
@@ -369,11 +371,11 @@ class Settings:
     def _load_configuration(self, path: Union[Path, str]):
         path = Template(str(path)).substitute(environ)
         with open(path, mode="r") as file_pointer:
-            data = file_pointer.read()
+            data = json.loads(file_pointer.read())
         for key in data:
             if key not in self._attribute_metadata():
                 raise MnamerException(f"invalid setting: {key}")
-        self._config_data = json.loads(data)
+        self._config_data = data
 
     def api_for(self, media: MediaType) -> ProviderType:
         return getattr(self, f"{media.value}_api")

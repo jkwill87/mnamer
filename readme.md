@@ -92,7 +92,8 @@ See [the Wiki Page](https://github.com/jkwill87/mnamer/wiki/Formatting-Examples)
 
 | Field   | Description                      |
 | :------ | :------------------------------- |
-| title   | movie or episode title           |
+| name    | movie name                       |
+| title   | episode title                    |
 | year    | movie release year               |
 | series  | tv series' name                  |
 | season  | tv series' airing season number  |

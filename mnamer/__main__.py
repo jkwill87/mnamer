@@ -86,20 +86,20 @@ def main():
         except MnamerNetworkException:
             tty.msg("Network Error", MessageType.ALERT)
             matches = []
-        if settings.batch:
-            match = matches[0] if matches else target.metadata
-        elif not matches:
-            match = tty.confirm_guess(target.metadata)
-        else:
-            try:
+        try:
+            if settings.batch:
+                match = matches[0] if matches else target.metadata
+            elif not matches:
+                match = tty.confirm_guess(target.metadata)
+            else:
                 tty.msg("Results", MessageType.HEADING)
                 match = tty.prompt(matches)
-            except MnamerSkipException:
-                tty.msg("Skipping as per user request", MessageType.ALERT)
-                continue
-            except MnamerAbortException:
-                tty.msg("Aborting as per user request", MessageType.ERROR)
-                break
+        except MnamerSkipException:
+            tty.msg("Skipping as per user request", MessageType.ALERT)
+            continue
+        except MnamerAbortException:
+            tty.msg("Aborting as per user request", MessageType.ERROR)
+            break
 
         # update metadata
         target.metadata.update(match)

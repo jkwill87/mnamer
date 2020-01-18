@@ -69,7 +69,7 @@ setup-demo: clean
 	    'demo/Avengers Infinity War' \
 	    'demo/Sample' \
 	    'demo/Downloads' \
-	    'demo/Images'
+	    'demo/Images/Photos'
 	@cd demo && touch \
         "Avengers Infinity War/Avengers.Infinity.War.srt" \
         "Avengers Infinity War/Avengers.Infinity.War.wmv" \

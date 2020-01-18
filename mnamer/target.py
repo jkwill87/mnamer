@@ -4,7 +4,7 @@ from shutil import move
 from typing import Any, Dict, List, Optional, Union
 
 from mnamer.exceptions import MnamerException
-from mnamer.metadata import Metadata
+from mnamer.metadata import Metadata, parse_metadata
 from mnamer.providers import Provider
 from mnamer.settings import Settings
 from mnamer.types import MediaType, ProviderType
@@ -36,8 +36,8 @@ class Target:
         self._has_moved: False
         self._has_renamed: False
         self.source = Path(file_path).resolve()
-        self.metadata = Metadata.parse(
-            file_path=file_path, media=settings.media
+        self.metadata = parse_metadata(
+            file_path=file_path, media_hint=settings.media
         )
         provider_type = settings.api_for(self.metadata.media)
         if provider_type not in self._providers:
