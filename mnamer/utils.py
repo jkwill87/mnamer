@@ -15,6 +15,8 @@ import requests_cache
 from appdirs import user_cache_dir
 from requests.adapters import HTTPAdapter
 
+from mnamer import CURRENT_YEAR
+
 
 def clear_cache():
     """Clears requests-cache cache."""
@@ -378,19 +380,21 @@ def year_parse(s: str) -> int:
     return year
 
 
-def year_range_parse(s: str) -> Tuple[int, int]:
+def year_range_parse(
+    years: Optional[Union[str, int]], tolerance: int = 1
+) -> Tuple[int, int]:
     """Parses a year or dash-delimited year range."""
     regex = r"^((?:19|20)\d{2})?([-,: ]*)?((?:19|20)\d{2})?$"
     default_start = 1900
-    default_end = 2099
+    default_end = CURRENT_YEAR
     try:
-        start, dash, end = re.match(regex, str(s)).groups()
+        start, dash, end = re.match(regex, str(years)).groups()
     except AttributeError:
-        return default_start, default_end
+        start, end, dash = None, None, True
     if not start and not end:
-        return default_start, default_end
-    start = start or default_start
-    end = end or default_end
-    if dash:
-        return int(start), int(end)
-    return int(start), int(start)
+        start, end, dash = None, None, True
+    start = int(start or default_start)
+    end = int(end or default_end)
+    if not dash:
+        end = start
+    return start - tolerance, end + tolerance

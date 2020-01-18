@@ -154,7 +154,7 @@ def tmdb_movies(api_key, id_tmdb, language="en-US", cache=True):
     Online docs: developers.themoviedb.org/3/movies.
     """
     try:
-        url = "https://api.themoviedb.org/3/movie/%d" % int(id_tmdb)
+        url = "https://api.themoviedb.org/3/movie/%s" % id_tmdb
     except ValueError:
         raise MnamerException("id_tmdb must be numeric")
     parameters = {"api_key": api_key, "language": language}
@@ -271,10 +271,7 @@ def tvdb_series_id(token, id_tvdb, lang="en", cache=True):
         raise MnamerException(
             "'lang' must be one of %s" % ",".join(TVDB_LANGUAGE_CODES)
         )
-    try:
-        url = "https://api.thetvdb.com/series/%d" % int(id_tvdb)
-    except ValueError:
-        raise MnamerException("id_tvdb must be numeric")
+    url = "https://api.thetvdb.com/series/%s" % id_tvdb
     headers = {"Accept-Language": lang, "Authorization": "Bearer %s" % token}
     status, content = request_json(url, headers=headers, cache=cache)
     if status == 401:

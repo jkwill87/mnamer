@@ -62,11 +62,12 @@ class Metadata:
 
     def __setattr__(self, key, value):
         converter = {
-            "media": MediaType,
-            "synopsis": str.capitalize,
             "extension": normalize_extension,
             "group": str.upper,
+            "id": str,
+            "media": MediaType,
             "quality": str.lower,
+            "synopsis": str.capitalize,
         }.get(key)
         if value is not None and converter:
             value = converter(value)

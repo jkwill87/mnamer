@@ -63,6 +63,53 @@ TEST_FILES: Dict[str, Path] = {
     )
 }
 
+EPISODE_META = [
+    {
+        "media": "television",
+        "series": "The Walking Dead",
+        "season": "5",
+        "episode": "11",
+        "title": "The Distance",
+        "id_imdb": "tt1520211",
+        "id_tvdb": "153021",
+    },
+    {
+        "media": "television",
+        "series": "Adventure Time",
+        "season": "7",
+        "episode": "39",
+        "title": "Reboot",
+        "id_imdb": "tt1305826",
+        "id_tvdb": "152831",
+    },
+    {
+        "media": "television",
+        "series": "Downtown",
+        "season": "1",
+        "episode": "13",
+        "title": "Trip or Treat",
+        "id_imdb": "tt0208616",
+        "id_tvdb": "78342",
+    },
+    {
+        "media": "television",
+        "series": "Breaking Bad",
+        "season": "3",
+        "episode": "5",
+        "title": "Más",
+        "id_imdb": "tt0903747",
+        "id_tvdb": "81189",
+    },
+    {
+        "media": "television",
+        "series": "The Care Bears",
+        "season": "2",
+        "episode": "2",
+        "title": "Grumpy's Three Wishes",
+        "id_imdb": "tt0284713",
+        "id_tvdb": "76079",
+    },
+]
 MOVIE_META = [
     {
         "media": "movie",

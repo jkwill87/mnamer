@@ -3,6 +3,7 @@ from unittest.mock import patch
 import pytest
 from requests import Session
 
+from mnamer import CURRENT_YEAR
 from mnamer.utils import *
 from tests import JUNK_TEXT, MockRequestResponse, TEST_FILES
 
@@ -652,37 +653,42 @@ def test_year_parse__unexpected(s: str):
 
 
 @pytest.mark.parametrize("s", ("1950", " 1950", "  1950 "))
-def test_year_range_parse__exact(s: str):
-    expected = (1950, 1950)
-    actual = year_range_parse("1950")
+@pytest.mark.parametrize("t", (0, 10, 100))
+def test_year_range_parse__exact(t: int, s: str):
+    expected = (1950 - t, 1950 + t)
+    actual = year_range_parse("1950", t)
     assert actual == expected
 
 
 @pytest.mark.parametrize(
     "s", ("1990-2000", "1990 -  2000", "1990,2000", "1990:2000")
 )
-def test_year_range_parse__has_start_has_end(s: str):
-    expected = (1990, 2000)
-    actual = year_range_parse(s)
+@pytest.mark.parametrize("t", (0, 10, 100))
+def test_year_range_parse__has_start_has_end(t: int, s: str):
+    expected = (1990 - t, 2000 + t)
+    actual = year_range_parse(s, t)
     assert actual == expected
 
 
 @pytest.mark.parametrize("s", ("1990-", "1990 - ", "1990:"))
-def test_year_range_parse__has_start_no_end(s: str):
-    expected = (1990, 2099)
-    actual = year_range_parse(s)
+@pytest.mark.parametrize("t", (0, 10, 100))
+def test_year_range_parse__has_start_no_end(t: int, s: str):
+    expected = (1990 - t, CURRENT_YEAR + t)
+    actual = year_range_parse(s, t)
     assert actual == expected
 
 
-@pytest.mark.parametrize("s", ("-2020", " : 2020", ",2020"))
-def test_year_range_parse__no_start_has_end(s: str):
-    expected = (1900, 2020)
-    actual = year_range_parse(s)
+@pytest.mark.parametrize("s", ("-2005", " : 2005", ",2005"))
+@pytest.mark.parametrize("t", (0, 10, 100))
+def test_year_range_parse__no_start_has_end(t: int, s: str):
+    expected = (1900 - t, 2005 + t)
+    actual = year_range_parse(s, t)
     assert actual == expected
 
 
 @pytest.mark.parametrize("s", ("15-5000", "", " hello", "-", ","))
-def test_year_range_parse__unexpected(s: str):
-    expected = (1900, 2099)
-    actual = year_range_parse(s)
+@pytest.mark.parametrize("t", (0, 10, 100))
+def test_year_range_parse__unexpected(t: int, s: str):
+    expected = (1900 - t, CURRENT_YEAR + t)
+    actual = year_range_parse(s, t)
     assert actual == expected
