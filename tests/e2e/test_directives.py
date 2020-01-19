@@ -10,10 +10,20 @@ from tests import DEFAULT_SETTINGS
 
 
 @pytest.mark.parametrize("flag", ("-V", "--version"))
-def test_version(e2e_main, flag: str):
+def test_version(flag: str, e2e_main: Callable):
     result = e2e_main(flag)
     assert result.code == 0
     assert result.out == f"mnamer version {VERSION}"
+
+
+@patch("mnamer.__main__.clear_cache")
+def test_directives__cache_clear(
+    mock_clear_cache: MagicMock, e2e_main: Callable
+):
+    result = e2e_main("--no_cache")
+    assert result.code == 0
+    assert "cache cleared" in result.out
+    mock_clear_cache.assert_called_once()
 
 
 @pytest.mark.parametrize("key", Settings._serializable_fields())
@@ -34,7 +44,7 @@ def test_directives__config_dump(
 
 
 @pytest.mark.usefixtures("setup_test_path")
-def test_id__omdb(e2e_main):
+def test_id__omdb(e2e_main: Callable):
     result = e2e_main(
         "--batch",
         "--movie_api",
@@ -47,7 +57,7 @@ def test_id__omdb(e2e_main):
 
 
 @pytest.mark.usefixtures("setup_test_path")
-def test_id__tmdb(e2e_main):
+def test_id__tmdb(e2e_main: Callable):
     result = e2e_main(
         "--batch",
         "--movie_api",
@@ -61,7 +71,7 @@ def test_id__tmdb(e2e_main):
 
 
 @pytest.mark.usefixtures("setup_test_path")
-def test_id__tvdb(e2e_main):
+def test_id__tvdb(e2e_main: Callable):
     result = e2e_main(
         "--batch",
         "--episode_api",
@@ -75,25 +85,25 @@ def test_id__tvdb(e2e_main):
 
 
 @pytest.mark.usefixtures("setup_test_path")
-def test_media__episode_override(e2e_main):
+def test_media__episode_override(e2e_main: Callable):
     result = e2e_main("--batch", "--media", "episode", "aladdin.1992.avi")
     assert result.code == 0
     assert "Processing Episode" in result.out
 
 
 @pytest.mark.usefixtures("setup_test_path")
-def test_media__movie_override(e2e_main):
+def test_media__movie_override(e2e_main: Callable):
     result = e2e_main("--batch", "--media", "movie", "s.w.a.t.2017.s02e01.mkv")
     assert result.code == 0
     assert "Processing Movie" in result.out
 
 
 # TODO
-def test_no_config(e2e_main):
+def test_no_config(e2e_main: Callable):
     pass
 
 
-def test_test(e2e_main):
+def test_test(e2e_main: Callable):
     result = e2e_main("--batch", "--test")
     assert result.code == 0
     assert "testing mode" in result.out

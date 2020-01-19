@@ -9,8 +9,8 @@ mnamer (Media reNAMER)
 An intelligent and highly configurable media file organization tool.
 """
 
-from os import environ
 from datetime import datetime
+from os import environ
 
 CURRENT_YEAR = datetime.now().year
 API_KEY_OMDB = environ.get("API_KEY_OMDB", "477a7ebc")

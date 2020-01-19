@@ -57,7 +57,7 @@ def main():
     total_count = len(targets)
     if total_count == 0:
         tty.msg("", debug=True)
-        tty.msg("no media files found", MessageType.ALERT)
+        tty.msg("No media files found", MessageType.ALERT)
         raise SystemExit(0)
 
     # main program loop
@@ -78,14 +78,13 @@ def main():
         tty.msg("", debug=True)
 
         # find match for target
+        matches = []
         try:
             matches = target.query()
         except MnamerNotFoundException:
             tty.msg("No matches found", MessageType.ALERT)
-            matches = []
         except MnamerNetworkException:
             tty.msg("Network Error", MessageType.ALERT)
-            matches = []
         try:
             if settings.batch:
                 match = matches[0] if matches else target.metadata

@@ -8,6 +8,7 @@ import pytest
 from teletype.io import strip_format
 
 from mnamer.__main__ import main
+from mnamer.target import Target
 from tests import E2EResult, TEST_FILES
 
 
@@ -33,12 +34,12 @@ def setup_test_path():
     rmtree(tmp_dir)
 
 
-@pytest.mark.usefixtures("setup_test_path")
 @pytest.fixture
-def e2e_main(capsys):
+def e2e_main(capsys, setup_test_path):
     """Runs main with provided arguments and returns stdout."""
 
     def fn(*args):
+        Target.reset_providers()
         for arg in args:
             sys.argv.append(arg)
         try:

@@ -382,12 +382,3 @@ class Settings:
 
     def api_key_for(self, provider: ProviderType) -> Optional[str]:
         return getattr(self, f"api_key_{provider.value}")
-
-    def write_config(self, path: Union[Path, str]):
-        path = Template(str(path)).substitute(environ)
-        try:
-            open(path, mode="w").write(self.as_json)
-        except IOError as e:  # e.g. permission error
-            MnamerException(e.strerror)
-        except (TypeError, ValueError):
-            MnamerException("invalid JSON")

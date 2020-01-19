@@ -1,7 +1,7 @@
 from os import path
 from pathlib import Path
 from shutil import move
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from mnamer.exceptions import MnamerException
 from mnamer.metadata import Metadata, parse_metadata
@@ -60,6 +60,10 @@ class Target:
         targets = list(filter(cls._matches_mask, targets))
         targets = list(filter(cls._matches_media, targets))
         return targets
+
+    @classmethod
+    def reset_providers(cls):
+        cls._providers.clear()
 
     @staticmethod
     def _matches_mask(target: "Target") -> bool:

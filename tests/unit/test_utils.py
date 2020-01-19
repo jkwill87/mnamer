@@ -3,7 +3,6 @@ from unittest.mock import patch
 import pytest
 from requests import Session
 
-from mnamer import CURRENT_YEAR
 from mnamer.utils import *
 from tests import JUNK_TEXT, MockRequestResponse, TEST_FILES
 

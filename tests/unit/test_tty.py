@@ -1,8 +1,8 @@
-from mnamer.exceptions import MnamerSkipException, MnamerAbortException
-from mnamer.tty import format_dict, format_iter, Tty
-from mnamer.types import MediaType
-
 import pytest
+
+from mnamer.exceptions import MnamerAbortException, MnamerSkipException
+from mnamer.tty import Tty, format_dict, format_iter
+from mnamer.types import MediaType
 
 
 def test_format_dict():

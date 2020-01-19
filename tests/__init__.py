@@ -33,7 +33,7 @@ DEFAULT_SETTINGS = {
 }
 
 
-JUNK_TEXT = "asdf#$@#g9765sdfg54hggaw"
+JUNK_TEXT = "blablablabla"
 
 TEST_FILES: Dict[str, Path] = {
     test_file: Path(*test_file.split("/"))
@@ -163,14 +163,3 @@ class MockRequestResponse:
 class E2EResult(NamedTuple):
     code: int
     out: str
-    # passed: int
-    # total: int
-    #
-    # def __init__(self, out: str):
-    #     assert out
-    #     self._out = out
-    #     last_line = out.splitlines()[-1:][0]
-    #     self.passed, self.total = [int(s) for s in last_line if s.isdigit()]
-    #
-    # def has_moved(self, destination: str) -> bool:
-    #     return re.search(f"moving to .+{destination}", self._out) is not None
