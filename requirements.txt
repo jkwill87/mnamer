@@ -1,6 +1,6 @@
-appdirs>=1.4
-colorama>=0.3
-future;python_version<"3"
-guessit>=3
-mapi==3.5.1
-termcolor>=1
+appdirs==1.*
+guessit==3.1.*
+requests==2.*
+requests_cache>=0.5
+dataclasses; python_version < '3.7'
+teletype>=1.0

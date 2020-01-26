@@ -5,12 +5,14 @@
 .DS_Store
 .coverage
 .idea
+.pytest_cache/
 .python-version
 .vscode
 MANIFEST
 __pycache__/
 build
+demo/
 dist/
-playground*
+playground.py
 testing/test_files_*
 venv*

@@ -1,10 +1,11 @@
 language: python
 python:
-  - '2.7'
   - '3.6'
-install: pip install -r requirements-dev.txt
-dist: trusty
+  - '3.7'
+  - '3.8'
+install: pip install -U -r requirements-dev.txt
+dist: bionic
 os: linux
-script: coverage run --source=mnamer -m unittest discover -v
+script: python -m pytest --tb=short --durations=5 --cov-report=term --cov=mnamer
 after_success:
   - codecov

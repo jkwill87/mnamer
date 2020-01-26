@@ -1,11 +1,10 @@
-#!/usr/bin/env python
-# coding=utf-8
+#!/usr/bin/env python3
 
 from setuptools import setup
 
-from mnamer import VERSION
+from mnamer.__version__ import VERSION
 
-with open("readme.md", "r") as fp:
+with open("docs/README.md", "r") as fp:
     LONG_DESCRIPTION = fp.read()
 
 with open("requirements.txt", "r") as fp:
@@ -23,6 +22,7 @@ setup(
     long_description_content_type="text/markdown",
     name="mnamer",
     packages=["mnamer"],
+    python_requires="~=3.7",
     url="https://github.com/jkwill87/mnamer",
     version=VERSION,
 )

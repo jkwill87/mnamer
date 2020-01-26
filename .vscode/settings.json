@@ -1,0 +1,21 @@
+{
+    "editor.formatOnSave": true,
+    "editor.rulers": [
+        80
+    ],
+    "files.exclude": {
+        "**/*.pyc": true,
+        "**/.DS_Store": true,
+        "**/.git": true,
+        "**/.pytest_cache/": true,
+        "**/.svn": true,
+        "**/__pycache__": true,
+        "*.egg-info": true,
+        "*.egg-info/": true,
+        ".idea": true,
+        ".vscode": true,
+        "demo": true
+    },
+    "python.formatting.provider": "black",
+    "python.pythonPath": "venv/bin/python"
+}
