@@ -1,6 +1,16 @@
 from typing import Callable
 
 
+def test_complex_metadata(e2e_run: Callable):
+    result = e2e_run(
+        "--batch",
+        "Quien a hierro mata [MicroHD 1080p][DTS 5.1-Castellano-AC3 5.1-Castellano+Subs][ES-EN]",
+    )
+    assert result.code == 0
+    assert "Eye for an Eye (2019).mkv" in result.out
+    assert "1 out of 1 files processed successfully" in result.out
+
+
 def test_batch(e2e_run: Callable):
     result = e2e_run("--batch", ".")
     assert result.code == 0
