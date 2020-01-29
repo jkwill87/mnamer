@@ -52,11 +52,9 @@ class Metadata:
             "video_codec",
             "video_profile",
         }
-        filename = str(file_path)
         # inspect path data
-        self._path_data = dict(
-            guessit(filename, {"type": getattr(self.media, "value", None)})
-        )
+        self._path_data = {}
+        self._parse_path_data(file_path)
         # set common attributes
         self.media = MediaType(self._path_data["type"])
         self.quality = (
@@ -96,6 +94,16 @@ class Metadata:
     @property
     def as_dict(self):
         return dataclasses.asdict(self)
+
+    def _parse_path_data(self, file_path: Path):
+        filename = str(file_path)
+        options = {"type": getattr(self.media, "value", None)}
+        raw_data = dict(guessit(filename, options))
+        for k, v in raw_data.items():
+            if isinstance(v, (int, str)):
+                self._path_data[k] = v
+            elif isinstance(v, list) and all([isinstance(_, str) for _ in v]):
+                self._path_data[k] = " ".join(v)
 
     def _format_repl(self, mobj):
         format_string, key = mobj.groups()
