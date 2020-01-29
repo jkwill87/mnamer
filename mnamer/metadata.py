@@ -100,7 +100,7 @@ class Metadata:
         options = {"type": getattr(self.media, "value", None)}
         raw_data = dict(guessit(filename, options))
         for k, v in raw_data.items():
-            if isinstance(v, (int, str)):
+            if isinstance(v, (int, str, date)):
                 self._path_data[k] = v
             elif isinstance(v, list) and all([isinstance(_, str) for _ in v]):
                 self._path_data[k] = " ".join(v)

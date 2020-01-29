@@ -125,7 +125,7 @@ TEST_FILES: Dict[str, Path] = {
         "Ninja Turtles (1990).mkv",
         "O.J. - Made in America S01EP03 (2016) (1080p).mp4",
         "Planet Earth II S01E06 - Cities (2016) (2160p).mp4",
-        "Quien a hierro mata [MicroHD 1080p][DTS 5.1-Castellano-AC3 5.1-Castellano+Subs][ES-EN]/Quien\ a\ hierro\ mata\ M1080.www.pctnew.org.mkv",
+        "Quien a hierro mata [MicroHD 1080p][DTS 5.1-Castellano-AC3 5.1-Castellano+Subs][ES-EN]/Quien a hierro mata M1080.www.pctnew.org.mkv",
         "Sample/the mandalorian s01x02.mp4",
         "Skiing Trip.mp4",
         "aladdin.1992.avi",
