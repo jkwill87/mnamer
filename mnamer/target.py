@@ -57,7 +57,6 @@ class Target:
         file_paths = filter_extensions(file_paths, settings.mask)
         targets = [cls(file_path, settings) for file_path in file_paths]
         targets = list(dict.fromkeys(targets))  # unique values
-        targets = list(filter(cls._matches_mask, targets))
         targets = list(filter(cls._matches_media, targets))
         return targets
 
