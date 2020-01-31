@@ -145,11 +145,11 @@ def filter_extensions(
     file_paths: List[Path], valid_extensions: List[str]
 ) -> List[Path]:
     """Filters (set intersection) a collection of extensions."""
+    valid_extensions = normalize_extensions(valid_extensions)
     return [
         file_path
         for file_path in file_paths
-        if not valid_extensions
-        or file_path.suffix in normalize_extensions(valid_extensions)
+        if not valid_extensions or file_path.suffix.lower() in valid_extensions
     ]
 
 
