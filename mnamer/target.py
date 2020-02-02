@@ -119,7 +119,7 @@ class Target:
             filename = filename_scenify(filename)
         if self._settings.lower:
             filename = filename.lower()
-        return Path(directory, filename)
+        return Path(directory, filename).resolve()
 
     def _override_metadata_ids(self, settings: Settings):
         id_types = {"imdb", "tmdb", "tvdb", "tvmaze"}
@@ -157,6 +157,6 @@ class Target:
         """Performs the action of renaming and/or moving a file."""
         self.destination.parent.mkdir(parents=True, exist_ok=True)
         try:
-            move(str(self.source.resolve()), str(self.destination.absolute()))
+            move(self.source, self.destination)
         except OSError:  # pragma: no cover
             raise MnamerException
