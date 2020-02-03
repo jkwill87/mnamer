@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from mnamer import IS_DEBUG, SYSTEM
+from mnamer import IS_DEBUG, SYSTEM, tty
 from mnamer.__version__ import VERSION
 from mnamer.exceptions import (
     MnamerAbortException,
@@ -11,7 +11,6 @@ from mnamer.exceptions import (
 )
 from mnamer.settings import Settings
 from mnamer.target import Target
-from mnamer.tty import Tty
 from mnamer.types import MessageType
 from mnamer.utils import clear_cache
 
@@ -33,12 +32,11 @@ def main():  # pragma: no cover
         except SystemExit:
             raise
         except:
-            Tty.crash_report()
+            tty.crash_report()
 
 
 def run():
     """The main program loop."""
-    tty = Tty()
     # setup arguments and load runtime configuration
     try:
         settings = Settings(load_configuration=True, load_arguments=True)

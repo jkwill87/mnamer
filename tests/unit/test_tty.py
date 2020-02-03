@@ -1,11 +1,10 @@
+from mnamer import tty
 from mnamer.exceptions import MnamerAbortException, MnamerSkipException
-from mnamer.settings import Settings
-from mnamer.tty import *
 
 
 def test_chars():
-    settings = Settings(no_style=False)
-    Tty.configure(settings)
+    tty.verbose = False
+    tty.no_style = False
     expected = {
         "arrow": "\x1b[35m❱\x1b[0m",
         "block": "█",
@@ -14,13 +13,13 @@ def test_chars():
         "selected": "●",
         "unselected": "○",
     }
-    actual = Tty().chars
+    actual = tty._chars()
     assert actual == expected
 
 
 def test_chars__no_style():
-    settings = Settings(no_style=True)
-    Tty.configure(settings)
+    tty.verbose = False
+    tty.no_style = True
     expected = {
         "arrow": ">",
         "block": "#",
@@ -29,14 +28,14 @@ def test_chars__no_style():
         "selected": "*",
         "unselected": ".",
     }
-    actual = Tty().chars
+    actual = tty._chars()
     assert actual == expected
 
 
 def test_abort_helpers():
-    settings = Settings(no_style=False)
-    Tty.configure(settings)
-    helpers = Tty().abort_helpers
+    tty.verbose = False
+    tty.no_style = False
+    helpers = tty._abort_helpers()
     assert len(helpers) == 2
     assert helpers[0].label == "skip"
     assert helpers[0].value == MnamerSkipException
@@ -47,9 +46,9 @@ def test_abort_helpers():
 
 
 def test_abort_helpers__no_style():
-    settings = Settings(no_style=True)
-    Tty.configure(settings)
-    helpers = Tty().abort_helpers
+    tty.verbose = False
+    tty.no_style = True
+    helpers = tty._abort_helpers()
     assert len(helpers) == 2
     assert helpers[0].label == "skip"
     assert helpers[0].value == MnamerSkipException

@@ -12,6 +12,7 @@ from datetime import date, datetime
 from os import environ
 from platform import platform, python_version
 from sys import argv, gettrace
+
 from mnamer.__version__ import VERSION
 
 __all__ = [

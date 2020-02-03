@@ -1,12 +1,10 @@
-from datetime import date
-
 import pytest
 
 from mnamer.endpoints import (
     tvmaze_episode_by_number,
     tvmaze_episodes_by_date,
-    tvmaze_show_episodes_list,
     tvmaze_show,
+    tvmaze_show_episodes_list,
     tvmaze_show_lookup,
     tvmaze_show_search,
     tvmaze_show_single_search,
