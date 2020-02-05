@@ -38,7 +38,7 @@ def test_mask(e2e_run: Callable):
     assert ".mkv" not in result.out
     assert ".avi" not in result.out
     assert ".mp4" in result.out
-    assert "6 out of 6 files processed successfully" in result.out
+    assert "7 out of 7 files processed successfully" in result.out
 
 
 def test_multi_part_episode(e2e_run: Callable):
