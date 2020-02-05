@@ -102,8 +102,10 @@ class Metadata:
         for k, v in raw_data.items():
             if isinstance(v, (int, str, date)):
                 self._path_data[k] = v
-            elif isinstance(v, list) and all([isinstance(_, str) for _ in v]):
-                self._path_data[k] = " ".join(v)
+            elif isinstance(v, list) and all(
+                [isinstance(_, (int, str)) for _ in v]
+            ):
+                self._path_data[k] = v[0]
 
     def _format_repl(self, mobj):
         format_string, key = mobj.groups()

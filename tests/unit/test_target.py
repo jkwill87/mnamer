@@ -12,7 +12,7 @@ def test_media__movie():
     assert target.media is MediaType.MOVIE
 
 
-def test_media__television():
+def test_media__episode():
     target = Target(Path("ninja turtles s01e01.mkv"), Settings())
     assert target.media is MediaType.EPISODE
 

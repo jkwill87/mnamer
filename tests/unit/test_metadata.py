@@ -92,7 +92,7 @@ def test_metadata_episode__convert_series(value):
     assert metadata.series == "Test"
 
 
-def test_metadata_episode__convert_series_number():
+def test_metadata_episode__convert_season():
     metadata = MetadataEpisode(season="01")
     assert metadata.season == 1
 

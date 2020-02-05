@@ -128,6 +128,7 @@ def test_dir_crawl_in__files__flat():
         "avengers infinity war.wmv",
         "game.of.thrones.01x05-eztv.mp4",
         "homework.txt",
+        "lost s01e01-02.mp4",
         "made up movie.mp4",
         "made up show s01e10.mkv",
         "s.w.a.t.2017.s02e01.mkv",
@@ -297,6 +298,7 @@ def test_filter_blacklist__regex():
         "Quien a hierro mata [MicroHD 1080p][DTS 5.1-Castellano-AC3 5.1-Castellano+Subs][ES-EN]/Quien a hierro mata M1080.www.pctnew.org.mkv",
         "Sample/the mandalorian s01x02.mp4",
         "Skiing Trip.mp4",
+        "lost s01e01-02.mp4",
         "made up movie.mp4",
         "made up show s01e10.mkv",
     )
