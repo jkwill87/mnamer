@@ -77,7 +77,7 @@ class Settings:
         )(),
     )
     hits: int = dataclasses.field(
-        default=False,
+        default=5,
         metadata=ArgSpec(
             flags=["--hits"],
             group=SettingsType.PARAMETER,
