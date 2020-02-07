@@ -47,3 +47,22 @@ def test_multi_part_episode(e2e_run: Callable):
     assert ".mkv" not in result.out
     assert ".avi" not in result.out
     assert "Lost - S01E01 - Pilot (1).mp4" in result.out
+
+
+def test_format_specifiers(e2e_run: Callable):
+    result = e2e_run(
+        "--batch",
+        "--movie_format={name} ({year}){extension}",
+        "--movie_directory={name[0]}",
+        "Ninja Turtles (1990).mkv",
+    )
+    assert result.code == 0
+    assert "/T/Teenage Mutant Ninja Turtles (1990).mkv" in result.out
+
+
+def test_multiple_nested_directories(e2e_run: Callable):
+    result = e2e_run(
+        "--batch", "--movie_directory=1/2/3/", "Ninja Turtles (1990).mkv",
+    )
+    assert result.code == 0
+    assert "/1/2/3/Teenage Mutant Ninja Turtles (1990).mkv" in result.out

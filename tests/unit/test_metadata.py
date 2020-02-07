@@ -56,6 +56,11 @@ def test_metadata__convert_quality(value):
     assert metadata.quality == "test"
 
 
+def test_metadata__format():
+    with pytest.raises(NotImplementedError):
+        format(Metadata())
+
+
 def test_metadata_episode__parse__date():
     file_path = Path("the.colbert.show.2010.10.01.avi")
     metadata = MetadataEpisode(file_path=file_path)
@@ -102,19 +107,68 @@ def test_metadata_episode__convert_episode():
     assert metadata.episode == 1
 
 
+def test_metadata_episode__format_default():
+    file_path = Path("spongebob.squarepants.s04e04.avi")
+    metadata = MetadataEpisode(file_path=file_path)
+    actual = format(metadata)
+    expected = "Spongebob Squarepants - 04x04"
+    assert actual == expected
+
+
+def test_metadata_episode__format_with_specifiers():
+    file_path = Path("spongebob.squarepants.s04e04.avi")
+    metadata = MetadataEpisode(file_path=file_path)
+    format_spec = "{series[0]}/{series} season={season} episode={episode:04}"
+    actual = format(metadata, format_spec)
+    expected = "S/Spongebob Squarepants season=4 episode=0004"
+    assert actual == expected
+
+
 def test_metadata_movie__parse__year():
     file_path = Path("the.goonies.1985")
     metadata = MetadataMovie(file_path=file_path)
     assert metadata.year == 1985
 
 
-def test_metadata_movie_parse__name():
+def test_metadata_movie__parse__name():
     file_path = Path("the.goonies.1985")
     metadata = MetadataMovie(file_path=file_path)
     assert metadata.name == "The Goonies"
 
 
 @pytest.mark.parametrize("value", TEXT_CASES)
-def test_metadata_movie_convert_name(value):
+def test_metadata_movie__convert_name(value):
     metadata = MetadataMovie(name=value)
     assert metadata.name == "Test"
+
+
+def test_metadata_movie__format_default():
+    metadata = MetadataMovie(file_path=Path("napoleon.dynamite.2004.mkv"))
+    expected = "Napoleon Dynamite (2004)"
+    actual = format(metadata)
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    "format_spec",
+    (
+        "{name} - {year} - {group}",
+        "{group} - {name} - {year}",
+        "{name} - {group} - {year}",
+    ),
+)
+def test_metadata_movie__format_missing_field(format_spec: str):
+    file_path = Path("jojo.rabbit.2019.mkv")
+    metadata = MetadataMovie(file_path=file_path)
+    expected = "Jojo Rabbit - 2019"
+    actual = format(metadata, format_spec)
+    assert actual == expected
+
+
+def test_metadata_movie__format_with_specifiers():
+    file_path = Path("pineapple.express.mp4")
+    metadata = MetadataMovie(file_path=file_path)
+    format_spec = "{name[0]}/{name}"
+    expected = "P/Pineapple Express"
+    actual = format(metadata, format_spec)
+    assert actual == expected

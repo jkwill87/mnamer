@@ -270,6 +270,7 @@ def request_json(
 
 def str_fix_padding(s: str) -> str:
     """Truncates and collapses whitespace and delimiters in strings."""
+    len_before = len(s)
     # Remove empty brackets
     s = re.sub(r"\(\s*\)", "", s)
     s = re.sub(r"\[\s*]", "", s)
@@ -283,7 +284,8 @@ def str_fix_padding(s: str) -> str:
     s = s.strip()
     # Strip leading/ trailing dashes
     s = s.strip("-")
-    return s
+    len_after = len(s)
+    return s if len_before == len_after else str_fix_padding(s)
 
 
 def str_title_case(s: str) -> str:

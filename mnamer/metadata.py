@@ -81,12 +81,7 @@ class Metadata:
         super().__setattr__(key, value)
 
     def __format__(self, format_spec):
-        re_pattern = r"({(\w+)(?:\:\d{1,2})?})"
-        s = re.sub(
-            re_pattern, self._format_repl, format_spec or "{title}"
-        )  # TODO
-        s = str_fix_padding(s)
-        return s
+        raise NotImplementedError
 
     def __str__(self):
         return self.__format__(None)
@@ -144,10 +139,9 @@ class MetadataMovie(Metadata):
         self.year = self._path_data.get("year")
 
     def __format__(self, format_spec):
-        re_pattern = r"({(\w+)(?:\:\d{1,2})?})"
-        s = re.sub(
-            re_pattern, self._format_repl, format_spec or "{name} ({year})"
-        )
+        default = "{name} ({year})"
+        re_pattern = r"({(\w+)(?:\[[\w:]+\])?(?:\:\d{1,2})?})"
+        s = re.sub(re_pattern, self._format_repl, format_spec or default)
         s = str_fix_padding(s)
         return s
 
@@ -191,12 +185,9 @@ class MetadataEpisode(Metadata):
         #     self.series = f"{self.series} {year}"
 
     def __format__(self, format_spec):
-        re_pattern = r"({(\w+)(?:\:\d{1,2})?})"
-        s = re.sub(
-            re_pattern,
-            self._format_repl,
-            format_spec or "{series} - {season:02}x{episode:02} - {title}",
-        )
+        default = "{series} - {season:02}x{episode:02} - {title}"
+        re_pattern = r"({(\w+)(?:\[[\w:]+\])?(?:\:\d{1,2})?})"
+        s = re.sub(re_pattern, self._format_repl, format_spec or default)
         s = str_fix_padding(s)
         return s
 
