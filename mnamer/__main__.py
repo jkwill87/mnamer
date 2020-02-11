@@ -112,7 +112,7 @@ def run():
         except MnamerNetworkException:
             tty.msg("network Error", MessageType.ALERT)
         if not matches and settings.no_guess:
-            tty.msg("skipping (noguess)", MessageType.ALERT)
+            tty.msg("skipping (--noguess)", MessageType.ALERT)
             continue
         try:
             if settings.batch:
@@ -123,24 +123,29 @@ def run():
                 tty.msg("results")
                 match = tty.prompt(matches)
         except (MnamerSkipException, KeyboardInterrupt):
-            tty.msg("skipping as per user request", MessageType.ALERT)
+            tty.msg("skipping (user request)", MessageType.ALERT)
             continue
         except MnamerAbortException:
-            tty.msg("aborting as per user request", MessageType.ERROR)
+            tty.msg("aborting (user request)", MessageType.ERROR)
             break
-
-        # update metadata
         target.metadata.update(match)
+
+        # sanity check move
         if target.destination == target.source:
             tty.msg(
-                f"source and destination paths are the same, nothing to do",
+                f"skipping (source and destination paths are the same)",
                 MessageType.ALERT,
             )
-        else:
+            continue
+        if settings.no_replace and target.destination.exists():
             tty.msg(
-                f"moving to {target.destination.absolute()}",
-                MessageType.SUCCESS,
+                f"skipping (--noreplace)", MessageType.ALERT,
             )
+            continue
+
+        tty.msg(
+            f"moving to {target.destination.absolute()}", MessageType.SUCCESS,
+        )
 
         # rename and move file
         if settings.test:
