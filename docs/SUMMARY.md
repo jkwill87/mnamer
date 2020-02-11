@@ -3,6 +3,7 @@
 * [Getting Started](README.md)
 * [Settings](configuration.md)
 * [Formatting](formatting.md)
+* [Automation](automation.md)
 * [Migrating from v1 to v2](migration.md)
 
 ## External Resources
