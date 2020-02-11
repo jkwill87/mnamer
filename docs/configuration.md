@@ -4,41 +4,42 @@
 
 mnamer attempts to load _preferences_ from a **.mnamer-v2.json** file in the home directory, the current working directory, and then in each directory up the drive towards the drive root.
 
-| Preference | Arguments | Description |
-| :--- | :--- | :--- |
-| -b, --batch |  | batch mode; disable interactive prompts |
-| -l, --lower |  | rename files using lowercase characters only |
-| -r, --recurse |  | search for files in nested directories |
-| -s, --scene |  | scene mode; replace non ascii-alphanumerics with `.` |
-| -v, --verbose |  | increase output verbosity |
-| --hits | number | limit the maximum number of hits for each query |
-| --ignore | pattern | ignore files including these words \(regex\) |
-| --mask | extension\(s\) | only process files with given extensions |
-| --nocache |  | disable and clear result cache |
-| --noguess |  | disable best guess fallback; e.g. when no matches, network down |
-| --nostyle |  | disable colours and uses ASCII characters for prompts |
-| --movie-api | **`tmdb`** or `omdb` | set movie api provider |
-| --movie-directory | path | set movie relocation directory |
-| --movie-format | format | set movie renaming format |
-| --episode-api | **`tvmaze`** or `tvdb` | set episode api provider |
-| --episode-directory | path | set episode relocation directory |
-| --episode-format | format | set episode renaming format |
+| Preference          | Arguments              | Description                                                     |
+| :------------------ | :--------------------- | :-------------------------------------------------------------- |
+| -b, --batch         |                        | batch mode; disable interactive prompts                         |
+| -l, --lower         |                        | rename files using lowercase characters only                    |
+| -r, --recurse       |                        | search for files in nested directories                          |
+| -s, --scene         |                        | scene mode; replace non ascii-alphanumerics with `.`            |
+| -v, --verbose       |                        | increase output verbosity                                       |
+| --hits              | number                 | limit the maximum number of hits for each query                 |
+| --ignore            | pattern                | ignore files including these words \(regex\)                    |
+| --mask              | extension\(s\)         | only process files with given extensions                        |
+| --nocache           |                        | disable and clear result cache                                  |
+| --noguess           |                        | disable best guess fallback; e.g. when no matches, network down |
+| --noreplace         |                        | prevent relocation if it would overwrite a file                 |
+| --nostyle           |                        | disable colours and uses ASCII characters for prompts           |
+| --movie-api         | **`tmdb`** or `omdb`   | set movie api provider                                          |
+| --movie-directory   | path                   | set movie relocation directory                                  |
+| --movie-format      | format                 | set movie renaming format                                       |
+| --episode-api       | **`tvmaze`** or `tvdb` | set episode api provider                                        |
+| --episode-directory | path                   | set episode relocation directory                                |
+| --episode-format    | format                 | set episode renaming format                                     |
 
 ## Directives
 
 Whereas preferences configure how mnamer works, _directives_ are one-off parameters that are used to perform secondary tasks like exporting the current option set to a file.
 
-| Directive | Arguments | Description |
-| :--- | :--- | :--- |
-| -V, --version |  | display the running mnamer version number |
-| --config-dump |  | prints config JSON to stdout then exits |
-| --config-ignore |  | skips loading config file for session |
-| --id-imdb | id | specify an IMDb movie id override |
-| --id-tmdb | id | specify a TMDb movie id override |
-| --id-tvdb | id | specify a TVDb series id override |
-| --id-tvmaze | id | specify a TvMaze series id override |
-| --media | `movie` or `episode` | override media detection |
-| --test |  | mocks the renaming and moving of files |
+| Directive       | Arguments            | Description                               |
+| :-------------- | :------------------- | :---------------------------------------- |
+| -V, --version   |                      | display the running mnamer version number |
+| --config-dump   |                      | prints config JSON to stdout then exits   |
+| --config-ignore |                      | skips loading config file for session     |
+| --id-imdb       | id                   | specify an IMDb movie id override         |
+| --id-tmdb       | id                   | specify a TMDb movie id override          |
+| --id-tvdb       | id                   | specify a TVDb series id override         |
+| --id-tvmaze     | id                   | specify a TvMaze series id override       |
+| --media         | `movie` or `episode` | override media detection                  |
+| --test          |                      | mocks the renaming and moving of files    |
 
 ### Saving Preferences
 
@@ -62,11 +63,8 @@ Take care not to write to a location that mnamer reads from because the stream w
 When using `--id` to specify a movie or series id you can can use the following sources for each provider:
 
 | Provider | Accepted IDs |
-| :--- | :--- |
-| OMDb | IMDb |
-| TMDb | TMDb, IMDb |
-| TVDb | TVDb, IMDb |
-| TVMaze | TVMaze, TVDb |
-
-
-
+| :------- | :----------- |
+| OMDb     | IMDb         |
+| TMDb     | TMDb, IMDb   |
+| TVDb     | TVDb, IMDb   |
+| TVMaze   | TVMaze, TVDb |
