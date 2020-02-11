@@ -123,6 +123,16 @@ class Settings:
             help="--noguess: disable best guess; e.g. when no matches or network down",
         )(),
     )
+    no_replace: bool = dataclasses.field(
+        default=False,
+        metadata=ArgSpec(
+            action="store_true",
+            dest="no_replace",
+            flags=["--noreplace", "--no_replace", "--no-replace"],
+            group=SettingsType.PARAMETER,
+            help="--noreplace: prevent relocation if it would overwrite a file",
+        )(),
+    )
     no_style: bool = dataclasses.field(
         default=False,
         metadata=ArgSpec(

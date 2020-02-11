@@ -37,6 +37,7 @@ DEFAULT_SETTINGS = {
     "movie_format": "{name} ({year}){extension}",
     "no_cache": False,
     "no_guess": False,
+    "no_replace": False,
     "no_style": False,
     "recurse": False,
     "replacements": {"&": "and", ":": "", ";": ",", "@": "at"},
