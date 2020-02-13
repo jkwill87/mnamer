@@ -105,7 +105,7 @@ class Metadata:
     def _format_repl(self, mobj):
         format_string, key = mobj.groups()
         value = _MetaFormatter().vformat(format_string, None, self.as_dict)
-        if key not in {"quality", "group", "extension"}:
+        if key in {"name", "series", "synopsis", "title"}:
             value = str_title_case(value)
         return value
 
