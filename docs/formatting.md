@@ -33,6 +33,17 @@ In all cases whitespace and punctuation are trimmed and collapsed. Also worth no
 | date    | episode's airdate                                     | Episode    |
 | quality | a combination of parsed audio-visual quality metadata | Any        |
 
+| Field     | Provider |
+| :-------- | :------- |
+| id_imdb   | OMDb     |
+| id_tmdb   | TMDb     |
+| id_tvmaze | TvMaze   |
+| id_tvdb   | TVDb     |
+
+{% hint style="info" %}
+Use the `movie-api` and `episode-api` settings to swtich providers.
+{% endhint %}
+
 ## Examples
 
 ### 00x00 Television Format
