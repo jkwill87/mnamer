@@ -184,7 +184,7 @@ class Tmdb(Provider):
                     if year_from <= meta.year <= year_to:
                         yield meta
                         found = True
-                except (AttributeError, TypeError, ValueError):
+                except (AttributeError, KeyError, TypeError, ValueError):
                     continue
             if page == response["total_pages"]:
                 break
@@ -270,7 +270,7 @@ class Tvdb(Provider):
                         title=entry["episodeName"].split(";", 1)[0],
                     )
                     found = True
-                except (AttributeError, ValueError):
+                except (AttributeError, KeyError, ValueError):
                     continue
             if page == episode_data["links"]["last"]:
                 break
