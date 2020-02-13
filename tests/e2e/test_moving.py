@@ -74,3 +74,25 @@ def test_multiple_nested_directories(e2e_run: Callable):
     )
     assert result.code == 0
     assert "/1/2/3/Teenage Mutant Ninja Turtles (1990).mkv" in result.out
+
+
+def test_format_id__imdb(e2e_run: Callable):
+    result = e2e_run(
+        "--batch",
+        "--movie-api=omdb",
+        "--movie-format='{name} ({id_imdb}).{extension}'",
+        "aladdin.1992.avi",
+    )
+    assert result.code == 0
+    assert "Aladdin (tt0103639).avi" in result.out
+
+
+def test_format_id__tvdb(e2e_run: Callable):
+    result = e2e_run(
+        "--batch",
+        "--episode-api=tvdb",
+        "--episode-format='{id_tvdb}.{season}x{episode}.{extension}'",
+        "archer.2009.s10e07.webrip.x264-lucidtv.mp4",
+    )
+    assert result.code == 0
+    assert "110381.10x7" in result.out
