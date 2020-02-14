@@ -4,7 +4,7 @@ from setuptools import setup
 
 from mnamer.__version__ import VERSION
 
-with open("docs/README.md", "r") as fp:
+with open("readme.md", "r") as fp:
     LONG_DESCRIPTION = fp.read()
 
 with open("requirements.txt", "r") as fp:
