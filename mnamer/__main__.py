@@ -122,7 +122,7 @@ def run():
             else:
                 tty.msg("results")
                 match = tty.prompt(matches)
-        except (MnamerSkipException, KeyboardInterrupt):
+        except MnamerSkipException:
             tty.msg("skipping (user request)", MessageType.ALERT)
             continue
         except MnamerAbortException:
