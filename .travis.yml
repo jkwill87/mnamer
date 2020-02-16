@@ -8,3 +8,10 @@ os: linux
 script: python -m pytest --tb=short --durations=5 --cov-report=term --cov=mnamer
 after_success:
   - codecov
+deploy:
+  provider: pypi
+  user: __token__
+  password:
+    secure: ogeVf1Ck881sgLVQQbFaBzOXbLwXIOrFGCZearaR6SDz41Qvjoa0j0POrBTIIyJQdTnpCpJaJrb0ZtaRHHmnNxQIeY62tddKr5X92MyDeahxuzGSPagDcAkkymKQqu0AIRnLZyEYp+gyL2HGfCsNxrEqgiIvokT5wme4TOovt1HBguIwmSlMALM9BY8yhKy/gJlUfrbkZFUG2U7TfTT8xh6o18kCVrz7cr7mq1aBWHE+9YuJBG1tprqAqtKwyj/wmh9NfTslv5bAKC96nVhC5ecgHz1/dqc7yR12STyQ1V1I3Xgc115YWaHRvGpNNZb8V/zyexZ8Culv/KJX98NOfojZPcvYB2X3j/2e4UfN8fWrOU2ELCXA6C8AkGeKuOxD4LWQlgK0GtHMBzqsvDMKTMhAAETC6borTkF28CJxJU92SCAqidZpDXHl2M1eOxdD/FfIMOVd3pr9uY7+1JusbZ21HTI0vrpgk1DtvVrGoVjngyADQENa7moOiUhLqk2u38VLJb+CnLZz+cfQHQP45ozcfZPxYaHlGdHifbw24T8QTiayOPX8RIFvnpjrQgseJ4C5mlhmecb9vlluZrUWApM7d5ETrFbJukSllZArOLlE//S2L9yUAxe6nljs9smHe37EuCDoSaYGQ2aW8TPlKrrTrAMsIr1SIe6sZxbldw4=
+  on:
+    tags: true
