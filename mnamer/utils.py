@@ -18,14 +18,10 @@ from requests.adapters import HTTPAdapter
 from mnamer import CURRENT_YEAR
 
 __all__ = [
-    "clear_cache",
     "clean_dict",
-    "parse_date",
+    "clear_cache",
     "crawl_in",
     "crawl_out",
-    "filename_replace",
-    "filename_sanitize",
-    "filename_scenify",
     "filter_blacklist",
     "filter_extensions",
     "findall",
@@ -35,17 +31,16 @@ __all__ = [
     "json_dumps",
     "normalize_extension",
     "normalize_extensions",
+    "parse_date",
     "request_json",
     "str_fix_padding",
+    "str_replace",
+    "str_sanitize",
+    "str_scenify",
     "str_title_case",
     "year_parse",
     "year_range_parse",
 ]
-
-
-def clear_cache():
-    """Clears requests-cache cache."""
-    get_session().cache.clear()
 
 
 def clean_dict(target_dict: Dict[Any, Any], whitelist=None) -> Dict[Any, Any]:
@@ -58,15 +53,9 @@ def clean_dict(target_dict: Dict[Any, Any], whitelist=None) -> Dict[Any, Any]:
     }
 
 
-def parse_date(value: Union[str, date, datetime]) -> date:
-    """Converts an ambiguously formatted date type into a date object."""
-    if isinstance(value, str):
-        value = value.replace("/", "-")
-        value = value.replace(".", "-")
-        value = datetime.strptime(value, "%Y-%m-%d")
-    if isinstance(value, datetime):
-        value = value.date()
-    return value
+def clear_cache():
+    """Clears requests-cache cache."""
+    get_session().cache.clear()
 
 
 def crawl_in(file_paths: List[Path], recurse: bool = False) -> List[Path]:
@@ -99,33 +88,6 @@ def crawl_out(filename: str) -> Optional[Path]:
         working_dir = parent_dir
     target = Path.home() / filename
     return target if target.exists() else None
-
-
-def filename_replace(filename: str, replacements: Dict[str, str]) -> str:
-    """Replaces keys in replacements dict with their values."""
-    base, ext = splitext(filename)
-    for word, replacement in replacements.items():
-        if word in filename:
-            base = re.sub(rf"{word}\b", replacement, base, flags=re.IGNORECASE)
-    return base + ext
-
-
-def filename_sanitize(filename: str) -> str:
-    """Removes illegal filename characters and condenses whitespace."""
-    base, ext = splitext(filename)
-    base = re.sub(r"\s+", " ", base)
-    base = re.sub(r'[<>:"|?*&%=+@#`^]', "", base)
-    return base.strip("-., ") + ext
-
-
-def filename_scenify(filename: str) -> str:
-    """Replaces non ascii-alphanumerics with dots."""
-    filename = normalize("NFKD", filename)
-    filename.encode("ascii", "ignore")
-    filename = re.sub(r"\s+", ".", filename)
-    filename = re.sub(r"[^.\d\w/]", "", filename)
-    filename = re.sub(r"\.+", ".", filename)
-    return filename.lower().strip(".")
 
 
 def filter_blacklist(paths: List[Path], blacklist: List[str]) -> List[Path]:
@@ -192,7 +154,7 @@ def get_session() -> requests_cache.CachedSession:
     return get_session.session
 
 
-def json_dumps(d: Dict[str, Any]) -> Dict[str, Any]:
+def json_dumps(d: Dict[str, Any]) -> str:
     """A wrapper for json.dumps."""
     return json.dumps(
         {k: getattr(v, "value", v) for k, v in d.items()},
@@ -216,6 +178,17 @@ def normalize_extension(extension: str) -> str:
 def normalize_extensions(extension_list: List[str]) -> List[str]:
     """For a list of extensions ensures that all extensions begin with a dot."""
     return [normalize_extension(extension) for extension in extension_list]
+
+
+def parse_date(value: Union[str, date, datetime]) -> date:
+    """Converts an ambiguously formatted date type into a date object."""
+    if isinstance(value, str):
+        value = value.replace("/", "-")
+        value = value.replace(".", "-")
+        value = datetime.strptime(value, "%Y-%m-%d")
+    if isinstance(value, datetime):
+        value = value.date()
+    return value
 
 
 def request_json(
@@ -286,6 +259,33 @@ def str_fix_padding(s: str) -> str:
     s = s.strip("-")
     len_after = len(s)
     return s if len_before == len_after else str_fix_padding(s)
+
+
+def str_replace(filename: str, replacements: Dict[str, str]) -> str:
+    """Replaces keys in replacements dict with their values."""
+    base, ext = splitext(filename)
+    for word, replacement in replacements.items():
+        if word in filename:
+            base = re.sub(rf"{word}\b", replacement, base, flags=re.IGNORECASE)
+    return base + ext
+
+
+def str_sanitize(filename: str) -> str:
+    """Removes illegal filename characters and condenses whitespace."""
+    base, ext = splitext(filename)
+    base = re.sub(r"\s+", " ", base)
+    base = re.sub(r'[<>:"|?*&%=+@#`^]', "", base)
+    return base.strip("-., ") + ext
+
+
+def str_scenify(filename: str) -> str:
+    """Replaces non ascii-alphanumerics with dots."""
+    filename = normalize("NFKD", filename)
+    filename.encode("ascii", "ignore")
+    filename = re.sub(r"\s+", ".", filename)
+    filename = re.sub(r"[^.\d\w/]", "", filename)
+    filename = re.sub(r"\.+", ".", filename)
+    return filename.lower().strip(".")
 
 
 def str_title_case(s: str) -> str:

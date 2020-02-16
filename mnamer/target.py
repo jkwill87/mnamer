@@ -10,9 +10,9 @@ from mnamer.settings import Settings
 from mnamer.types import MediaType, ProviderType
 from mnamer.utils import (
     crawl_in,
-    filename_replace,
-    filename_sanitize,
-    filename_scenify,
+    str_replace,
+    str_sanitize,
+    str_scenify,
     filter_blacklist,
     filter_extensions,
 )
@@ -99,17 +99,17 @@ class Target:
         """
         if self.directory:
             dir_head = format(self.metadata, str(self.directory))
-            dir_head = filename_sanitize(dir_head)
+            dir_head = str_sanitize(dir_head)
             dir_head = Path(dir_head)
         else:
             dir_head = self.source.parent
         file_path = format(self.metadata, self._formatting)
-        file_path = filename_sanitize(file_path)
+        file_path = str_sanitize(file_path)
         file_path = Path(file_path)
         dir_tail, filename = path.split(file_path)
         directory = Path(dir_head, dir_tail)
         if self._settings.scene:
-            filename = filename_scenify(filename)
+            filename = str_scenify(filename)
         if self._settings.lower:
             filename = filename.lower()
         return Path(directory, filename).resolve()

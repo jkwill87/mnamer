@@ -174,78 +174,74 @@ def test_test_crawl_out__no_match():
     assert crawl_out(path) is None
 
 
-@pytest.mark.skip
-def test_filename_replace__no_change():
+def test_str_replace__no_change():
     replacements = {}
     expected = FILENAME_REPLACEMENT
-    actual = filename_replace(FILENAME_REPLACEMENT, replacements)
+    actual = str_replace(FILENAME_REPLACEMENT, replacements)
     assert actual == expected
 
 
-@pytest.mark.skip
-def test_filename_replace__single_replacement():
+def test_str_replace__single_replacement():
     replacements = {"brown": "red"}
     expected = "The quick red fox jumps over the lazy dog"
-    actual = filename_replace(FILENAME_REPLACEMENT, replacements)
+    actual = str_replace(FILENAME_REPLACEMENT, replacements)
     assert actual == expected
 
 
-@pytest.mark.skip
-def test_filename_replace__multiple_replacement():
+def test_str_replace__multiple_replacement():
     replacements = {"the": "a", "lazy": "misunderstood", "dog": "cat"}
     expected = "a quick brown fox jumps over a misunderstood cat"
-    actual = filename_replace(FILENAME_REPLACEMENT, replacements)
+    actual = str_replace(FILENAME_REPLACEMENT, replacements)
     assert actual == expected
 
 
-@pytest.mark.skip
-def test_filename_replace__only_replaces_whole_words():
+def test_str_replace__only_replaces_whole_words():
     filename = "the !the the theater the"
     replacements = {"the": "x"}
     expected = "x !x x theater x"
-    actual = filename_replace(filename, replacements)
+    actual = str_replace(filename, replacements)
     assert actual == expected
 
 
-def test_filename_sanitize__condense_whitespace():
+def test_str_sanitize__condense_whitespace():
     filename = "fix  these    spaces\tplease "
     expected = "fix these spaces please"
-    actual = filename_sanitize(filename)
+    actual = str_sanitize(filename)
     assert actual == expected
 
 
-def test_filename_sanitize__remove_illegal_chars():
+def test_str_sanitize__remove_illegal_chars():
     filename = "<:*sup*:>"
     expected = "sup"
-    actual = filename_sanitize(filename)
+    actual = str_sanitize(filename)
     assert actual == expected
 
 
-def test_filename_scenify__dot_concat():
+def test_str_scenify__dot_concat():
     filename = "some  file..name"
     expected = "some.file.name"
-    actual = filename_scenify(filename)
+    actual = str_scenify(filename)
     assert actual == expected
 
 
-def test_filename_scenify__remove_non_alpanum_chars():
+def test_str_scenify__remove_non_alpanum_chars():
     filename = "who let the dogs out!? (1999)"
     expected = "who.let.the.dogs.out.1999"
-    actual = filename_scenify(filename)
+    actual = str_scenify(filename)
     assert actual == expected
 
 
-def test_filename_scenify__spaces_to_dots():
+def test_str_scenify__spaces_to_dots():
     filename = " Space Jam "
     expected = "space.jam"
-    actual = filename_scenify(filename)
+    actual = str_scenify(filename)
     assert actual == expected
 
 
-def test_filename_scenify__utf8_to_ascii():
+def test_str_scenify__utf8_to_ascii():
     filename = "Amélie"
     expected = "amelie"
-    actual = filename_scenify(filename)
+    actual = str_scenify(filename)
     assert actual == expected
 
 
