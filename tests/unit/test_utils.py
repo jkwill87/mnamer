@@ -174,6 +174,7 @@ def test_test_crawl_out__no_match():
     assert crawl_out(path) is None
 
 
+@pytest.mark.skip
 def test_filename_replace__no_change():
     replacements = {}
     expected = FILENAME_REPLACEMENT
@@ -181,6 +182,7 @@ def test_filename_replace__no_change():
     assert actual == expected
 
 
+@pytest.mark.skip
 def test_filename_replace__single_replacement():
     replacements = {"brown": "red"}
     expected = "The quick red fox jumps over the lazy dog"
@@ -188,6 +190,7 @@ def test_filename_replace__single_replacement():
     assert actual == expected
 
 
+@pytest.mark.skip
 def test_filename_replace__multiple_replacement():
     replacements = {"the": "a", "lazy": "misunderstood", "dog": "cat"}
     expected = "a quick brown fox jumps over a misunderstood cat"
@@ -195,6 +198,7 @@ def test_filename_replace__multiple_replacement():
     assert actual == expected
 
 
+@pytest.mark.skip
 def test_filename_replace__only_replaces_whole_words():
     filename = "the !the the theater the"
     replacements = {"the": "x"}

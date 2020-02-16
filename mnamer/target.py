@@ -105,10 +105,6 @@ class Target:
             dir_head = self.source.parent
         if self._formatting:
             file_path = format(self.metadata, self._formatting)
-            if self._settings.replacements:
-                file_path = filename_replace(
-                    file_path, self._settings.replacements
-                )
             file_path = filename_sanitize(file_path)
             file_path = Path(file_path)
         else:

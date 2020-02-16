@@ -12,7 +12,7 @@ from mnamer.utils import crawl_out, normalize_extensions
 
 __all__ = ["Settings"]
 
-DEPRECATED = {"no_replace"}
+DEPRECATED = {"no_replace", "replacements"}
 
 
 @dataclasses.dataclass
@@ -306,7 +306,11 @@ class Settings:
     api_key_tvmaze: str = dataclasses.field(
         default=None, metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
     )
-    replacements: Dict[str, str] = dataclasses.field(
+    replace_before: Dict[str, str] = dataclasses.field(
+        default_factory=lambda: {},
+        metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
+    )
+    replace_after: Dict[str, str] = dataclasses.field(
         default_factory=lambda: {"&": "and", "@": "at", ":": "", ";": ","},
         metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
     )
