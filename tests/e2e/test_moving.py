@@ -17,11 +17,22 @@ def test_batch(e2e_run: Callable):
     assert "11 out of 12 files processed successfully" in result.out
 
 
+def test_lower(e2e_run: Callable):
+    result = e2e_run("--batch", "--lower", "aladdin.2019.avi")
+    assert result.code == 0
+    assert "aladdin (2019).avi" in result.out
+
+
+def test_scene(e2e_run: Callable):
+    result = e2e_run("--batch", "--scene", "aladdin.2019.avi")
+    assert result.code == 0
+    assert "aladdin.2019.avi" in result.out
+
+
 def test_no_guess(e2e_run: Callable):
     result = e2e_run("--noguess", "--batch", ".")
     assert result.code == 0
     assert result.out.count("skipping (--no-guess)") == 3
-    assert "9 out of 12 files processed successfully" in result.out
 
 
 def test_no_overwrite(e2e_run: Callable):
