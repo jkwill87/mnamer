@@ -35,10 +35,10 @@ PARAMETERS:
   --hits=<NUMBER>: limit the maximum number of hits for each query
   --ignore=<PATTERN,...>: ignore files matching these regular expressions
   --mask=<EXTENSION,...>: only process given file types
-  --nocache: disable and clear request cache
-  --noguess: disable best guess; e.g. when no matches or network down
-  --noreplace: prevent relocation if it would overwrite a file
-  --nostyle: print to stdout without using colour or unicode chars
+  --no-cache: disable and clear request cache
+  --no-guess: disable best guess; e.g. when no matches or network down
+  --no-overwrite: prevent relocation if it would overwrite a file
+  --no-style: print to stdout without using colour or unicode chars
   --movie-api={*tmdb,omdb}: set movie api provider
   --movie-directory: set movie relocation directory
   --movie-format: set movie renaming format specification

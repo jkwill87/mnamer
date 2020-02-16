@@ -112,7 +112,7 @@ def run():
         except MnamerNetworkException:
             tty.msg("network Error", MessageType.ALERT)
         if not matches and settings.no_guess:
-            tty.msg("skipping (--noguess)", MessageType.ALERT)
+            tty.msg("skipping (--no-guess)", MessageType.ALERT)
             continue
         try:
             if settings.batch:
@@ -137,9 +137,9 @@ def run():
                 MessageType.ALERT,
             )
             continue
-        if settings.no_replace and target.destination.exists():
+        if settings.no_overwrite and target.destination.exists():
             tty.msg(
-                f"skipping (--noreplace)", MessageType.ALERT,
+                f"skipping (--no-overwrite)", MessageType.ALERT,
             )
             continue
 

@@ -17,18 +17,18 @@ def test_batch(e2e_run: Callable):
     assert "11 out of 12 files processed successfully" in result.out
 
 
-def test_noguess(e2e_run: Callable):
+def test_no_guess(e2e_run: Callable):
     result = e2e_run("--noguess", "--batch", ".")
     assert result.code == 0
-    assert result.out.count("skipping (--noguess)") == 3
+    assert result.out.count("skipping (--no-guess)") == 3
     assert "9 out of 12 files processed successfully" in result.out
 
 
-def test_noreplace(e2e_run: Callable):
+def test_no_overwrite(e2e_run: Callable):
     open("Aladdin (1992).avi", "w").close()
-    result = e2e_run("--noreplace", "--batch", "aladdin.1992.avi")
+    result = e2e_run("--no-overwrite", "--batch", "aladdin.1992.avi")
     assert result.code == 0
-    assert result.out.count("skipping (--noreplace)") == 1
+    assert result.out.count("skipping (--no-overwrite)") == 1
     assert "0 out of 1 files processed successfully" in result.out
 
 

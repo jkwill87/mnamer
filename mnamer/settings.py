@@ -12,6 +12,8 @@ from mnamer.utils import crawl_out, normalize_extensions
 
 __all__ = ["Settings"]
 
+DEPRECATED = {"no_replace"}
+
 
 @dataclasses.dataclass
 class Settings:
@@ -108,9 +110,9 @@ class Settings:
         metadata=ArgSpec(
             action="store_true",
             dest="no_cache",
-            flags=["--nocache", "--no_cache", "--no-cache"],
+            flags=["--no_cache", "--no-cache", "--nocache"],
             group=SettingsType.PARAMETER,
-            help="--nocache: disable and clear request cache",
+            help="--no-cache: disable and clear request cache",
         )(),
     )
     no_guess: bool = dataclasses.field(
@@ -118,19 +120,19 @@ class Settings:
         metadata=ArgSpec(
             action="store_true",
             dest="no_guess",
-            flags=["--noguess", "--no_guess", "--no-guess"],
+            flags=["--no_guess", "--no-guess", "--noguess"],
             group=SettingsType.PARAMETER,
-            help="--noguess: disable best guess; e.g. when no matches or network down",
+            help="--no-guess: disable best guess; e.g. when no matches or network down",
         )(),
     )
-    no_replace: bool = dataclasses.field(
+    no_overwrite: bool = dataclasses.field(
         default=False,
         metadata=ArgSpec(
             action="store_true",
-            dest="no_replace",
-            flags=["--noreplace", "--no_replace", "--no-replace"],
+            dest="no_overwrite",
+            flags=["--no_overwrite", "--no-overwrite", "--nooverwrite"],
             group=SettingsType.PARAMETER,
-            help="--noreplace: prevent relocation if it would overwrite a file",
+            help="--no-overwrite: prevent relocation if it would overwrite a file",
         )(),
     )
     no_style: bool = dataclasses.field(
@@ -138,9 +140,9 @@ class Settings:
         metadata=ArgSpec(
             action="store_true",
             dest="no_style",
-            flags=["--nostyle", "--no_style", "--no-style"],
+            flags=["--no_style", "--no-style", "--nostyle"],
             group=SettingsType.PARAMETER,
-            help="--nostyle: print to stdout without using colour or unicode chars",
+            help="--no-style: print to stdout without using colour or unicode chars",
         )(),
     )
     movie_api: Union[ProviderType, str] = dataclasses.field(
@@ -148,7 +150,7 @@ class Settings:
         metadata=ArgSpec(
             choices=[ProviderType.TMDB.value, ProviderType.OMDB.value],
             dest="movie_api",
-            flags=["--movie_api", "--movie-api"],
+            flags=["--movie_api", "--movie-api", "--movieapi"],
             group=SettingsType.PARAMETER,
             help="--movie-api={*tmdb,omdb}: set movie api provider",
         )(),
@@ -157,7 +159,11 @@ class Settings:
         default=None,
         metadata=ArgSpec(
             dest="movie_directory",
-            flags=["--movie_directory", "--movie-directory"],
+            flags=[
+                "--movie_directory",
+                "--movie-directory",
+                "--moviedirectory",
+            ],
             group=SettingsType.PARAMETER,
             help="--movie-directory: set movie relocation directory",
         )(),
@@ -166,7 +172,7 @@ class Settings:
         default="{name} ({year}){extension}",
         metadata=ArgSpec(
             dest="movie_format",
-            flags=["--movie_format", "--movie-format"],
+            flags=["--movie_format", "--movie-format", "--movieformat"],
             group=SettingsType.PARAMETER,
             help="--movie-format: set movie renaming format specification",
         )(),
@@ -176,7 +182,7 @@ class Settings:
         metadata=ArgSpec(
             choices=[ProviderType.TVDB.value, ProviderType.TVMAZE.value],
             dest="episode_api",
-            flags=["--episode_api", "--episode-api"],
+            flags=["--episode_api", "--episode-api", "--episodeapi"],
             group=SettingsType.PARAMETER,
             help="--episode-api={tvdb,*tvmaze}: set episode api provider",
         )(),
@@ -185,7 +191,11 @@ class Settings:
         default=None,
         metadata=ArgSpec(
             dest="episode_directory",
-            flags=["--episode_directory", "--episode-directory"],
+            flags=[
+                "--episode_directory",
+                "--episode-directory",
+                "--episodedirectory",
+            ],
             group=SettingsType.PARAMETER,
             help="--episode-directory: set episode relocation directory",
         )(),
@@ -194,7 +204,7 @@ class Settings:
         default="{series} - S{season:02}E{episode:02} - {title}{extension}",
         metadata=ArgSpec(
             dest="episode_format",
-            flags=["--episode_format", "--episode-format"],
+            flags=["--episode_format", "--episode-format", "--episodeformat"],
             group=SettingsType.PARAMETER,
             help="--episode-format: set episode renaming format specification",
         )(),
@@ -216,7 +226,7 @@ class Settings:
         metadata=ArgSpec(
             action="store_true",
             dest="config_dump",
-            flags=["--config_dump", "--config-dump"],
+            flags=["--config_dump", "--config-dump", "--configdump"],
             group=SettingsType.DIRECTIVE,
             help="--config-dump: prints current config JSON to stdout then exits",
         )(),
@@ -226,7 +236,7 @@ class Settings:
         metadata=ArgSpec(
             action="store_true",
             dest="config_ignore",
-            flags=["--config-ignore", "--config_ignore"],
+            flags=["--config_ignore", "--config-ignore", "--configignore"],
             group=SettingsType.DIRECTIVE,
             help="--config-ignore: skips loading config file for session",
         )(),
@@ -234,7 +244,7 @@ class Settings:
     id_imdb: str = dataclasses.field(
         default=None,
         metadata=ArgSpec(
-            flags=["--id-imdb", "--id_imdb"],
+            flags=["--id_imdb", "--id-imdb", "--idimdb"],
             group=SettingsType.DIRECTIVE,
             help="--id-imdb=<ID>: specify an IMDb movie id override",
         )(),
@@ -242,7 +252,7 @@ class Settings:
     id_tmdb: str = dataclasses.field(
         default=None,
         metadata=ArgSpec(
-            flags=["--id-tmdb", "--id_tmdb"],
+            flags=["--id_tmdb", "--id-tmdb", "--idtmdb"],
             group=SettingsType.DIRECTIVE,
             help="--id-tmdb=<ID>: specify a TMDb movie id override",
         )(),
@@ -250,7 +260,7 @@ class Settings:
     id_tvdb: str = dataclasses.field(
         default=None,
         metadata=ArgSpec(
-            flags=["--id-tvdb", "--id_tvdb"],
+            flags=["--id_tvdb", "--id-tvdb", "--idtvdb"],
             group=SettingsType.DIRECTIVE,
             help="--id-tvdb=<ID>: specify a TVDb series id override",
         )(),
@@ -258,7 +268,7 @@ class Settings:
     id_tvmaze: str = dataclasses.field(
         default=None,
         metadata=ArgSpec(
-            flags=["--id-tvmaze", "--id_tvmaze"],
+            flags=["--id_tvmaze", "--id-tvmaze", "--idtvmaze"],
             group=SettingsType.DIRECTIVE,
             help="--id-tvmaze=<ID>: specify a TvMaze series id override",
         )(),
@@ -407,7 +417,7 @@ class Settings:
         with open(path, mode="r") as file_pointer:
             data = json.loads(file_pointer.read())
         for key in data:
-            if key not in self._attribute_metadata():
+            if key not in self._attribute_metadata() and key not in DEPRECATED:
                 raise MnamerException(f"invalid setting: {key}")
         self._config_data = data
 
