@@ -266,7 +266,7 @@ def str_replace(filename: str, replacements: Dict[str, str]) -> str:
     base, ext = splitext(filename)
     for word, replacement in replacements.items():
         if word in filename:
-            base = re.sub(rf"{word}\b", replacement, base, flags=re.IGNORECASE)
+            base = re.sub(word, replacement, base, flags=re.IGNORECASE)
     return base + ext
 
 

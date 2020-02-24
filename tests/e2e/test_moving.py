@@ -107,3 +107,9 @@ def test_format_id__tvdb(e2e_run: Callable):
     )
     assert result.code == 0
     assert "110381.10x7" in result.out
+
+
+def test_replace_after(e2e_run: Callable):
+    result = e2e_run("--batch", "Pride & Prejudice 2005.ts")
+    assert result.code == 0
+    assert "Pride and Prejudice (2005).ts" in result.out

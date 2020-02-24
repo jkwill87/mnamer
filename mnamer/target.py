@@ -104,14 +104,15 @@ class Target:
         else:
             dir_head = self.source.parent
         file_path = format(self.metadata, self._formatting)
-        file_path = str_sanitize(file_path)
         file_path = Path(file_path)
         dir_tail, filename = path.split(file_path)
-        directory = Path(dir_head, dir_tail)
+        filename = str_replace(filename, self._settings.replace_after)
         if self._settings.scene:
             filename = str_scenify(filename)
         if self._settings.lower:
             filename = filename.lower()
+        filename = str_sanitize(filename)
+        directory = Path(dir_head, dir_tail)
         return Path(directory, filename).resolve()
 
     def _override_metadata_ids(self, settings: Settings):
