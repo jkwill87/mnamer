@@ -90,6 +90,13 @@ def crawl_out(filename: str) -> Optional[Path]:
     return target if target.exists() else None
 
 
+def filename_replace(filename: str, replacements: Dict[str, str]) -> str:
+    """Replaces keys in replacements dict with their values."""
+    base, ext = splitext(filename)
+    base = str_replace(base, replacements)
+    return base + ext
+
+
 def filter_blacklist(paths: List[Path], blacklist: List[str]) -> List[Path]:
     """Filters (set difference) paths by a collection of regex pattens."""
     return [
@@ -261,13 +268,12 @@ def str_fix_padding(s: str) -> str:
     return s if len_before == len_after else str_fix_padding(s)
 
 
-def str_replace(filename: str, replacements: Dict[str, str]) -> str:
+def str_replace(s: str, replacements: Dict[str, str]) -> str:
     """Replaces keys in replacements dict with their values."""
-    base, ext = splitext(filename)
     for word, replacement in replacements.items():
-        if word in filename:
-            base = re.sub(word, replacement, base, flags=re.IGNORECASE)
-    return base + ext
+        if word in s:
+            s = re.sub(word, replacement, s, flags=re.IGNORECASE)
+    return s
 
 
 def str_sanitize(filename: str) -> str:

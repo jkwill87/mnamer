@@ -10,11 +10,12 @@ from mnamer.settings import Settings
 from mnamer.types import MediaType, ProviderType
 from mnamer.utils import (
     crawl_in,
+    filename_replace,
+    filter_blacklist,
+    filter_extensions,
     str_replace,
     str_sanitize,
     str_scenify,
-    filter_blacklist,
-    filter_extensions,
 )
 
 __all__ = ["Target"]
@@ -42,6 +43,7 @@ class Target:
         self.metadata = parse_metadata(
             file_path=file_path, media_hint=settings.media
         )
+        self._replace_before()
         self.provider_type = settings.api_for(self.metadata.media)
         self._override_metadata_ids(settings)
         self._register_provider()
@@ -106,7 +108,7 @@ class Target:
         file_path = format(self.metadata, self._formatting)
         file_path = Path(file_path)
         dir_tail, filename = path.split(file_path)
-        filename = str_replace(filename, self._settings.replace_after)
+        filename = filename_replace(filename, self._settings.replace_after)
         if self._settings.scene:
             filename = str_scenify(filename)
         if self._settings.lower:
@@ -132,6 +134,17 @@ class Target:
                 self.provider_type, self._settings
             )
         self._provider = self._providers[self.provider_type]
+
+    def _replace_before(self):
+        if not self._settings.replace_before:
+            return
+        for attr, value in vars(self.metadata).items():
+            if not isinstance(value, str):
+                continue
+            if attr.startswith("_"):
+                continue
+            value = str_replace(value, self._settings.replace_before)
+            setattr(self.metadata, attr, value)
 
     def query(self) -> List[Metadata]:
         """Queries the target's respective media provider for metadata."""
