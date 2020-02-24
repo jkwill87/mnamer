@@ -351,7 +351,6 @@ def str_title_case(s: str) -> str:
         "fbi",
         "ira",
         "jfk",
-        "la",
         "lol",
         "mlb",
         "mlk",
