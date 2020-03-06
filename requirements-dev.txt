@@ -3,6 +3,7 @@ codecov
 pylint
 pytest
 pytest-cov
+pytest-xdist
 twine
 vbump
 wheel

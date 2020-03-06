@@ -3,7 +3,7 @@ import json
 from os import environ
 from pathlib import Path
 from string import Template
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from mnamer.argument import ArgParser, ArgSpec
 from mnamer.exceptions import MnamerException
@@ -348,13 +348,13 @@ class Settings:
         }
 
     @classmethod
-    def _serializable_fields(cls):
-        return {
-            field.name
+    def _serializable_fields(cls) -> Tuple[str]:
+        return tuple(
+            str(field.name)
             for field in dataclasses.fields(cls)
             if field.metadata.get("group")
             in {SettingsType.PARAMETER, SettingsType.CONFIGURATION}
-        }
+        )
 
     def __setattr__(self, key: str, value: Any):
         converter = {
