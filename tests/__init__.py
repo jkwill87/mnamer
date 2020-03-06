@@ -135,6 +135,7 @@ TEST_FILES: Dict[str, Path] = {
         "archer.2009.s10e07.webrip.x264-lucidtv.mp4",
         "game.of.thrones.01x05-eztv.mp4",
         "homework.txt",
+        "kill.bill.2003.ts",
         "lost s01e01-02.mp4",
         "made up movie.mp4",
         "made up show s01e10.mkv",

@@ -129,6 +129,7 @@ def test_dir_crawl_in__files__flat():
         "avengers infinity war.wmv",
         "game.of.thrones.01x05-eztv.mp4",
         "homework.txt",
+        "kill.bill.2003.ts",
         "lost s01e01-02.mp4",
         "made up movie.mp4",
         "made up show s01e10.mkv",

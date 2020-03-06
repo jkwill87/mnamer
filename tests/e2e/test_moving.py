@@ -14,7 +14,7 @@ def test_complex_metadata(e2e_run: Callable):
 def test_batch(e2e_run: Callable):
     result = e2e_run("--batch", ".")
     assert result.code == 0
-    assert "12 out of 13 files processed successfully" in result.out
+    assert "13 out of 14 files processed successfully" in result.out
 
 
 def test_lower(e2e_run: Callable):
@@ -48,7 +48,7 @@ def test_ignore(e2e_run: Callable):
     assert result.code == 0
     assert ".mkv" not in result.out
     assert ".mp4" not in result.out
-    assert "3 out of 3 files processed successfully" in result.out
+    assert "4 out of 4 files processed successfully" in result.out
 
 
 def test_mask(e2e_run: Callable):
