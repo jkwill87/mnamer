@@ -1,5 +1,7 @@
 from typing import Callable
 
+import pytest
+
 
 def test_complex_metadata(e2e_run: Callable):
     result = e2e_run(
@@ -98,6 +100,7 @@ def test_format_id__imdb(e2e_run: Callable):
     assert "Aladdin (tt0103639).avi" in result.out
 
 
+@pytest.mark.xfail(strict=False)
 def test_format_id__tvdb(e2e_run: Callable):
     result = e2e_run(
         "--batch",

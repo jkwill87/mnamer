@@ -70,6 +70,7 @@ def test_id__tmdb(e2e_run: Callable):
     assert "Joker" in result.out
 
 
+@pytest.mark.xfail(strict=False)
 @pytest.mark.usefixtures("setup_test_path")
 def test_id__tvdb(e2e_run: Callable):
     result = e2e_run(

@@ -1,13 +1,23 @@
 language: python
+cache: pip
 python:
   - "3.6"
   - "3.8"
-install: pip install -U -r requirements-dev.txt
 dist: bionic
 os: linux
-script: python -m pytest --tb=short --durations=5 --cov-report=term --cov=mnamer
+
+install: pip install -Ur requirements-dev.txt
+
+script: >-
+  python -m pytest
+  --cov-report=term
+  --cov=mnamer
+  --ignore=tests/network/test_endpoints__tvdb.py
+  --ignore=tests/network/test_providers__tvdb.py
+
 after_success:
   - codecov
+
 deploy:
   provider: pypi
   user: __token__
