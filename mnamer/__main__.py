@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from mnamer import IS_DEBUG, SYSTEM, tty
+from mnamer import IS_DEBUG, SYSTEM, tty, CACHE_PATH
 from mnamer.__version__ import VERSION
 from mnamer.exceptions import (
     MnamerAbortException,

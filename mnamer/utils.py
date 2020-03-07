@@ -7,15 +7,13 @@ from os import walk
 from os.path import splitext
 from pathlib import Path
 from string import capwords
-from sys import version_info
 from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 from unicodedata import normalize
 
 import requests_cache
-from appdirs import user_cache_dir
 from requests.adapters import HTTPAdapter
 
-from mnamer import CURRENT_YEAR
+from mnamer import CACHE_PATH, CURRENT_YEAR
 
 __all__ = [
     "clean_dict",
@@ -148,12 +146,9 @@ def format_iter(body: list) -> str:
 
 def get_session() -> requests_cache.CachedSession:
     """Convenience function that returns request-cache session singleton."""
-    cache_path = Path(
-        user_cache_dir(), f"mnamer-py{version_info.major}.{version_info.minor}"
-    ).absolute()
     if not hasattr(get_session, "session"):
         get_session.session = requests_cache.CachedSession(
-            cache_name=str(cache_path), expire_after=518_400  # 6 days
+            cache_name=str(CACHE_PATH), expire_after=518_400  # 6 days
         )
         adapter = HTTPAdapter(max_retries=3)
         get_session.session.mount("http://", adapter)
