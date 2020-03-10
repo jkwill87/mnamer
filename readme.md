@@ -14,6 +14,10 @@ Currently it has integration support with [TVDb](https://thetvdb.com) and [TvMaz
 
 `$ pip3 install mnamer`
 
+## Run within Docker
+
+If you wish to run mnamer within a docker container check out [b3vis/mnamer](https://hub.docker.com/repository/docker/b3vis/mnamer)
+
 ## Usage
 
 ```
