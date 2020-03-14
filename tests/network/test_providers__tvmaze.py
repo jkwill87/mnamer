@@ -5,6 +5,12 @@ from mnamer.metadata import MetadataEpisode
 from mnamer.providers import TvMaze
 from tests import *
 
+pytestmark = [
+    pytest.mark.network,
+    pytest.mark.tvmaze,
+    pytest.mark.flaky(reruns=2),
+]
+
 
 @pytest.fixture(scope="session")
 def provider():

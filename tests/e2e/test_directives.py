@@ -8,6 +8,8 @@ from mnamer.__version__ import VERSION
 from mnamer.settings import Settings
 from tests import *
 
+pytestmark = [pytest.mark.e2e, pytest.mark.flaky(reruns=2)]
+
 
 @pytest.mark.parametrize("flag", ("-V", "--version"))
 def test_version(flag: str, e2e_run: Callable):
@@ -43,6 +45,7 @@ def test_directives__config_dump(
     assert actual == expected
 
 
+@pytest.mark.omdb
 @pytest.mark.usefixtures("setup_test_path")
 def test_id__omdb(e2e_run: Callable):
     result = e2e_run(
@@ -56,6 +59,7 @@ def test_id__omdb(e2e_run: Callable):
     assert "Shape of Water" in result.out
 
 
+@pytest.mark.tmdb
 @pytest.mark.usefixtures("setup_test_path")
 def test_id__tmdb(e2e_run: Callable):
     result = e2e_run(
@@ -70,7 +74,7 @@ def test_id__tmdb(e2e_run: Callable):
     assert "Joker" in result.out
 
 
-@pytest.mark.xfail(strict=False)
+@pytest.mark.tvdb
 @pytest.mark.usefixtures("setup_test_path")
 def test_id__tvdb(e2e_run: Callable):
     result = e2e_run(

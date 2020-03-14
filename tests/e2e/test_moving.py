@@ -2,6 +2,8 @@ from typing import Callable
 
 import pytest
 
+pytestmark = [pytest.mark.e2e, pytest.mark.flaky(reruns=2)]
+
 
 def test_complex_metadata(e2e_run: Callable):
     result = e2e_run(
@@ -89,9 +91,11 @@ def test_multiple_nested_directories(e2e_run: Callable):
     assert "/1/2/3/Teenage Mutant Ninja Turtles (1990).mkv" in result.out
 
 
-def test_format_id__imdb(e2e_run: Callable):
+@pytest.mark.omdb
+def test_format_id(e2e_run: Callable):
     result = e2e_run(
         "--batch",
+        "--media=movie",
         "--movie-api=omdb",
         "--movie-format='{name} ({id_imdb}).{extension}'",
         "aladdin.1992.avi",
@@ -100,7 +104,7 @@ def test_format_id__imdb(e2e_run: Callable):
     assert "Aladdin (tt0103639).avi" in result.out
 
 
-@pytest.mark.xfail(strict=False)
+@pytest.mark.tvdb
 def test_format_id__tvdb(e2e_run: Callable):
     result = e2e_run(
         "--batch",

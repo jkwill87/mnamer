@@ -12,6 +12,12 @@ from mnamer.endpoints import (
 from mnamer.exceptions import MnamerNotFoundException
 from tests import *
 
+pytestmark = [
+    pytest.mark.network,
+    pytest.mark.tvmaze,
+    pytest.mark.flaky(reruns=2),
+]
+
 META = EPISODE_META["The Walking Dead"]
 EXPECTED_SHOW_KEYS = [
     "_links",

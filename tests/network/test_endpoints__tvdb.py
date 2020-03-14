@@ -13,6 +13,12 @@ from mnamer.exceptions import MnamerException, MnamerNotFoundException
 from mnamer.providers import Tvdb
 from tests import *
 
+pytestmark = [
+    pytest.mark.network,
+    pytest.mark.tvdb,
+    pytest.mark.flaky(reruns=2),
+]
+
 EXPECTED_TOP_LEVEL_SHOW_KEYS = {
     "absoluteNumber",
     "airedEpisodeNumber",

@@ -10,6 +10,8 @@ from mnamer.types import MediaType
 from mnamer.utils import *
 from tests import *
 
+pytestmark = pytest.mark.local
+
 FILENAME_REPLACEMENT = "The quick brown fox jumps over the lazy dog"
 FILTER_FILENAMES = [path.absolute() for path in TEST_FILES.values()]
 

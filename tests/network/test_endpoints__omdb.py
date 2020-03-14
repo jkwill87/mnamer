@@ -7,6 +7,12 @@ from mnamer.exceptions import MnamerException, MnamerNotFoundException
 from mnamer.providers import Omdb
 from tests import *
 
+pytestmark = [
+    pytest.mark.network,
+    pytest.mark.omdb,
+    pytest.mark.flaky(reruns=2),
+]
+
 
 @patch("mnamer.utils.requests_cache.CachedSession.request")
 def test_omdb_title__title_id_xnor__title(mock_request):

@@ -11,6 +11,10 @@ from mnamer.__main__ import run
 from mnamer.target import Target
 from tests import *
 
+E2E_LOG = Path("../e2e.log").resolve()
+
+open(E2E_LOG, "w").close()
+
 
 @pytest.fixture(autouse=True)
 def reset_args():
@@ -35,7 +39,7 @@ def setup_test_path():
 
 
 @pytest.fixture
-def e2e_run(capsys, setup_test_path):
+def e2e_run(capsys, request, setup_test_path):
     """Runs main with provided arguments and returns stdout."""
 
     def fn(*args):
@@ -48,11 +52,13 @@ def e2e_run(capsys, setup_test_path):
             code = e.code
         else:
             code = 0
-
-        return E2EResult(
-            code,
-            strip_format(capsys.readouterr().out.strip())
-            + strip_format(capsys.readouterr().err.strip()),
-        )
+        out = strip_format(capsys.readouterr().out.strip())
+        out += strip_format(capsys.readouterr().err.strip())
+        with open(E2E_LOG, "a+") as fp:
+            fp.write("=" * 10 + "\n")
+            fp.write(request.node.name + "\n")
+            fp.write("-" * 10 + "\n")
+            fp.write(out + "\n\n")
+        return E2EResult(code, out)
 
     return fn

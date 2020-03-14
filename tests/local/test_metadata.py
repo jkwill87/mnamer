@@ -6,6 +6,8 @@ import pytest
 from mnamer.metadata import *
 from mnamer.types import MediaType
 
+pytestmark = pytest.mark.local
+
 TEXT_CASES = ["test", "Test", "TEST", "TeSt"]
 
 

@@ -6,7 +6,7 @@ from os import environ
 from typing import Generator, Optional
 
 from mnamer.endpoints import *
-from mnamer.exceptions import MnamerException, MnamerNotFoundException
+from mnamer.exceptions import MnamerNotFoundException
 from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
 from mnamer.settings import Settings
 from mnamer.types import MediaType, ProviderType
@@ -215,30 +215,24 @@ class Tvdb(Provider):
         """Searches TVDb for movie metadata.
         """
         assert query
-        try:
-            if query.id_tvdb and query.date:
-                results = self._search_tvdb_date(query.id_tvdb, query.date)
-            elif query.id_tvdb:
-                results = self._search_id(
-                    query.id_tvdb, query.season, query.episode
-                )
-            elif query.series and query.date:
-                results = self._search_series_date(query.series, query.date)
-            elif query.series:
-                results = self._search_series(
-                    query.series, query.season, query.episode
-                )
-            else:
-                raise MnamerNotFoundException
-            for result in results:
-                yield result
-        except MnamerException:
-            if not self.token:
-                self.token = self._login()
-                for result in self.search(query):
-                    yield result
-            else:
-                raise
+        if not self.token:
+            self.token = self._login()
+        if query.id_tvdb and query.date:
+            results = self._search_tvdb_date(query.id_tvdb, query.date)
+        elif query.id_tvdb:
+            results = self._search_id(
+                query.id_tvdb, query.season, query.episode
+            )
+        elif query.series and query.date:
+            results = self._search_series_date(query.series, query.date)
+        elif query.series:
+            results = self._search_series(
+                query.series, query.season, query.episode
+            )
+        else:
+            raise MnamerNotFoundException
+        for result in results:
+            yield result
 
     def _search_id(
         self, id_tvdb: int, season: int = None, episode: int = None,

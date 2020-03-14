@@ -5,6 +5,12 @@ from mnamer.exceptions import MnamerException, MnamerNotFoundException
 from mnamer.providers import Tmdb
 from tests import *
 
+pytestmark = [
+    pytest.mark.network,
+    pytest.mark.tmdb,
+    pytest.mark.flaky(reruns=2),
+]
+
 GOONIES_IMDB_ID = "tt0089218"
 GOONIES_TMDB_ID = 9340
 JUNK_IMDB_ID = "tt1234567890"

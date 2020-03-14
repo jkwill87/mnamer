@@ -12,8 +12,7 @@ script: >-
   python -m pytest
   --cov-report=term
   --cov=mnamer
-  --ignore=tests/network/test_endpoints__tvdb.py
-  --ignore=tests/network/test_providers__tvdb.py
+  -m 'not tvdb'
 
 after_success:
   - codecov

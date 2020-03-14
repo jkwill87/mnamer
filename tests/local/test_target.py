@@ -6,6 +6,8 @@ from mnamer.settings import Settings
 from mnamer.target import *
 from mnamer.types import MediaType
 
+pytestmark = pytest.mark.local
+
 
 def test_media__movie():
     target = Target(Path("ninja turtles (1990).mkv"), Settings())

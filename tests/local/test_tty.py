@@ -1,5 +1,9 @@
+import pytest
+
 from mnamer import tty
 from mnamer.exceptions import MnamerAbortException, MnamerSkipException
+
+pytestmark = pytest.mark.local
 
 
 def test_chars():

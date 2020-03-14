@@ -5,6 +5,12 @@ from mnamer.metadata import MetadataMovie
 from mnamer.providers import Tmdb
 from tests import *
 
+pytestmark = [
+    pytest.mark.network,
+    pytest.mark.tmdb,
+    pytest.mark.flaky(reruns=2),
+]
+
 
 @pytest.fixture(scope="session")
 def provider():

@@ -3,6 +3,8 @@ import pytest
 from mnamer.argument import *
 from mnamer.types import SettingsType
 
+pytestmark = pytest.mark.local
+
 
 def test_arg_spec__serialize__default():
     default = {

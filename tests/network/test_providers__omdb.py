@@ -7,6 +7,12 @@ from mnamer.metadata import MetadataMovie
 from mnamer.providers import Omdb
 from tests import *
 
+pytestmark = [
+    pytest.mark.network,
+    pytest.mark.omdb,
+    pytest.mark.flaky(reruns=2),
+]
+
 
 @pytest.fixture(scope="session")
 def provider():

@@ -1,6 +1,9 @@
-from mnamer.argument import ArgParser
+import pytest
 
+from mnamer.argument import ArgParser
 from tests import *
+
+pytestmark = pytest.mark.e2e
 
 
 def test_invalid_arguments(e2e_run):

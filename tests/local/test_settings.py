@@ -7,6 +7,8 @@ from mnamer.settings import *
 from mnamer.types import MediaType, ProviderType
 from tests import *
 
+pytestmark = pytest.mark.local
+
 
 @pytest.mark.parametrize("load_arguments", (True, False))
 @patch.object(Settings, "_load_arguments")
