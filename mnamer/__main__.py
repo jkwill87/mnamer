@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from mnamer import IS_DEBUG, SYSTEM, tty, CACHE_PATH
+from mnamer import IS_DEBUG, SYSTEM, tty
 from mnamer.__version__ import VERSION
 from mnamer.exceptions import (
     MnamerAbortException,
@@ -110,7 +110,7 @@ def run():
         except MnamerNotFoundException:
             tty.msg("no matches found", MessageType.ALERT)
         except MnamerNetworkException:
-            tty.msg("network Error", MessageType.ALERT)
+            tty.msg("network error", MessageType.ALERT)
         if not matches and settings.no_guess:
             tty.msg("skipping (--no-guess)", MessageType.ALERT)
             continue
