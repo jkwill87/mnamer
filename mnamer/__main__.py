@@ -12,7 +12,7 @@ from mnamer.exceptions import (
 from mnamer.settings import Settings
 from mnamer.target import Target
 from mnamer.types import MessageType
-from mnamer.utils import clear_cache
+from mnamer.utils import clear_cache, get_filesize
 
 __all__ = ["run"]
 
@@ -89,8 +89,9 @@ def run():
         # announce file
         media_label = target.metadata.media.value.title()
         filename_label = target.source.name
+        filesize_label = get_filesize(target.source)
         tty.msg(
-            f'\nProcessing {media_label} "{filename_label}"',
+            f'\nProcessing {media_label} "{filename_label}" ({filesize_label})',
             MessageType.HEADING,
         )
         tty.msg(target.source, debug=True)

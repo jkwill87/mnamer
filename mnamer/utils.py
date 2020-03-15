@@ -4,7 +4,7 @@ import json
 import re
 from datetime import date, datetime
 from os import walk
-from os.path import splitext
+from os.path import getsize, splitext
 from pathlib import Path
 from string import capwords
 from typing import Any, Dict, Generator, List, Optional, Tuple, Union
@@ -154,6 +154,16 @@ def get_session() -> requests_cache.CachedSession:
         get_session.session.mount("http://", adapter)
         get_session.session.mount("https://", adapter)
     return get_session.session
+
+
+def get_filesize(path: Path) -> str:
+    """Returns the human-readable filesize for a given path."""
+    size = getsize(path)
+    for unit in ["B", "KB", "MB", "GB", "TB"]:
+        if size < 1024.0:
+            break
+        size /= 1024.0
+    return f"{size:.{2}f}{unit}"
 
 
 def json_dumps(d: Dict[str, Any]) -> str:
