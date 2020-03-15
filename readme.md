@@ -16,50 +16,7 @@ Currently it has integration support with [TVDb](https://thetvdb.com) and [TvMaz
 
 ## Usage
 
-```
-USAGE: mnamer [preferences] [directives] target [targets ...]
-
-POSITIONAL:
-  [TARGET,...]: media file file path(s) to process
-
-PARAMETERS:
-  The following flags can be used to customize mnamer's behaviour. Their long
-  forms may also be set in a '.mnamer-v2.json' config file, in which case cli
-  arguments will take precedence.
-
-  -b, --batch: process automatically without interactive prompts
-  -l, --lower: rename files using lowercase characters
-  -r, --recurse: search for files within nested directories
-  -s, --scene: use dots in place of alphanumeric chars
-  -v, --verbose: increase output verbosity
-  --hits=<NUMBER>: limit the maximum number of hits for each query
-  --ignore=<PATTERN,...>: ignore files matching these regular expressions
-  --mask=<EXTENSION,...>: only process given file types
-  --no-cache: disable and clear request cache
-  --no-guess: disable best guess; e.g. when no matches or network down
-  --no-overwrite: prevent relocation if it would overwrite a file
-  --no-style: print to stdout without using colour or unicode chars
-  --movie-api={*tmdb,omdb}: set movie api provider
-  --movie-directory: set movie relocation directory
-  --movie-format: set movie renaming format specification
-  --episode-api={tvdb,*tvmaze}: set episode api provider
-  --episode-directory: set episode relocation directory
-  --episode-format: set episode renaming format specification
-
-DIRECTIVES:
-  Directives are one-off arguments that are used to perform secondary tasks
-  like overriding media detection. They can't be used in '.mnamer-v2.json'.
-
-  -V, --version: display the running mnamer version number
-  --config-dump: prints current config JSON to stdout then exits
-  --config-ignore: skips loading config file for session
-  --id-imdb=<ID>: specify an IMDb movie id override
-  --id-tmdb=<ID>: specify a TMDb movie id override
-  --id-tvdb=<ID>: specify a TVDb series id override
-  --id-tvmaze=<ID>: specify a TvMaze series id override
-  --media={movie,episode}: override media detection
-  --test: mocks the renaming and moving of files
-```
+`USAGE: mnamer [preferences] [directives] target [targets ...]`
 
 ## Documentation
 
