@@ -412,7 +412,6 @@ def str_title_case(s: str) -> str:
             )
             if left_partitioned and right_partitioned:
                 s = s[:pos] + exception.upper() + s[pos + word_length :]
-    s = re.sub(r"(\w\.)+", lambda p: p.group(0).upper(), s)
     return s
 
 

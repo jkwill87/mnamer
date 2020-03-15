@@ -670,6 +670,12 @@ def test_str_title_case__upper_multiple(s: str):
     assert actual == expected
 
 
+def test_str_title_case__letter_before_punctuation():
+    expected = "Kill Bill Vol. 2"
+    actual = str_title_case("kill bill vol. 2")
+    assert actual == expected
+
+
 # TODO
 # @pytest.mark.parametrize("s", ("spider-man", "SPIDER-MAN"))
 # def test_str_title_case__title(s: str):

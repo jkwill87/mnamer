@@ -7,7 +7,7 @@ from mnamer.__version__ import VERSION
 from mnamer.settings import Settings
 from tests import *
 
-pytestmark = [pytest.mark.e2e, pytest.mark.flaky(reruns=1)]
+pytestmark = pytest.mark.e2e
 
 
 @pytest.mark.parametrize("flag", ("-V", "--version"))
