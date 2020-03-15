@@ -16,7 +16,7 @@ from tests import *
 pytestmark = [
     pytest.mark.network,
     pytest.mark.tvdb,
-    pytest.mark.flaky(reruns=2),
+    pytest.mark.flaky(reruns=1),
 ]
 
 EXPECTED_TOP_LEVEL_SHOW_KEYS = {

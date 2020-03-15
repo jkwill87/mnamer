@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 from unittest.mock import patch
 
 import pytest
@@ -12,8 +12,39 @@ from tests import *
 
 pytestmark = pytest.mark.local
 
-FILENAME_REPLACEMENT = "The quick brown fox jumps over the lazy dog"
+TEST_FILES: Dict[str, Path] = {
+    test_file: Path(*test_file.split("/"))
+    for test_file in (
+        "Avengers Infinity War/Avengers.Infinity.War.srt",
+        "Avengers Infinity War/Avengers.Infinity.War.wmv",
+        "Downloads/Return of the Jedi 1080p.mkv",
+        "Downloads/archer.2009.s10e07.webrip.x264-lucidtv.mkv",
+        "Downloads/the.goonies.1985.mp4",
+        "Images/Photos/DCM0001.jpg",
+        "Images/Photos/DCM0002.jpg",
+        "Ninja Turtles (1990).mkv",
+        "O.J. - Made in America S01EP03 (2016) (1080p).mp4",
+        "Planet Earth II S01E06 - Cities (2016) (2160p).mp4",
+        "Pride & Prejudice 2005.ts",
+        "Quien a hierro mata [MicroHD 1080p][DTS 5.1-Castellano-AC3 5.1-Castellano+Subs][ES-EN]/Quien a hierro mata M1080.www.pctnew.org.mkv",
+        "Sample/the mandalorian s01x02.mp4",
+        "Skiing Trip.mp4",
+        "aladdin.1992.avi",
+        "aladdin.2019.avi",
+        "archer.2009.s10e07.webrip.x264-lucidtv.mp4",
+        "game.of.thrones.01x05-eztv.mp4",
+        "homework.txt",
+        "kill.bill.2003.ts",
+        "lost s01e01-02.mp4",
+        "made up movie.mp4",
+        "made up show s01e10.mkv",
+        "s.w.a.t.2017.s02e01.mkv",
+        "scan001.tiff",
+        "temp.zip",
+    )
+}
 FILTER_FILENAMES = [path.absolute() for path in TEST_FILES.values()]
+FILENAME_REPLACEMENT = "The quick brown fox jumps over the lazy dog"
 
 
 def paths_for(*filenames: str):
@@ -110,15 +141,16 @@ def test_parse_date__dash():
     assert result.day == 30
 
 
-@pytest.mark.usefixtures("setup_test_path")
+@pytest.mark.usefixtures("setup_test_dir")
 def test_dir_crawl_in__files__none():
     expected = []
     actual = crawl_in([Path(".", JUNK_TEXT)])
     assert actual == expected
 
 
-@pytest.mark.usefixtures("setup_test_path")
-def test_dir_crawl_in__files__flat():
+@pytest.mark.usefixtures("setup_test_dir")
+def test_dir_crawl_in__files__flat(setup_test_files):
+    setup_test_files(*TEST_FILES.keys())
     expected = paths_for(
         "Ninja Turtles (1990).mkv",
         "O.J. - Made in America S01EP03 (2016) (1080p).mp4",
@@ -143,8 +175,9 @@ def test_dir_crawl_in__files__flat():
     assert actual == expected
 
 
-@pytest.mark.usefixtures("setup_test_path")
-def test_dir_crawl_in__dirs__multiple():
+@pytest.mark.usefixtures("setup_test_dir")
+def test_dir_crawl_in__dirs__multiple(setup_test_files):
+    setup_test_files(*TEST_FILES.keys())
     file_paths = [
         Path(filename) for filename in ("Desktop", "Downloads", "Images")
     ]
@@ -158,21 +191,23 @@ def test_dir_crawl_in__dirs__multiple():
     assert actual == expected
 
 
-@pytest.mark.usefixtures("setup_test_path")
-def test_dir_crawl_in__dirs__recurse():
+@pytest.mark.usefixtures("setup_test_dir")
+def test_dir_crawl_in__dirs__recurse(setup_test_files):
+    setup_test_files(*TEST_FILES.keys())
     actual = crawl_in([Path.cwd()], recurse=True)
     expected = paths_for(*TEST_FILES.keys())
     assert actual == expected
 
 
-@pytest.mark.usefixtures("setup_test_path")
-def test_test_crawl_out__walking():
+@pytest.mark.usefixtures("setup_test_dir")
+def test_test_crawl_out__walking(setup_test_files):
+    setup_test_files(*TEST_FILES.keys())
     expected = Path("aladdin.2019.avi").absolute()
     actual = crawl_out("aladdin.2019.avi")
     assert actual == expected
 
 
-@pytest.mark.usefixtures("setup_test_path")
+@pytest.mark.usefixtures("setup_test_dir")
 def test_test_crawl_out__no_match():
     path = Path("/", "some_path", "avengers infinity war.wmv")
     assert crawl_out(path) is None

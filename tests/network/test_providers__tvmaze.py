@@ -8,7 +8,7 @@ from tests import *
 pytestmark = [
     pytest.mark.network,
     pytest.mark.tvmaze,
-    pytest.mark.flaky(reruns=2),
+    pytest.mark.flaky(reruns=1),
 ]
 
 

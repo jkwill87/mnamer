@@ -1,6 +1,5 @@
 from datetime import date
-from pathlib import Path
-from typing import Dict, NamedTuple
+from typing import NamedTuple
 
 from mnamer.types import ProviderType
 
@@ -10,7 +9,6 @@ __all__ = [
     "JUNK_TEXT",
     "MOVIE_META",
     "TEST_DATE",
-    "TEST_FILES",
     "E2EResult",
     "MockRequestResponse",
 ]
@@ -112,38 +110,6 @@ MOVIE_META = {
 }
 
 TEST_DATE = date(2010, 12, 9)
-
-TEST_FILES: Dict[str, Path] = {
-    test_file: Path(*test_file.split("/"))
-    for test_file in (
-        "Avengers Infinity War/Avengers.Infinity.War.srt",
-        "Avengers Infinity War/Avengers.Infinity.War.wmv",
-        "Downloads/Return of the Jedi 1080p.mkv",
-        "Downloads/archer.2009.s10e07.webrip.x264-lucidtv.mkv",
-        "Downloads/the.goonies.1985.mp4",
-        "Images/Photos/DCM0001.jpg",
-        "Images/Photos/DCM0002.jpg",
-        "Ninja Turtles (1990).mkv",
-        "O.J. - Made in America S01EP03 (2016) (1080p).mp4",
-        "Planet Earth II S01E06 - Cities (2016) (2160p).mp4",
-        "Pride & Prejudice 2005.ts",
-        "Quien a hierro mata [MicroHD 1080p][DTS 5.1-Castellano-AC3 5.1-Castellano+Subs][ES-EN]/Quien a hierro mata M1080.www.pctnew.org.mkv",
-        "Sample/the mandalorian s01x02.mp4",
-        "Skiing Trip.mp4",
-        "aladdin.1992.avi",
-        "aladdin.2019.avi",
-        "archer.2009.s10e07.webrip.x264-lucidtv.mp4",
-        "game.of.thrones.01x05-eztv.mp4",
-        "homework.txt",
-        "kill.bill.2003.ts",
-        "lost s01e01-02.mp4",
-        "made up movie.mp4",
-        "made up show s01e10.mkv",
-        "s.w.a.t.2017.s02e01.mkv",
-        "scan001.tiff",
-        "temp.zip",
-    )
-}
 
 
 class E2EResult(NamedTuple):
