@@ -1,4 +1,4 @@
-"""mnamer's custom exception type definitions."""
+"""Custom exception type definitions."""
 
 
 class MnamerException(Exception):

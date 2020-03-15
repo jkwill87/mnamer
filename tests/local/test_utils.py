@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 from requests import Session
 
-from mnamer import CURRENT_YEAR
+from mnamer.const import CURRENT_YEAR
 from mnamer.types import MediaType
 from mnamer.utils import *
 from tests import *

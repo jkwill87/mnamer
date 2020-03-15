@@ -13,7 +13,7 @@ from unicodedata import normalize
 import requests_cache
 from requests.adapters import HTTPAdapter
 
-from mnamer import CACHE_PATH, CURRENT_YEAR
+from mnamer.const import CACHE_PATH, CURRENT_YEAR
 
 __all__ = [
     "clean_dict",

@@ -1,4 +1,4 @@
-""" Provides an interface for handling user input and printing output."""
+"""Provides an interface for handling user input and printing output."""
 
 import traceback
 from typing import Any, Dict, List, Optional
@@ -7,7 +7,7 @@ from teletype import codes
 from teletype.components import ChoiceHelper, SelectOne
 from teletype.io import style_format, style_print
 
-from mnamer import SYSTEM
+from mnamer.const import SYSTEM
 from mnamer.exceptions import MnamerAbortException, MnamerSkipException
 from mnamer.metadata import Metadata
 from mnamer.settings import Settings

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-from mnamer import IS_DEBUG, SYSTEM, tty
+from mnamer import tty
 from mnamer.__version__ import VERSION
+from mnamer.const import IS_DEBUG, SYSTEM
 from mnamer.exceptions import (
     MnamerAbortException,
     MnamerException,
