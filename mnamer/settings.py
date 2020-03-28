@@ -356,14 +356,18 @@ class Settings:
             in {SettingsType.PARAMETER, SettingsType.CONFIGURATION}
         )
 
+    @staticmethod
+    def _resolve_path(path: Union[str, Path]) -> Path:
+        return Path(path).resolve()
+
     def __setattr__(self, key: str, value: Any):
         converter = {
             "episode_api": ProviderType,
-            "episode_directory": Path,
+            "episode_directory": self._resolve_path,
             "mask": normalize_extensions,
             "media": MediaType,
             "movie_api": ProviderType,
-            "movie_directory": Path,
+            "movie_directory": self._resolve_path,
             "targets": lambda targets: [Path(target) for target in targets],
         }.get(key)
         if value is not None and converter:
