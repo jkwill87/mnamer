@@ -8,7 +8,7 @@ def test_complex_metadata(e2e_run, setup_test_files):
     setup_test_files(
         "Quien a hierro mata [MicroHD 1080p][DTS 5.1-Castellano-AC3 5.1-Castellano+Subs][ES-EN].mkv"
     )
-    result = e2e_run("--batch", ".")
+    result = e2e_run("--batch", "--media=movie", ".")
     assert result.code == 0
     assert "Eye for an Eye (2019).mkv" in result.out
     assert "1 out of 1 files processed successfully" in result.out
@@ -17,7 +17,7 @@ def test_complex_metadata(e2e_run, setup_test_files):
 @pytest.mark.usefixtures("setup_test_dir")
 def test_absolute_path(e2e_run, setup_test_files):
     setup_test_files("kill.bill.vol.1.mkv")
-    result = e2e_run("--batch", "kill.bill.vol.1.mkv")
+    result = e2e_run("--batch", "--media=movie", "kill.bill.vol.1.mkv")
     assert result.code == 0
     assert "Kill Bill Vol. 1 (2003).mkv" in result.out
     assert "1 out of 1 files processed successfully" in result.out
