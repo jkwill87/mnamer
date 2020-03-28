@@ -67,13 +67,6 @@ class Target:
         cls._providers.clear()
 
     @staticmethod
-    def _matches_mask(target: "Target") -> bool:
-        if not target._settings.mask:
-            return True
-        else:
-            return target.source.suffix in target._settings.mask
-
-    @staticmethod
     def _matches_media(target: "Target") -> bool:
         if not target._settings.media:
             return True
