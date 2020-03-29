@@ -383,6 +383,36 @@ def test_filter_extensions__filter_single_path_multi_pattern(
     assert expected == actual
 
 
+def test_fn_chain():
+    def add(x, y):
+        return x + y
+
+    def multiply(x, y):
+        return x * y
+
+    def exponent(x, y):
+        return x ** y
+
+    expected = (7 + 8, 7 * 8, 7 ** 8)
+    actual = fn_chain(add, multiply, exponent)(7, 8)
+    assert actual == expected
+
+
+def test_fn_pipe():
+    def add(x):
+        return x + 5
+
+    def multiply(x):
+        return x * 5
+
+    def exponent(x):
+        return x ** 5
+
+    expected = ((8 + 5) * 5) ** 5
+    actual = fn_pipe(add, multiply, exponent)(8)
+    assert actual == expected
+
+
 def test_format_dict():
     d = {1: "a", 2: "b", 3: "c"}
     expected = " - 1 = a\n" + " - 2 = b\n" + " - 3 = c"
@@ -676,12 +706,18 @@ def test_str_title_case__letter_before_punctuation():
     assert actual == expected
 
 
-# TODO
-# @pytest.mark.parametrize("s", ("spider-man", "SPIDER-MAN"))
-# def test_str_title_case__title(s: str):
-#     expected = "Spider-Man"
-#     actual = str_title_case(s)
-#     assert actual == expected
+@pytest.mark.parametrize("s", ("spider-man", "SPIDER-MAN"))
+def test_str_title__after_punctuation__middle(s: str):
+    expected = "Spider-Man"
+    actual = str_title_case(s)
+    assert actual == expected
+
+
+@pytest.mark.parametrize("s", ("spider-", "SPIDER-"))
+def test_str_title__after_punctuation__end(s: str):
+    expected = "Spider-"
+    actual = str_title_case(s)
+    assert actual == expected
 
 
 def test_str_title_case__empty():

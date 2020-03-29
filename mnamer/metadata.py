@@ -9,9 +9,11 @@ from guessit import guessit
 
 from mnamer.types import MediaType
 from mnamer.utils import (
+    fn_pipe,
     normalize_extension,
     parse_date,
     str_fix_padding,
+    str_replace_slashes,
     str_title_case,
     year_parse,
 )
@@ -146,7 +148,10 @@ class MetadataMovie(Metadata):
         return s
 
     def __setattr__(self, key, value):
-        converter = {"name": str_title_case, "year": year_parse}.get(key)
+        converter = {
+            "name": fn_pipe(str_replace_slashes, str_title_case),
+            "year": year_parse,
+        }.get(key)
         if value is not None and converter:
             value = converter(value)
         super().__setattr__(key, value)
@@ -196,7 +201,7 @@ class MetadataEpisode(Metadata):
             "date": parse_date,
             "episode": int,
             "season": int,
-            "series": str_title_case,
+            "series": fn_pipe(str_replace_slashes, str_title_case),
         }.get(key)
         if value is not None and converter:
             value = converter(value)

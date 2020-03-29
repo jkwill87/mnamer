@@ -7,7 +7,7 @@ from os import walk
 from os.path import getsize, splitext
 from pathlib import Path
 from string import capwords
-from typing import Any, Dict, Generator, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 from unicodedata import normalize
 
 import requests_cache
@@ -23,6 +23,8 @@ __all__ = [
     "filter_blacklist",
     "filter_extensions",
     "findall",
+    "fn_chain",
+    "fn_pipe",
     "format_dict",
     "format_iter",
     "get_session",
@@ -33,6 +35,7 @@ __all__ = [
     "request_json",
     "str_fix_padding",
     "str_replace",
+    "str_replace_slashes",
     "str_sanitize",
     "str_scenify",
     "str_title_case",
@@ -126,6 +129,22 @@ def findall(s, ss) -> Generator[int, None, None]:
     while i != -1:
         yield i
         i = s.find(ss, i + 1)
+
+
+def fn_chain(*fn_list: Callable) -> Callable:
+    """Chains a list of function calls into one."""
+    return lambda *args, **kwargs: tuple(fn(*args, **kwargs) for fn in fn_list)
+
+
+def fn_pipe(*fn_list: Callable) -> Callable:
+    """Pipes a list of function calls into one."""
+
+    def resolver(x):
+        for fn in fn_list:
+            x = fn(x)
+        return x
+
+    return resolver
 
 
 def format_dict(body: Dict[Any, Any]) -> str:
@@ -281,6 +300,10 @@ def str_replace(s: str, replacements: Dict[str, str]) -> str:
     return s
 
 
+def str_replace_slashes(s: str) -> str:
+    return str_replace(s, {"/": "-", "\\": "-"})
+
+
 def str_sanitize(filename: str) -> str:
     """Removes illegal filename characters and condenses whitespace."""
     base, ext = splitext(filename)
@@ -384,7 +407,7 @@ def str_title_case(s: str) -> str:
         "yolo",
     }
     padding_chars = ".- "
-    punctuation_chars = "[\"!?$'(),-./:;<>@[]_`{}]"
+    punctuation_chars = "[\"!?$'(),-.:;<>@[]_`{}]"
     string_lower = s.lower()
     string_length = len(s)
     s = capwords(s)
@@ -396,11 +419,7 @@ def str_title_case(s: str) -> str:
             if starts:
                 break
             prev_char = string_lower[pos - 1]
-            leading_char = string_lower[pos - 2]
-            left_partitioned = (
-                prev_char in padding_chars
-                and leading_char not in punctuation_chars
-            )
+            left_partitioned = prev_char in padding_chars
             word_length = len(exception)
             ends = pos + word_length == string_length
             next_char = "" if ends else string_lower[pos + word_length]
@@ -413,7 +432,9 @@ def str_title_case(s: str) -> str:
         for pos in findall(string_lower, exception):
             starts = pos == 0
             prev_char = None if starts else string_lower[pos - 1]
-            left_partitioned = starts or prev_char in padding_chars
+            left_partitioned = (
+                starts or prev_char in padding_chars + punctuation_chars
+            )
             word_length = len(exception)
             ends = pos + word_length == string_length
             next_char = "" if ends else string_lower[pos + word_length]
@@ -422,6 +443,16 @@ def str_title_case(s: str) -> str:
             )
             if left_partitioned and right_partitioned:
                 s = s[:pos] + exception.upper() + s[pos + word_length :]
+
+    # Uppercase letters after punctuation
+    for char in punctuation_chars:
+        for pos in findall(s, char):
+            if pos + 1 == string_length:
+                break
+            elif pos + 2 < string_length:
+                s = s[: pos + 1] + s[pos + 1].upper() + s[pos + 2 :]
+            else:
+                s = s[: pos + 1] + s[pos + 1].upper()
     return s
 
 
