@@ -12,7 +12,6 @@ script: >-
   python -m pytest
   --cov-report=term
   --cov=mnamer
-  -m 'not tvdb'
 
 after_success:
   - codecov
