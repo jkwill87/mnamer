@@ -653,7 +653,7 @@ def test_str_title_case__lower__starts_with(s: str):
 
 @pytest.mark.parametrize("s", ("where to", "WHERE TO"))
 def test_str_title_case__lower__ends_with(s: str):
-    expected = "Where to"
+    expected = "Where To"
     actual = str_title_case(s)
     assert actual == expected
 
@@ -720,9 +720,52 @@ def test_str_title__after_punctuation__end(s: str):
     assert actual == expected
 
 
+@pytest.mark.parametrize(
+    "s", ("Don't stop", "DON'T STOP", "don't stop",),
+)
+def test_str_title_case__apostrophes(s):
+    expected = "Don't Stop"
+    actual = str_title_case(s)
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    "s",
+    (
+        "Who Let the Dog (or Dogs) out",
+        "WHO LET THE DOG (OR DOGS) OUT",
+        "who let the dog (or dogs) out",
+    ),
+)
+def test_str_title__padding__space(s):
+    expected = "Who Let the Dog (Or Dogs) Out"
+    actual = str_title_case(s)
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    "s",
+    (
+        "Who Let the Dog(s) out",
+        "WHO LET THE DOG(S) OUT",
+        "who let the dog(s) out",
+    ),
+)
+def test_str_title__padding__no_space(s):
+    expected = "Who Let the Dog(s) Out"
+    actual = str_title_case(s)
+    assert actual == expected
+
+
 def test_str_title_case__empty():
     expected = ""
     actual = str_title_case("")
+    assert actual == expected
+
+
+def test_str_title_case__single_char():
+    expected = "A"
+    actual = str_title_case("a")
     assert actual == expected
 
 

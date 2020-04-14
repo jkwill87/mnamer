@@ -324,6 +324,10 @@ def str_scenify(filename: str) -> str:
 
 def str_title_case(s: str) -> str:
     """Attempts to intelligently apply title case transformations to strings."""
+
+    if not s:
+        return s
+
     lowercase_exceptions = {
         "a",
         "an",
@@ -350,8 +354,6 @@ def str_title_case(s: str) -> str:
         "une",
         "with",
         "via",
-        "h264",
-        "h265",
     }
     uppercase_exceptions = {
         "i",
@@ -407,10 +409,32 @@ def str_title_case(s: str) -> str:
         "yolo",
     }
     padding_chars = ".- "
-    punctuation_chars = "[\"!?$'(),-.:;<>@[]_`{}]"
+    paren_chars = "[](){}<>{}"
+    punctuation_chars = paren_chars + "\"!?$,-.:;@_`'"
     string_lower = s.lower()
     string_length = len(s)
-    s = capwords(s)
+
+    # uppercase first character
+    s = s.lower()
+    s = s[0].upper() + s[1:]
+
+    # uppercase characters after padding characters
+    for char in padding_chars:
+        for pos in findall(s, char):
+            if pos + 1 == string_length:
+                break
+            elif pos + 2 < string_length:
+                s = s[: pos + 1] + s[pos + 1].upper() + s[pos + 2 :]
+            else:
+                s = s[: pos + 1] + s[pos + 1].upper()
+
+    # uppercase characters inside parentheses
+    for char in paren_chars:
+        for pos in findall(s, char):
+            if pos > 0 and s[pos - 1] not in padding_chars:
+                continue
+            elif pos + 1 < string_length:
+                s = s[: pos + 1] + s[pos + 1].upper() + s[pos + 2 :]
 
     # process lowercase transformations
     for exception in lowercase_exceptions:
@@ -423,7 +447,7 @@ def str_title_case(s: str) -> str:
             word_length = len(exception)
             ends = pos + word_length == string_length
             next_char = "" if ends else string_lower[pos + word_length]
-            right_partitioned = ends or next_char in padding_chars
+            right_partitioned = not ends and next_char in padding_chars
             if left_partitioned and right_partitioned:
                 s = s[:pos] + exception.lower() + s[pos + word_length :]
 
@@ -444,15 +468,6 @@ def str_title_case(s: str) -> str:
             if left_partitioned and right_partitioned:
                 s = s[:pos] + exception.upper() + s[pos + word_length :]
 
-    # Uppercase letters after punctuation
-    for char in punctuation_chars:
-        for pos in findall(s, char):
-            if pos + 1 == string_length:
-                break
-            elif pos + 2 < string_length:
-                s = s[: pos + 1] + s[pos + 1].upper() + s[pos + 2 :]
-            else:
-                s = s[: pos + 1] + s[pos + 1].upper()
     return s
 
 
