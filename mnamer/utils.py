@@ -4,7 +4,7 @@ import json
 import re
 from datetime import date, datetime
 from os import walk
-from os.path import getsize, splitext
+from os.path import getsize, splitext, splitdrive
 from pathlib import Path
 from string import capwords
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
@@ -308,8 +308,9 @@ def str_sanitize(filename: str) -> str:
     """Removes illegal filename characters and condenses whitespace."""
     base, ext = splitext(filename)
     base = re.sub(r"\s+", " ", base)
-    base = re.sub(r'[<>:"|?*&%=+@#`^]', "", base)
-    return base.strip("-., ") + ext
+    drive, tail = splitdrive(base)
+    tail = re.sub(r'[<>:"|?*&%=+@#`^]', "", tail)
+    return drive + tail.strip("-., ") + ext
 
 
 def str_scenify(filename: str) -> str:
