@@ -10,6 +10,7 @@ install: pip install -Ur requirements-dev.txt
 
 script: >-
   python -m pytest
+  --durations=10
   --cov-report=term
   --cov=mnamer
 
