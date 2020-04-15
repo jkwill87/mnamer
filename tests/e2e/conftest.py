@@ -34,7 +34,7 @@ def e2e_run(capsys, request):
         for arg in args:
             sys.argv.append(arg)
         try:
-            run()
+            run(load_configuration=False)
         except SystemExit as e:
             code = e.code
         else:

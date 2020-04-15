@@ -26,7 +26,7 @@ def test_media__override(media: MediaType):
 
 
 def test_directory__movie():
-    movie_path = Path("/some/movie/path")
+    movie_path = Path("/some/movie/path").absolute()
     target = Target(
         Path(), Settings(media=MediaType.MOVIE, movie_directory=movie_path)
     )
@@ -34,7 +34,7 @@ def test_directory__movie():
 
 
 def test_directory__episode():
-    episode_path = Path("/some/episode/path")
+    episode_path = Path("/some/episode/path").absolute()
     target = Target(
         Path(),
         Settings(media=MediaType.EPISODE, episode_directory=episode_path),

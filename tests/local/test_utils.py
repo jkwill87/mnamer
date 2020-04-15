@@ -172,7 +172,7 @@ def test_dir_crawl_in__files__flat(setup_test_files):
         "temp.zip",
     )
     actual = crawl_in([Path.cwd()])
-    assert actual == expected
+    assert set(actual) == set(expected)
 
 
 @pytest.mark.usefixtures("setup_test_dir")
@@ -188,7 +188,7 @@ def test_dir_crawl_in__dirs__multiple(setup_test_files):
         "Downloads/the.goonies.1985.mp4",
         "Downloads/the.goonies.1985.sample.mp4",
     )
-    assert actual == expected
+    assert set(actual) == set(expected)
 
 
 @pytest.mark.usefixtures("setup_test_dir")
@@ -196,7 +196,7 @@ def test_dir_crawl_in__dirs__recurse(setup_test_files):
     setup_test_files(*TEST_FILES.keys())
     actual = crawl_in([Path.cwd()], recurse=True)
     expected = paths_for(*TEST_FILES.keys())
-    assert actual == expected
+    assert set(actual) == set(expected)
 
 
 @pytest.mark.usefixtures("setup_test_dir")

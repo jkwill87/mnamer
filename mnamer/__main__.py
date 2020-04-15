@@ -36,11 +36,13 @@ def main():  # pragma: no cover
             tty.crash_report()
 
 
-def run():
+def run(load_configuration=True, load_arguments=True):
     """The main program loop."""
     # setup arguments and load runtime configuration
     try:
-        settings = Settings(load_configuration=True, load_arguments=True)
+        settings = Settings(
+            load_configuration=load_configuration, load_arguments=load_arguments
+        )
     except MnamerException as e:
         tty.msg(str(e), MessageType.ERROR)
         raise SystemExit(1)

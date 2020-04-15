@@ -1,3 +1,5 @@
+from sys import platform
+
 import pytest
 
 from mnamer import tty
@@ -7,10 +9,11 @@ pytestmark = pytest.mark.local
 
 
 def test_chars():
+    bullet = "►" if platform.startswith("win") else "❱"
     tty.verbose = False
     tty.no_style = False
     expected = {
-        "arrow": "\x1b[35m❱\x1b[0m",
+        "arrow": f"\x1b[35m{bullet}\x1b[0m",
         "block": "█",
         "left-edge": "▐",
         "right-edge": "▌",

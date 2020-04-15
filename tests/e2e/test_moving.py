@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 pytestmark = pytest.mark.e2e
@@ -128,8 +130,9 @@ def test_format_specifiers(e2e_run, setup_test_files):
         "--movie_directory={name[0]}",
         "Ninja Turtles (1990).mkv",
     )
+    expected = str(Path("/T/Teenage Mutant Ninja Turtles (1990).mkv"))
     assert result.code == 0
-    assert "/T/Teenage Mutant Ninja Turtles (1990).mkv" in result.out
+    assert expected in result.out
 
 
 @pytest.mark.usefixtures("setup_test_dir")
@@ -138,8 +141,9 @@ def test_multiple_nested_directories(e2e_run, setup_test_files):
     result = e2e_run(
         "--batch", "--movie_directory=1/2/3/", "Ninja Turtles (1990).mkv",
     )
+    expected = str(Path("/1/2/3/Teenage Mutant Ninja Turtles (1990).mkv"))
     assert result.code == 0
-    assert "/1/2/3/Teenage Mutant Ninja Turtles (1990).mkv" in result.out
+    assert expected in result.out
 
 
 @pytest.mark.omdb
