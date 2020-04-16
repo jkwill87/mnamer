@@ -202,6 +202,7 @@ class MetadataEpisode(Metadata):
             "episode": int,
             "season": int,
             "series": fn_pipe(str_replace_slashes, str_title_case),
+            "title": fn_pipe(str_replace_slashes, str_title_case),
         }.get(key)
         if value is not None and converter:
             value = converter(value)
