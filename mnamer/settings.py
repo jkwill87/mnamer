@@ -331,13 +331,12 @@ class Settings:
     ):
         self._arg_data = {}
         self._config_data = {}
-        # load cli arguments
         self._load_arguments(load_arguments)
-        self._bulk_apply(self._arg_data)
-        # load configuration
-        if configuration_path and load_configuration and not self.config_ignore:
+        config_ignore = self._arg_data.get("config_ignore", False)
+        if configuration_path and load_configuration and not config_ignore:
             self._load_configuration(configuration_path)
             self._bulk_apply(self._config_data)
+        self._bulk_apply(self._arg_data)
 
     @classmethod
     def _attribute_metadata(cls) -> Dict[str, ArgSpec]:
