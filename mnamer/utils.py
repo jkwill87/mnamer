@@ -4,9 +4,8 @@ import json
 import re
 from datetime import date, datetime
 from os import walk
-from os.path import getsize, splitext, splitdrive
+from os.path import getsize, splitdrive, splitext
 from pathlib import Path
-from string import capwords
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 from unicodedata import normalize
 
