@@ -242,7 +242,7 @@ def test_str_sanitize__condense_whitespace():
 
 
 def test_str_sanitize__remove_illegal_chars():
-    filename = "<:*sup*:>"
+    filename = "sup*:>"
     expected = "sup"
     actual = str_sanitize(filename)
     assert actual == expected
