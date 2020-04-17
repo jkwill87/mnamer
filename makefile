@@ -1,72 +1,80 @@
 help:
-	@echo
-	@echo 'deployment:  build, publish, tag'
-	@echo 'versioning:  bump-patch, bump-minor, bump-major'
-	@echo 'setup:       setup-deps, setup-env, setup-demo'
+	$(info * deployment:  build, publish, publish-test)
+	$(info * versioning:  bump-patch, bump-minor, bump-major)
+	$(info * setup:       venv, demo)
 
-clean:
-	$(info cleaning demo directory)
+clean-build:
+	$(info * cleaning build files)
 	@find . -type f -name '*.py[co]' -delete -o -type d -name __pycache__
-	@rm -rvf build dist *.egg-info demo
+	@rm -rf mnamer.egg-info build dist
+
+clean-demo:
+	$(info * cleaning demo files)
+	@rm -rf build dist *.egg-info demo
+
+clean-venv:
+	$(info * removing venv files)
+	@deactivate 2> /dev/null || true
+	@rm -rf venv
+
+clean: clean-build clean-demo clean-venv
 
 
 # Deployment Helpers -----------------------------------------------------------
 
-build: clean
-	python3 setup.py sdist bdist_wheel --universal
+build: clean-build
+	$(info * building distributable)
+	@python3 setup.py sdist bdist_wheel --universal > /dev/null
 
-publish:
+publish: build
+	$(info * publishing to PyPI repository)
 	twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
 
-publish-test:
+publish-test: build
+	$(info * publishing to PyPI test repository)
 	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
-tag:
-	git tag `vbump | egrep -o '[0-9].*'`
-
-install:
-	pip3 install --user -U .
 
 # Version Helpers --------------------------------------------------------------
 
 bump-patch:
-	vbump --patch
-	make sync-version
+	$(info * resetting any current changes)
 	git reset --
+	$(info * bumping patch version)
+	@vbump --patch
 	git add mnamer/__version__.py
-	git add pyproject.toml
+	$(info * commiting version change)
 	git commit -m "Patch version bump"
+	$(info * creating tag)
+	git tag `vbump | egrep -o '[0-9].*'`
 
 bump-minor:
-	vbump --minor
-	make sync-version
+	$(info * resetting any current changes)
 	git reset --
+	$(info * bumping minor version)
+	vbump --minor
 	git add mnamer/__version__.py
-	git add pyproject.toml
+	$(info * commiting version change)
 	git commit -m "Minor version bump"
+	$(info * creating tag)
+	git tag `vbump | egrep -o '[0-9].*'`
 
 bump-major:
-	vbump --major
-	make sync-version
+	$(info * resetting any current changes)
 	git reset --
+	$(info * bumping major version)
+	vbump --major
 	git add mnamer/__version__.py
-	git add pyproject.toml
+	$(info * commiting version change)
 	git commit -m "Major version bump"
+	$(info * creating tag)
+	git tag `vbump | egrep -o '[0-9].*'`
 
 
 # Setup Helpers ----------------------------------------------------------------
 
-setup-deps:
-	pip3 install -r requirements-dev.txt
-
-setup-env:
-	deactivate || true
-	rm -rf venv
-	virtualenv venv
-	./venv/bin/pip install -r requirements-dev.txt
-
-setup-demo: clean
-	$(info setting up demo directory)
+demo: clean-demo
+	$(info * setting up demo directory)
 	@mkdir -p \
 	    demo \
 	    'demo/Avengers Infinity War' \
@@ -99,3 +107,10 @@ setup-demo: clean
         "s.w.a.t.2017.s02e01.mkv" \
         "scan001.tiff" \
         "temp.zip"
+
+venv: clean-venv
+	$(info * initializing venv)
+	@python3 -m venv venv
+	$(info * installing dev requirements)
+	@./venv/bin/pip install -qU pip
+	@./venv/bin/pip install -qr requirements-dev.txt
