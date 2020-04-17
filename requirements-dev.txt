@@ -1,9 +1,6 @@
--r requirements.txt
-codecov
+-r requirements-test.txt
+black
 pylint
-pytest
-pytest-cov
-pytest-rerunfailures
 twine
 vbump
 wheel

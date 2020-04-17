@@ -6,7 +6,7 @@ python:
 dist: bionic
 os: linux
 
-install: pip install -Ur requirements-dev.txt
+install: pip install -Ur requirements-test.txt
 
 script: >-
   python -m pytest
