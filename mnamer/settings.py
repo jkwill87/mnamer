@@ -311,7 +311,7 @@ class Settings:
         metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
     )
     replace_after: Dict[str, str] = dataclasses.field(
-        default_factory=lambda: {"&": "and", "@": "at", ":": "", ";": ","},
+        default_factory=lambda: {"&": "and", "@": "at", ";": ","},
         metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
     )
 
