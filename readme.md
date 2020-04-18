@@ -12,7 +12,7 @@ Currently it has integration support with [TVDb](https://thetvdb.com) and [TvMaz
 
 ## Installation
 
-`$ pip3 install mnamer`
+`$ pip3 install --user mnamer`
 
 ## Usage
 
@@ -20,7 +20,7 @@ Currently it has integration support with [TVDb](https://thetvdb.com) and [TvMaz
 
 ## Documentation
 
-See mnamer's [wiki page](https://github.com/jkwill87/mnamer/wiki) for full documentation.
+See the [wiki page](https://github.com/jkwill87/mnamer/wiki) for full documentation.
 
 ## Contributions
 
