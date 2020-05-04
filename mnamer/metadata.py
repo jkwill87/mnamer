@@ -93,9 +93,10 @@ class Metadata:
         return dataclasses.asdict(self)
 
     def _parse_path_data(self, file_path: Path):
-        filename = str(file_path)
         options = {"type": getattr(self.media, "value", None)}
-        raw_data = dict(guessit(filename, options))
+        raw_data = dict(guessit(str(file_path), options))
+        if isinstance(raw_data.get("season"), list):
+            raw_data = dict(guessit(str(file_path.parts[-1]), options))
         for k, v in raw_data.items():
             if isinstance(v, (int, str, date)):
                 self._path_data[k] = v
