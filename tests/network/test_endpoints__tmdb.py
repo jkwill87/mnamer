@@ -141,7 +141,6 @@ def test_tmdb_search_movies__success():
     assert set(result.keys()) == expected_top_level_keys
     assert isinstance(result["results"], list)
     assert expected_results_keys == set(result.get("results", [{}])[0].keys())
-    assert len(result["results"]) == 1
     assert result["results"][0]["original_title"] == "The Goonies"
     result = tmdb_search_movies(Tmdb.api_key, "the goonies")
     assert len(result["results"]) > 1
