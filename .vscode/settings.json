@@ -13,9 +13,12 @@
         "*.egg-info": true,
         "*.egg-info/": true,
         ".idea": true,
-        ".vscode": true,
         "demo": true
     },
     "python.formatting.provider": "black",
-    "python.pythonPath": "venv/bin/python"
+    "python.pythonPath": "venv/bin/python",
+    "python.linting.pylintArgs": [
+        "--disable",
+        "bare-except,expression-not-assigned,line-too-long"
+    ]
 }
