@@ -68,7 +68,7 @@ class Metadata:
             or None
         )
         self.group = self._path_data.get("release_group")
-        self.extension = self._path_data.get("container")
+        self.extension = file_path.suffix or None
 
     def __setattr__(self, key, value):
         converter = {
