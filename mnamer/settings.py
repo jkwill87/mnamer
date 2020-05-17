@@ -6,7 +6,7 @@ from string import Template
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 from mnamer.argument import ArgParser, ArgSpec
-from mnamer.exceptions import MnamerException
+from mnamer.exceptions import MnamerException, MnamerSettingException
 from mnamer.types import MediaType, ProviderType, SettingsType
 from mnamer.utils import crawl_out, normalize_extensions
 
@@ -413,9 +413,9 @@ class Settings:
                 arg_parser.add_spec(spec)
         try:
             arguments = arg_parser.parse_args()
-        except MnamerException:
+        except MnamerException as e:
             if load_arguments:
-                raise
+                raise MnamerSettingException(e)
         else:
             self._arg_data = vars(arguments)
 
@@ -425,7 +425,7 @@ class Settings:
             data = json.loads(file_pointer.read())
         for key in data:
             if key not in self._attribute_metadata() and key not in DEPRECATED:
-                raise MnamerException(f"invalid setting: {key}")
+                raise MnamerSettingException(f"invalid setting: {key}")
         self._config_data = data
 
     def api_for(self, media_type: MediaType) -> ProviderType:
