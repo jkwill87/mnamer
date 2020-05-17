@@ -8,11 +8,15 @@ from teletype.components import ChoiceHelper, SelectOne
 from teletype.io import style_format, style_print
 
 from mnamer.const import SYSTEM
-from mnamer.exceptions import MnamerAbortException, MnamerSkipException
+from mnamer.exceptions import (
+    MnamerAbortException,
+    MnamerException,
+    MnamerSkipException,
+)
 from mnamer.metadata import Metadata
 from mnamer.settings import Settings
 from mnamer.types import MessageType
-from mnamer.utils import format_dict, format_iter
+from mnamer.utils import format_dict, format_exception, format_iter
 
 no_style: bool = False
 verbose: bool = False
@@ -50,6 +54,7 @@ def _msg_format(body: Any):
         list: format_iter,
         tuple: format_iter,
         set: format_iter,
+        MnamerException: format_exception,
     }.get(type(body))
     if converter:
         body = converter(body)
@@ -72,6 +77,10 @@ def msg(
 ):
     if verbose or not debug:
         style_print(_msg_format(body), style=message_type.value)
+
+
+def error(body: Any):
+    msg(body, message_type=MessageType.ERROR, debug=False)
 
 
 def prompt(matches: List[Metadata]) -> Optional[Metadata]:  # pragma: no cover

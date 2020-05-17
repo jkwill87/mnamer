@@ -8,13 +8,13 @@ pytestmark = pytest.mark.e2e
 
 def test_invalid_arguments(e2e_run):
     result = e2e_run(f"--{JUNK_TEXT}")
-    assert result.code == 1
+    assert result.code == 2
     assert result.out == f"invalid arguments: --{JUNK_TEXT}"
 
 
 def test_no_arguments(e2e_run):
     result = e2e_run()
-    assert result.code == 1
+    assert result.code == 2
     assert result.out == ArgParser().usage
 
 

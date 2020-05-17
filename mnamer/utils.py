@@ -19,13 +19,16 @@ __all__ = [
     "clear_cache",
     "crawl_in",
     "crawl_out",
+    "filename_replace",
     "filter_blacklist",
     "filter_extensions",
     "findall",
     "fn_chain",
     "fn_pipe",
     "format_dict",
+    "format_exception",
     "format_iter",
+    "get_filesize",
     "get_session",
     "json_dumps",
     "normalize_extension",
@@ -153,6 +156,10 @@ def format_dict(body: Dict[Any, Any]) -> str:
     return "\n".join(
         [f" - {k} = {getattr(v, 'value', v)}" for k, v in body.items()]
     )
+
+
+def format_exception(body: Exception) -> str:
+    return str(body)
 
 
 def format_iter(body: list) -> str:

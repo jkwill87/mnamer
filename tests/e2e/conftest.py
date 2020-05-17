@@ -4,7 +4,9 @@ from pathlib import Path
 import pytest
 from teletype.io import strip_format
 
-from mnamer.__main__ import run
+from mnamer.exceptions import MnamerException
+from mnamer.frontends import Cli
+from mnamer.settings import Settings
 from mnamer.target import Target
 from tests import *
 
@@ -31,15 +33,19 @@ def e2e_run(capsys, request):
 
     def fn(*args):
         Target.reset_providers()
+        out = ""
+        code = 0
         for arg in args:
             sys.argv.append(arg)
         try:
-            run(load_configuration=False)
+            settings = Settings(load_arguments=True)
+            Cli(settings).launch()
+        except MnamerException as e:
+            out += str(e)
+            code = 2
         except SystemExit as e:
             code = e.code
-        else:
-            code = 0
-        out = strip_format(capsys.readouterr().out.strip())
+        out += strip_format(capsys.readouterr().out.strip())
         out += strip_format(capsys.readouterr().err.strip())
         with open(E2E_LOG, "a+") as fp:
             fp.write("=" * 10 + "\n")

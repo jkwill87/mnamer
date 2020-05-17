@@ -17,7 +17,7 @@ def test_version(flag: str, e2e_run):
     assert result.out == f"mnamer version {VERSION}"
 
 
-@patch("mnamer.__main__.clear_cache")
+@patch("mnamer.frontends.clear_cache")
 def test_directives__cache_clear(mock_clear_cache: MagicMock, e2e_run):
     result = e2e_run("--no_cache")
     assert result.code == 0

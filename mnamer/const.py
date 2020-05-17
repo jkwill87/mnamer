@@ -14,6 +14,9 @@ __all__ = [
     "CURRENT_YEAR",
     "IS_DEBUG",
     "SYSTEM",
+    "USAGE",
+    "VERSION",
+    "VERSION_MAJOR",
 ]
 
 
@@ -33,3 +36,7 @@ SYSTEM = {
     "mnamer version": VERSION,
     "requests cache": f"{CACHE_PATH}.sql",
 }
+
+USAGE = "mnamer [preferences] [directives] target [targets ...]"
+
+VERSION_MAJOR = int(VERSION[0])
