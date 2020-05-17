@@ -2,17 +2,17 @@
 
 
 class MnamerException(Exception):
-    """Base exception for the mnamer package
+    """Base exception for the mnamer package.
     """
 
 
 class MnamerSkipException(MnamerException):
-    """Raised when a user has chosen to skip renaming the current target
+    """Raised when the user has chosen to skip renaming the current target.
     """
 
 
 class MnamerAbortException(MnamerException):
-    """Raised when the user has chosen to quit the application
+    """Raised when the user has chosen to quit the application.
     """
 
 
