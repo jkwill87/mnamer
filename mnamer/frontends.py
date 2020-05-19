@@ -10,17 +10,17 @@ from mnamer.exceptions import (
     MnamerNotFoundException,
     MnamerSkipException,
 )
-from mnamer.settings import Settings
+from mnamer.setting_store import SettingStore
 from mnamer.target import Target
 from mnamer.types import MessageType
 from mnamer.utils import clear_cache, get_filesize
 
 
 class Frontend(ABC):
-    settings: Settings
+    settings: SettingStore
     targets: List[Target]
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: SettingStore):
         self.settings = settings
         self.targets = Target.populate_paths(self.settings)
         tty.configure(self.settings)
@@ -34,15 +34,16 @@ class Frontend(ABC):
             print(self.settings.as_json)
             raise SystemExit(0)
 
-        tty.msg("Starting mnamer", MessageType.HEADING)
-        if self.settings.no_cache:
+        if self.settings.clear_cache:
             clear_cache()
             tty.msg("cache cleared", MessageType.ALERT)
+            raise SystemExit(0)
+
         if self.settings.test:
             tty.msg("testing mode", MessageType.ALERT)
-        if self.settings.configuration_path:
+        if self.settings.config_path:
             tty.msg(
-                f"loaded config from '{self.settings.configuration_path}'",
+                f"loaded config from '{self.settings.config_path}'",
                 MessageType.ALERT,
             )
 
@@ -60,11 +61,12 @@ class Frontend(ABC):
 
 
 class Cli(Frontend):
-    def __init__(self, settings: Settings):
-        if not settings._arg_data:
+    def __init__(self, settings: SettingStore):
+        super().__init__(settings)
+        if not settings.targets:
             tty.error(USAGE)
             raise SystemExit(2)
-        super().__init__(settings)
+        tty.msg("Starting mnamer", MessageType.HEADING)
 
     def launch(self):
         # exit early if no media files are found
@@ -169,4 +171,5 @@ class Cli(Frontend):
 
 
 class Gui(Frontend):
-    pass  # to be implemented in v3
+    def launch(self):
+        pass  # to be implemented in v3

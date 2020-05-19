@@ -14,7 +14,7 @@ from mnamer.exceptions import (
     MnamerSkipException,
 )
 from mnamer.metadata import Metadata
-from mnamer.settings import Settings
+from mnamer.setting_store import SettingStore
 from mnamer.types import MessageType
 from mnamer.utils import format_dict, format_exception, format_iter
 
@@ -63,7 +63,7 @@ def _msg_format(body: Any):
     return body
 
 
-def configure(settings: Settings):
+def configure(settings: SettingStore):
     """Sets class variables using a settings instance."""
     global verbose, no_style
     verbose = settings.verbose

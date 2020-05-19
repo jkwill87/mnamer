@@ -1,6 +1,6 @@
 import pytest
 
-from mnamer.argument import ArgParser
+from mnamer.argument import ArgLoader
 from tests import *
 
 pytestmark = pytest.mark.e2e
@@ -15,7 +15,7 @@ def test_invalid_arguments(e2e_run):
 def test_no_arguments(e2e_run):
     result = e2e_run()
     assert result.code == 2
-    assert result.out == ArgParser().usage
+    assert result.out == ArgLoader().usage
 
 
 @pytest.mark.usefixtures("setup_test_dir")

@@ -12,6 +12,7 @@ from mnamer.__version__ import VERSION
 __all__ = [
     "CACHE_PATH",
     "CURRENT_YEAR",
+    "DEPRECATED",
     "IS_DEBUG",
     "SYSTEM",
     "USAGE",
@@ -25,6 +26,8 @@ CACHE_PATH = Path(
 ).absolute()
 
 CURRENT_YEAR = datetime.now().year
+
+DEPRECATED = {"no_replace", "replacements"}
 
 IS_DEBUG = gettrace() is not None
 

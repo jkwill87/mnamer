@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-__all__ = ["MediaType", "MessageType", "ProviderType", "SettingsType"]
+__all__ = ["MediaType", "MessageType", "ProviderType", "SettingType"]
 
 
 class MediaType(Enum):
@@ -25,7 +25,7 @@ class ProviderType(Enum):
     OMDB = "omdb"
 
 
-class SettingsType(Enum):
+class SettingType(Enum):
     DIRECTIVE = "directive"
     PARAMETER = "parameter"
     POSITIONAL = "positional"

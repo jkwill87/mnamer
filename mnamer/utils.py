@@ -4,7 +4,14 @@ import json
 import re
 from datetime import date, datetime
 from os import walk
-from os.path import getsize, splitdrive, splitext
+from os.path import (
+    exists,
+    expanduser,
+    expandvars,
+    getsize,
+    splitdrive,
+    splitext,
+)
 from pathlib import Path
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 from unicodedata import normalize
@@ -31,6 +38,7 @@ __all__ = [
     "get_filesize",
     "get_session",
     "json_dumps",
+    "json_loads",
     "normalize_extension",
     "normalize_extensions",
     "parse_date",
@@ -202,6 +210,16 @@ def json_dumps(d: Dict[str, Any]) -> str:
         skipkeys=True,
         sort_keys=True,
     )
+
+
+def json_loads(path: str) -> Dict[str, Any]:
+    json_data = ""
+    path = expanduser(path)
+    path = expandvars(path)
+    if exists(path):
+        with open(path, mode="r") as fp:
+            json_data = fp.read()
+    return json.loads(json_data) if json_data else {}
 
 
 def normalize_extension(extension: str) -> str:

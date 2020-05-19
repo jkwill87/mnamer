@@ -6,7 +6,7 @@ from teletype.io import strip_format
 
 from mnamer.exceptions import MnamerException
 from mnamer.frontends import Cli
-from mnamer.settings import Settings
+from mnamer.setting_store import SettingStore
 from mnamer.target import Target
 from tests import *
 
@@ -38,7 +38,8 @@ def e2e_run(capsys, request):
         for arg in args:
             sys.argv.append(arg)
         try:
-            settings = Settings(load_arguments=True)
+            settings = SettingStore()
+            settings.load()
             Cli(settings).launch()
         except MnamerException as e:
             out += str(e)

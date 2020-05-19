@@ -6,7 +6,7 @@ from shutil import rmtree
 import pytest
 
 
-@pytest.fixture()
+@pytest.fixture
 def setup_test_dir():
     orig_dir = os.getcwd()
     tmp_dir = tempfile.mkdtemp()
@@ -16,7 +16,7 @@ def setup_test_dir():
     rmtree(tmp_dir)
 
 
-@pytest.fixture()
+@pytest.fixture
 def setup_test_files():
     def fn(*filenames):
         paths = [Path(*filename.split("/")) for filename in filenames]

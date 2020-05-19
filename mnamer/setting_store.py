@@ -1,30 +1,31 @@
 import dataclasses
 import json
-from os import environ
 from pathlib import Path
-from string import Template
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Union
 
-from mnamer.argument import ArgParser, ArgSpec
-from mnamer.exceptions import MnamerException, MnamerSettingException
-from mnamer.types import MediaType, ProviderType, SettingsType
-from mnamer.utils import crawl_out, normalize_extensions
+from mnamer.argument import ArgLoader
+from mnamer.exceptions import MnamerException
+from mnamer.setting_spec import SettingSpec
+from mnamer.types import MediaType, ProviderType, SettingType
+from mnamer.utils import crawl_out, json_loads, normalize_extensions
 
-__all__ = ["Settings"]
-
-DEPRECATED = {"no_replace", "replacements"}
+__all__ = ["SettingStore"]
 
 
 @dataclasses.dataclass
-class Settings:
+class SettingStore:
+    """
+    A dataclass which stores settings loaded from command line arguments and
+    configuration files.
+    """
 
     # positional attributes ----------------------------------------------------
 
     targets: List[Path] = dataclasses.field(
         default_factory=lambda: [],
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             flags=["targets"],
-            group=SettingsType.POSITIONAL,
+            group=SettingType.POSITIONAL,
             help="[TARGET,...]: media file file path(s) to process",
             nargs="*",
         )(),
@@ -34,178 +35,178 @@ class Settings:
 
     batch: bool = dataclasses.field(
         default=False,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             action="store_true",
             dest="batch",
-            flags=["-b", "--batch"],
-            group=SettingsType.PARAMETER,
+            flags=["--batch", "-b"],
+            group=SettingType.PARAMETER,
             help="-b, --batch: process automatically without interactive prompts",
         )(),
     )
     lower: bool = dataclasses.field(
         default=False,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             action="store_true",
-            flags=["-l", "--lower"],
-            group=SettingsType.PARAMETER,
+            flags=["--lower", "-l"],
+            group=SettingType.PARAMETER,
             help="-l, --lower: rename files using lowercase characters",
         )(),
     )
     recurse: bool = dataclasses.field(
         default=False,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             action="store_true",
-            flags=["-r", "--recurse"],
-            group=SettingsType.PARAMETER,
+            flags=["--recurse", "-r"],
+            group=SettingType.PARAMETER,
             help="-r, --recurse: search for files within nested directories",
         )(),
     )
     scene: bool = dataclasses.field(
         default=False,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             action="store_true",
-            flags=["-s", "--scene"],
-            group=SettingsType.PARAMETER,
+            flags=["--scene", "-s"],
+            group=SettingType.PARAMETER,
             help="-s, --scene: use dots in place of alphanumeric chars",
         )(),
     )
     verbose: bool = dataclasses.field(
         default=False,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             action="store_true",
-            flags=["-v", "--verbose"],
-            group=SettingsType.PARAMETER,
+            flags=["--verbose", "-v"],
+            group=SettingType.PARAMETER,
             help="-v, --verbose: increase output verbosity",
         )(),
     )
     hits: int = dataclasses.field(
         default=5,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             flags=["--hits"],
-            group=SettingsType.PARAMETER,
+            group=SettingType.PARAMETER,
             help="--hits=<NUMBER>: limit the maximum number of hits for each query",
             type=int,
         )(),
     )
     ignore: List[str] = dataclasses.field(
         default_factory=lambda: [".*sample.*", "^RARBG.*"],
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             flags=["--ignore"],
-            group=SettingsType.PARAMETER,
+            group=SettingType.PARAMETER,
             help="--ignore=<PATTERN,...>: ignore files matching these regular expressions",
             nargs="+",
         )(),
     )
     mask: List[str] = dataclasses.field(
         default_factory=lambda: ["avi", "m4v", "mp4", "mkv", "ts", "wmv"],
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             flags=["--mask"],
-            group=SettingsType.PARAMETER,
+            group=SettingType.PARAMETER,
             help="--mask=<EXTENSION,...>: only process given file types",
             nargs="+",
         )(),
     )
     no_cache: bool = dataclasses.field(
         default=False,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             action="store_true",
             dest="no_cache",
             flags=["--no_cache", "--no-cache", "--nocache"],
-            group=SettingsType.PARAMETER,
-            help="--no-cache: disable and clear request cache",
+            group=SettingType.DIRECTIVE,
+            help="--no-cache: disable request cache",
         )(),
     )
     no_guess: bool = dataclasses.field(
         default=False,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             action="store_true",
             dest="no_guess",
             flags=["--no_guess", "--no-guess", "--noguess"],
-            group=SettingsType.PARAMETER,
+            group=SettingType.PARAMETER,
             help="--no-guess: disable best guess; e.g. when no matches or network down",
         )(),
     )
     no_overwrite: bool = dataclasses.field(
         default=False,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             action="store_true",
             dest="no_overwrite",
             flags=["--no_overwrite", "--no-overwrite", "--nooverwrite"],
-            group=SettingsType.PARAMETER,
+            group=SettingType.PARAMETER,
             help="--no-overwrite: prevent relocation if it would overwrite a file",
         )(),
     )
     no_style: bool = dataclasses.field(
         default=False,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             action="store_true",
             dest="no_style",
             flags=["--no_style", "--no-style", "--nostyle"],
-            group=SettingsType.PARAMETER,
+            group=SettingType.PARAMETER,
             help="--no-style: print to stdout without using colour or unicode chars",
         )(),
     )
     movie_api: Union[ProviderType, str] = dataclasses.field(
         default=ProviderType.TMDB,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             choices=[ProviderType.TMDB.value, ProviderType.OMDB.value],
             dest="movie_api",
             flags=["--movie_api", "--movie-api", "--movieapi"],
-            group=SettingsType.PARAMETER,
+            group=SettingType.PARAMETER,
             help="--movie-api={*tmdb,omdb}: set movie api provider",
         )(),
     )
     movie_directory: Optional[Path] = dataclasses.field(
         default=None,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             dest="movie_directory",
             flags=[
                 "--movie_directory",
                 "--movie-directory",
                 "--moviedirectory",
             ],
-            group=SettingsType.PARAMETER,
+            group=SettingType.PARAMETER,
             help="--movie-directory: set movie relocation directory",
         )(),
     )
     movie_format: str = dataclasses.field(
         default="{name} ({year}){extension}",
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             dest="movie_format",
             flags=["--movie_format", "--movie-format", "--movieformat"],
-            group=SettingsType.PARAMETER,
+            group=SettingType.PARAMETER,
             help="--movie-format: set movie renaming format specification",
         )(),
     )
     episode_api: Union[ProviderType, str] = dataclasses.field(
         default=ProviderType.TVMAZE,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             choices=[ProviderType.TVDB.value, ProviderType.TVMAZE.value],
             dest="episode_api",
             flags=["--episode_api", "--episode-api", "--episodeapi"],
-            group=SettingsType.PARAMETER,
+            group=SettingType.PARAMETER,
             help="--episode-api={tvdb,*tvmaze}: set episode api provider",
         )(),
     )
     episode_directory: Path = dataclasses.field(
         default=None,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             dest="episode_directory",
             flags=[
                 "--episode_directory",
                 "--episode-directory",
                 "--episodedirectory",
             ],
-            group=SettingsType.PARAMETER,
+            group=SettingType.PARAMETER,
             help="--episode-directory: set episode relocation directory",
         )(),
     )
     episode_format: str = dataclasses.field(
         default="{series} - S{season:02}E{episode:02} - {title}{extension}",
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             dest="episode_format",
             flags=["--episode_format", "--episode-format", "--episodeformat"],
-            group=SettingsType.PARAMETER,
+            group=SettingType.PARAMETER,
             help="--episode-format: set episode renaming format specification",
         )(),
     )
@@ -214,80 +215,98 @@ class Settings:
 
     version: bool = dataclasses.field(
         default=False,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             action="store_true",
             flags=["-V", "--version"],
-            group=SettingsType.DIRECTIVE,
+            group=SettingType.DIRECTIVE,
             help="-V, --version: display the running mnamer version number",
+        )(),
+    )
+    clear_cache: bool = dataclasses.field(
+        default=False,
+        metadata=SettingSpec(
+            action="store_true",
+            dest="clear_cache",
+            flags=["--clear_cache", "--clear-cache", "--clearcache"],
+            group=SettingType.DIRECTIVE,
+            help="--clear-cache: clear request cache",
         )(),
     )
     config_dump: bool = dataclasses.field(
         default=False,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             action="store_true",
             dest="config_dump",
             flags=["--config_dump", "--config-dump", "--configdump"],
-            group=SettingsType.DIRECTIVE,
+            group=SettingType.DIRECTIVE,
             help="--config-dump: prints current config JSON to stdout then exits",
         )(),
     )
     config_ignore: bool = dataclasses.field(
         default=False,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             action="store_true",
             dest="config_ignore",
             flags=["--config_ignore", "--config-ignore", "--configignore"],
-            group=SettingsType.DIRECTIVE,
+            group=SettingType.DIRECTIVE,
             help="--config-ignore: skips loading config file for session",
+        )(),
+    )
+    config_path: str = dataclasses.field(
+        default=None,
+        metadata=SettingSpec(
+            flags=["--config_path", "--config-path"],
+            group=SettingType.DIRECTIVE,
+            help="--config-path=<PATH>: specifies configuration path to load",
         )(),
     )
     id_imdb: str = dataclasses.field(
         default=None,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             flags=["--id_imdb", "--id-imdb", "--idimdb"],
-            group=SettingsType.DIRECTIVE,
+            group=SettingType.DIRECTIVE,
             help="--id-imdb=<ID>: specify an IMDb movie id override",
         )(),
     )
     id_tmdb: str = dataclasses.field(
         default=None,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             flags=["--id_tmdb", "--id-tmdb", "--idtmdb"],
-            group=SettingsType.DIRECTIVE,
+            group=SettingType.DIRECTIVE,
             help="--id-tmdb=<ID>: specify a TMDb movie id override",
         )(),
     )
     id_tvdb: str = dataclasses.field(
         default=None,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             flags=["--id_tvdb", "--id-tvdb", "--idtvdb"],
-            group=SettingsType.DIRECTIVE,
+            group=SettingType.DIRECTIVE,
             help="--id-tvdb=<ID>: specify a TVDb series id override",
         )(),
     )
     id_tvmaze: str = dataclasses.field(
         default=None,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             flags=["--id_tvmaze", "--id-tvmaze", "--idtvmaze"],
-            group=SettingsType.DIRECTIVE,
+            group=SettingType.DIRECTIVE,
             help="--id-tvmaze=<ID>: specify a TvMaze series id override",
         )(),
     )
     media: Optional[Union[MediaType, str]] = dataclasses.field(
         default=None,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             choices=[MediaType.EPISODE.value, MediaType.MOVIE.value],
             flags=["--media"],
-            group=SettingsType.DIRECTIVE,
+            group=SettingType.DIRECTIVE,
             help="--media={movie,episode}: override media detection",
         )(),
     )
     test: bool = dataclasses.field(
         default=False,
-        metadata=ArgSpec(
+        metadata=SettingSpec(
             action="store_true",
             flags=["--test"],
-            group=SettingsType.DIRECTIVE,
+            group=SettingType.DIRECTIVE,
             help="--test: mocks the renaming and moving of files",
         )(),
     )
@@ -295,65 +314,33 @@ class Settings:
     # config-only attributes ---------------------------------------------------
 
     api_key_omdb: str = dataclasses.field(
-        default=None, metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
+        default=None, metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
     )
     api_key_tmdb: str = dataclasses.field(
-        default=None, metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
+        default=None, metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
     )
     api_key_tvdb: str = dataclasses.field(
-        default=None, metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
+        default=None, metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
     )
     api_key_tvmaze: str = dataclasses.field(
-        default=None, metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
+        default=None, metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
     )
     replace_before: Dict[str, str] = dataclasses.field(
         default_factory=lambda: {},
-        metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
+        metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
     )
     replace_after: Dict[str, str] = dataclasses.field(
         default_factory=lambda: {"&": "and", "@": "at", ";": ","},
-        metadata=ArgSpec(group=SettingsType.CONFIGURATION)(),
+        metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
     )
-
-    # init-var attributes ------------------------------------------------------
-
-    load_configuration: dataclasses.InitVar[bool] = False
-    load_arguments: dataclasses.InitVar[bool] = False
-    configuration_path: dataclasses.InitVar[Optional[Path]] = crawl_out(
-        ".mnamer-v2.json"
-    )
-
-    def __post_init__(
-        self,
-        load_configuration: bool,
-        load_arguments: bool,
-        configuration_path: Optional[Path],
-    ):
-        self._arg_data = {}
-        self._config_data = {}
-        self._load_arguments(load_arguments)
-        config_ignore = self._arg_data.get("config_ignore", False)
-        if configuration_path and load_configuration and not config_ignore:
-            self._load_configuration(configuration_path)
-            self._bulk_apply(self._config_data)
-        self._bulk_apply(self._arg_data)
 
     @classmethod
-    def _attribute_metadata(cls) -> Dict[str, ArgSpec]:
-        return {
-            f.name: ArgSpec(**f.metadata)
-            for f in dataclasses.fields(cls)
+    def specifications(cls) -> List[SettingSpec]:
+        return [
+            SettingSpec(**f.metadata)
+            for f in dataclasses.fields(SettingStore)
             if f.metadata
-        }
-
-    @classmethod
-    def _serializable_fields(cls) -> Tuple[str]:
-        return tuple(
-            str(field.name)
-            for field in dataclasses.fields(cls)
-            if field.metadata.get("group")
-            in {SettingsType.PARAMETER, SettingsType.CONFIGURATION}
-        )
+        ]
 
     @staticmethod
     def _resolve_path(path: Union[str, Path]) -> Path:
@@ -380,9 +367,15 @@ class Settings:
     @property
     def as_json(self):
         payload = {}
+        serializable_fields = tuple(
+            str(field.name)
+            for field in dataclasses.fields(self)
+            if field.metadata.get("group")
+            in {SettingType.PARAMETER, SettingType.CONFIGURATION}
+        )
         # transform values into primitive JSON-serializable types
         for k, v in self.as_dict.items():
-            if k not in self._serializable_fields():
+            if k not in serializable_fields:
                 continue
             if hasattr(v, "value"):
                 payload[k] = v.value
@@ -400,33 +393,21 @@ class Settings:
             sort_keys=True,
         )
 
-    def _bulk_apply(self, data: Dict[str, Any]):
-        [setattr(self, k, v) for k, v in data.items() if v]
+    def bulk_apply(self, d: Dict[str, Any]):
+        [setattr(self, k, v) for k, v in d.items() if v]
 
-    def _load_arguments(self, load_arguments: bool):
-        arg_parser = ArgParser()
-        groups = {SettingsType.DIRECTIVE}
-        if load_arguments:
-            groups |= {SettingsType.PARAMETER, SettingsType.POSITIONAL}
-        for spec in self._attribute_metadata().values():
-            if spec.group in groups:
-                arg_parser.add_spec(spec)
+    def load(self):
+        arg_loader = ArgLoader(*self.specifications())
         try:
-            arguments = arg_parser.parse_args()
-        except MnamerException as e:
-            if load_arguments:
-                raise MnamerSettingException(e)
-        else:
-            self._arg_data = vars(arguments)
-
-    def _load_configuration(self, path: Union[Path, str]):
-        path = Template(str(path)).substitute(environ)
-        with open(path, mode="r") as file_pointer:
-            data = json.loads(file_pointer.read())
-        for key in data:
-            if key not in self._attribute_metadata() and key not in DEPRECATED:
-                raise MnamerSettingException(f"invalid setting: {key}")
-        self._config_data = data
+            arguments = arg_loader.load()
+        except RuntimeError as e:
+            raise MnamerException(e)
+        config_path = arguments.get("config_path", crawl_out(".mnamer-v2.json"))
+        config = json_loads(str(config_path)) if config_path else {}
+        if not self.config_ignore and not arguments.get("config_ignore"):
+            self.bulk_apply(config)
+        if arguments:
+            self.bulk_apply(arguments)
 
     def api_for(self, media_type: MediaType) -> ProviderType:
         """Returns the ProviderType for a given media type."""

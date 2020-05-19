@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Union
 from mnamer.exceptions import MnamerException
 from mnamer.metadata import Metadata, parse_metadata
 from mnamer.providers import Provider
-from mnamer.settings import Settings
+from mnamer.setting_store import SettingStore
 from mnamer.types import MediaType, ProviderType
 from mnamer.utils import (
     crawl_in,
@@ -25,7 +25,7 @@ class Target:
     """Manages metadata state for a media file and facilitates its relocation.
     """
 
-    _settings: Settings
+    _settings: SettingStore
     _providers: Dict[ProviderType, Provider] = {}
     _provider: Provider
     _has_moved: bool
@@ -35,7 +35,7 @@ class Target:
     provider_type: ProviderType
     source: Path
 
-    def __init__(self, file_path: Union[str, Path], settings: Settings):
+    def __init__(self, file_path: Union[str, Path], settings: SettingStore):
         self._settings = settings
         self._has_moved: False
         self._has_renamed: False
@@ -52,7 +52,7 @@ class Target:
         return str(self.source.resolve())
 
     @classmethod
-    def populate_paths(cls, settings: Settings) -> List["Target"]:
+    def populate_paths(cls, settings: SettingStore) -> List["Target"]:
         """Creates a list of Target objects for media files found in paths."""
         file_paths = crawl_in(settings.targets, settings.recurse)
         file_paths = filter_blacklist(file_paths, settings.ignore)
@@ -110,7 +110,7 @@ class Target:
         directory = Path(dir_head, dir_tail)
         return Path(directory, filename).resolve()
 
-    def _override_metadata_ids(self, settings: Settings):
+    def _override_metadata_ids(self, settings: SettingStore):
         id_types = {"imdb", "tmdb", "tvdb", "tvmaze"}
         for id_type in id_types:
             attr = f"id_{id_type}"

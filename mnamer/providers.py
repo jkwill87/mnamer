@@ -8,7 +8,7 @@ from typing import Generator, Optional
 from mnamer.endpoints import *
 from mnamer.exceptions import MnamerNotFoundException
 from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
-from mnamer.settings import Settings
+from mnamer.setting_store import SettingStore
 from mnamer.types import MediaType, ProviderType
 from mnamer.utils import parse_date, year_range_parse
 
@@ -30,7 +30,7 @@ class Provider(ABC):
             self.cache = cache
 
     @classmethod
-    def from_settings(cls, settings: Settings):
+    def from_settings(cls, settings: SettingStore):
         assert settings
         api_field = f"api_key_{cls.__name__.lower()}"
         api_key = getattr(settings, api_field)
@@ -43,7 +43,7 @@ class Provider(ABC):
 
     @staticmethod
     def provider_factory(
-        provider: ProviderType, settings: Settings
+        provider: ProviderType, settings: SettingStore
     ) -> "Provider":
         """Factory function for DB Provider concrete classes."""
         provider = {

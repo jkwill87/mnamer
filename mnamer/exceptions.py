@@ -6,11 +6,6 @@ class MnamerException(Exception):
     """
 
 
-class MnamerSettingException(MnamerException):
-    """Raised when encountering an error parsing configuration or cli arguments.
-    """
-
-
 class MnamerSkipException(MnamerException):
     """Raised when the user has chosen to skip renaming the current target.
     """

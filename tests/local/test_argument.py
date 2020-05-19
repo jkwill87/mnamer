@@ -1,92 +1,54 @@
+import sys
+from unittest.mock import patch
+
 import pytest
 
-from mnamer.argument import *
-from mnamer.types import SettingsType
+from mnamer.argument import ArgLoader
+from mnamer.setting_spec import SettingSpec
+from mnamer.types import SettingType
 
 pytestmark = pytest.mark.local
 
 
-def test_arg_spec__serialize__default():
-    default = {
-        "action": None,
-        "choices": None,
-        "dest": None,
-        "flags": None,
-        "group": SettingsType.PARAMETER,
-        "help": None,
-        "nargs": None,
-        "type": None,
-    }
-    arg_spec = ArgSpec(SettingsType.PARAMETER)
-    assert arg_spec.as_dict() == default
-
-
-def test_arg_spec__serialize__override():
-    spec = {
-        "action": "count",
-        "choices": ["a", "b", "c"],
-        "dest": "foo",
-        "flags": ["-f", "--foo"],
-        "group": SettingsType.PARAMETER,
-        "help": "foos your bars",
-        "nargs": "+",
-        "type": int,
-    }
-    arg_spec = ArgSpec(**spec)
-    assert arg_spec.as_dict() == spec
-
-
-def test_arg_spec__registration():
-    spec = {
-        "dest": "foo",
-        "flags": ["-f", "--f"],
-        "group": SettingsType.DIRECTIVE,
-        "help": "foos your bars",
-    }
-    arg_spec = ArgSpec(**spec)
-    args, kwargs = arg_spec.registration
-    assert args == ["-f", "--f"]
-    assert kwargs == {"dest": "foo", "help": "foos your bars"}
-
-
 @pytest.mark.parametrize(
     "settings_type",
-    (SettingsType.DIRECTIVE, SettingsType.PARAMETER, SettingsType.POSITIONAL),
+    (SettingType.DIRECTIVE, SettingType.PARAMETER, SettingType.POSITIONAL),
     ids=("directive", "parameter", "positional"),
 )
-def test_arg_parser__add_spec(settings_type: SettingsType):
-    arg_parser = ArgParser()
-    arg_spec = ArgSpec(group=settings_type, flags=["-f"], help="foo")
-    assert len(arg_parser._actions_for_group(settings_type)) == 0
-    arg_parser.add_spec(arg_spec)
-    assert len(arg_parser._actions_for_group(settings_type)) == 1
+def test_arg_loader__add_spec(settings_type: SettingType):
+    arg_loader = ArgLoader()
+    spec = SettingSpec(group=settings_type, flags=["-f"], help="foo")
+    actions = getattr(arg_loader, f"_{settings_type.value}_group")
+    assert len(actions._group_actions) == 0
+    arg_loader += spec
+    assert len(actions._group_actions) == 1
 
 
-def test_arg_parser__add_spec_other():
-    arg_parser = ArgParser()
-    arg_spec = ArgSpec(
-        group=SettingsType.CONFIGURATION, flags=["-f"], help="foo"
+def test_arg_loader__add_spec_other():
+    arg_loader = ArgLoader()
+    spec = SettingSpec(
+        group=SettingType.CONFIGURATION, flags=["-f"], help="foo"
     )
     with pytest.raises(RuntimeError):
-        arg_parser.add_spec(arg_spec)
+        arg_loader += spec
 
 
-def test_arg_parser__format_help():
-    arg_parser = ArgParser()
-    for arg_spec in (
-        ArgSpec(SettingsType.POSITIONAL, flags=["--foo1"], help="foo1"),
-        ArgSpec(SettingsType.POSITIONAL, flags=["--foo2"], help="foo2"),
-        ArgSpec(SettingsType.POSITIONAL, flags=["--foo3"], help="foo3"),
-        ArgSpec(SettingsType.PARAMETER, flags=["--bar1"], help="bar1"),
-        ArgSpec(SettingsType.PARAMETER, flags=["--bar2"], help="bar2"),
-        ArgSpec(SettingsType.PARAMETER, flags=["--bar3"], help="bar3"),
-        ArgSpec(SettingsType.DIRECTIVE, flags=["--baz1"], help="baz1"),
-        ArgSpec(SettingsType.DIRECTIVE, flags=["--baz2"], help="baz2"),
-        ArgSpec(SettingsType.DIRECTIVE, flags=["--baz3"], help="baz3"),
+def test_arg_loader__format_help():
+    arg_loader = ArgLoader()
+    for spec in (
+        SettingSpec(SettingType.POSITIONAL, flags=["--foo1"], help="foo1"),
+        SettingSpec(SettingType.POSITIONAL, flags=["--foo2"], help="foo2"),
+        SettingSpec(SettingType.POSITIONAL, flags=["--foo3"], help="foo3"),
+        SettingSpec(SettingType.PARAMETER, flags=["--bar1"], help="bar1"),
+        SettingSpec(SettingType.PARAMETER, flags=["--bar2"], help="bar2"),
+        SettingSpec(SettingType.PARAMETER, flags=["--bar3"], help="bar3"),
+        SettingSpec(SettingType.DIRECTIVE, flags=["--baz1"], help="baz1"),
+        SettingSpec(SettingType.DIRECTIVE, flags=["--baz2"], help="baz2"),
+        SettingSpec(SettingType.DIRECTIVE, flags=["--baz3"], help="baz3"),
     ):
-        arg_parser.add_spec(arg_spec)
+        arg_loader._add_spec(spec)
     assert (
-        arg_parser.format_help()
+        arg_loader.format_help()
         == """
 USAGE: mnamer [preferences] [directives] target [targets ...]
 
@@ -115,3 +77,40 @@ DIRECTIVES:
 Visit https://github.com/jkwill87/mnamer for more information.
 """
     )
+
+
+def test_arg_parser__load__valid_parameter():
+    spec = SettingSpec(
+        group=SettingType.PARAMETER, flags=["-f"], help="foo", type=int
+    )
+    arg_parser = ArgLoader(spec)
+    with patch.object(sys, "argv", ["mnamer", "-f", "01"]):
+        assert arg_parser.load() == {"f": 1}
+
+
+def test_arg_parser__load__valid_directive():
+    spec = SettingSpec(
+        group=SettingType.DIRECTIVE, flags=["-f"], help="foo", type=int
+    )
+    arg_parser = ArgLoader(spec)
+    with patch.object(sys, "argv", ["mnamer", "-f", "01"]):
+        assert arg_parser.load() == {"f": 1}
+
+
+def test_arg_parser__load__valid_positional():
+    spec = SettingSpec(
+        group=SettingType.POSITIONAL, flags=["f"], help="foo", type=int,
+    )
+    arg_parser = ArgLoader(spec)
+    with patch.object(sys, "argv", ["mnamer", "01"]):
+        assert arg_parser.load() == {"f": 1}
+
+
+def test_arg_parser__load__invalid_configuration():
+    spec = SettingSpec(
+        group=SettingType.CONFIGURATION, flags=["-f"], help="foo"
+    )
+    arg_parser = ArgLoader(spec)
+    with patch.object(sys, "argv", ["mnamer", "-f", "1"]):
+        with pytest.raises(RuntimeError):
+            arg_parser.load()
