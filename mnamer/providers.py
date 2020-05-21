@@ -165,7 +165,7 @@ class Tmdb(Provider):
         )
 
     def _search_name(self, name: str, year: Optional[int]):
-        year_from, year_to = year_range_parse(year)
+        year_from, year_to = year_range_parse(year, 5)
         page = 1
         page_max = 5  # each page yields a maximum of 20 results
         found = False
