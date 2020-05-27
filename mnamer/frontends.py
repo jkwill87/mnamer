@@ -24,8 +24,10 @@ class Frontend(ABC):
         self.settings = settings
         self.targets = Target.populate_paths(self.settings)
         tty.configure(self.settings)
+        self._handle_directives()
+        self._print_configuration()
 
-        # handle directives and configuration
+    def _handle_directives(self):
         if self.settings.version:
             tty.msg(f"mnamer version {VERSION}")
             raise SystemExit(0)
@@ -47,7 +49,7 @@ class Frontend(ABC):
                 MessageType.ALERT,
             )
 
-        # print configuration details
+    def _print_configuration(self):
         tty.msg("\nsystem", debug=True)
         tty.msg(SYSTEM, debug=True)
         tty.msg("\nsettings", debug=True)
@@ -66,39 +68,28 @@ class Cli(Frontend):
         if not settings.targets:
             tty.error(USAGE)
             raise SystemExit(2)
-        tty.msg("Starting mnamer", MessageType.HEADING)
+        self.success_count = 0
+
+    @property
+    def total_count(self):
+        return len(self.targets)
 
     def launch(self):
-        # exit early if no media files are found
-        total_count = len(self.targets)
-        if total_count == 0:
+        tty.msg("Starting mnamer", MessageType.HEADING)
+        self._ensure_targets()
+        self._process_targets()
+        self._report_results()
+
+    def _ensure_targets(self):
+        if not self.targets:
             tty.msg("", debug=True)
             tty.msg("no media files found", MessageType.ALERT)
             raise SystemExit(0)
 
-        # main program loop
-        success_count = 0
+    def _process_targets(self):
         for target in self.targets:
-
-            # announce file
-            media_label = target.metadata.media.value.title()
-            filename_label = target.source.name
-            filesize_label = get_filesize(target.source)
-            tty.msg(
-                f'\nProcessing {media_label} "{filename_label}" ({filesize_label})',
-                MessageType.HEADING,
-            )
-            tty.msg(target.source, debug=True)
-
-            # list details
-            tty.msg(
-                f"using {target.provider_type.value}",
-                MessageType.ALERT,
-                debug=True,
-            )
-            tty.msg("\nsearch parameters", debug=True)
-            tty.msg(target.metadata.as_dict, debug=True)
-            tty.msg("", debug=True)
+            self._announce_file(target)
+            self._list_details(target)
 
             # find match for target
             matches = []
@@ -130,42 +121,62 @@ class Cli(Frontend):
             # sanity check move
             if target.destination == target.source:
                 tty.msg(
-                    f"skipping (source and destination paths are the same)",
+                    "skipping (source and destination paths are the same)",
                     MessageType.ALERT,
                 )
                 continue
             if self.settings.no_overwrite and target.destination.exists():
                 tty.msg(
-                    f"skipping (--no-overwrite)", MessageType.ALERT,
+                    "skipping (--no-overwrite)", MessageType.ALERT,
                 )
                 continue
 
-            tty.msg(
-                f"moving to {target.destination.absolute()}",
-                MessageType.SUCCESS,
-            )
+            self._rename_and_move_file(target)
 
-            # rename and move file
-            if self.settings.test:
-                success_count += 1
-                continue
-            try:
-                target.relocate()
-            except MnamerException:
-                tty.msg("FAILED!", MessageType.ERROR)
-            else:
-                tty.msg("OK!", MessageType.SUCCESS)
-                success_count += 1
+    def _announce_file(self, target: Target):
+        media_label = target.metadata.media.value.title()
+        filename_label = target.source.name
+        filesize_label = get_filesize(target.source)
+        tty.msg(
+            f'\nProcessing {media_label} "{filename_label}" ({filesize_label})',
+            MessageType.HEADING,
+        )
+        tty.msg(target.source, debug=True)
 
-        # report results
-        if success_count == 0:
+    def _list_details(self, target: Target):
+        tty.msg(
+            f"using {target.provider_type.value}",
+            MessageType.ALERT,
+            debug=True,
+        )
+        tty.msg("\nsearch parameters", debug=True)
+        tty.msg(target.metadata.as_dict, debug=True)
+        tty.msg("", debug=True)
+
+    def _rename_and_move_file(self, target: Target):
+        tty.msg(
+            f"moving to {target.destination.absolute()}", MessageType.SUCCESS,
+        )
+        if self.settings.test:
+            self.success_count += 1
+            return
+        try:
+            target.relocate()
+        except MnamerException:
+            tty.msg("FAILED!", MessageType.ERROR)
+        else:
+            tty.msg("OK!", MessageType.SUCCESS)
+            self.success_count += 1
+
+    def _report_results(self):
+        if self.success_count == 0:
             message_type = MessageType.ERROR
-        elif success_count == total_count:
+        elif self.success_count == self.total_count:
             message_type = MessageType.SUCCESS
         else:
             message_type = MessageType.ALERT
         tty.msg(
-            f"\n{success_count} out of {total_count} files processed successfully",
+            f"\n{self.success_count} out of {self.total_count} files processed successfully",
             message_type,
         )
 
