@@ -121,6 +121,7 @@ def test_tvdb_episodes_id__success(tvdb_token):
     assert result["data"]["id"] == LOST_TVDB_ID_EPISODE
 
 
+@pytest.mark.xfail(strict=False)
 def test_tvdb_series_id__invalid_token():
     with pytest.raises(MnamerException):
         tvdb_series_id(JUNK_TEXT, LOST_TVDB_ID_SERIES, cache=False)
@@ -182,6 +183,7 @@ def test_tvdb_series_id__success(tvdb_token):
     assert result["data"]["seriesName"] == "Lost"
 
 
+@pytest.mark.xfail(strict=False)
 def test_tvdb_series_id_episodes__invalid_token():
     with pytest.raises(MnamerException):
         tvdb_series_id_episodes(JUNK_TEXT, LOST_TVDB_ID_SERIES, cache=False)
@@ -215,6 +217,7 @@ def test_tvdb_series_id_episodes__success(tvdb_token):
     assert entry["id"] == LOST_TVDB_ID_EPISODE
 
 
+@pytest.mark.xfail(strict=False)
 def test_tvdb_series_id_episodes_query__invalid_token():
     with pytest.raises(MnamerException):
         tvdb_series_id_episodes_query(

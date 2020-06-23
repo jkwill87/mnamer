@@ -304,6 +304,8 @@ def tvdb_episodes_id(
         raise MnamerNotFoundException
     elif status != 200 or not content.get("data"):  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
+    elif content["data"]["id"] == 0:
+        raise MnamerNotFoundException
     return content
 
 
@@ -329,6 +331,8 @@ def tvdb_series_id(
         raise MnamerNotFoundException
     elif status != 200 or not content.get("data"):  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
+    elif content["data"]["id"] == 0:
+        raise MnamerNotFoundException
     return content
 
 
