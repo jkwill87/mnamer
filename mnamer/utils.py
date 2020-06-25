@@ -28,7 +28,7 @@ __all__ = [
     "crawl_out",
     "filename_replace",
     "filter_blacklist",
-    "filter_extensions",
+    "filter_containers",
     "findall",
     "fn_chain",
     "fn_pipe",
@@ -39,8 +39,8 @@ __all__ = [
     "get_session",
     "json_dumps",
     "json_loads",
-    "normalize_extension",
-    "normalize_extensions",
+    "normalize_container",
+    "normalize_containers",
     "parse_date",
     "request_json",
     "str_fix_padding",
@@ -103,9 +103,9 @@ def crawl_out(filename: str) -> Optional[Path]:
 
 def filename_replace(filename: str, replacements: Dict[str, str]) -> str:
     """Replaces keys in replacements dict with their values."""
-    base, ext = splitext(filename)
+    base, container = splitext(filename)
     base = str_replace(base, replacements)
-    return base + ext
+    return base + container
 
 
 def filter_blacklist(paths: List[Path], blacklist: List[str]) -> List[Path]:
@@ -121,15 +121,15 @@ def filter_blacklist(paths: List[Path], blacklist: List[str]) -> List[Path]:
     ]
 
 
-def filter_extensions(
-    file_paths: List[Path], valid_extensions: List[str]
+def filter_containers(
+    file_paths: List[Path], valid_containers: List[str]
 ) -> List[Path]:
-    """Filters (set intersection) a collection of extensions."""
-    valid_extensions = normalize_extensions(valid_extensions)
+    """Filters (set intersection) a collection of containers."""
+    valid_containers = normalize_containers(valid_containers)
     return [
         file_path
         for file_path in file_paths
-        if not valid_extensions or file_path.suffix.lower() in valid_extensions
+        if not valid_containers or file_path.suffix.lower() in valid_containers
     ]
 
 
@@ -222,17 +222,17 @@ def json_loads(path: str) -> Dict[str, Any]:
     return json.loads(json_data) if json_data else {}
 
 
-def normalize_extension(extension: str) -> str:
-    """Ensures all extensions begin with a dot."""
-    assert extension
-    if extension and extension[0] != ".":
-        extension = f".{extension}"
-    return extension.lower()
+def normalize_container(container: str) -> str:
+    """Ensures all containers begin with a dot."""
+    assert container
+    if container and container[0] != ".":
+        container = f".{container}"
+    return container.lower()
 
 
-def normalize_extensions(extension_list: List[str]) -> List[str]:
-    """For a list of extensions ensures that all extensions begin with a dot."""
-    return [normalize_extension(extension) for extension in extension_list]
+def normalize_containers(container_list: List[str]) -> List[str]:
+    """For a list of containers ensures that all containers begin with a dot."""
+    return [normalize_container(container) for container in container_list]
 
 
 def parse_date(value: Union[str, date, datetime]) -> date:
@@ -330,11 +330,15 @@ def str_replace_slashes(s: str) -> str:
 
 def str_sanitize(filename: str) -> str:
     """Removes illegal filename characters and condenses whitespace."""
-    base, ext = splitext(filename)
+    base, container = splitext(filename)
+    if container == ".srt":
+        base = base.rstrip(".")
+        base, container = splitext(base)
+        container = container + ".srt"
     base = re.sub(r"\s+", " ", base)
     drive, tail = splitdrive(base)
     tail = re.sub(r'[<>:"|?*&%=+@#`^]', "", tail)
-    return drive + tail.strip("-., ") + ext
+    return drive + tail.strip("-., ") + container
 
 
 def str_scenify(filename: str) -> str:

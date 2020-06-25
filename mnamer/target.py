@@ -12,7 +12,7 @@ from mnamer.utils import (
     crawl_in,
     filename_replace,
     filter_blacklist,
-    filter_extensions,
+    filter_containers,
     str_replace,
     str_sanitize,
     str_scenify,
@@ -56,7 +56,7 @@ class Target:
         """Creates a list of Target objects for media files found in paths."""
         file_paths = crawl_in(settings.targets, settings.recurse)
         file_paths = filter_blacklist(file_paths, settings.ignore)
-        file_paths = filter_extensions(file_paths, settings.mask)
+        file_paths = filter_containers(file_paths, settings.mask)
         targets = [cls(file_path, settings) for file_path in file_paths]
         targets = list(dict.fromkeys(targets))  # unique values
         targets = list(filter(cls._matches_media, targets))

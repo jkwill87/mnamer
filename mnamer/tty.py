@@ -3,6 +3,7 @@
 import traceback
 from typing import Any, Dict, List, Optional
 
+from babelfish import Language
 from teletype import codes
 from teletype.components import ChoiceHelper, SelectOne
 from teletype.io import style_format, style_print
@@ -21,7 +22,13 @@ from mnamer.utils import format_dict, format_exception, format_iter
 no_style: bool = False
 verbose: bool = False
 
-__all__ = ["msg", "prompt", "configure", "confirm_guess", "crash_report"]
+__all__ = [
+    "msg",
+    "metadata_prompt",
+    "configure",
+    "metadata_guess",
+    "crash_report",
+]
 
 
 def _chars() -> Dict[str, str]:
@@ -83,8 +90,11 @@ def error(body: Any):
     msg(body, message_type=MessageType.ERROR, debug=False)
 
 
-def prompt(matches: List[Metadata]) -> Optional[Metadata]:  # pragma: no cover
+def metadata_prompt(
+    matches: List[Metadata],
+) -> Optional[Metadata]:  # pragma: no cover
     """Prompts user to choose a match from a list of matches."""
+    msg("select match")
     selector = SelectOne(matches + _abort_helpers(), **_chars())
     choice = selector.prompt()
     if choice in (MnamerAbortException, MnamerSkipException):
@@ -93,7 +103,9 @@ def prompt(matches: List[Metadata]) -> Optional[Metadata]:  # pragma: no cover
         return choice
 
 
-def confirm_guess(metadata: Metadata) -> Optional[Metadata]:  # pragma: no cover
+def metadata_guess(
+    metadata: Metadata,
+) -> Optional[Metadata]:  # pragma: no cover
     """Prompts user to confirm a single match."""
     label = str(metadata)
     if no_style:
@@ -102,6 +114,42 @@ def confirm_guess(metadata: Metadata) -> Optional[Metadata]:  # pragma: no cover
         label += style_format(" (best guess)", "blue")
     option = ChoiceHelper(metadata, label)
     selector = SelectOne([option] + _abort_helpers(), **_chars())
+    choice = selector.prompt()
+    if choice in (MnamerAbortException, MnamerSkipException):
+        raise choice
+    else:
+        return choice
+
+
+def subtitle_prompt() -> Metadata:
+    msg("select language")
+    choices = [
+        ChoiceHelper(language, language.name)
+        for language in [
+            Language(code)
+            for code in [
+                "eng",
+                "fra",
+                "spa",
+                "deu",
+                "hin",
+                "zho",
+                "jpn",
+                "ita",
+                "rus",
+                "ara",
+                "kor",
+                "heb",
+                "por",
+                "swe",
+                "lat",
+                "ukr",
+                "dan",
+                "fas",
+            ]
+        ]
+    ]
+    selector = SelectOne(choices + _abort_helpers(), **_chars())
     choice = selector.prompt()
     if choice in (MnamerAbortException, MnamerSkipException):
         raise choice

@@ -23,10 +23,10 @@ def test_metadata__parse__group():
     assert metadata.group == "RARGB"
 
 
-def test_metadata__parse__extension():
+def test_metadata__parse__container():
     file_path = Path("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mp4")
     metadata = Metadata(file_path=file_path)
-    assert metadata.extension == ".mp4"
+    assert metadata.container == ".mp4"
 
 
 def test_metadata__convert__media():
@@ -41,9 +41,9 @@ def test_metadata__convert_synopsis(value):
 
 
 @pytest.mark.parametrize("value", TEXT_CASES)
-def test_metadata__convert_extension(value):
-    metadata = Metadata(extension=value)
-    assert metadata.extension == ".test"
+def test_metadata__convert_container(value):
+    metadata = Metadata(container=value)
+    assert metadata.container == ".test"
 
 
 @pytest.mark.parametrize("value", TEXT_CASES)

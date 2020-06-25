@@ -248,6 +248,15 @@ def test_str_sanitize__remove_illegal_chars():
     assert actual == expected
 
 
+@pytest.mark.parametrize(
+    "filename", ("xx.mkv.srt", "xx..mkv.srt", "xx.mkv..srt")
+)
+def test_srt_sanitize__subtitle(filename):
+    expected = "xx.mkv.srt"
+    actual = str_sanitize(filename)
+    assert actual == expected
+
+
 def test_str_scenify__dot_concat():
     filename = "some  file..name"
     expected = "some.file.name"
@@ -338,26 +347,26 @@ def test_filter_blacklist__regex():
     assert actual == expected
 
 
-def test_filter_extensions__filter_none():
+def test_filter_containers__filter_none():
     expected = FILTER_FILENAMES
-    actual = filter_extensions(FILTER_FILENAMES, [])
+    actual = filter_containers(FILTER_FILENAMES, [])
     assert expected == actual
 
 
-@pytest.mark.parametrize("extensions", (["jpg"], [".jpg"]))
-def test_filter_extensions__filter_multiple_paths_single_pattern(
-    extensions: List[str],
+@pytest.mark.parametrize("containers", (["jpg"], [".jpg"]))
+def test_filter_containers__filter_multiple_paths_single_pattern(
+    containers: List[str],
 ):
     expected = paths_for(
         "Images/Photos/DCM0001.jpg", "Images/Photos/DCM0002.jpg"
     )
-    actual = filter_extensions(FILTER_FILENAMES, extensions)
+    actual = filter_containers(FILTER_FILENAMES, containers)
     assert expected == actual
 
 
-@pytest.mark.parametrize("extensions", (["mkv", "zip"], [".mkv", ".zip"]))
-def test_filter_extensions__filter_multiple_paths_multi_pattern(
-    extensions: List[str],
+@pytest.mark.parametrize("containers", (["mkv", "zip"], [".mkv", ".zip"]))
+def test_filter_containers__filter_multiple_paths_multi_pattern(
+    containers: List[str],
 ):
     expected = paths_for(
         "Desktop/temp.zip",
@@ -369,17 +378,17 @@ def test_filter_extensions__filter_multiple_paths_multi_pattern(
         "s.w.a.t.2017.s02e01.mkv",
         "temp.zip",
     )
-    actual = filter_extensions(FILTER_FILENAMES, extensions)
+    actual = filter_containers(FILTER_FILENAMES, containers)
     assert expected == actual
 
 
-@pytest.mark.parametrize("extensions", (["mp4", "zip"], [".mp4", ".zip"]))
-def test_filter_extensions__filter_single_path_multi_pattern(
-    extensions: List[str],
+@pytest.mark.parametrize("containers", (["mp4", "zip"], [".mp4", ".zip"]))
+def test_filter_containers__filter_single_path_multi_pattern(
+    containers: List[str],
 ):
     filepaths = paths_for("Images/Skiing Trip.mp4")
     expected = filepaths
-    actual = filter_extensions(filepaths, extensions)
+    actual = filter_containers(filepaths, containers)
     assert expected == actual
 
 
@@ -441,15 +450,15 @@ def test_format_iter__enum():
     assert actual == expected
 
 
-def test_normalize_extension__has_no_dot():
+def test_normalize_container__has_no_dot():
     expected = ".mkv"
-    actual = normalize_extension("mkv")
+    actual = normalize_container("mkv")
     assert actual == expected
 
 
-def test_normalize_extension__has_dot():
+def test_normalize_container__has_dot():
     expected = ".mkv"
-    actual = normalize_extension(".mkv")
+    actual = normalize_container(".mkv")
     assert actual == expected
 
 

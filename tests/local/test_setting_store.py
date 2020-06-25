@@ -13,7 +13,7 @@ pytestmark = pytest.mark.local
 def test_as_dict(item):
     settings = SettingStore()
     k, v = item
-    assert settings.as_dict[k] == v
+    assert settings.as_dict()[k] == v
 
 
 @pytest.mark.parametrize(

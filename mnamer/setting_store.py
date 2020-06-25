@@ -7,7 +7,7 @@ from mnamer.argument import ArgLoader
 from mnamer.exceptions import MnamerException
 from mnamer.setting_spec import SettingSpec
 from mnamer.types import MediaType, ProviderType, SettingType
-from mnamer.utils import crawl_out, json_loads, normalize_extensions
+from mnamer.utils import crawl_out, json_loads, normalize_containers
 
 __all__ = ["SettingStore"]
 
@@ -98,7 +98,15 @@ class SettingStore:
         )(),
     )
     mask: List[str] = dataclasses.field(
-        default_factory=lambda: ["avi", "m4v", "mp4", "mkv", "ts", "wmv"],
+        default_factory=lambda: [
+            "avi",
+            "m4v",
+            "mp4",
+            "mkv",
+            "srt",
+            "ts",
+            "wmv",
+        ],
         metadata=SettingSpec(
             flags=["--mask"],
             group=SettingType.PARAMETER,
@@ -170,7 +178,7 @@ class SettingStore:
         )(),
     )
     movie_format: str = dataclasses.field(
-        default="{name} ({year}){extension}",
+        default="{name} ({year}).{extension}",
         metadata=SettingSpec(
             dest="movie_format",
             flags=["--movie_format", "--movie-format", "--movieformat"],
@@ -202,7 +210,7 @@ class SettingStore:
         )(),
     )
     episode_format: str = dataclasses.field(
-        default="{series} - S{season:02}E{episode:02} - {title}{extension}",
+        default="{series} - S{season:02}E{episode:02} - {title}.{extension}",
         metadata=SettingSpec(
             dest="episode_format",
             flags=["--episode_format", "--episode-format", "--episodeformat"],
@@ -350,7 +358,7 @@ class SettingStore:
         converter = {
             "episode_api": ProviderType,
             "episode_directory": self._resolve_path,
-            "mask": normalize_extensions,
+            "mask": normalize_containers,
             "media": MediaType,
             "movie_api": ProviderType,
             "movie_directory": self._resolve_path,
@@ -360,11 +368,9 @@ class SettingStore:
             value = converter(value)
         super().__setattr__(key, value)
 
-    @property
     def as_dict(self):
         return dataclasses.asdict(self)
 
-    @property
     def as_json(self):
         payload = {}
         serializable_fields = tuple(
@@ -374,7 +380,7 @@ class SettingStore:
             in {SettingType.PARAMETER, SettingType.CONFIGURATION}
         )
         # transform values into primitive JSON-serializable types
-        for k, v in self.as_dict.items():
+        for k, v in self.as_dict().items():
             if k not in serializable_fields:
                 continue
             if hasattr(v, "value"):

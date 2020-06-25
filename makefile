@@ -82,7 +82,7 @@ demo: clean-demo
 	    'demo/Downloads' \
 	    'demo/Images/Photos'
 	@cd demo && touch \
-        "Avengers Infinity War/Avengers.Infinity.War.srt" \
+        "Avengers Infinity War/Avengers.Infinity.War.en.srt" \
         "Avengers Infinity War/Avengers.Infinity.War.wmv" \
         "Downloads/Return of the Jedi 1080p.mkv" \
         "Downloads/archer.2009.s10e07.webrip.x264-lucidtv.mkv" \
