@@ -793,7 +793,7 @@ def test_year_parse__unexpected(s: str):
 @pytest.mark.parametrize("t", (0, 10, 100))
 def test_year_range_parse__exact(t: int, s: str):
     expected = (1950 - t, 1950 + t)
-    actual = year_range_parse("1950", t)
+    actual = year_range_parse(s, t)
     assert actual == expected
 
 

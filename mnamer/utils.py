@@ -518,7 +518,7 @@ def year_range_parse(
     default_start = 1900
     default_end = CURRENT_YEAR
     try:
-        start, dash, end = re.match(regex, str(years)).groups()
+        start, dash, end = re.match(regex, str(years).strip()).groups()
     except AttributeError:
         start, end, dash = None, None, True
     if not start and not end:
