@@ -3,18 +3,12 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from babelfish import Language
-
 from mnamer.argument import ArgLoader
 from mnamer.exceptions import MnamerException
+from mnamer.language import Language
 from mnamer.setting_spec import SettingSpec
 from mnamer.types import MediaType, ProviderType, SettingType
-from mnamer.utils import (
-    crawl_out,
-    init_language,
-    json_loads,
-    normalize_containers,
-)
+from mnamer.utils import crawl_out, json_loads, normalize_containers
 
 __all__ = ["SettingStore"]
 
@@ -373,7 +367,7 @@ class SettingStore:
         converter = {
             "episode_api": ProviderType,
             "episode_directory": self._resolve_path,
-            "language": init_language,
+            "language": Language.parse,
             "mask": normalize_containers,
             "media": MediaType,
             "movie_api": ProviderType,

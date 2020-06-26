@@ -9,7 +9,7 @@ from mnamer.const import CURRENT_YEAR
 from mnamer.types import MediaType
 from mnamer.utils import *
 from tests import *
-from babelfish import Language
+
 pytestmark = pytest.mark.local
 
 TEST_FILES: Dict[str, Path] = {
@@ -447,13 +447,6 @@ def test_format_iter__enum():
     it = [MediaType.MOVIE, MediaType.EPISODE]
     expected = " - episode\n" + " - movie"
     actual = format_iter(it)
-    assert actual == expected
-
-
-@pytest.mark.parametrize("language", (Language("eng"), "eng", "en"))
-def test_init_language(language):
-    expected = Language("eng")
-    actual = init_language(language)
     assert actual == expected
 
 

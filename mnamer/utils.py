@@ -17,7 +17,6 @@ from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 from unicodedata import normalize
 
 import requests_cache
-from babelfish import Language
 from requests.adapters import HTTPAdapter
 
 from mnamer.const import CACHE_PATH, CURRENT_YEAR
@@ -38,7 +37,6 @@ __all__ = [
     "format_iter",
     "get_filesize",
     "get_session",
-    "init_language",
     "json_dumps",
     "json_loads",
     "normalize_container",
@@ -199,19 +197,6 @@ def get_filesize(path: Path) -> str:
             break
         size /= 1024.0
     return f"{size:.{2}f}{unit}"
-
-
-def init_language(language: Union[Language, str]) -> Optional[Language]:
-    """Initializes a language object from a ISO-639-3 or IETF language code."""
-    if language is None:
-        return
-    if isinstance(language, Language):
-        return language
-    if isinstance(language, str) and len(language) == 3:
-        return Language(language)
-    if isinstance(language, str) and len(language) == 2:
-        return Language.fromietf(language)
-    raise ValueError
 
 
 def json_dumps(d: Dict[str, Any]) -> str:

@@ -3,7 +3,6 @@
 import traceback
 from typing import Any, Dict, List, Optional
 
-from babelfish import Language
 from teletype import codes
 from teletype.components import ChoiceHelper, SelectOne
 from teletype.io import style_format, style_print
@@ -14,6 +13,7 @@ from mnamer.exceptions import (
     MnamerException,
     MnamerSkipException,
 )
+from mnamer.language import Language
 from mnamer.metadata import Metadata
 from mnamer.setting_store import SettingStore
 from mnamer.types import MessageType
@@ -124,30 +124,7 @@ def metadata_guess(
 def subtitle_prompt() -> Metadata:
     msg("select language")
     choices = [
-        ChoiceHelper(language, language.name)
-        for language in [
-            Language(code)
-            for code in [
-                "eng",
-                "fra",
-                "spa",
-                "deu",
-                "hin",
-                "zho",
-                "jpn",
-                "ita",
-                "rus",
-                "ara",
-                "kor",
-                "heb",
-                "por",
-                "swe",
-                "lat",
-                "ukr",
-                "dan",
-                "fas",
-            ]
-        ]
+        ChoiceHelper(language, language.name) for language in Language.all()
     ]
     selector = SelectOne(choices + _abort_helpers(), **_chars())
     choice = selector.prompt()

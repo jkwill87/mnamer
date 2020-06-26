@@ -5,13 +5,12 @@ from pathlib import Path
 from string import Formatter
 from typing import Any, Union
 
-from babelfish import Language
 from guessit import guessit
 
+from mnamer.language import Language
 from mnamer.types import MediaType
 from mnamer.utils import (
     fn_pipe,
-    init_language,
     normalize_container,
     parse_date,
     str_fix_padding,
@@ -73,16 +72,14 @@ class Metadata:
         self.group = self._path_data.get("release_group")
         self.container = file_path.suffix or None
         if not self.language:
-            if self.is_subtitle:
-                self.language = self._path_data.get("subtitle_language")
-            else:
-                self.language = self._path_data.get("language")
+            key = "subtitle_language" if self.is_subtitle else "language"
+            self.language = self._path_data.get(key)
 
     def __setattr__(self, key: str, value: Any):
         converter = {
             "container": normalize_container,
             "group": str.upper,
-            "language": init_language,
+            "language": Language.parse,
             "media": MediaType,
             "quality": str.lower,
             "synopsis": str.capitalize,
@@ -100,7 +97,7 @@ class Metadata:
     @property
     def extension(self):
         if self.is_subtitle and self.language:
-            return f".{self.language.alpha2}{self.container}"
+            return f".{self.language.a2}{self.container}"
         else:
             return self.container
 
@@ -119,7 +116,9 @@ class Metadata:
         if isinstance(raw_data.get("season"), list):
             raw_data = dict(guessit(str(file_path.parts[-1]), options))
         for k, v in raw_data.items():
-            if isinstance(v, (int, str, date, Language)):
+            if hasattr(v, "alpha3"):
+                self._path_data[k] = Language.parse(v)
+            elif isinstance(v, (int, str, date)):
                 self._path_data[k] = v
             elif isinstance(v, list) and all(
                 [isinstance(_, (int, str)) for _ in v]
