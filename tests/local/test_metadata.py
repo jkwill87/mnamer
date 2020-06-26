@@ -89,7 +89,7 @@ def test_metadata_episode__parse__series():
 
 @pytest.mark.parametrize("value", ["1987/10/01", "1987-10-01", "1987.10.01"])
 def test_metadata_episode__convert__date(value):
-    metadata = MetadataEpisode(date="1987/10/01")
+    metadata = MetadataEpisode(date=value)
     assert metadata.date == date(1987, 10, 1)
 
 

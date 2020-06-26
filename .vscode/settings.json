@@ -1,6 +1,8 @@
 {
   "editor.formatOnSave": true,
-  "editor.rulers": [80],
+  "editor.rulers": [
+    80
+  ],
   "files.exclude": {
     "**/*.pyc": true,
     "**/.DS_Store": true,
@@ -18,7 +20,7 @@
   "python.pythonPath": "venv/bin/python3",
   "python.linting.pylintArgs": [
     "--disable",
-    "bare-except,expression-not-assigned,line-too-long"
+    "protected-access,bare-except,expression-not-assigned,line-too-long,missing-module-docstring,unused-wildcard-import,missing-function-docstring,attribute-defined-outside-init"
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.nosetestsEnabled": false,

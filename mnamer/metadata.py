@@ -23,8 +23,8 @@ __all__ = ["Metadata", "MetadataMovie", "MetadataEpisode", "parse_metadata"]
 
 
 class _MetaFormatter(Formatter):
-    def format_field(self, v, f):
-        return format(v, f) if v else ""
+    def format_field(self, value, format_spec):
+        return format(value, format_spec) if value else ""
 
     def get_value(self, key, args, kwargs):
         if isinstance(key, int):
