@@ -3,11 +3,18 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+from babelfish import Language
+
 from mnamer.argument import ArgLoader
 from mnamer.exceptions import MnamerException
 from mnamer.setting_spec import SettingSpec
 from mnamer.types import MediaType, ProviderType, SettingType
-from mnamer.utils import crawl_out, json_loads, normalize_containers
+from mnamer.utils import (
+    crawl_out,
+    init_language,
+    json_loads,
+    normalize_containers,
+)
 
 __all__ = ["SettingStore"]
 
@@ -41,6 +48,14 @@ class SettingStore:
             flags=["--batch", "-b"],
             group=SettingType.PARAMETER,
             help="-b, --batch: process automatically without interactive prompts",
+        )(),
+    )
+    language: Optional[Language] = dataclasses.field(
+        default=None,
+        metadata=SettingSpec(
+            flags=["--language"],
+            group=SettingType.PARAMETER,
+            help="--language: specify the search language",
         )(),
     )
     lower: bool = dataclasses.field(
@@ -358,6 +373,7 @@ class SettingStore:
         converter = {
             "episode_api": ProviderType,
             "episode_directory": self._resolve_path,
+            "language": init_language,
             "mask": normalize_containers,
             "media": MediaType,
             "movie_api": ProviderType,

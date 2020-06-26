@@ -12,7 +12,7 @@ def test_complex_metadata(e2e_run, setup_test_files):
     )
     result = e2e_run("--batch", "--media=movie", ".")
     assert result.code == 0
-    assert "Eye for an Eye (2019).mkv" in result.out
+    assert "Quien a Hierro Mata (2019).mkv" in result.out
     assert "1 out of 1 files processed successfully" in result.out
 
 

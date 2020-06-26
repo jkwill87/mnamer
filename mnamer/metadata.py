@@ -11,6 +11,7 @@ from guessit import guessit
 from mnamer.types import MediaType
 from mnamer.utils import (
     fn_pipe,
+    init_language,
     normalize_container,
     parse_date,
     str_fix_padding,
@@ -69,14 +70,19 @@ class Metadata:
             )
             or None
         )
-        self.language = self._path_data.get("subtitle_language")
         self.group = self._path_data.get("release_group")
         self.container = file_path.suffix or None
+        if not self.language:
+            if self.is_subtitle:
+                self.language = self._path_data.get("subtitle_language")
+            else:
+                self.language = self._path_data.get("language")
 
     def __setattr__(self, key: str, value: Any):
         converter = {
             "container": normalize_container,
             "group": str.upper,
+            "language": init_language,
             "media": MediaType,
             "quality": str.lower,
             "synopsis": str.capitalize,
@@ -225,13 +231,19 @@ class MetadataEpisode(Metadata):
         super().__setattr__(key, value)
 
 
-def parse_metadata(file_path: Path, media_hint: MediaType = None) -> Metadata:
+def parse_metadata(
+    file_path: Path,
+    media_hint: MediaType = None,
+    language_hint: Language = None,
+) -> Metadata:
     """
     A factory function which parses a file path and returns the appropriate
     Metadata derived class for the given media_hint if provided, else best guess
     if omitted.
     """
-    metadata = Metadata(file_path=file_path, media=media_hint)
+    metadata = Metadata(
+        file_path=file_path, media=media_hint, language=language_hint
+    )
     derived_cls = {
         MediaType.EPISODE: MetadataEpisode,
         MediaType.MOVIE: MetadataMovie,

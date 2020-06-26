@@ -214,8 +214,9 @@ def tmdb_search_movies(
     api_key: str,
     title: str,
     year: int = None,
-    adult: bool = False,
+    language: str = None,
     region: str = None,
+    adult: bool = False,
     page: int = 1,
     cache: bool = True,
 ) -> dict:
@@ -235,6 +236,7 @@ def tmdb_search_movies(
         "query": title,
         "page": page,
         "include_adult": adult,
+        "language": language,
         "region": region,
         "year": year,
     }

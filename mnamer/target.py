@@ -41,7 +41,9 @@ class Target:
         self._has_renamed: False
         self.source = Path(file_path).resolve()
         self.metadata = parse_metadata(
-            file_path=file_path, media_hint=settings.media
+            file_path=file_path,
+            media_hint=settings.media,
+            language_hint=settings.language,
         )
         self._replace_before()
         self.provider_type = settings.api_for(self.metadata.media)

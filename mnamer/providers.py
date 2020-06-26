@@ -11,6 +11,7 @@ from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
 from mnamer.setting_store import SettingStore
 from mnamer.types import MediaType, ProviderType
 from mnamer.utils import parse_date, year_range_parse
+from babelfish import Language
 
 __all__ = ["Provider", "Omdb", "Tmdb", "Tvdb", "TvMaze"]
 
@@ -147,37 +148,50 @@ class Tmdb(Provider):
         """Searches TMDb for movie metadata."""
         assert query
         if query.id_tmdb:
-            results = self._search_id(query.id_tmdb)
+            results = self._search_id(query.id_tmdb, query.language)
         elif query.name:
-            results = self._search_name(query.name, query.year)
+            results = self._search_name(query.name, query.year, query.language)
         else:
             raise MnamerNotFoundException
         yield from results
 
-    def _search_id(self, id_tmdb: int) -> Generator[MetadataMovie, None, None]:
-        response = tmdb_movies(self.api_key, id_tmdb, cache=self.cache)
+    def _search_id(
+        self, id_tmdb: int, language: Optional[Language] = None
+    ) -> Generator[MetadataMovie, None, None]:
+        language_code = language.alpha2 if language else None
+        response = tmdb_movies(self.api_key, id_tmdb, language_code, self.cache)
         yield MetadataMovie(
             name=response["title"],
+            language=language,
             year=response["release_date"],
             synopsis=response["overview"],
             id_tmdb=response["id"],
             id_imdb=response["imdb_id"],
         )
 
-    def _search_name(self, name: str, year: Optional[int]):
+    def _search_name(
+        self, name: str, year: Optional[int], language: Optional[Language]
+    ):
+        language_code = language.alpha2 if language else None
         year_from, year_to = year_range_parse(year, 5)
         page = 1
         page_max = 5  # each page yields a maximum of 20 results
         found = False
         while True:
             response = tmdb_search_movies(
-                self.api_key, name, year, page=page, cache=self.cache
+                self.api_key,
+                name,
+                year,
+                language_code,
+                page=page,
+                cache=self.cache,
             )
             for entry in response["results"]:
                 try:
                     meta = MetadataMovie(
                         id_tmdb=entry["id"],
                         name=entry["title"],
+                        language=language,
                         synopsis=entry["overview"],
                         year=entry["release_date"],
                     )
