@@ -10,6 +10,7 @@ from mnamer.endpoints import (
     tvdb_series_id_episodes_query,
 )
 from mnamer.exceptions import MnamerException, MnamerNotFoundException
+from mnamer.language import Language
 from mnamer.providers import Tvdb
 from tests import *
 
@@ -59,6 +60,7 @@ EXPECTED_TOP_LEVEL_SHOW_KEYS = {
 
 LOST_TVDB_ID_EPISODE = 127131
 LOST_TVDB_ID_SERIES = 73739
+THE_WITCHER_ID_SERIES = 362696
 
 
 @pytest.fixture(scope="session")
@@ -98,7 +100,10 @@ def test_tvdb_episodes_id__invalid_token():
 def test_tvdb_episodes_id__invalid_lang(tvdb_token):
     with pytest.raises(MnamerException):
         tvdb_episodes_id(
-            tvdb_token, LOST_TVDB_ID_EPISODE, lang=JUNK_TEXT, cache=False
+            tvdb_token,
+            LOST_TVDB_ID_EPISODE,
+            language=Language(JUNK_TEXT, JUNK_TEXT, JUNK_TEXT),
+            cache=False,
         )
 
 
@@ -130,7 +135,10 @@ def test_tvdb_series_id__invalid_token():
 def test_tvdb_series_id__invalid_lang(tvdb_token):
     with pytest.raises(MnamerException):
         tvdb_series_id(
-            tvdb_token, LOST_TVDB_ID_SERIES, lang=JUNK_TEXT, cache=False
+            tvdb_token,
+            LOST_TVDB_ID_SERIES,
+            language=Language(JUNK_TEXT, JUNK_TEXT, JUNK_TEXT),
+            cache=False,
         )
 
 
@@ -183,6 +191,11 @@ def test_tvdb_series_id__success(tvdb_token):
     assert result["data"]["seriesName"] == "Lost"
 
 
+def test_tvdb_series_id__language(tvdb_token):
+    result = tvdb_series_id(tvdb_token, THE_WITCHER_ID_SERIES, RUSSIAN_LANG)
+    assert result["data"]["seriesName"] == "Ведьмак"
+
+
 @pytest.mark.xfail(strict=False)
 def test_tvdb_series_id_episodes__invalid_token():
     with pytest.raises(MnamerException):
@@ -192,7 +205,10 @@ def test_tvdb_series_id_episodes__invalid_token():
 def test_tvdb_series_id_episodes__invalid_lang(tvdb_token):
     with pytest.raises(MnamerException):
         tvdb_series_id_episodes(
-            tvdb_token, LOST_TVDB_ID_SERIES, lang="xyz", cache=False
+            tvdb_token,
+            LOST_TVDB_ID_SERIES,
+            language=Language(JUNK_TEXT, JUNK_TEXT, JUNK_TEXT),
+            cache=False,
         )
 
 
@@ -217,6 +233,13 @@ def test_tvdb_series_id_episodes__success(tvdb_token):
     assert entry["id"] == LOST_TVDB_ID_EPISODE
 
 
+def test_tvdb_series_id_episodes__language(tvdb_token):
+    result = tvdb_series_id_episodes(
+        tvdb_token, THE_WITCHER_ID_SERIES, language=RUSSIAN_LANG
+    )
+    assert result["data"][0]["episodeName"] == "Начало конца"
+
+
 @pytest.mark.xfail(strict=False)
 def test_tvdb_series_id_episodes_query__invalid_token():
     with pytest.raises(MnamerException):
@@ -228,7 +251,10 @@ def test_tvdb_series_id_episodes_query__invalid_token():
 def test_tvdb_series_id_episodes_query__invalid_lang(tvdb_token):
     with pytest.raises(MnamerException):
         tvdb_series_id_episodes_query(
-            tvdb_token, LOST_TVDB_ID_SERIES, lang="xyz", cache=False
+            tvdb_token,
+            LOST_TVDB_ID_SERIES,
+            language=Language(JUNK_TEXT, JUNK_TEXT, JUNK_TEXT),
+            cache=False,
         )
 
 
@@ -305,6 +331,17 @@ def test_tvdb_series_id_episodes_query__success_id_tvdb_season_episode(
     assert result["links"]["next"] is None
 
 
+def test_tvdb_series_id_episodes_query(tvdb_token):
+    result = tvdb_series_id_episodes_query(
+        tvdb_token,
+        THE_WITCHER_ID_SERIES,
+        season=1,
+        episode=1,
+        language=RUSSIAN_LANG,
+    )
+    assert result["data"][0]["episodeName"] == "Начало конца"
+
+
 def test_tvdb_search_series__invalid_token():
     with pytest.raises(MnamerException):
         tvdb_search_series(JUNK_TEXT, "Lost", cache=False)
@@ -312,7 +349,12 @@ def test_tvdb_search_series__invalid_token():
 
 def test_tvdb_search_series__invalid_lang(tvdb_token):
     with pytest.raises(MnamerException):
-        tvdb_search_series(tvdb_token, "Lost", lang="xyz", cache=False)
+        tvdb_search_series(
+            tvdb_token,
+            "Lost",
+            language=Language(JUNK_TEXT, JUNK_TEXT, JUNK_TEXT),
+            cache=False,
+        )
 
 
 def test_tvdb_search_series__invalid_id_imdb(tvdb_token):
@@ -341,3 +383,8 @@ def test_tvdb_search_series__success(tvdb_token):
     assert len(data) == 100
     actual_top_level_keys = set(data[0].keys())
     assert actual_top_level_keys == expected_top_level_keys
+
+
+def test_tvdb_search_series__language(tvdb_token):
+    results = tvdb_search_series(tvdb_token, "Witcher", language=RUSSIAN_LANG)
+    assert any(result["seriesName"] for result in results["data"])

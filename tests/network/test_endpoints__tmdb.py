@@ -64,6 +64,13 @@ def test_tmdb_find__not_found():
         tmdb_find(Tmdb.api_key, "imdb_id", JUNK_IMDB_ID)
 
 
+def test_tmdb_find__language():
+    results = tmdb_find(Tmdb.api_key, "imdb_id", GOONIES_IMDB_ID, RUSSIAN_LANG)
+    assert any(
+        result["title"] == "Балбесы" for result in results["movie_results"]
+    )
+
+
 def test_tmdb_movies__success():
     expected_top_level_keys = {
         "adult",
@@ -95,7 +102,7 @@ def test_tmdb_movies__success():
     result = tmdb_movies(Tmdb.api_key, GOONIES_TMDB_ID)
     assert isinstance(result, dict)
     assert set(result.keys()) == expected_top_level_keys
-    assert result.get("original_title") == "The Goonies"
+    assert result.get("title") == "The Goonies"
 
 
 def test_tmdb_movies__api_key_fail():
@@ -111,6 +118,11 @@ def test_tmdb_movies__id_tmdb_fail():
 def test_tmdb_movies__not_found():
     with pytest.raises(MnamerNotFoundException):
         tmdb_movies(Tmdb.api_key, "1" * 10)
+
+
+def test_tmdb_movies__language():
+    result = tmdb_movies(Tmdb.api_key, GOONIES_TMDB_ID, RUSSIAN_LANG)
+    assert result.get("title") == "Балбесы"
 
 
 def test_tmdb_search_movies__success():
@@ -161,3 +173,10 @@ def test_tmdb_search_movies__bad_year():
         tmdb_search_movies(
             Tmdb.api_key, "the goonies", year=JUNK_TEXT, cache=False
         )
+
+
+def test_search_movies__language():
+    results = tmdb_search_movies(
+        Tmdb.api_key, "the goonies", language=RUSSIAN_LANG
+    )
+    assert any(result["title"] == "Балбесы" for result in results["results"])

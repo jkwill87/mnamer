@@ -1,6 +1,7 @@
 from datetime import date
 from typing import NamedTuple
 
+from mnamer.language import Language
 from mnamer.types import ProviderType
 
 __all__ = [
@@ -9,6 +10,7 @@ __all__ = [
     "JUNK_TEXT",
     "MOVIE_META",
     "TEST_DATE",
+    "RUSSIAN_LANG",
     "E2EResult",
     "MockRequestResponse",
 ]
@@ -110,6 +112,8 @@ MOVIE_META = {
 }
 
 TEST_DATE = date(2010, 12, 9)
+
+RUSSIAN_LANG = Language.parse("ru")
 
 
 class E2EResult(NamedTuple):
