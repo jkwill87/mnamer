@@ -158,8 +158,7 @@ class Tmdb(Provider):
     def _search_id(
         self, id_tmdb: int, language: Optional[Language] = None
     ) -> Generator[MetadataMovie, None, None]:
-        language_code = language.a2 if language else None
-        response = tmdb_movies(self.api_key, id_tmdb, language_code, self.cache)
+        response = tmdb_movies(self.api_key, id_tmdb, language, self.cache)
         yield MetadataMovie(
             name=response["title"],
             language=language,
@@ -172,19 +171,13 @@ class Tmdb(Provider):
     def _search_name(
         self, name: str, year: Optional[int], language: Optional[Language]
     ):
-        language_code = language.a2 if language else None
         year_from, year_to = year_range_parse(year, 5)
         page = 1
         page_max = 5  # each page yields a maximum of 20 results
         found = False
         while True:
             response = tmdb_search_movies(
-                self.api_key,
-                name,
-                year,
-                language_code,
-                page=page,
-                cache=self.cache,
+                self.api_key, name, year, language, page=page, cache=self.cache,
             )
             for entry in response["results"]:
                 try:
@@ -232,16 +225,20 @@ class Tvdb(Provider):
         if not self.token:
             self.token = self._login()
         if query.id_tvdb and query.date:
-            results = self._search_tvdb_date(query.id_tvdb, query.date)
+            results = self._search_tvdb_date(
+                query.id_tvdb, query.date, query.language
+            )
         elif query.id_tvdb:
             results = self._search_id(
-                query.id_tvdb, query.season, query.episode
+                query.id_tvdb, query.season, query.episode, query.language
             )
         elif query.series and query.date:
-            results = self._search_series_date(query.series, query.date)
+            results = self._search_series_date(
+                query.series, query.date, query.language
+            )
         elif query.series:
             results = self._search_series(
-                query.series, query.season, query.episode
+                query.series, query.season, query.episode, query.language
             )
         else:
             raise MnamerNotFoundException
@@ -249,10 +246,16 @@ class Tvdb(Provider):
             yield result
 
     def _search_id(
-        self, id_tvdb: int, season: int = None, episode: int = None,
+        self,
+        id_tvdb: int,
+        season: int = None,
+        episode: int = None,
+        language: Optional[Language] = None,
     ):
         found = False
-        series_data = tvdb_series_id(self.token, id_tvdb, cache=self.cache)
+        series_data = tvdb_series_id(
+            self.token, id_tvdb, language=language, cache=self.cache
+        )
         page = 1
         while True:
             episode_data = tvdb_series_id_episodes_query(
@@ -260,6 +263,7 @@ class Tvdb(Provider):
                 id_tvdb,
                 episode,
                 season,
+                language=language,
                 page=page,
                 cache=self.cache,
             )
@@ -271,6 +275,7 @@ class Tvdb(Provider):
                         id_tvdb=id_tvdb,
                         season=entry["airedSeason"],
                         series=series_data["data"]["seriesName"],
+                        language=language,
                         synopsis=(entry["overview"] or None)
                         .replace("\r\n", "")
                         .replace("  ", "")
@@ -287,14 +292,22 @@ class Tvdb(Provider):
             raise MnamerNotFoundException
 
     def _search_series(
-        self, series: str, season: int, episode: int,
+        self,
+        series: str,
+        season: int,
+        episode: int,
+        language: Optional[Language],
     ):
         found = False
-        series_data = tvdb_search_series(self.token, series, cache=self.cache)
+        series_data = tvdb_search_series(
+            self.token, series, language=language, cache=self.cache
+        )
 
         for series_id in [entry["id"] for entry in series_data["data"][:5]]:
             try:
-                for data in self._search_id(series_id, season, episode):
+                for data in self._search_id(
+                    series_id, season, episode, language
+                ):
                     if not data.series or not data.season:
                         continue
                     found = True
@@ -304,24 +317,32 @@ class Tvdb(Provider):
         if not found:
             raise MnamerNotFoundException
 
-    def _search_tvdb_date(self, id_tvdb: int, release_date: date):
+    def _search_tvdb_date(
+        self, id_tvdb: int, release_date: date, language: Optional[Language]
+    ):
         release_date = parse_date(release_date)
         found = False
-        for meta in self._search_id(id_tvdb):
+        for meta in self._search_id(id_tvdb, language=language):
             if meta.date and meta.date == release_date:
                 found = True
                 yield meta
         if not found:
             raise MnamerNotFoundException
 
-    def _search_series_date(self, series: str, release_date: date):
+    def _search_series_date(
+        self, series: str, release_date: date, language: Optional[Language]
+    ):
         release_date = parse_date(release_date)
-        series_data = tvdb_search_series(self.token, series, cache=self.cache)
+        series_data = tvdb_search_series(
+            self.token, series, language=language, cache=self.cache
+        )
         tvdb_ids = [entry["id"] for entry in series_data["data"]][:5]
         found = False
         for tvdb_id in tvdb_ids:
             try:
-                yield from self._search_tvdb_date(tvdb_id, release_date)
+                yield from self._search_tvdb_date(
+                    tvdb_id, release_date, language
+                )
                 found = True
             except MnamerNotFoundException:
                 continue
