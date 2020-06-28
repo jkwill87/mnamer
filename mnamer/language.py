@@ -1,4 +1,5 @@
-from typing import NamedTuple, Optional, Tuple
+from typing import Optional, Tuple
+import dataclasses
 
 from mnamer.exceptions import MnamerException
 
@@ -24,8 +25,9 @@ _KNOWN = (
 )
 
 
-class Language(NamedTuple):
-    """NamedTuple including the name, ISO 639-2, and ISO 639-1 language codes
+@dataclasses.dataclass
+class Language:
+    """dataclass including the name, ISO 639-2, and ISO 639-1 language codes
     """
 
     name: str
@@ -34,10 +36,14 @@ class Language(NamedTuple):
 
     @classmethod
     def parse(cls, value: str) -> Optional["Language"]:
-        if isinstance(value, cls):
-            return value
         if not value:
             return None
+        if isinstance(value, cls):
+            return value
+        if isinstance(value, dict):
+            return cls(*value.values())
+        if isinstance(value, tuple):
+            return cls(*value)
         if getattr(value, "alpha3", None):
             return cls(value.name, value.alpha2, value.alpha3)
         value = value.lower()
@@ -83,7 +89,3 @@ class Language(NamedTuple):
         }
         if language is not None and language.a2 not in valid:
             raise MnamerException("'lang' must be one of %s" % ",".join(valid))
-
-    # @staticmethod
-    # def a2_or_none(language: Optional["Language"]):
-    #     return language.a2 if language is not None else None
