@@ -1,13 +1,14 @@
 import datetime
 from re import match
 from time import sleep
-from typing import Union
+from typing import Optional, Union
 
 from mnamer.exceptions import (
     MnamerException,
     MnamerNetworkException,
     MnamerNotFoundException,
 )
+from mnamer.language import Language
 from mnamer.utils import clean_dict, parse_date, request_json
 
 __all__ = [
@@ -32,44 +33,19 @@ __all__ = [
     "tvmaze_show_single_search",
 ]
 
-TVDB_LANGUAGE_CODES = [
-    "cs",
-    "da",
-    "de",
-    "el",
-    "en",
-    "es",
-    "fi",
-    "fr",
-    "he",
-    "hr",
-    "hu",
-    "it",
-    "ja",
-    "ko",
-    "nl",
-    "no",
-    "pl",
-    "pt",
-    "ru",
-    "sl",
-    "sv",
-    "tr",
-    "zh",
-]
 OMDB_PLOT_TYPES = {"short", "long"}
 MAX_RETRIES = 5
 
 
 def omdb_title(
     api_key: str,
-    id_imdb: str = None,
-    media: str = None,
-    title: str = None,
-    season: int = None,
-    episode: int = None,
-    year: int = None,
-    plot: str = None,
+    id_imdb: Optional[str] = None,
+    media: Optional[str] = None,
+    title: Optional[str] = None,
+    season: Optional[int] = None,
+    episode: Optional[int] = None,
+    year: Optional[int] = None,
+    plot: Optional[str] = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -109,8 +85,8 @@ def omdb_title(
 def omdb_search(
     api_key: str,
     query: str,
-    year: int = None,
-    media: str = None,
+    year: Optional[int] = None,
+    media: Optional[str] = None,
     page: int = 1,
     cache: bool = True,
 ) -> dict:
@@ -144,7 +120,7 @@ def tmdb_find(
     api_key: str,
     external_source: str,
     external_id: str,
-    language: str = "en-US",
+    language: Optional[Language] = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -187,7 +163,7 @@ def tmdb_find(
 def tmdb_movies(
     api_key: str,
     id_tmdb: Union[int, str],
-    language: str = "en-US",
+    language: Optional[str] = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -213,9 +189,9 @@ def tmdb_movies(
 def tmdb_search_movies(
     api_key: str,
     title: str,
-    year: int = None,
-    language: str = None,
-    region: str = None,
+    year: Optional[int] = None,
+    language: Optional[Language] = None,
+    region: Optional[str] = None,
     adult: bool = False,
     page: int = 1,
     cache: bool = True,
@@ -284,19 +260,21 @@ def tvdb_refresh_token(token: str) -> str:
 
 
 def tvdb_episodes_id(
-    token: str, id_tvdb: Union[str, int], lang: str = "en", cache: bool = True
+    token: str,
+    id_tvdb: Union[str, int],
+    language: Optional[Language] = None,
+    cache: bool = True,
 ) -> dict:
     """
     Returns the full information for a given episode id.
 
     Online docs: https://api.thetvdb.com/swagger#!/Episodes.
     """
-    if lang not in TVDB_LANGUAGE_CODES:
-        raise MnamerException(
-            "'lang' must be one of %s" % ",".join(TVDB_LANGUAGE_CODES)
-        )
+    Language.ensure_valid_for_tvdb(language)
     url = f"https://api.thetvdb.com/episodes/{id_tvdb}"
-    headers = {"Accept-Language": lang, "Authorization": f"Bearer {token}"}
+    headers = {"Authorization": f"Bearer {token}"}
+    if language:
+        headers["Accept-Language"] = language.a2
     status, content = request_json(url, headers=headers, cache=cache)
     if status == 401:
         raise MnamerException("invalid token")
@@ -312,7 +290,10 @@ def tvdb_episodes_id(
 
 
 def tvdb_series_id(
-    token: str, id_tvdb: Union[str, int], lang: str = "en", cache: bool = True
+    token: str,
+    id_tvdb: Union[str, int],
+    language: Optional[Language] = None,
+    cache: bool = True,
 ) -> dict:
     """
     Returns a series records that contains all information known about a
@@ -320,12 +301,11 @@ def tvdb_series_id(
 
     Online docs: api.thetvdb.com/swagger#!/Series/get_series_id.
     """
-    if lang not in TVDB_LANGUAGE_CODES:
-        raise MnamerException(
-            "'lang' must be one of %s" % ",".join(TVDB_LANGUAGE_CODES)
-        )
+    Language.ensure_valid_for_tvdb(language)
     url = f"https://api.thetvdb.com/series/{id_tvdb}"
-    headers = {"Accept-Language": lang, "Authorization": f"Bearer {token}"}
+    headers = {"Authorization": f"Bearer {token}"}
+    if language:
+        headers["Accept-Language"] = language.a2
     status, content = request_json(url, headers=headers, cache=cache)
     if status == 401:
         raise MnamerException("invalid token")
@@ -342,7 +322,7 @@ def tvdb_series_id_episodes(
     token: str,
     id_tvdb: Union[str, int],
     page: int = 1,
-    lang: str = "en",
+    language: Optional[Language] = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -351,12 +331,11 @@ def tvdb_series_id_episodes(
     Note: Paginated with 100 results per page.
     Online docs: api.thetvdb.com/swagger#!/Series/get_series_id_episodes.
     """
-    if lang not in TVDB_LANGUAGE_CODES:
-        raise MnamerException(
-            "'lang' must be one of %s" % ",".join(TVDB_LANGUAGE_CODES)
-        )
+    Language.ensure_valid_for_tvdb(language)
     url = f"https://api.thetvdb.com/series/{id_tvdb}/episodes"
-    headers = {"Accept-Language": lang, "Authorization": f"Bearer {token}"}
+    headers = {"Authorization": f"Bearer {token}"}
+    if language:
+        headers["Accept-Language"] = language.a2
     parameters = {"page": page}
     status, content = request_json(
         url, parameters, headers=headers, cache=cache
@@ -373,10 +352,10 @@ def tvdb_series_id_episodes(
 def tvdb_series_id_episodes_query(
     token: str,
     id_tvdb: Union[str, int],
-    episode: int = None,
-    season: int = None,
+    episode: Optional[int] = None,
+    season: Optional[int] = None,
     page: int = 1,
-    lang: str = "en",
+    language: Optional[Language] = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -386,12 +365,11 @@ def tvdb_series_id_episodes_query(
     ever need to query against both tvdb and imdb series ids?
     Online docs: api.thetvdb.com/swagger#!/Series/get_series_id_episodes_query.
     """
-    if lang not in TVDB_LANGUAGE_CODES:
-        raise MnamerException(
-            "'lang' must be one of %s" % ",".join(TVDB_LANGUAGE_CODES)
-        )
+    Language.ensure_valid_for_tvdb(language)
     url = f"https://api.thetvdb.com/series/{id_tvdb}/episodes/query"
-    headers = {"Accept-Language": lang, "Authorization": f"Bearer {token}"}
+    headers = {"Authorization": f"Bearer {token}"}
+    if language:
+        headers["Accept-Language"] = language.a2
     parameters = {"airedSeason": season, "airedEpisode": episode, "page": page}
     status, content = request_json(
         url, parameters, headers=headers, cache=cache
@@ -407,10 +385,10 @@ def tvdb_series_id_episodes_query(
 
 def tvdb_search_series(
     token: str,
-    series: str = None,
-    id_imdb: str = None,
-    id_zap2it: str = None,
-    lang: str = "en",
+    series: Optional[str] = None,
+    id_imdb: Optional[str] = None,
+    id_zap2it: Optional[str] = None,
+    language: Optional[Language] = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -419,13 +397,12 @@ def tvdb_search_series(
     Online docs: https://api.thetvdb.com/swagger#!/Search/get_search_series
     Note: results a maximum of 100 entries per page, no option for pagination.
     """
-    if lang not in TVDB_LANGUAGE_CODES:
-        raise MnamerException(
-            "'lang' must be one of %s" % ",".join(TVDB_LANGUAGE_CODES)
-        )
+    Language.ensure_valid_for_tvdb(language)
     url = "https://api.thetvdb.com/search/series"
     parameters = {"name": series, "imdbId": id_imdb, "zap2itId": id_zap2it}
-    headers = {"Accept-Language": lang, "Authorization": f"Bearer {token}"}
+    headers = {"Authorization": f"Bearer {token}"}
+    if language:
+        headers["Accept-Language"] = language.a2
     status, content = request_json(
         url, parameters, headers=headers, cache=cache
     )
@@ -479,7 +456,7 @@ def tvmaze_show_search(
 
     Online docs: https://www.tvmaze.com/api#show-search
     """
-    url = f"http://api.tvmaze.com/search/shows"
+    url = "http://api.tvmaze.com/search/shows"
     parameters = {"q": query}
     status, content = request_json(url, parameters, cache=cache)
     if status == 443 and attempt <= MAX_RETRIES:  # pragma: no cover
@@ -503,7 +480,7 @@ def tvmaze_show_single_search(
 
     Online docs: https://www.tvmaze.com/api#show-single-search
     """
-    url = f"http://api.tvmaze.com/singlesearch/shows"
+    url = "http://api.tvmaze.com/singlesearch/shows"
     parameters = {"q": query}
     status, content = request_json(url, parameters, cache=cache)
     if status == 443 and attempt <= MAX_RETRIES:  # pragma: no cover
@@ -517,7 +494,7 @@ def tvmaze_show_single_search(
 
 
 def tvmaze_show_lookup(
-    id_imdb: str = None,
+    id_imdb: Optional[str] = None,
     id_tvdb: Union[str, int] = None,
     embed_episodes: bool = False,
     cache: bool = True,
@@ -531,7 +508,7 @@ def tvmaze_show_lookup(
     """
     if not [id_imdb, id_tvdb].count(None) == 1:
         raise MnamerException("id_imdb and id_tvdb are mutually exclusive")
-    url = f"http://api.tvmaze.com/lookup/shows"
+    url = "http://api.tvmaze.com/lookup/shows"
     parameters = {"imdb": id_imdb, "thetvdb": id_tvdb}
     if embed_episodes:
         parameters["embed"] = "episodes"

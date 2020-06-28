@@ -25,6 +25,9 @@ _KNOWN = (
 
 
 class Language(NamedTuple):
+    """NamedTuple including the name, ISO 639-2, and ISO 639-1 language codes
+    """
+
     name: str
     a2: str
     a3: str
@@ -50,3 +53,37 @@ class Language(NamedTuple):
 
     def __str__(self):
         return self.a2
+
+    @staticmethod
+    def ensure_valid_for_tvdb(language: Optional["Language"]):
+        valid = {
+            "cs",
+            "da",
+            "de",
+            "el",
+            "en",
+            "es",
+            "fi",
+            "fr",
+            "he",
+            "hr",
+            "hu",
+            "it",
+            "ja",
+            "ko",
+            "nl",
+            "no",
+            "pl",
+            "pt",
+            "ru",
+            "sl",
+            "sv",
+            "tr",
+            "zh",
+        }
+        if language is not None and language.a2 not in valid:
+            raise MnamerException("'lang' must be one of %s" % ",".join(valid))
+
+    # @staticmethod
+    # def a2_or_none(language: Optional["Language"]):
+    #     return language.a2 if language is not None else None
