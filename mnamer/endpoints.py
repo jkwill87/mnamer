@@ -275,7 +275,9 @@ def tvdb_episodes_id(
     headers = {"Authorization": f"Bearer {token}"}
     if language:
         headers["Accept-Language"] = language.a2
-    status, content = request_json(url, headers=headers, cache=cache)
+    status, content = request_json(
+        url, headers=headers, cache=cache is True and language is None
+    )
     if status == 401:
         raise MnamerException("invalid token")
     elif status == 404:
@@ -306,7 +308,9 @@ def tvdb_series_id(
     headers = {"Authorization": f"Bearer {token}"}
     if language:
         headers["Accept-Language"] = language.a2
-    status, content = request_json(url, headers=headers, cache=cache)
+    status, content = request_json(
+        url, headers=headers, cache=cache is True and language is None
+    )
     if status == 401:
         raise MnamerException("invalid token")
     elif status == 404:
@@ -338,7 +342,10 @@ def tvdb_series_id_episodes(
         headers["Accept-Language"] = language.a2
     parameters = {"page": page}
     status, content = request_json(
-        url, parameters, headers=headers, cache=cache
+        url,
+        parameters,
+        headers=headers,
+        cache=cache is True and language is None,
     )
     if status == 401:
         raise MnamerException("invalid token")
@@ -372,7 +379,10 @@ def tvdb_series_id_episodes_query(
         headers["Accept-Language"] = language.a2
     parameters = {"airedSeason": season, "airedEpisode": episode, "page": page}
     status, content = request_json(
-        url, parameters, headers=headers, cache=cache
+        url,
+        parameters,
+        headers=headers,
+        cache=cache is True and language is None,
     )
     if status == 401:
         raise MnamerException("invalid token")
@@ -404,7 +414,10 @@ def tvdb_search_series(
     if language:
         headers["Accept-Language"] = language.a2
     status, content = request_json(
-        url, parameters, headers=headers, cache=cache
+        url,
+        parameters,
+        headers=headers,
+        cache=cache is True and language is None,
     )
     if status == 401:
         raise MnamerException("invalid token")
