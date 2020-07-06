@@ -1,11 +1,8 @@
 import dataclasses
 import re
-from datetime import date
 from pathlib import Path
 from string import Formatter
-from typing import Any, Union
-
-from guessit import guessit
+from typing import Any, Optional, Union
 
 from mnamer.language import Language
 from mnamer.types import MediaType
@@ -19,7 +16,7 @@ from mnamer.utils import (
     year_parse,
 )
 
-__all__ = ["Metadata", "MetadataMovie", "MetadataEpisode", "parse_metadata"]
+__all__ = ["Metadata", "MetadataMovie", "MetadataEpisode"]
 
 
 class _MetaFormatter(Formatter):
@@ -42,38 +39,7 @@ class Metadata:
     language: Language = None
     quality: str = None
     synopsis: str = None
-    file_path: dataclasses.InitVar[Path] = None
     media: MediaType = None
-
-    def __post_init__(self, file_path: Path):
-        if file_path is None:
-            return
-        quality_keys = {
-            "audio_codec",
-            "audio_profile",
-            "screen_size",
-            "source",
-            "video_codec",
-            "video_profile",
-        }
-        # inspect path data
-        self._path_data = {}
-        self._parse_path_data(file_path)
-        # set common attributes
-        self.media = MediaType(self._path_data["type"])
-        self.quality = (
-            " ".join(
-                self._path_data[key]
-                for key in self._path_data
-                if key in quality_keys
-            )
-            or None
-        )
-        self.group = self._path_data.get("release_group")
-        self.container = file_path.suffix or None
-        if not self.language:
-            key = "subtitle_language" if self.is_subtitle else "language"
-            self.language = self._path_data.get(key)
 
     def __setattr__(self, key: str, value: Any):
         converter = {
@@ -88,7 +54,7 @@ class Metadata:
             value = converter(value)
         super().__setattr__(key, value)
 
-    def __format__(self, format_spec: str):
+    def __format__(self, format_spec: Optional[str]):
         raise NotImplementedError
 
     def __str__(self):
@@ -109,21 +75,6 @@ class Metadata:
         d = dataclasses.asdict(self)
         d["extension"] = self.extension
         return d
-
-    def _parse_path_data(self, file_path: Path):
-        options = {"type": getattr(self.media, "value", None)}
-        raw_data = dict(guessit(str(file_path), options))
-        if isinstance(raw_data.get("season"), list):
-            raw_data = dict(guessit(str(file_path.parts[-1]), options))
-        for k, v in raw_data.items():
-            if hasattr(v, "alpha3"):
-                self._path_data[k] = Language.parse(v)
-            elif isinstance(v, (int, str, date)):
-                self._path_data[k] = v
-            elif isinstance(v, list) and all(
-                [isinstance(_, (int, str)) for _ in v]
-            ):
-                self._path_data[k] = v[0]
 
     def _format_repl(self, mobj):
         format_string, key = mobj.groups()
@@ -154,14 +105,7 @@ class MetadataMovie(Metadata):
     id_tmdb: Union[int, str] = None
     media: MediaType = MediaType.MOVIE
 
-    def __post_init__(self, file_path: Path):
-        if file_path is None:
-            return
-        super().__post_init__(file_path)
-        self.name = self._path_data.get("title")
-        self.year = self._path_data.get("year")
-
-    def __format__(self, format_spec: str):
+    def __format__(self, format_spec: Optional[str]):
         default = "{name} ({year})"
         re_pattern = r"({(\w+)(?:\[[\w:]+\])?(?:\:\d{1,2})?})"
         s = re.sub(re_pattern, self._format_repl, format_spec or default)
@@ -194,23 +138,7 @@ class MetadataEpisode(Metadata):
     id_tvmaze: Union[int, str] = None
     media: MediaType = MediaType.EPISODE
 
-    def __post_init__(self, file_path: Path):
-        if file_path is None:
-            return
-        super().__post_init__(file_path)
-        self.date = self._path_data.get("date")
-        self.episode = self._path_data.get("episode")
-        self.season = self._path_data.get("season")
-        self.series = self._path_data.get("title")
-        alternative_title = self._path_data.get("alternative_title")
-        if alternative_title:
-            self.series = f"{self.series} {alternative_title}"
-        # adding year to title can reduce false positives
-        # year = self._path_data.get("year")
-        # if year:
-        #     self.series = f"{self.series} {year}"
-
-    def __format__(self, format_spec: str):
+    def __format__(self, format_spec: Optional[str]):
         default = "{series} - {season:02}x{episode:02} - {title}"
         re_pattern = r"({(\w+)(?:\[[\w:]+\])?(?:\:\d{1,2})?})"
         s = re.sub(re_pattern, self._format_repl, format_spec or default)
@@ -228,23 +156,3 @@ class MetadataEpisode(Metadata):
         if value is not None and converter:
             value = converter(value)
         super().__setattr__(key, value)
-
-
-def parse_metadata(
-    file_path: Path,
-    media_hint: MediaType = None,
-    language_hint: Language = None,
-) -> Metadata:
-    """
-    A factory function which parses a file path and returns the appropriate
-    Metadata derived class for the given media_hint if provided, else best guess
-    if omitted.
-    """
-    metadata = Metadata(
-        file_path=file_path, media=media_hint, language=language_hint
-    )
-    derived_cls = {
-        MediaType.EPISODE: MetadataEpisode,
-        MediaType.MOVIE: MetadataMovie,
-    }[metadata.media]
-    return derived_cls(**dataclasses.asdict(metadata), file_path=file_path)

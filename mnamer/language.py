@@ -1,5 +1,5 @@
-from typing import Optional, Tuple
 import dataclasses
+from typing import Optional, Tuple
 
 from mnamer.exceptions import MnamerException
 

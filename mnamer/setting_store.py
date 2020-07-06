@@ -425,10 +425,16 @@ class SettingStore:
         if arguments:
             self.bulk_apply(arguments)
 
-    def api_for(self, media_type: MediaType) -> ProviderType:
+    def api_for(self, media_type: MediaType) -> Optional[ProviderType]:
         """Returns the ProviderType for a given media type."""
-        return getattr(self, f"{media_type.value}_api")
+        if media_type:
+            return getattr(self, f"{media_type.value}_api")
 
     def api_key_for(self, provider_type: ProviderType) -> Optional[str]:
         """Returns the API key for a provider type."""
-        return getattr(self, f"api_key_{provider_type.value}")
+        if provider_type:
+            return getattr(self, f"api_key_{provider_type.value}")
+
+    def formatting_for(self, media_type: MediaType) -> Optional[str]:
+        if media_type:
+            return getattr(self, f"{media_type.value}_format")

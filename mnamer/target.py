@@ -1,10 +1,14 @@
+from datetime import date
 from os import path
 from pathlib import Path
 from shutil import move
 from typing import Dict, List, Optional, Union
 
+from guessit import guessit
+
 from mnamer.exceptions import MnamerException
-from mnamer.metadata import Metadata, parse_metadata
+from mnamer.language import Language
+from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
 from mnamer.providers import Provider
 from mnamer.setting_store import SettingStore
 from mnamer.types import MediaType, ProviderType
@@ -35,18 +39,13 @@ class Target:
     provider_type: ProviderType
     source: Path
 
-    def __init__(self, file_path: Union[str, Path], settings: SettingStore):
+    def __init__(self, file_path: Path, settings: SettingStore):
         self._settings = settings
         self._has_moved: False
         self._has_renamed: False
         self.source = Path(file_path).resolve()
-        self.metadata = parse_metadata(
-            file_path=file_path,
-            media_hint=settings.media,
-            language_hint=settings.language,
-        )
+        self._parse(file_path)
         self._replace_before()
-        self.provider_type = settings.api_for(self.metadata.media)
         self._override_metadata_ids(settings)
         self._register_provider()
 
@@ -76,16 +75,14 @@ class Target:
             return target._settings.media is target.metadata.media
 
     @property
-    def _formatting(self) -> str:
-        return getattr(self._settings, f"{self.media.value}_format")
-
-    @property
-    def media(self) -> MediaType:
-        return self.metadata.media
+    def provider_type(self):
+        return self._settings.api_for(self.metadata.media)
 
     @property
     def directory(self) -> Optional[Path]:
-        directory = getattr(self._settings, f"{self.media.value}_directory")
+        directory = getattr(
+            self._settings, f"{self.metadata.media.value}_directory"
+        )
         return Path(directory) if directory else None
 
     @property
@@ -100,7 +97,9 @@ class Target:
             dir_head = Path(dir_head)
         else:
             dir_head = self.source.parent
-        file_path = format(self.metadata, self._formatting)
+        file_path = format(
+            self.metadata, self._settings.formatting_for(self.metadata.media)
+        )
         file_path = Path(file_path)
         dir_tail, filename = path.split(file_path)
         filename = filename_replace(filename, self._settings.replace_after)
@@ -111,6 +110,72 @@ class Target:
         filename = str_sanitize(filename)
         directory = Path(dir_head, dir_tail)
         return Path(directory, filename).resolve()
+
+    def _parse(self, file_path: Path):
+        path_data = {}
+        options = {"type": self._settings.media}
+        raw_data = dict(guessit(str(file_path), options))
+        if isinstance(raw_data.get("season"), list):
+            raw_data = dict(guessit(str(file_path.parts[-1]), options))
+        for k, v in raw_data.items():
+            if hasattr(v, "alpha3"):
+                path_data[k] = Language.parse(v)
+            elif isinstance(v, (int, str, date)):
+                path_data[k] = v
+            elif isinstance(v, list) and all(
+                [isinstance(_, (int, str)) for _ in v]
+            ):
+                path_data[k] = v[0]
+        if self._settings.media:
+            media_type = self._settings.media
+        elif path_data.get("type"):
+            media_type = MediaType(path_data["type"])
+        else:
+            media_type = None
+        meta_cls = {
+            MediaType.EPISODE: MetadataEpisode,
+            MediaType.MOVIE: MetadataMovie,
+            None: Metadata,
+        }[media_type]
+        self.metadata = meta_cls(language=self._settings.language)
+        self.metadata.quality = (
+            " ".join(
+                path_data[key]
+                for key in path_data
+                if key
+                in (
+                    "audio_codec",
+                    "audio_profile",
+                    "screen_size",
+                    "source",
+                    "video_codec",
+                    "video_profile",
+                )
+            )
+            or None
+        )
+        self.metadata.group = path_data.get("release_group")
+        self.metadata.container = file_path.suffix or None
+        key = "subtitle_language" if self.metadata.is_subtitle else "language"
+        self.metadata.language = path_data.get(key)
+
+        if self.metadata.media is MediaType.MOVIE:
+            self.metadata.name = path_data.get("title")
+            self.metadata.year = path_data.get("year")
+        elif self.metadata.media is MediaType.EPISODE:
+            self.metadata.date = path_data.get("date")
+            self.metadata.episode = path_data.get("episode")
+            self.metadata.season = path_data.get("season")
+            self.metadata.series = path_data.get("title")
+            alternative_title = path_data.get("alternative_title")
+            if alternative_title:
+                self.metadata.series = (
+                    f"{self.metadata.series} {alternative_title}"
+                )
+            ## adding year to title can reduce false positives
+            # year = path_data.get("year")
+            # if year:
+            #     self.metadata.series = f"{self.metadata.series} {year}"
 
     def _override_metadata_ids(self, settings: SettingStore):
         id_types = {"imdb", "tmdb", "tvdb", "tvmaze"}
@@ -124,11 +189,12 @@ class Target:
             setattr(self.metadata, attr, value)
 
     def _register_provider(self):
-        if self.provider_type not in self._providers:
-            self._providers[self.provider_type] = Provider.provider_factory(
-                self.provider_type, self._settings
+        provider_type = self.provider_type
+        if provider_type and provider_type not in self._providers:
+            self._providers[provider_type] = Provider.provider_factory(
+                provider_type, self._settings
             )
-        self._provider = self._providers[self.provider_type]
+        self._provider = self._providers.get(provider_type)
 
     def _replace_before(self):
         if not self._settings.replace_before:

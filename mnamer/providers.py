@@ -1,7 +1,7 @@
 """Provides a high-level interface for metadata media providers."""
 
 from abc import ABC, abstractmethod
-from datetime import date, datetime as dt
+from datetime import date, datetime
 from os import environ
 from typing import Generator, Optional
 
@@ -84,7 +84,7 @@ class Omdb(Provider):
         assert self.api_key
         response = omdb_title(self.api_key, id_imdb, cache=self.cache)
         try:
-            release_date = dt.strptime(
+            release_date = datetime.strptime(
                 response["Released"], "%d %b %Y"
             ).strftime("%Y-%m-%d")
         except (KeyError, ValueError):
