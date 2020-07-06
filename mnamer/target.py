@@ -2,7 +2,7 @@ from datetime import date
 from os import path
 from pathlib import Path
 from shutil import move
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 
 from guessit import guessit
 
@@ -178,7 +178,7 @@ class Target:
                 self.metadata.series = (
                     f"{self.metadata.series} {alternative_title}"
                 )
-            ## adding year to title can reduce false positives
+            # adding year to title can reduce false positives
             # year = path_data.get("year")
             # if year:
             #     self.metadata.series = f"{self.metadata.series} {year}"

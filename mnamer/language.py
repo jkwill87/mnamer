@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 from mnamer.exceptions import MnamerException
 
@@ -35,7 +35,7 @@ class Language:
     a3: str
 
     @classmethod
-    def parse(cls, value: str) -> Optional["Language"]:
+    def parse(cls, value: Any) -> Optional["Language"]:
         if not value:
             return None
         if isinstance(value, cls):

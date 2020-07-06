@@ -1,5 +1,5 @@
 import pytest
-from babelfish import Language as BL
+from babelfish import Language as BabelLang
 
 from mnamer.language import Language
 
@@ -13,7 +13,7 @@ def test_language_parse__str(value):
 
 def test_language_parse__bl():
     expected = Language("English", "en", "eng")
-    actual = Language.parse(BL("eng"))
+    actual = Language.parse(BabelLang("eng"))
     assert actual == expected
 
 

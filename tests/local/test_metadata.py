@@ -1,5 +1,4 @@
 from datetime import date
-from pathlib import Path
 
 import pytest
 
@@ -68,7 +67,6 @@ def test_metadata_episode__convert_episode():
 
 
 def test_metadata_episode__format_default():
-    file_path = Path("spongebob.squarepants.s04e04.avi")
     metadata = MetadataEpisode(
         series="Spongebob Squarepants", season=4, episode=4
     )
@@ -78,7 +76,6 @@ def test_metadata_episode__format_default():
 
 
 def test_metadata_episode__format_with_specifiers():
-    file_path = Path("spongebob.squarepants.s04e04.avi")
     metadata = MetadataEpisode(
         series="Spongebob Squarepants", season=4, episode=4
     )
