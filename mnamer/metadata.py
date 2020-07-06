@@ -37,6 +37,7 @@ class Metadata:
     container: str = None
     group: str = None
     language: Language = None
+    language_sub: Language = None
     quality: str = None
     synopsis: str = None
     media: MediaType = None
@@ -46,6 +47,7 @@ class Metadata:
             "container": normalize_container,
             "group": str.upper,
             "language": Language.parse,
+            "language_sub": Language.parse,
             "media": MediaType,
             "quality": str.lower,
             "synopsis": str.capitalize,
@@ -62,8 +64,8 @@ class Metadata:
 
     @property
     def extension(self):
-        if self.is_subtitle and self.language:
-            return f".{self.language.a2}{self.container}"
+        if self.is_subtitle and self.language_sub:
+            return f".{self.language_sub.a2}{self.container}"
         else:
             return self.container
 

@@ -156,12 +156,15 @@ class Target:
         )
         self.metadata.group = path_data.get("release_group")
         self.metadata.container = file_path.suffix or None
-        key = "subtitle_language" if self.metadata.is_subtitle else "language"
+        if not self.metadata.language:
+            try:
+                self.metadata.language = path_data.get("language")
+            except MnamerException:
+                pass
         try:
-            self.metadata.language = path_data.get(key)
+            self.metadata.language_sub = path_data.get("subtitle_language")
         except MnamerException:
-            self.metadata.language = None
-
+            pass
         if self.metadata.media is MediaType.MOVIE:
             self.metadata.name = path_data.get("title")
             self.metadata.year = path_data.get("year")

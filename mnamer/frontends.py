@@ -117,11 +117,15 @@ class Cli(Frontend):
                 break
             target.metadata.update(match)
 
-            if target.metadata.is_subtitle and not target.metadata.language:
+            if target.metadata.is_subtitle and not target.metadata.language_sub:
                 if self.settings.batch:
+                    tty.msg(
+                        "skipping (subtitle language can't be detected)",
+                        MessageType.ALERT,
+                    )
                     continue
                 try:
-                    target.metadata.language = tty.subtitle_prompt()
+                    target.metadata.language_sub = tty.subtitle_prompt()
                 except MnamerSkipException:
                     tty.msg("skipping (user request)", MessageType.ALERT)
                     continue
