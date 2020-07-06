@@ -114,7 +114,7 @@ def test_omdb_title__media__series():
 
 def test_omdb_title__api_key_fail():
     with pytest.raises(MnamerException):
-        omdb_title(JUNK_TEXT, "", cache=False)
+        omdb_title(JUNK_TEXT, title="uhf", cache=False)
 
 
 def test_omdb_title__id_imdb_fail():
@@ -125,6 +125,11 @@ def test_omdb_title__id_imdb_fail():
 def test_omdb_title__not_found():
     with pytest.raises(MnamerNotFoundException):
         omdb_title(Omdb.api_key, "1" * 2)
+
+
+def test_omdb_title__invalid_plot():
+    with pytest.raises(MnamerException):
+        omdb_title(Omdb.api_key, title="uhf", plot="medium")
 
 
 def test_omdb_search__fields__top_level():
@@ -171,5 +176,5 @@ def test_omdb_search__page_diff():
 
 
 def test_omdb_search__page_out_of_bounds():
-    with pytest.raises(MnamerNotFoundException):
-        omdb_search(Omdb.api_key, "Super Mario", page=100)
+    with pytest.raises(MnamerException):
+        omdb_search(Omdb.api_key, "Super Mario", page=101)

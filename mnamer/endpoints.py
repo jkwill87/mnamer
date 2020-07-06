@@ -75,7 +75,7 @@ def omdb_title(
     error = content.get("Error") if isinstance(content, dict) else None
     if status == 401:
         raise MnamerException("invalid API key")
-    elif status != 200 or not isinstance(content, dict):
+    elif status != 200 or not isinstance(content, dict):  # pragma: no cover
         raise MnamerNetworkException("OMDb down or unavailable?")
     elif error:
         raise MnamerNotFoundException(error)
@@ -95,7 +95,7 @@ def omdb_search(
 
     Online docs: http://www.omdbapi.com/#parameters.
     """
-    if 1 > page > 100:
+    if 1 <= page <= 100:
         raise MnamerException("page must be between 1 and 100")
     url = "http://www.omdbapi.com"
     parameters = {
