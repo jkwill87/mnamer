@@ -42,7 +42,7 @@ class ArgLoader(argparse.ArgumentParser):
         else:
             raise RuntimeError("Cannot assign argument to group")
         args, kwargs = spec.registration
-        if not args or not kwargs["help"]:
+        if not args or not kwargs.get("help"):
             raise RuntimeError("Cannot register ArgumentSpec")
         group.add_argument(*args, **kwargs)
 

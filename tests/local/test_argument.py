@@ -114,3 +114,9 @@ def test_arg_parser__load__invalid_configuration():
     with patch.object(sys, "argv", ["mnamer", "-f", "1"]):
         with pytest.raises(RuntimeError):
             arg_parser.load()
+
+
+def test_arg_parser__missing_help():
+    spec = SettingSpec(group=SettingType.DIRECTIVE, flags=["-f"])
+    with pytest.raises(RuntimeError):
+        ArgLoader(spec)
