@@ -97,6 +97,13 @@ def test_directory__episode():
     assert target.directory == episode_path
 
 
+def test_ambiguous_subtitle_language():
+    target = Target(
+        Path("Subs/Nancy.Drew.S01E01.WEBRip.x264-ION10.srt"), SettingStore()
+    )
+    assert target.metadata.language is None
+
+
 def test_destination():
     pass  # TODO
 
