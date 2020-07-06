@@ -71,6 +71,11 @@ def test_tmdb_find__language():
     )
 
 
+def test_tmdb_find__invalid_source():
+    with pytest.raises(MnamerException):
+        tmdb_find(Tmdb.api_key, "abc123", GOONIES_IMDB_ID, cache=False)
+
+
 def test_tmdb_movies__success():
     expected_top_level_keys = {
         "adult",

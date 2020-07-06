@@ -95,7 +95,7 @@ def omdb_search(
 
     Online docs: http://www.omdbapi.com/#parameters.
     """
-    if 1 <= page <= 100:
+    if 1 > page > 100:
         raise MnamerException("page must be between 1 and 100")
     url = "http://www.omdbapi.com"
     parameters = {
@@ -171,10 +171,7 @@ def tmdb_movies(
 
     Online docs: developers.themoviedb.org/3/movies.
     """
-    try:
-        url = f"https://api.themoviedb.org/3/movie/{id_tmdb}"
-    except ValueError:
-        raise MnamerException("id_tmdb must be numeric")
+    url = f"https://api.themoviedb.org/3/movie/{id_tmdb}"
     parameters = {"api_key": api_key, "language": language}
     status, content = request_json(url, parameters, cache=cache)
     if status == 401:
