@@ -47,3 +47,24 @@ def test_setting_spec__registration():
     args, kwargs = setting_spec.registration
     assert args == ["-f", "--f"]
     assert kwargs == {"dest": "foo", "help": "foos your bars"}
+
+
+def test_setting_spec__name__flags():
+    spec = {
+        "dest": "foo",
+        "flags": ["-f", "--foo"],
+        "group": SettingType.DIRECTIVE,
+        "help": "foos your bars",
+    }
+    setting_spec = SettingSpec(**spec)
+    assert setting_spec.name == "foo"
+
+
+def test_setting_spec__name__no_flags():
+    spec = {
+        "dest": "foo",
+        "group": SettingType.CONFIGURATION,
+        "help": "foos your bars",
+    }
+    setting_spec = SettingSpec(**spec)
+    assert setting_spec.name is None

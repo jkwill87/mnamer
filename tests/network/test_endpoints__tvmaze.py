@@ -9,7 +9,7 @@ from mnamer.endpoints import (
     tvmaze_show_search,
     tvmaze_show_single_search,
 )
-from mnamer.exceptions import MnamerNotFoundException
+from mnamer.exceptions import MnamerException, MnamerNotFoundException
 from tests import *
 
 pytestmark = [
@@ -168,6 +168,16 @@ def test_tvmaze_show_lookup__tvdb__success():
 def test_tvmaze_show_lookup__tvdb__no_hits():
     with pytest.raises(MnamerNotFoundException):
         tvmaze_show_lookup(id_tvdb=JUNK_TEXT)
+
+
+def test_tvmaze_show_lookup__missing_id():
+    with pytest.raises(MnamerException):
+        tvmaze_show_lookup()
+
+
+def test_tvmaze_show_lookup__both_ids():
+    with pytest.raises(MnamerException):
+        tvmaze_show_lookup(id_imdb=META["id_imdb"], id_tvdb=META["id_tvdb"])
 
 
 def test_tvmaze_show_episodes_list__success():

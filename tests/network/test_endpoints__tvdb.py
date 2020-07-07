@@ -126,6 +126,17 @@ def test_tvdb_episodes_id__success(tvdb_token):
     assert result["data"]["id"] == LOST_TVDB_ID_EPISODE
 
 
+def test_tvdb_episodes_id__language(tvdb_token):
+    result = tvdb_episodes_id(tvdb_token, LOST_TVDB_ID_EPISODE, RUSSIAN_LANG)
+    assert result["data"]["episodeName"] == "Пилот. Часть 1"
+
+
+def test_tvdb_episodes_id__language__invalid(tvdb_token):
+    invalid_language = Language("invalid", "xy", "xyz")
+    with pytest.raises(MnamerException):
+        tvdb_episodes_id(tvdb_token, LOST_TVDB_ID_EPISODE, invalid_language)
+
+
 @pytest.mark.xfail(strict=False)
 def test_tvdb_series_id__invalid_token():
     with pytest.raises(MnamerException):

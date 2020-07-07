@@ -95,7 +95,7 @@ def omdb_search(
 
     Online docs: http://www.omdbapi.com/#parameters.
     """
-    if 1 > page > 100:
+    if page < 1 or page > 100:
         raise MnamerException("page must be between 1 and 100")
     url = "http://www.omdbapi.com"
     parameters = {
@@ -278,8 +278,6 @@ def tvdb_episodes_id(
     if status == 401:
         raise MnamerException("invalid token")
     elif status == 404:
-        raise MnamerNotFoundException
-    elif status == 200 and "invalidLanguage" in content.get("errors", {}):
         raise MnamerNotFoundException
     elif status != 200 or not content.get("data"):  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
@@ -506,7 +504,6 @@ def tvmaze_show_single_search(
 def tvmaze_show_lookup(
     id_imdb: Optional[str] = None,
     id_tvdb: Union[str, int] = None,
-    embed_episodes: bool = False,
     cache: bool = True,
     attempt: int = 1,
 ) -> dict:
@@ -520,14 +517,10 @@ def tvmaze_show_lookup(
         raise MnamerException("id_imdb and id_tvdb are mutually exclusive")
     url = "http://api.tvmaze.com/lookup/shows"
     parameters = {"imdb": id_imdb, "thetvdb": id_tvdb}
-    if embed_episodes:
-        parameters["embed"] = "episodes"
     status, content = request_json(url, parameters, cache=cache)
     if status == 443 and attempt <= MAX_RETRIES:  # pragma: no cover
         sleep(attempt * 2)
-        return tvmaze_show_lookup(
-            id_imdb, id_tvdb, embed_episodes, cache, attempt + 1
-        )
+        return tvmaze_show_lookup(id_imdb, id_tvdb, cache, attempt + 1)
     elif status == 404:
         raise MnamerNotFoundException
     elif status != 200 or not content:  # pragma: no cover

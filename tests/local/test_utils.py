@@ -436,6 +436,13 @@ def test_format_dict__enum():
     assert actual == expected
 
 
+def test_format_exception():
+    e = Exception("hello, world!")
+    expected = "hello, world!"
+    actual = format_exception(e)
+    assert actual == expected
+
+
 @pytest.mark.parametrize("it", ((1, 3, 2), [1, 3, 2], {1, 3, 2}))
 def test_format_iter(it):
     expected = " - 1\n" + " - 2\n" + " - 3"

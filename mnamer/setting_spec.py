@@ -45,4 +45,4 @@ class SettingSpec:
     @property
     def name(self) -> str:
         if self.flags:
-            return self.flags[0].lstrip("-")
+            return max(self.flags, key=len).lstrip("-")
