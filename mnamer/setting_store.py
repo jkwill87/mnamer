@@ -44,14 +44,6 @@ class SettingStore:
             help="-b, --batch: process automatically without interactive prompts",
         )(),
     )
-    language: Optional[Language] = dataclasses.field(
-        default=None,
-        metadata=SettingSpec(
-            flags=["--language"],
-            group=SettingType.PARAMETER,
-            help="--language: specify the search language",
-        )(),
-    )
     lower: bool = dataclasses.field(
         default=False,
         metadata=SettingSpec(
@@ -106,6 +98,14 @@ class SettingStore:
             nargs="+",
         )(),
     )
+    language: Optional[Language] = dataclasses.field(
+        default=None,
+        metadata=SettingSpec(
+            flags=["--language"],
+            group=SettingType.PARAMETER,
+            help="--language=<LANG>: specify the search language",
+        )(),
+    )
     mask: List[str] = dataclasses.field(
         default_factory=lambda: [
             "avi",
@@ -121,16 +121,6 @@ class SettingStore:
             group=SettingType.PARAMETER,
             help="--mask=<EXTENSION,...>: only process given file types",
             nargs="+",
-        )(),
-    )
-    no_cache: bool = dataclasses.field(
-        default=False,
-        metadata=SettingSpec(
-            action="store_true",
-            dest="no_cache",
-            flags=["--no_cache", "--no-cache", "--nocache"],
-            group=SettingType.DIRECTIVE,
-            help="--no-cache: disable request cache",
         )(),
     )
     no_guess: bool = dataclasses.field(
@@ -307,6 +297,16 @@ class SettingStore:
             flags=["--id_tvmaze", "--id-tvmaze", "--idtvmaze"],
             group=SettingType.DIRECTIVE,
             help="--id-tvmaze=<ID>: specify a TvMaze series id override",
+        )(),
+    )
+    no_cache: bool = dataclasses.field(
+        default=False,
+        metadata=SettingSpec(
+            action="store_true",
+            dest="no_cache",
+            flags=["--no_cache", "--no-cache", "--nocache"],
+            group=SettingType.DIRECTIVE,
+            help="--no-cache: disable request cache",
         )(),
     )
     media: Optional[Union[MediaType, str]] = dataclasses.field(
