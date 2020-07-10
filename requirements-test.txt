@@ -1,5 +1,4 @@
 -r requirements.txt
-babelfish
 codecov
 pytest
 pytest-cov
