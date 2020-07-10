@@ -12,27 +12,27 @@ Currently it has integration support with [TVDb](https://thetvdb.com) and [TvMaz
 
 ## Documentation
 
-Check out the [wiki page](https://github.com/jkwill87/mnamer/wiki) for full details.
+Check out the [wiki page](https://github.com/jkwill87/mnamer/wiki) for more details.
 
-### 💾 [Installation](Installation)
+💾 [**Installation**](https://github.com/jkwill87/mnamer/wiki/Installation)
 
 `$ pip3 install --user mnamer`
 
-### 🤖 [Automation](Automation)
+🤖 [**Automation**](https://github.com/jkwill87/mnamer/wiki/Automation)
 
 `$ docker pull jkwill87/mnamer`
 
-### 🖍️ [Formatting](Formatting)
+🖍️ [**Formatting**](https://github.com/jkwill87/mnamer/wiki/Formatting)
 
 Using the **episode-directory**, **episode-format**, **movie-directory**, or **movie-format** settings you customize how your files are renamed. Variables wrapped in braces `{}` get substituted with of parsed values of template field variables.
 
-### 🇫🇷 [Internationalization](Internationalization)
+🇫🇷 [**Internationalization**](https://github.com/jkwill87/mnamer/wiki/Internationalization)
 
 Language is supported by the default TMDb and TVDb providers. You can use the `--language` setting to set the language used for templating.
 
 mnamer also supports srt subtitle files. It will use the format pattern used for movie or episode media files with its extension prefixed by its 2-letter language code.
 
-### 🧰 [Settings](Settings)
+🧰 [**Settings**](https://github.com/jkwill87/mnamer/wiki/Settings)
 
 ```
 USAGE: mnamer [preferences] [directives] target [targets ...]
