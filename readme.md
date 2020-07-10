@@ -22,11 +22,11 @@ Check out the [wiki page](https://github.com/jkwill87/mnamer/wiki) for more deta
 
 `$ docker pull jkwill87/mnamer`
 
-🖍️ [**Formatting**](https://github.com/jkwill87/mnamer/wiki/Formatting)
+✍️ [**Formatting**](https://github.com/jkwill87/mnamer/wiki/Formatting)
 
 Using the **episode-directory**, **episode-format**, **movie-directory**, or **movie-format** settings you customize how your files are renamed. Variables wrapped in braces `{}` get substituted with of parsed values of template field variables.
 
-🇫🇷 [**Internationalization**](https://github.com/jkwill87/mnamer/wiki/Internationalization)
+🌐 [**Internationalization**](https://github.com/jkwill87/mnamer/wiki/Internationalization)
 
 Language is supported by the default TMDb and TVDb providers. You can use the `--language` setting to set the language used for templating.
 
