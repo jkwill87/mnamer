@@ -331,16 +331,20 @@ class SettingStore:
     # config-only attributes ---------------------------------------------------
 
     api_key_omdb: str = dataclasses.field(
-        default=None, metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
+        default=None,
+        metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
     )
     api_key_tmdb: str = dataclasses.field(
-        default=None, metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
+        default=None,
+        metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
     )
     api_key_tvdb: str = dataclasses.field(
-        default=None, metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
+        default=None,
+        metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
     )
     api_key_tvmaze: str = dataclasses.field(
-        default=None, metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
+        default=None,
+        metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
     )
     replace_before: Dict[str, str] = dataclasses.field(
         default_factory=lambda: {},

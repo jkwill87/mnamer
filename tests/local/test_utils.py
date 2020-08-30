@@ -737,7 +737,12 @@ def test_str_title__after_punctuation__end(s: str):
 
 
 @pytest.mark.parametrize(
-    "s", ("Don't stop", "DON'T STOP", "don't stop",),
+    "s",
+    (
+        "Don't stop",
+        "DON'T STOP",
+        "don't stop",
+    ),
 )
 def test_str_title_case__apostrophes(s):
     expected = "Don't Stop"

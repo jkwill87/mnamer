@@ -42,7 +42,12 @@ def test_directives__clear_cache(mock_clear_cache: MagicMock, e2e_run):
 def test_id__omdb(e2e_run, setup_test_files):
     setup_test_files("aladdin.1992.avi")
     result = e2e_run(
-        "--batch", "--movie_api", "omdb", "--id-imdb", "tt5580390", ".",
+        "--batch",
+        "--movie_api",
+        "omdb",
+        "--id-imdb",
+        "tt5580390",
+        ".",
     )
     assert "Shape of Water" in result.out
 
@@ -63,7 +68,12 @@ def test_id__tmdb(e2e_run, setup_test_files):
 def test_id__tvdb(e2e_run, setup_test_files):
     setup_test_files("game.of.thrones.01x05-eztv.mp4")
     result = e2e_run(
-        "--batch", "--episode_api", "tvdb", "--id-tvdb", "79349", ".",
+        "--batch",
+        "--episode_api",
+        "tvdb",
+        "--id-tvdb",
+        "79349",
+        ".",
     )
     assert result.code == 0
     assert "Dexter" in result.out

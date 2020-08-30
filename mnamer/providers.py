@@ -17,8 +17,7 @@ __all__ = ["Provider", "Omdb", "Tmdb", "Tvdb", "TvMaze"]
 
 
 class Provider(ABC):
-    """ABC for Providers, high-level interfaces for metadata media providers.
-    """
+    """ABC for Providers, high-level interfaces for metadata media providers."""
 
     api_key: str = None
     cache: bool = True
@@ -57,8 +56,7 @@ class Provider(ABC):
 
 
 class Omdb(Provider):
-    """Queries the OMDb API.
-    """
+    """Queries the OMDb API."""
 
     api_key = environ.get("API_KEY_OMDB", "477a7ebc")
 
@@ -133,8 +131,7 @@ class Omdb(Provider):
 
 
 class Tmdb(Provider):
-    """Queries the TMDb API.
-    """
+    """Queries the TMDb API."""
 
     api_key = environ.get("API_KEY_TMDB", "db972a607f2760bb19ff8bb34074b4c7")
 
@@ -177,7 +174,12 @@ class Tmdb(Provider):
         found = False
         while True:
             response = tmdb_search_movies(
-                self.api_key, name, year, language, page=page, cache=self.cache,
+                self.api_key,
+                name,
+                year,
+                language,
+                page=page,
+                cache=self.cache,
             )
             for entry in response["results"]:
                 try:
@@ -203,8 +205,7 @@ class Tmdb(Provider):
 
 
 class Tvdb(Provider):
-    """Queries the TVDb API.
-    """
+    """Queries the TVDb API."""
 
     api_key = environ.get("API_KEY_TVDB", "E69C7A2CEF2F3152")
 
@@ -219,8 +220,7 @@ class Tvdb(Provider):
     def search(
         self, query: MetadataEpisode
     ) -> Generator[MetadataEpisode, None, None]:
-        """Searches TVDb for movie metadata.
-        """
+        """Searches TVDb for movie metadata."""
         assert query
         if not self.token:
             self.token = self._login()
@@ -351,8 +351,7 @@ class Tvdb(Provider):
 
 
 class TvMaze(Provider):
-    """Queries the TVMaze API.
-    """
+    """Queries the TVMaze API."""
 
     api_key = environ.get("API_KEY_TVMAZE", "wxadpr5W7yWma_QYaHM4BB_l80WIIjcK")
 

@@ -27,8 +27,7 @@ _KNOWN = (
 
 @dataclasses.dataclass
 class Language:
-    """dataclass including the name, ISO 639-2, and ISO 639-1 language codes
-    """
+    """dataclass including the name, ISO 639-2, and ISO 639-1 language codes"""
 
     name: str
     a2: str

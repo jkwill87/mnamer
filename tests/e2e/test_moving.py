@@ -139,7 +139,9 @@ def test_format_specifiers(e2e_run, setup_test_files):
 def test_multiple_nested_directories(e2e_run, setup_test_files):
     setup_test_files("Ninja Turtles (1990).mkv")
     result = e2e_run(
-        "--batch", "--movie_directory=1/2/3/", "Ninja Turtles (1990).mkv",
+        "--batch",
+        "--movie_directory=1/2/3/",
+        "Ninja Turtles (1990).mkv",
     )
     expected = str(Path("/1/2/3/Teenage Mutant Ninja Turtles (1990).mkv"))
     assert result.code == 0

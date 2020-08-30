@@ -104,8 +104,8 @@ def test_ambiguous_subtitle_language():
     assert target.metadata.language is None
 
 
-def test_destination():
-    pass  # TODO
+def test_destination__simple():
+    target = Target(Path("star.trek.enterprise.s01e1.mkv"))
 
 
 def test_query():

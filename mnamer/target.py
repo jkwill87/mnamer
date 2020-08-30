@@ -1,8 +1,8 @@
 from datetime import date
 from os import path
-from pathlib import Path
+from pathlib import Path, PurePath
 from shutil import move
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set, Union
 
 from guessit import guessit
 
@@ -26,8 +26,7 @@ __all__ = ["Target"]
 
 
 class Target:
-    """Manages metadata state for a media file and facilitates its relocation.
-    """
+    """Manages metadata state for a media file and facilitates its relocation."""
 
     _settings: SettingStore
     _providers: Dict[ProviderType, Provider] = {}
@@ -36,21 +35,23 @@ class Target:
     _has_renamed: bool
     _raw_metadata: Dict[str, str]
     _parsed_metadata: Metadata
-    provider_type: ProviderType
-    source: Path
+    source: PurePath
 
-    def __init__(self, file_path: Path, settings: SettingStore):
-        self._settings = settings
+    def __init__(self, file_path: Path, settings: SettingStore = None):
+        self._settings = settings or SettingStore()
         self._has_moved: False
         self._has_renamed: False
-        self.source = Path(file_path).resolve()
+        self.source = file_path
         self._parse(file_path)
         self._replace_before()
         self._override_metadata_ids(settings)
         self._register_provider()
 
     def __str__(self) -> str:
-        return str(self.source.resolve())
+        if isinstance(self.source, Path):
+            return str(self.source.resolve())
+        else:
+            return str(self.source)
 
     @classmethod
     def populate_paths(cls, settings: SettingStore) -> List["Target"]:
@@ -75,18 +76,18 @@ class Target:
             return target._settings.media is target.metadata.media
 
     @property
-    def provider_type(self):
+    def provider_type(self) -> ProviderType:
         return self._settings.api_for(self.metadata.media)
 
     @property
-    def directory(self) -> Optional[Path]:
+    def directory(self) -> Optional[PurePath]:
         directory = getattr(
             self._settings, f"{self.metadata.media.value}_directory"
         )
-        return Path(directory) if directory else None
+        return self._make_path(directory) if directory else None
 
     @property
-    def destination(self) -> Path:
+    def destination(self) -> PurePath:
         """
         The destination Path for the target based on its metadata and user
         preferences.
@@ -94,13 +95,13 @@ class Target:
         if self.directory:
             dir_head = format(self.metadata, str(self.directory))
             dir_head = str_sanitize(dir_head)
-            dir_head = Path(dir_head)
+            dir_head = self._make_path(dir_head)
         else:
             dir_head = self.source.parent
         file_path = format(
             self.metadata, self._settings.formatting_for(self.metadata.media)
         )
-        file_path = Path(file_path)
+        file_path = self._make_path(file_path)
         dir_tail, filename = path.split(file_path)
         filename = filename_replace(filename, self._settings.replace_after)
         if self._settings.scene:
@@ -108,10 +109,18 @@ class Target:
         if self._settings.lower:
             filename = filename.lower()
         filename = str_sanitize(filename)
-        directory = Path(dir_head, dir_tail)
-        return Path(directory, filename).resolve()
+        directory = self._make_path(dir_head, dir_tail)
+        return self._make_path(directory, filename)
 
-    def _parse(self, file_path: Path):
+    def _make_path(
+        self, *obj: Union[str, Path, PurePath]
+    ) -> Union[PurePath, Path]:
+        # Calling PurePath will create a PurePoxisPath or PureWindowsPath based
+        # on the system platform. This will create one based on the type of the
+        # source path class type instead.
+        return type(self.source)(*obj)
+
+    def _parse(self, file_path: PurePath):
         path_data = {}
         options = {"type": self._settings.media}
         raw_data = dict(guessit(str(file_path), options))
@@ -229,8 +238,9 @@ class Target:
 
     def relocate(self):
         """Performs the action of renaming and/or moving a file."""
-        self.destination.parent.mkdir(parents=True, exist_ok=True)
+        destination_path = Path(self.destination).resolve()
+        destination_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            move(self.source, self.destination)
+            move(self.source, destination_path)
         except OSError:  # pragma: no cover
             raise MnamerException

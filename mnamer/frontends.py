@@ -142,7 +142,8 @@ class Cli(Frontend):
                 continue
             if self.settings.no_overwrite and target.destination.exists():
                 tty.msg(
-                    "skipping (--no-overwrite)", MessageType.ALERT,
+                    "skipping (--no-overwrite)",
+                    MessageType.ALERT,
                 )
                 continue
 
@@ -172,7 +173,8 @@ class Cli(Frontend):
 
     def _rename_and_move_file(self, target: Target):
         tty.msg(
-            f"moving to {target.destination.absolute()}", MessageType.SUCCESS,
+            f"moving to {target.destination.absolute()}",
+            MessageType.SUCCESS,
         )
         if self.settings.test:
             self.success_count += 1
