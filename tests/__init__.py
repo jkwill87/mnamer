@@ -1,6 +1,7 @@
 from datetime import date
 from typing import NamedTuple
 
+from mnamer.const import SUBTITLE_CONTAINERS
 from mnamer.language import Language
 from mnamer.types import ProviderType
 
@@ -29,7 +30,8 @@ DEFAULT_SETTINGS = {
     "id_tvmaze": None,
     "ignore": [".*sample.*", "^RARBG.*"],
     "lower": False,
-    "mask": [".avi", ".m4v", ".mp4", ".mkv", ".srt", ".ts", ".wmv"],
+    "mask": [".avi", ".m4v", ".mp4", ".mkv", ".ts", ".wmv"]
+    + SUBTITLE_CONTAINERS,
     "media": None,
     "movie_api": ProviderType.TMDB,
     "movie_directory": None,

@@ -8,6 +8,7 @@ from mnamer.language import Language
 from mnamer.types import MediaType
 from mnamer.utils import (
     fn_pipe,
+    is_subtitle,
     normalize_container,
     parse_date,
     str_fix_padding,
@@ -64,14 +65,10 @@ class Metadata:
 
     @property
     def extension(self):
-        if self.is_subtitle and self.language_sub:
+        if is_subtitle(self.container) and self.language_sub:
             return f".{self.language_sub.a2}{self.container}"
         else:
             return self.container
-
-    @property
-    def is_subtitle(self):
-        return self.container and self.container.endswith(".srt")
 
     def as_dict(self):
         d = dataclasses.asdict(self)

@@ -5,8 +5,7 @@ from pathlib import Path
 from platform import platform, python_version
 from sys import argv, gettrace, version_info
 
-from appdirs import __version__ as appdirs_version
-from appdirs import user_cache_dir
+from appdirs import __version__ as appdirs_version, user_cache_dir
 from babelfish import __version__ as babelfish_version
 from guessit import __version__ as guessit_version
 from requests import __version__ as requests_version
@@ -20,6 +19,7 @@ __all__ = [
     "CURRENT_YEAR",
     "DEPRECATED",
     "IS_DEBUG",
+    "SUBTITLE_CONTAINERS",
     "SYSTEM",
     "USAGE",
     "VERSION",
@@ -36,6 +36,8 @@ CURRENT_YEAR = datetime.now().year
 DEPRECATED = {"no_replace", "replacements"}
 
 IS_DEBUG = gettrace() is not None
+
+SUBTITLE_CONTAINERS = [".srt", ".idx", ".sub"]
 
 SYSTEM = {
     "date": date.today(),

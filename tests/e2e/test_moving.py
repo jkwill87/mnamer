@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 
+from mnamer.const import SUBTITLE_CONTAINERS
+
 pytestmark = pytest.mark.e2e
 
 
@@ -183,3 +185,12 @@ def test_replace_after(e2e_run, setup_test_files):
     result = e2e_run("--batch", ".")
     assert result.code == 0
     assert "Pride and Prejudice (2005).ts" in result.out
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+@pytest.mark.parametrize("container", SUBTITLE_CONTAINERS)
+def test_subtitles(e2e_run, setup_test_files, container):
+    setup_test_files(f"Saw (2004)/Eng{container}")
+    result = e2e_run("--batch", "Saw (2004)")
+    assert result.code == 0
+    assert f"Saw (2004).en{container}" in result.out

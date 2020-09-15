@@ -13,7 +13,7 @@ from mnamer.exceptions import (
 from mnamer.setting_store import SettingStore
 from mnamer.target import Target
 from mnamer.types import MessageType
-from mnamer.utils import clear_cache, get_filesize
+from mnamer.utils import clear_cache, get_filesize, is_subtitle
 
 
 class Frontend(ABC):
@@ -117,7 +117,10 @@ class Cli(Frontend):
                 break
             target.metadata.update(match)
 
-            if target.metadata.is_subtitle and not target.metadata.language_sub:
+            if (
+                is_subtitle(target.metadata.container)
+                and not target.metadata.language_sub
+            ):
                 if self.settings.batch:
                     tty.msg(
                         "skipping (subtitle language can't be detected)",
@@ -151,8 +154,11 @@ class Cli(Frontend):
 
     def _announce_file(self, target: Target):
         media_type = target.metadata.media.value.title()
-        is_subtitle = target.metadata.is_subtitle
-        description = f"{media_type} Subtitle" if is_subtitle else media_type
+        description = (
+            f"{media_type} Subtitle"
+            if is_subtitle(target.metadata.container)
+            else media_type
+        )
         filename_label = target.source.name
         filesize_label = get_filesize(target.source)
         tty.msg(

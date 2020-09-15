@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 from requests import Session
 
-from mnamer.const import CURRENT_YEAR
+from mnamer.const import CURRENT_YEAR, SUBTITLE_CONTAINERS
 from mnamer.types import MediaType
 from mnamer.utils import *
 from tests import *
@@ -455,6 +455,16 @@ def test_format_iter__enum():
     expected = " - episode\n" + " - movie"
     actual = format_iter(it)
     assert actual == expected
+
+
+@pytest.mark.parametrize("container", SUBTITLE_CONTAINERS)
+def test_is_subtitle__true(container):
+    assert is_subtitle(container) is True
+
+
+@pytest.mark.parametrize("container", (None, "", ".abc123", "srt"))
+def test_is_subtitle__false(container):
+    assert is_subtitle(container) is False
 
 
 def test_normalize_container__has_no_dot():

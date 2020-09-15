@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from mnamer.argument import ArgLoader
+from mnamer.const import SUBTITLE_CONTAINERS
 from mnamer.exceptions import MnamerException
 from mnamer.language import Language
 from mnamer.setting_spec import SettingSpec
@@ -112,10 +113,10 @@ class SettingStore:
             "m4v",
             "mp4",
             "mkv",
-            "srt",
             "ts",
             "wmv",
-        ],
+        ]
+        + SUBTITLE_CONTAINERS,
         metadata=SettingSpec(
             flags=["--mask"],
             group=SettingType.PARAMETER,

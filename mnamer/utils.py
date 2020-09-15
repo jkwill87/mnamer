@@ -12,14 +12,14 @@ from os.path import (
     splitdrive,
     splitext,
 )
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 from unicodedata import normalize
 
 import requests_cache
 from requests.adapters import HTTPAdapter
 
-from mnamer.const import CACHE_PATH, CURRENT_YEAR
+from mnamer.const import CACHE_PATH, CURRENT_YEAR, SUBTITLE_CONTAINERS
 
 __all__ = [
     "clean_dict",
@@ -37,6 +37,7 @@ __all__ = [
     "format_iter",
     "get_filesize",
     "get_session",
+    "is_subtitle",
     "json_dumps",
     "json_loads",
     "normalize_container",
@@ -177,6 +178,10 @@ def format_iter(body: list) -> str:
     return "\n".join(sorted([f" - {getattr(v, 'value', v)}" for v in body]))
 
 
+def is_subtitle(container: Optional[str]) -> bool:
+    return bool(container) and container.endswith(tuple(SUBTITLE_CONTAINERS))
+
+
 def get_session() -> requests_cache.CachedSession:
     """Convenience function that returns request-cache session singleton."""
     if not hasattr(get_session, "session"):
@@ -189,7 +194,7 @@ def get_session() -> requests_cache.CachedSession:
     return get_session.session
 
 
-def get_filesize(path: Path) -> str:
+def get_filesize(path: Union[PurePath, Path]) -> str:
     """Returns the human-readable filesize for a given path."""
     size = getsize(path)
     for unit in ["B", "KB", "MB", "GB", "TB"]:
@@ -331,10 +336,10 @@ def str_replace_slashes(s: str) -> str:
 def str_sanitize(filename: str) -> str:
     """Removes illegal filename characters and condenses whitespace."""
     base, container = splitext(filename)
-    if container == ".srt":
+    if is_subtitle(container):
         base = base.rstrip(".")
-        base, container = splitext(base)
-        container = container + ".srt"
+        base, container_prefix = splitext(base)
+        container = container_prefix + container
     base = re.sub(r"\s+", " ", base)
     drive, tail = splitdrive(base)
     tail = re.sub(r'[<>:"|?*&%=+@#`^]', "", tail)
