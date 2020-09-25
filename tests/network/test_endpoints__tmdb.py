@@ -173,13 +173,6 @@ def test_tmdb_search_movies__bad_title():
         tmdb_search_movies(Tmdb.api_key, JUNK_TEXT, cache=False)
 
 
-def test_tmdb_search_movies__bad_year():
-    with pytest.raises(MnamerException):
-        tmdb_search_movies(
-            Tmdb.api_key, "the goonies", year=JUNK_TEXT, cache=False
-        )
-
-
 def test_search_movies__language():
     results = tmdb_search_movies(
         Tmdb.api_key, "the goonies", language=RUSSIAN_LANG

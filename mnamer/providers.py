@@ -104,7 +104,7 @@ class Omdb(Provider):
         self, name: str, year: int
     ) -> Generator[MetadataMovie, None, None]:
         assert self.api_key
-        year_from, year_to = year_range_parse(year)
+        year_from, year_to = year_range_parse(year, 5)
         found = False
         page = 1
         page_max = 10  # each page yields a maximum of 10 results
@@ -176,7 +176,7 @@ class Tmdb(Provider):
             response = tmdb_search_movies(
                 self.api_key,
                 name,
-                year,
+                f"{year_from}-{year_to}",
                 language,
                 page=page,
                 cache=self.cache,

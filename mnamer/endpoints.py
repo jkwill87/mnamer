@@ -186,7 +186,7 @@ def tmdb_movies(
 def tmdb_search_movies(
     api_key: str,
     title: str,
-    year: Optional[int] = None,
+    year: Optional[Union[int, str]] = None,
     language: Optional[Language] = None,
     region: Optional[str] = None,
     adult: bool = False,
@@ -199,11 +199,6 @@ def tmdb_search_movies(
     Online docs: developers.themoviedb.org/3/search/search-movies.
     """
     url = "https://api.themoviedb.org/3/search/movie"
-    try:
-        if year:
-            year = int(year)
-    except ValueError:
-        raise MnamerException("year must be numeric")
     parameters = {
         "api_key": api_key,
         "query": title,

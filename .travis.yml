@@ -10,6 +10,7 @@ install: pip install -Ur requirements-test.txt
 
 script: >-
   python -m pytest
+  -m 'not tvdb'
   --durations=10
   --cov-report=term
   --cov=mnamer
