@@ -60,7 +60,6 @@ def test_scene(e2e_run, setup_test_files):
     assert "aladdin.2019.avi" in result.out
 
 
-@pytest.mark.tvdb
 @pytest.mark.usefixtures("setup_test_dir")
 def test_no_guess(e2e_run, setup_test_files):
     setup_test_files(
@@ -114,7 +113,6 @@ def test_mask(e2e_run, setup_test_files):
     assert "1 out of 1 files processed successfully" in result.out
 
 
-@pytest.mark.tvdb
 @pytest.mark.usefixtures("setup_test_dir")
 def test_multi_part_episode(e2e_run, setup_test_files):
     setup_test_files("lost s01e01-02.mp4")

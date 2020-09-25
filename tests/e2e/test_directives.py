@@ -63,7 +63,6 @@ def test_id__tmdb(e2e_run, setup_test_files):
     assert "Joker" in result.out
 
 
-@pytest.mark.tvdb
 @pytest.mark.usefixtures("setup_test_dir")
 def test_id__tvdb(e2e_run, setup_test_files):
     setup_test_files("game.of.thrones.01x05-eztv.mp4")

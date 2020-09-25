@@ -187,7 +187,7 @@ class SettingStore:
         )(),
     )
     episode_api: Union[ProviderType, str] = dataclasses.field(
-        default=ProviderType.TVDB,
+        default=ProviderType.TVMAZE,
         metadata=SettingSpec(
             choices=[ProviderType.TVDB.value, ProviderType.TVMAZE.value],
             dest="episode_api",
