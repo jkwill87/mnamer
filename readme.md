@@ -30,7 +30,7 @@ Using the **episode-directory**, **episode-format**, **movie-directory**, or **m
 
 Language is supported by the default TMDb and TVDb providers. You can use the `--language` setting to set the language used for templating.
 
-mnamer also supports srt subtitle files. It will use the format pattern used for movie or episode media files with its extension prefixed by its 2-letter language code.
+mnamer also supports subtitle files (.srt, .idx, .sub). It will use the format pattern used for movie or episode media files with its extension prefixed by its 2-letter language code.
 
 🧰 [**Settings**](https://github.com/jkwill87/mnamer/wiki/Settings)
 
