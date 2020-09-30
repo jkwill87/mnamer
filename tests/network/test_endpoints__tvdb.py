@@ -92,6 +92,7 @@ def test_tvdb_refresh_token__refresh_fail():
         tvdb_refresh_token(JUNK_TEXT)
 
 
+@pytest.mark.xfail(strict=False)
 def test_tvdb_episodes_id__invalid_token():
     with pytest.raises(MnamerException):
         tvdb_episodes_id(JUNK_TEXT, LOST_TVDB_ID_EPISODE, cache=False)
