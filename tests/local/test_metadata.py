@@ -74,11 +74,24 @@ def test_metadata_episode__format_default():
     expected = "Spongebob Squarepants - 04x04"
     assert actual == expected
 
-def test_metadata_episode__specials():
-    metadata = MetadataEpisode(season=0, episode=1, series="Parks and Recreation")
+
+def test_metadata_episode__specials__00x00():
+    metadata = MetadataEpisode(
+        season=0, episode=1, series="Parks and Recreation"
+    )
     actual = format(metadata, "{series} - {season:02}x{episode:02}")
     expected = "Parks and Recreation - 00x01"
     assert actual == expected
+
+
+def test_metadata_episode__specials__s00e00():
+    metadata = MetadataEpisode(
+        season=0, episode=1, series="Parks and Recreation"
+    )
+    actual = format(metadata, "{series} - S{season:02}E{episode:02}")
+    expected = "Parks and Recreation - S00E01"
+    assert actual == expected
+
 
 def test_metadata_episode__format_with_specifiers():
     metadata = MetadataEpisode(
