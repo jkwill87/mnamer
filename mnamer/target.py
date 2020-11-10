@@ -128,7 +128,10 @@ class Target:
             raw_data = dict(guessit(str(file_path.parts[-1]), options))
         for k, v in raw_data.items():
             if hasattr(v, "alpha3"):
-                path_data[k] = Language.parse(v)
+                try:
+                    path_data[k] = Language.parse(v)
+                except MnamerException:
+                    continue
             elif isinstance(v, (int, str, date)):
                 path_data[k] = v
             elif isinstance(v, list) and all(

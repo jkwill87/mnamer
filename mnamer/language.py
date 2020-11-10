@@ -43,8 +43,11 @@ class Language:
             return cls(*value.values())
         if isinstance(value, tuple):
             return cls(*value)
-        if getattr(value, "alpha3", None):
-            return cls(value.name, value.alpha2, value.alpha3)
+        try:
+            if getattr(value, "alpha3", None):
+                return cls(value.name, value.alpha2, value.alpha3)
+        except:
+            raise MnamerException("Could not determine language")
         value = value.lower()
         for row in _KNOWN:
             for item in row:
