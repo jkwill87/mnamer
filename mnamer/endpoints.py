@@ -74,6 +74,8 @@ def omdb_title(
     status, content = request_json(url, parameters, cache=cache)
     error = content.get("Error") if isinstance(content, dict) else None
     if status == 401:
+        if error == 'Request limit reached!':
+            raise MnamerException("API request limit reached")
         raise MnamerException("invalid API key")
     elif status != 200 or not isinstance(content, dict):  # pragma: no cover
         raise MnamerNetworkException("OMDb down or unavailable?")
