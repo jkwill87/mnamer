@@ -45,6 +45,7 @@ class Metadata:
     quality: Optional[str] = None
     synopsis: Optional[str] = None
     media: Union[MediaType, str, None] = None
+    original: Optional[str] = None
 
     def __setattr__(self, key: str, value: Any):
         converter_map: Dict[str, Callable] = {
