@@ -187,7 +187,7 @@ def test_tvmaze_show_episodes_list__success():
     for expected_episode_key in EXPECTED_EPISODE_KEYS:
         assert expected_episode_key in result
     for actual_key in result:
-        if actual_key == 'type':
+        if actual_key == "type":
             continue
         assert actual_key in EXPECTED_EPISODE_KEYS
 

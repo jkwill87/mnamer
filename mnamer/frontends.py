@@ -27,7 +27,7 @@ class Frontend(ABC):
         self._handle_directives()
         self._print_configuration()
 
-    def _handle_directives(self):
+    def _handle_directives(self) -> None:
         if self.settings.version:
             tty.msg(f"mnamer version {VERSION}")
             raise SystemExit(0)
@@ -49,7 +49,7 @@ class Frontend(ABC):
                 MessageType.ALERT,
             )
 
-    def _print_configuration(self):
+    def _print_configuration(self) -> None:
         tty.msg("\nsystem", debug=True)
         tty.msg(SYSTEM, debug=True)
         tty.msg("\nsettings", debug=True)
@@ -74,19 +74,19 @@ class Cli(Frontend):
     def total_count(self):
         return len(self.targets)
 
-    def launch(self):
+    def launch(self) -> None:
         tty.msg("Starting mnamer", MessageType.HEADING)
         self._ensure_targets()
         self._process_targets()
         self._report_results()
 
-    def _ensure_targets(self):
+    def _ensure_targets(self) -> None:
         if not self.targets:
             tty.msg("", debug=True)
             tty.msg("no media files found", MessageType.ALERT)
             raise SystemExit(0)
 
-    def _process_targets(self):
+    def _process_targets(self) -> None:
         for target in self.targets:
             self._announce_file(target)
             self._list_details(target)
@@ -193,7 +193,7 @@ class Cli(Frontend):
             tty.msg("OK!", MessageType.SUCCESS)
             self.success_count += 1
 
-    def _report_results(self):
+    def _report_results(self) -> None:
         if self.success_count == 0:
             message_type = MessageType.ERROR
         elif self.success_count == self.total_count:

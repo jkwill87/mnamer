@@ -54,7 +54,7 @@ class ArgLoader(argparse.ArgumentParser):
             raise RuntimeError(f"invalid arguments: {','.join(unknowns)}")
         return vars(load_arguments)
 
-    def format_help(self):
+    def format_help(self) -> str:
         """
         Overrides ArgumentParser's format_help to dynamically generate a help
         message for use with the `--help` flag.

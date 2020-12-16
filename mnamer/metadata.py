@@ -1,8 +1,9 @@
 import dataclasses
 import re
 from datetime import date
+from re import Match
 from string import Formatter
-from typing import Any, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from mnamer.language import Language
 from mnamer.types import MediaType
@@ -21,10 +22,14 @@ __all__ = ["Metadata", "MetadataMovie", "MetadataEpisode"]
 
 
 class _MetaFormatter(Formatter):
-    def format_field(self, value, format_spec):
+    def format_field(
+        self, value: Union[None, int, str], format_spec: str
+    ) -> str:
         return format(value, format_spec) if value is not None else ""
 
-    def get_value(self, key, args, kwargs):
+    def get_value(
+        self, key: str, args: Optional[Any], kwargs: Dict[str, Any]
+    ) -> Union[None, int, str]:
         if isinstance(key, int):
             return args[key]
         else:
@@ -60,7 +65,7 @@ class Metadata:
     def __format__(self, format_spec: Optional[str]):
         raise NotImplementedError
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__format__(None)
 
     @property
@@ -70,12 +75,12 @@ class Metadata:
         else:
             return self.container
 
-    def as_dict(self):
+    def as_dict(self) -> Dict[str, Any]:
         d = dataclasses.asdict(self)
         d["extension"] = self.extension
         return d
 
-    def _format_repl(self, mobj):
+    def _format_repl(self, mobj: Match) -> str:
         format_string, key = mobj.groups()
         value = _MetaFormatter().vformat(format_string, None, self.as_dict())
         if key in {"name", "series", "synopsis", "title"}:

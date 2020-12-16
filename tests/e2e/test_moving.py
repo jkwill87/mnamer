@@ -212,6 +212,8 @@ def test_subtitles(e2e_run, setup_test_files, container):
 
 @pytest.mark.usefixtures("setup_test_dir")
 def test_ambiguous_language_deletction(e2e_run, setup_test_files):
-    setup_test_files("Harry Potter and the Sorcerer's Stone 2001 Ultimate Extended Edition 1080p - KRaLiMaRKo.mkv")
+    setup_test_files(
+        "Harry Potter and the Sorcerer's Stone 2001 Ultimate Extended Edition 1080p - KRaLiMaRKo.mkv"
+    )
     result = e2e_run("--batch", ".")
     assert result.code == 0

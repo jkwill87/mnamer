@@ -59,7 +59,7 @@ class Language:
     def all(cls) -> Tuple["Language"]:
         return tuple(cls(row[0].capitalize(), row[1], row[2]) for row in _KNOWN)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.a2
 
     @staticmethod

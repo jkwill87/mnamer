@@ -1,5 +1,5 @@
 from datetime import date
-from typing import NamedTuple
+from typing import Any, Dict, NamedTuple
 
 from mnamer.const import SUBTITLE_CONTAINERS
 from mnamer.language import Language
@@ -124,11 +124,11 @@ class E2EResult(NamedTuple):
 
 
 class MockRequestResponse:
-    def __init__(self, status, content):
+    def __init__(self, status: int, content: str) -> None:
         self.status_code = status
         self.content = content
 
-    def json(self):
+    def json(self) -> Dict[str, Any]:
         from json import loads
 
         return loads(self.content)

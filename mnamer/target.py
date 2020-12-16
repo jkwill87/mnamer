@@ -65,7 +65,7 @@ class Target:
         return targets
 
     @classmethod
-    def reset_providers(cls):
+    def reset_providers(cls) -> None:
         cls._providers.clear()
 
     @staticmethod
@@ -206,7 +206,7 @@ class Target:
                 continue  # apply override if set in directives
             setattr(self.metadata, attr, value)
 
-    def _register_provider(self):
+    def _register_provider(self) -> None:
         provider_type = self.provider_type
         if provider_type and provider_type not in self._providers:
             self._providers[provider_type] = Provider.provider_factory(
@@ -214,7 +214,7 @@ class Target:
             )
         self._provider = self._providers.get(provider_type)
 
-    def _replace_before(self):
+    def _replace_before(self) -> None:
         if not self._settings.replace_before:
             return
         for attr, value in vars(self.metadata).items():
@@ -239,7 +239,7 @@ class Target:
                 break
         return response
 
-    def relocate(self):
+    def relocate(self) -> None:
         """Performs the action of renaming and/or moving a file."""
         destination_path = Path(self.destination).resolve()
         destination_path.parent.mkdir(parents=True, exist_ok=True)

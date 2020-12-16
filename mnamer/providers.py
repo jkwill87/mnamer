@@ -214,7 +214,7 @@ class Tvdb(Provider):
         assert self.api_key
         self.token = "" if self.cache else self._login()
 
-    def _login(self):
+    def _login(self) -> str:
         return tvdb_login(self.api_key)
 
     def search(

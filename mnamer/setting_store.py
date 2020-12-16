@@ -383,10 +383,10 @@ class SettingStore:
             value = converter(value)
         super().__setattr__(key, value)
 
-    def as_dict(self):
+    def as_dict(self) -> Dict[str, Any]:
         return dataclasses.asdict(self)
 
-    def as_json(self):
+    def as_json(self) -> str:
         payload = {}
         serializable_fields = tuple(
             str(field.name)
@@ -417,7 +417,7 @@ class SettingStore:
     def bulk_apply(self, d: Dict[str, Any]):
         [setattr(self, k, v) for k, v in d.items() if v]
 
-    def load(self):
+    def load(self) -> None:
         arg_loader = ArgLoader(*self.specifications())
         try:
             arguments = arg_loader.load()
