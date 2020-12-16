@@ -1,7 +1,6 @@
 import dataclasses
 import re
 from datetime import date
-from re import Match
 from string import Formatter
 from typing import Any, Dict, Optional, Union
 
@@ -80,7 +79,7 @@ class Metadata:
         d["extension"] = self.extension
         return d
 
-    def _format_repl(self, mobj: Match) -> str:
+    def _format_repl(self, mobj) -> str:
         format_string, key = mobj.groups()
         value = _MetaFormatter().vformat(format_string, None, self.as_dict())
         if key in {"name", "series", "synopsis", "title"}:
