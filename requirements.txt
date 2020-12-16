@@ -5,3 +5,4 @@ guessit==3.1.*
 requests_cache>=0.5
 requests==2.*
 teletype>=1.0
+wheel

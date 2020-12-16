@@ -11,12 +11,8 @@ from mnamer.target import Target
 from tests import *
 
 # Create E2E test log
-E2E_LOG = Path().absolute()
-while E2E_LOG.stem != "mnamer":
-    print(str(E2E_LOG))
-    assert E2E_LOG != E2E_LOG.parent, "could not determine testing root"
-    E2E_LOG = E2E_LOG.parent
-E2E_LOG = (E2E_LOG / "e2e.log").resolve()
+assert Path("setup.py").exists()
+E2E_LOG = Path().absolute() / "e2e.log"
 E2E_LOG.open("w").close()
 
 
