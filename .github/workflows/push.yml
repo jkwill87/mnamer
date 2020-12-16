@@ -1,6 +1,9 @@
 name: push
 
-on: push
+on:
+  push:
+  schedule:
+    - cron: '0 8 * * 1'  # Mondays at 8am
 
 jobs:
 
