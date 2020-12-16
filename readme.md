@@ -1,8 +1,8 @@
-[![pypi](https://img.shields.io/pypi/v/mnamer.svg?style=for-the-badge)](https://pypi.python.org/pypi/mnamer)
-[![ci](https://img.shields.io/github/workflow/status/jkwill87/mnamer/push?style=for-the-badge)](https://github.com/jkwill87/mnamer/actions?query=workflow:push)
-[![coverage](https://img.shields.io/codecov/c/github/jkwill87/mnamer/master.svg?style=for-the-badge)](https://codecov.io/gh/jkwill87/mnamer)
-[![licence](https://img.shields.io/github/license/jkwill87/mnamer.svg?style=for-the-badge)](https://en.wikipedia.org/wiki/MIT_License)
-[![style black](https://img.shields.io/badge/Style-Black-black.svg?style=for-the-badge)](https://github.com/ambv/black)
+[![PyPI](https://img.shields.io/pypi/v/mnamer.svg?style=for-the-badge)](https://pypi.python.org/pypi/mnamer)
+[![Tests](https://img.shields.io/github/workflow/status/jkwill87/mnamer/push?style=for-the-badge&label=Tests)](https://github.com/jkwill87/mnamer/actions?query=workflow:push)
+[![Coverage](https://img.shields.io/codecov/c/github/jkwill87/mnamer/master.svg?style=for-the-badge)](https://codecov.io/gh/jkwill87/mnamer)
+[![Licence](https://img.shields.io/github/license/jkwill87/mnamer.svg?style=for-the-badge)](https://en.wikipedia.org/wiki/MIT_License)
+[![Style: Black](https://img.shields.io/badge/Style-Black-black.svg?style=for-the-badge)](https://github.com/ambv/black)
 
 <img src="https://github.com/jkwill87/mnamer/raw/master/assets/logo.png" width="450"/>
 
