@@ -122,7 +122,9 @@ class Cli(Frontend):
                 and not target.metadata.language_sub
             ):
                 if self.settings.language_fallback:
-                    target.metadata.language_sub = self.settings.language_fallback
+                    target.metadata.language_sub = (
+                        self.settings.language_fallback
+                    )
                 else:
                     if self.settings.batch:
                         tty.msg(
