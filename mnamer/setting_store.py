@@ -107,6 +107,14 @@ class SettingStore:
             help="--language=<LANG>: specify the search language",
         )(),
     )
+    language_fallback: Optional[Language] = dataclasses.field(
+        default=None,
+        metadata=SettingSpec(
+            flags=["--language-fallback"],
+            group=SettingType.PARAMETER,
+            help="--language-fallback=<LANG>: specify the default language for subtitles",
+        )(),
+    )
     mask: List[str] = dataclasses.field(
         default_factory=lambda: [
             "avi",
@@ -373,6 +381,7 @@ class SettingStore:
             "episode_api": ProviderType,
             "episode_directory": self._resolve_path,
             "language": Language.parse,
+            "language_fallback": Language.parse,
             "mask": normalize_containers,
             "media": MediaType,
             "movie_api": ProviderType,

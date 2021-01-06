@@ -6,6 +6,7 @@ import pytest
 from mnamer.setting_store import SettingStore
 from mnamer.target import *
 from mnamer.types import MediaType
+from mnamer.language import Language
 
 pytestmark = pytest.mark.local
 
@@ -102,6 +103,14 @@ def test_ambiguous_subtitle_language():
         Path("Subs/Nancy.Drew.S01E01.WEBRip.x264-ION10.srt"), SettingStore()
     )
     assert target.metadata.language is None
+
+
+def test_ambiguous_subtitle_language_fallback():
+    target = Target(
+        Path("Subs/Nancy.Drew.S01E01.WEBRip.x264-ION10.srt"),
+        SettingStore(language_fallback="en"),
+    )
+    assert target.metadata.language_sub == Language("English", "en", "eng")
 
 
 def test_destination__simple():

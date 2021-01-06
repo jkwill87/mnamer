@@ -57,6 +57,7 @@ PARAMETERS:
   --hits=<NUMBER>: limit the maximum number of hits for each query
   --ignore=<PATTERN,...>: ignore files matching these regular expressions
   --language=<LANG>: specify the search language
+  --language-fallback=<LANG>: specify the default language for subtitles
   --mask=<EXTENSION,...>: only process given file types
   --no-guess: disable best guess; e.g. when no matches or network down
   --no-overwrite: prevent relocation if it would overwrite a file
