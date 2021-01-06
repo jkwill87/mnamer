@@ -174,7 +174,13 @@ class Target:
             except MnamerException:
                 pass
         try:
-            self.metadata.language_sub = path_data.get("subtitle_language")
+            sub_lang = path_data.get("subtitle_language")
+            sub_lang = (
+                sub_lang
+                if sub_lang is not None and sub_lang != "und"
+                else self._settings.language_fallback
+            )
+            self.metadata.language_sub = sub_lang
         except MnamerException:
             pass
         if self.metadata.media is MediaType.MOVIE:

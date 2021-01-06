@@ -121,25 +121,20 @@ class Cli(Frontend):
                 is_subtitle(target.metadata.container)
                 and not target.metadata.language_sub
             ):
-                if self.settings.language_fallback:
-                    target.metadata.language_sub = (
-                        self.settings.language_fallback
+                if self.settings.batch:
+                    tty.msg(
+                        "skipping (subtitle language can't be detected)",
+                        MessageType.ALERT,
                     )
-                else:
-                    if self.settings.batch:
-                        tty.msg(
-                            "skipping (subtitle language can't be detected)",
-                            MessageType.ALERT,
-                        )
-                        continue
-                    try:
-                        target.metadata.language_sub = tty.subtitle_prompt()
-                    except MnamerSkipException:
-                        tty.msg("skipping (user request)", MessageType.ALERT)
-                        continue
-                    except MnamerAbortException:
-                        tty.msg("aborting (user request)", MessageType.ERROR)
-                        break
+                    continue
+                try:
+                    target.metadata.language_sub = tty.subtitle_prompt()
+                except MnamerSkipException:
+                    tty.msg("skipping (user request)", MessageType.ALERT)
+                    continue
+                except MnamerAbortException:
+                    tty.msg("aborting (user request)", MessageType.ERROR)
+                    break
 
             # sanity check move
             if target.destination == target.source:

@@ -102,7 +102,7 @@ def test_ambiguous_subtitle_language():
     target = Target(
         Path("Subs/Nancy.Drew.S01E01.WEBRip.x264-ION10.srt"), SettingStore()
     )
-    assert target.metadata.language is None
+    assert target.metadata.language_sub is None
 
 
 def test_ambiguous_subtitle_language_fallback():
