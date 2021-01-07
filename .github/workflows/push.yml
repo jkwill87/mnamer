@@ -57,6 +57,7 @@ jobs:
         run: >-
           python -m pytest
           -m network
+          --reruns 3
           --durations=10
           --cov=./
           --cov-append
@@ -67,6 +68,7 @@ jobs:
         run: >-
           python -m pytest
           -m e2e
+          --reruns 3
           --durations=10
           --cov=./
           --cov-append
