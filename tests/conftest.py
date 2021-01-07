@@ -7,13 +7,16 @@ import pytest
 
 
 @pytest.fixture
-def setup_test_dir():
+def setup_test_dir(request):
     orig_dir = os.getcwd()
     tmp_dir = tempfile.mkdtemp()
     os.chdir(tmp_dir)
-    yield
-    os.chdir(orig_dir)
-    rmtree(tmp_dir)
+
+    def finalizer():
+        os.chdir(orig_dir)
+        rmtree(tmp_dir)
+
+    request.addfinalizer(finalizer)
 
 
 @pytest.fixture
