@@ -35,15 +35,6 @@ publish-test: build
 	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
 
-# CI Helpers -------------------------------------------------------------------
-
-ci-build:
-	docker build -t act-ubuntu .github/workflows
-
-ci-test: ci-build
-	act -P ubuntu-latest=act-ubuntu push
-
-
 # Version Helpers --------------------------------------------------------------
 
 bump-patch:

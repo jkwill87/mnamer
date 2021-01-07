@@ -80,3 +80,22 @@ jobs:
           && github.ref == 'refs/heads/master'
           && matrix['python-version'] == '3.x'
         uses: codecov/codecov-action@v1
+
+  publish: # ---------------------------------------------------------------------
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags')
+
+    steps:
+      - name: Checking out Git Commit
+        uses: actions/checkout@v2
+
+      - name: Installing Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Building universal wheel
+        run: python setup.py sdist bdist_wheel --universal
+
+      - name: Uploading to PyPI
+        run: twine upload dist/*
