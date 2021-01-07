@@ -1,4 +1,5 @@
 import sys
+from os import chdir
 from pathlib import Path
 
 import pytest
@@ -10,8 +11,14 @@ from mnamer.setting_store import SettingStore
 from mnamer.target import Target
 from tests import *
 
+# Move up to root directory if run from subdirectory
+cwd = Path().resolve()
+while not (cwd / "setup.py").exists():
+    assert cwd != cwd.parent, "could not determine testing root"
+    cwd = cwd.parent
+    chdir(cwd)
+
 # Create E2E test log
-assert Path("setup.py").exists()
 E2E_LOG = Path().absolute() / "e2e.log"
 E2E_LOG.open("w").close()
 
