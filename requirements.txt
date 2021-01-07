@@ -1,8 +1,8 @@
-appdirs==1.*
+appdirs==1.4.*
 babelfish==0.5.*
 dataclasses; python_version < '3.7'
-guessit==3.1.*
-requests_cache>=0.5
+guessit==3.2.*
+requests_cache==0.5.*
 requests==2.*
-teletype>=1.0
+teletype==1.1.*
 wheel
