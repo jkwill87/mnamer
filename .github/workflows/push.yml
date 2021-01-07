@@ -40,7 +40,7 @@ jobs:
         with:
           python-version: ${{matrix.python-version}}
 
-      - name: Installing Black from PyPI
+      - name: Installing Requirements
         run: pip install -q -U pip -r requirements-test.txt
 
       - name: Running Local Unit Tests
@@ -93,6 +93,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.x
+
+      - name: Installing Requirements
+        run: pip install -q -U pip -r requirements.txt twine
 
       - name: Building universal wheel
         run: python setup.py sdist bdist_wheel --universal
