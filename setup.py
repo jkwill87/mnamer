@@ -4,10 +4,10 @@ from setuptools import setup
 
 from mnamer.__version__ import VERSION
 
-with open("readme.md", "r") as fp:
+with open("readme.md", "r", encoding="utf8") as fp:
     LONG_DESCRIPTION = fp.read()
 
-with open("requirements.txt", "r") as fp:
+with open("requirements.txt", "r", encoding="utf8") as fp:
     REQUIREMENTS = fp.read().splitlines()
 
 setup(
