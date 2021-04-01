@@ -65,7 +65,7 @@ class ArgLoader(argparse.ArgumentParser):
             return "\n  ".join([action.help for action in actions])
 
         return f"""
-USAGE: {self.usage}
+{self.usage}
 
 POSITIONAL:
   {help_for_group(SettingType.POSITIONAL)}

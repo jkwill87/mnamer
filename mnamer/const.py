@@ -54,6 +54,6 @@ SYSTEM = {
     "teletype version": teletype_version,
 }
 
-USAGE = "mnamer [preferences] [directives] target [targets ...]"
+USAGE = "USAGE: mnamer [preferences] [directives] target [targets ...]"
 
 VERSION_MAJOR = int(VERSION[0])
