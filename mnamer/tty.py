@@ -82,7 +82,11 @@ def msg(
     message_type: MessageType = MessageType.INFO,
     debug: bool = False,
 ):
-    if verbose or not debug:
+    if debug and not verbose:
+        return
+    if no_style:
+        print(_msg_format(body))
+    else:
         style_print(_msg_format(body), style=message_type.value)
 
 
