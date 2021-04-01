@@ -234,6 +234,12 @@ def test_str_replace__multiple_replacement():
     assert actual == expected
 
 
+def test_str_replace__regex_escaping():
+    expected = "hello, world!"
+    actual = str_replace("hello, world?", {"?": "!"})
+    assert actual == expected
+
+
 def test_str_sanitize__condense_whitespace():
     filename = "fix  these    spaces\tplease "
     expected = "fix these spaces please"

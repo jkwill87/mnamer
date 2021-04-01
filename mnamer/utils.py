@@ -325,7 +325,7 @@ def str_replace(s: str, replacements: Dict[str, str]) -> str:
     """Replaces keys in replacements dict with their values."""
     for word, replacement in replacements.items():
         if word in s:
-            s = re.sub(word, replacement, s, flags=re.IGNORECASE)
+            s = re.sub(re.escape(word), replacement, s, flags=re.IGNORECASE)
     return s
 
 
