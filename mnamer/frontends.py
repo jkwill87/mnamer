@@ -87,6 +87,8 @@ class Cli(Frontend):
             raise SystemExit(0)
 
     def _process_targets(self) -> None:
+        move_queue: List[Target] = []
+
         for target in self.targets:
             self._announce_file(target)
             self._list_details(target)
@@ -143,13 +145,22 @@ class Cli(Frontend):
                     MessageType.ALERT,
                 )
                 continue
-            if self.settings.no_overwrite and target.destination.exists():
+            if self.settings.no_overwrite and target.destination in [
+                x.destination for x in move_queue
+            ]:
                 tty.msg(
                     "skipping (--no-overwrite)",
                     MessageType.ALERT,
                 )
                 continue
 
+            tty.msg(
+                f"Will move to {target.destination.absolute()}",
+                MessageType.SUCCESS,
+            )
+            move_queue.append(target)
+
+        for target in move_queue:
             self._rename_and_move_file(target)
 
     def _announce_file(self, target: Target):
