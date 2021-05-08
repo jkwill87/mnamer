@@ -142,7 +142,7 @@ class MetadataEpisode(Metadata):
     media: MediaType = MediaType.EPISODE
 
     def __format__(self, format_spec: Optional[str]):
-        default = "{series} - {season:02}x{episode:02} - {title}"
+        default = "{series} ({date}) - {season:02}x{episode:02} - {title}"
         re_pattern = r"({(\w+)(?:\[[\w:]+\])?(?:\:\d{1,2})?})"
         s = re.sub(re_pattern, self._format_repl, format_spec or default)
         s = str_fix_padding(s)
