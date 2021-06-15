@@ -8,7 +8,7 @@ from mnamer.const import SUBTITLE_CONTAINERS
 from mnamer.exceptions import MnamerException
 from mnamer.language import Language
 from mnamer.setting_spec import SettingSpec
-from mnamer.types import MediaType, ProviderType, SettingType
+from mnamer.types import MediaType, ProviderType, SettingType, RelocateType
 from mnamer.utils import crawl_out, json_loads, normalize_containers
 
 __all__ = ["SettingStore"]
@@ -216,6 +216,16 @@ class SettingStore:
             flags=["--episode_format", "--episode-format", "--episodeformat"],
             group=SettingType.PARAMETER,
             help="--episode-format: set episode renaming format specification",
+        )(),
+    )
+    relocation_mode: Optional[RelocateType] = dataclasses.field(
+        default=RelocateType.DEFAULT.value,
+        metadata=SettingSpec(
+            dest="relocation_mode",
+            choices=[ix.name for ix in RelocateType],
+            flags=["--link"],
+            group=SettingType.PARAMETER,
+            help=f"--link={'|'.join([ix.value for ix in RelocateType])}: when given, {'|'.join([ix.value for ix in RelocateType])} link instead of move files",
         )(),
     )
 
