@@ -218,11 +218,11 @@ class SettingStore:
             help="--episode-format: set episode renaming format specification",
         )(),
     )
-    relocation_mode: Optional[RelocateType] = dataclasses.field(
+    relocation_mode: Optional[Union[RelocateType,str]] = dataclasses.field(
         default=RelocateType.DEFAULT.value,
         metadata=SettingSpec(
             dest="relocation_mode",
-            choices=[ix.name for ix in RelocateType],
+            choices=[ix.value for ix in RelocateType],
             flags=["--link"],
             group=SettingType.PARAMETER,
             help=f"--link={'|'.join([ix.value for ix in RelocateType])}: when given, {'|'.join([ix.value for ix in RelocateType])} link instead of move files",
