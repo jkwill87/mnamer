@@ -223,9 +223,9 @@ class SettingStore:
         metadata=SettingSpec(
             dest="relocation_mode",
             choices=[ix.value for ix in RelocateType],
-            flags=["--link"],
+            flags=["--relocate-operation"],
             group=SettingType.PARAMETER,
-            help=f"--link={'|'.join([ix.value for ix in RelocateType])}: when given, {'|'.join([ix.value for ix in RelocateType])} link or copy instead of move files",
+            help=f"--relocate-operation={'|'.join([ix.value for ix in RelocateType])}: when given, {'|'.join([ix.value for ix in RelocateType])} link or copy instead of move files",
         )(),
     )
 

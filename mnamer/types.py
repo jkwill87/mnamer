@@ -30,6 +30,7 @@ class RelocateType(Enum):
     HARDLINK = "hard"
     SYMBOLICLINK = "sym"
     COPY = "copy"
+    COPY2 = "copy-with-metadata"
 
 
 class SettingType(Enum):
