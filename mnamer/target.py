@@ -111,6 +111,12 @@ class Target:
         )
         file_path = self._make_path(file_path)
         dir_tail, filename = path.split(file_path)
+
+        # Required to sanitize paths that have been inserted into --episode-format
+        dir_tail = self._make_path(
+            *[str_sanitize(px) for px in self._make_path(dir_tail).parts]
+        )
+
         filename = filename_replace(filename, self._settings.replace_after)
         if self._settings.scene:
             filename = str_scenify(filename)

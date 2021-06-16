@@ -54,6 +54,26 @@ def _run_relocation_operation(e2e_run, setup_test_files):
     assert "1 out of 1 files processed successfully" in result.out
 
 
+@pytest.mark.tvdb
+@pytest.mark.usefixtures("setup_test_dir")
+def test_sanitize_episode_format_path(e2e_run, setup_test_files):
+    setup_test_files(
+        "The.Great.Fire.In.Real.Time.S01E01.1080p.HEVC.x265-MeGusta.mkv"
+    )
+    result = e2e_run(
+        "--batch",
+        "--episode-api=tvdb",
+        "--episode-format='{series}/{series}'",
+        ".",
+    )
+    print(result.out)
+    assert result.code == 0
+    assert (
+        "The Great Fire in Real Time/The Great Fire in Real Time" in result.out
+    )
+    assert "1 out of 1 files processed successfully" in result.out
+
+
 @pytest.mark.usefixtures("setup_test_dir")
 def test_complex_metadata(e2e_run, setup_test_files):
     setup_test_files(
