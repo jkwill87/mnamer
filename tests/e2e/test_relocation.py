@@ -1,10 +1,57 @@
 from pathlib import Path
 
 import pytest
+from functools import partial
 
 from mnamer.const import SUBTITLE_CONTAINERS
 
 pytestmark = pytest.mark.e2e
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_copy2(e2e_run, setup_test_files):
+    _run_relocation_operation(
+        partial(e2e_run, "--relocation-operation=copy-with-metadata"),
+        setup_test_files,
+    )
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_copy(e2e_run, setup_test_files):
+    _run_relocation_operation(
+        partial(e2e_run, "--relocation-operation=copy"), setup_test_files
+    )
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_symlink(e2e_run, setup_test_files):
+    _run_relocation_operation(
+        partial(e2e_run, "--relocation-operation=hardlink"), setup_test_files
+    )
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_hardlink(e2e_run, setup_test_files):
+    _run_relocation_operation(
+        partial(e2e_run, "--relocation-operation=symlink"), setup_test_files
+    )
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_move(e2e_run, setup_test_files):
+    _run_relocation_operation(
+        partial(e2e_run, "--relocation-operation=symlink"), setup_test_files
+    )
+
+
+def _run_relocation_operation(e2e_run, setup_test_files):
+    setup_test_files(
+        "Quien a hierro mata [MicroHD 1080p][DTS 5.1-Castellano-AC3 5.1-Castellano+Subs][ES-EN].mkv"
+    )
+    result = e2e_run("--batch", "--media=movie", ".")
+    assert result.code == 0
+    assert "Quien a Hierro Mata (2019).mkv" in result.out
+    assert "1 out of 1 files processed successfully" in result.out
 
 
 @pytest.mark.usefixtures("setup_test_dir")
