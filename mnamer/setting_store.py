@@ -225,7 +225,7 @@ class SettingStore:
             choices=[ix.value for ix in RelocateType],
             flags=["--relocate-operation"],
             group=SettingType.PARAMETER,
-            help=f"--relocate-operation={'|'.join([ix.value for ix in RelocateType])}: when given, {'|'.join([ix.value for ix in RelocateType])} link or copy instead of move files",
+            help=f"--relocate-operation={'|'.join([ix.value for ix in RelocateType])}: when given, link, copy or move files. Default move.",
         )(),
     )
 
