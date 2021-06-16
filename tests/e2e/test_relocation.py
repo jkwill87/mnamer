@@ -26,21 +26,21 @@ def test_relocation_operation_copy(e2e_run, setup_test_files):
 @pytest.mark.usefixtures("setup_test_dir")
 def test_relocation_operation_symlink(e2e_run, setup_test_files):
     _run_relocation_operation(
-        partial(e2e_run, "--relocation-operation=hardlink"), setup_test_files
+        partial(e2e_run, "--relocation-operation=symlink"), setup_test_files
     )
 
 
 @pytest.mark.usefixtures("setup_test_dir")
 def test_relocation_operation_hardlink(e2e_run, setup_test_files):
     _run_relocation_operation(
-        partial(e2e_run, "--relocation-operation=symlink"), setup_test_files
+        partial(e2e_run, "--relocation-operation=hardlink"), setup_test_files
     )
 
 
 @pytest.mark.usefixtures("setup_test_dir")
 def test_relocation_operation_move(e2e_run, setup_test_files):
     _run_relocation_operation(
-        partial(e2e_run, "--relocation-operation=symlink"), setup_test_files
+        partial(e2e_run, "--relocation-operation=move"), setup_test_files
     )
 
 
