@@ -276,7 +276,7 @@ class Tvdb(Provider):
                         season=entry["airedSeason"],
                         series=series_data["data"]["seriesName"],
                         language=language,
-                        synopsis=(entry["overview"] or None)
+                        synopsis=(entry["overview"] or "")
                         .replace("\r\n", "")
                         .replace("  ", "")
                         .strip(),
