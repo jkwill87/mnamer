@@ -37,7 +37,7 @@ class Target:
     _parsed_metadata: Metadata
     source: PurePath
 
-    _relocation_mode = {
+    _relocation_strategy = {
         RelocateType.DEFAULT.value: move,
         RelocateType.HARDLINK.value: link,
         RelocateType.SYMBOLICLINK.value: symlink,
@@ -252,8 +252,8 @@ class Target:
         destination_path = Path(self.destination).resolve()
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            relocate_function = self._relocation_mode[
-                self._settings.relocation_mode
+            relocate_function = self._relocation_strategy[
+                self._settings.relocation_strategy
             ]
             relocate_function(self.source, destination_path)
         except OSError:  # pragma: no cover
