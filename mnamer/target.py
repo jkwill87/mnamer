@@ -1,7 +1,7 @@
 from datetime import date
-from os import path,symlink,link
+from os import path, symlink, link
 from pathlib import Path, PurePath
-from shutil import move
+from shutil import move, copy2
 from typing import Dict, List, Optional, Set, Union
 
 from guessit import guessit
@@ -41,6 +41,7 @@ class Target:
         RelocateType.DEFAULT.value: move,
         RelocateType.HARDLINK.value: link,
         RelocateType.SYMBOLICLINK.value: symlink,
+        RelocateType.COPY.value: copy2,
     }
 
     def __init__(self, file_path: Path, settings: SettingStore = None):
