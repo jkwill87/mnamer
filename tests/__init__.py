@@ -76,16 +76,16 @@ EPISODE_META = {
         "series": "Downtown",
         "title": "Trip or Treat",
     },
-    "The Care Bears": {
-        "date": date(1986, 9, 20),
+    "Fargo": {
+        "date": date(2015, 10, 19),
         "episode": 2,
-        "id_imdb": "tt0284713",
-        "id_tvdb": 76079,
-        "id_tvmaze": 9218,
+        "id_imdb": "tt2802850",
+        "id_tvdb": 269613,
+        "id_tvmaze": 32,
         "media": "television",
         "season": 2,
-        "series": "The Care Bears",
-        "title": "Grumpy's Three Wishes",
+        "series": "Fargo",
+        "title": "Before the Law",
     },
 }
 
@@ -104,12 +104,12 @@ MOVIE_META = {
         "name": "Citizen Kane",
         "year": 1941,
     },
-    "Amélie": {
-        "id_imdb": "tt0211915",
-        "id_tmdb": 194,
+    "Les Misérables": {
+        "id_imdb": "tt10199590",
+        "id_tmdb": 586863,
         "media": "movie",
-        "name": "Amélie",
-        "year": 2002,
+        "name": "Les Misérables",
+        "year": 2019,
     },
 }
 
