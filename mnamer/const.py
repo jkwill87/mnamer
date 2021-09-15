@@ -6,7 +6,6 @@ from platform import platform, python_version
 from sys import argv, gettrace, version_info
 
 from appdirs import __version__ as appdirs_version, user_cache_dir
-from babelfish import __version__ as babelfish_version
 from guessit import __version__ as guessit_version
 from requests import __version__ as requests_version
 from requests_cache import __version__ as requests_cache_version
@@ -47,7 +46,6 @@ SYSTEM = {
     "python version": python_version(),
     "mnamer version": VERSION,
     "appdirs version": appdirs_version,
-    "babelfish version": babelfish_version,
     "guessit version": guessit_version,
     "requests version": requests_version,
     "requests cache version": requests_cache_version,

@@ -1,5 +1,5 @@
 appdirs==1.4.*
-babelfish==0.5.*
+babelfish==0.6.*
 dataclasses; python_version < '3.7'
 guessit==3.2.*
 requests_cache==0.5.*
