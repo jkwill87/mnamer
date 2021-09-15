@@ -129,7 +129,7 @@ def test_tvdb_episodes_id__success(tvdb_token):
 
 def test_tvdb_episodes_id__language(tvdb_token):
     result = tvdb_episodes_id(tvdb_token, LOST_TVDB_ID_EPISODE, RUSSIAN_LANG)
-    assert result["data"]["episodeName"] == "Пилот. Часть 1"
+    assert result["data"]["episodeName"] == "Пилот (1)"
 
 
 def test_tvdb_episodes_id__language__invalid(tvdb_token):
