@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.6", "3.x"]
+        python-version: ["3.7", "3.x"]
     name: test-v${{matrix.python-version}}
 
     steps:

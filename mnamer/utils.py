@@ -280,9 +280,9 @@ def request_json(
         "like Gecko) Chrome/79.0.3945.88 Safari/537.36"
     )
 
-    initial_cache_state = session._is_cache_disabled  # yes, i'm a bad person
+    initial_cache_state = session._disabled  # yes, i'm a bad person
     try:
-        session._is_cache_disabled = not cache
+        session._disabled = not cache
         response = session.request(
             url=url,
             params=parameters,
@@ -297,7 +297,7 @@ def request_json(
         content = None
         status = 500
     finally:
-        session._is_cache_disabled = initial_cache_state
+        session._disabled = initial_cache_state
     return status, content
 
 
