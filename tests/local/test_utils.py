@@ -530,7 +530,7 @@ def test_request_json__xml_data(mock_request):
     mock_request.return_value = mock_response
     status, content = request_json("http://...", cache=False)
     assert status == 500
-    assert content is None
+    assert content == {}
 
 
 @patch("mnamer.utils.requests_cache.CachedSession.request")
@@ -552,7 +552,7 @@ def test_request_json__html_data(mock_request):
     mock_request.return_value = mock_response
     status, content = request_json("http://...", cache=False)
     assert status == 500
-    assert content is None
+    assert content == {}
 
 
 @patch("mnamer.utils.requests_cache.CachedSession.request")
@@ -579,7 +579,7 @@ def test_request_json__get_parameters(mock_request):
 def test_request_json__get_invalid_url():
     status, content = request_json("mapi rulez", cache=False)
     assert status == 500
-    assert content is None
+    assert content == {}
 
 
 @patch("mnamer.utils.requests_cache.CachedSession.request")
@@ -618,7 +618,7 @@ def test_request_json__failure(mock_request):
     mock_request.side_effect = Exception
     status, content = request_json(url="http://google.com")
     assert status == 500
-    assert content is None
+    assert content == {}
 
 
 @pytest.mark.parametrize("s", ("()x", "x()", "()[]x", "[]x()()"))

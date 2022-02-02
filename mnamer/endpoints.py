@@ -162,7 +162,7 @@ def tmdb_find(
 
 def tmdb_movies(
     api_key: str,
-    id_tmdb: Union[int, str],
+    id_tmdb: str,
     language: Optional[str] = None,
     cache: bool = True,
 ) -> dict:
@@ -253,7 +253,7 @@ def tvdb_refresh_token(token: str) -> str:
 
 def tvdb_episodes_id(
     token: str,
-    id_tvdb: Union[str, int],
+    id_tvdb: str,
     language: Optional[Language] = None,
     cache: bool = True,
 ) -> dict:
@@ -283,7 +283,7 @@ def tvdb_episodes_id(
 
 def tvdb_series_id(
     token: str,
-    id_tvdb: Union[str, int],
+    id_tvdb: str,
     language: Optional[Language] = None,
     cache: bool = True,
 ) -> dict:
@@ -314,7 +314,7 @@ def tvdb_series_id(
 
 def tvdb_series_id_episodes(
     token: str,
-    id_tvdb: Union[str, int],
+    id_tvdb: str,
     page: int = 1,
     language: Optional[Language] = None,
     cache: bool = True,
@@ -348,7 +348,7 @@ def tvdb_series_id_episodes(
 
 def tvdb_series_id_episodes_query(
     token: str,
-    id_tvdb: Union[str, int],
+    id_tvdb: str,
     episode: Optional[int] = None,
     season: Optional[int] = None,
     page: int = 1,
@@ -423,7 +423,7 @@ def tvdb_search_series(
 
 
 def tvmaze_show(
-    id_tvmaze: Union[str, int],
+    id_tvmaze: str,
     embed_episodes: bool = False,
     cache: bool = False,
     attempt: int = 1,
@@ -494,7 +494,7 @@ def tvmaze_show_single_search(query: str, cache: bool = True, attempt: int = 1) 
 
 def tvmaze_show_lookup(
     id_imdb: Optional[str] = None,
-    id_tvdb: Union[str, int] = None,
+    id_tvdb: Optional[str] = None,
     cache: bool = True,
     attempt: int = 1,
 ) -> dict:
@@ -520,7 +520,7 @@ def tvmaze_show_lookup(
 
 
 def tvmaze_show_episodes_list(
-    id_tvmaze: Union[str, int],
+    id_tvmaze: str,
     include_specials: bool = False,
     cache: bool = True,
     attempt: int = 1,
@@ -548,7 +548,7 @@ def tvmaze_show_episodes_list(
 
 
 def tvmaze_episodes_by_date(
-    id_tvmaze: Union[str, int],
+    id_tvmaze: str,
     air_date: Union[datetime.date, str],
     cache: bool = True,
     attempt: int = 1,
@@ -573,7 +573,7 @@ def tvmaze_episodes_by_date(
 
 
 def tvmaze_episode_by_number(
-    id_tvmaze: Union[str, int],
+    id_tvmaze: str,
     season: int,
     episode: int,
     cache: bool = True,

@@ -30,7 +30,7 @@ class SettingStore:
             group=SettingType.POSITIONAL,
             help="[TARGET,...]: media file file path(s) to process",
             nargs="*",
-        )(),
+        ).as_dict(),
     )
 
     # parameter attributes -----------------------------------------------------
@@ -43,7 +43,7 @@ class SettingStore:
             flags=["--batch", "-b"],
             group=SettingType.PARAMETER,
             help="-b, --batch: process automatically without interactive prompts",
-        )(),
+        ).as_dict(),
     )
     lower: bool = dataclasses.field(
         default=False,
@@ -52,7 +52,7 @@ class SettingStore:
             flags=["--lower", "-l"],
             group=SettingType.PARAMETER,
             help="-l, --lower: rename files using lowercase characters",
-        )(),
+        ).as_dict(),
     )
     recurse: bool = dataclasses.field(
         default=False,
@@ -61,7 +61,7 @@ class SettingStore:
             flags=["--recurse", "-r"],
             group=SettingType.PARAMETER,
             help="-r, --recurse: search for files within nested directories",
-        )(),
+        ).as_dict(),
     )
     scene: bool = dataclasses.field(
         default=False,
@@ -70,7 +70,7 @@ class SettingStore:
             flags=["--scene", "-s"],
             group=SettingType.PARAMETER,
             help="-s, --scene: use dots in place of alphanumeric chars",
-        )(),
+        ).as_dict(),
     )
     verbose: bool = dataclasses.field(
         default=False,
@@ -79,7 +79,7 @@ class SettingStore:
             flags=["--verbose", "-v"],
             group=SettingType.PARAMETER,
             help="-v, --verbose: increase output verbosity",
-        )(),
+        ).as_dict(),
     )
     hits: int = dataclasses.field(
         default=5,
@@ -88,7 +88,7 @@ class SettingStore:
             group=SettingType.PARAMETER,
             help="--hits=<NUMBER>: limit the maximum number of hits for each query",
             type=int,
-        )(),
+        ).as_dict(),
     )
     ignore: List[str] = dataclasses.field(
         default_factory=lambda: [".*sample.*", "^RARBG.*"],
@@ -97,7 +97,7 @@ class SettingStore:
             group=SettingType.PARAMETER,
             help="--ignore=<PATTERN,...>: ignore files matching these regular expressions",
             nargs="+",
-        )(),
+        ).as_dict(),
     )
     language: Optional[Language] = dataclasses.field(
         default=None,
@@ -105,7 +105,7 @@ class SettingStore:
             flags=["--language"],
             group=SettingType.PARAMETER,
             help="--language=<LANG>: specify the search language",
-        )(),
+        ).as_dict(),
     )
     mask: List[str] = dataclasses.field(
         default_factory=lambda: [
@@ -122,7 +122,7 @@ class SettingStore:
             group=SettingType.PARAMETER,
             help="--mask=<EXTENSION,...>: only process given file types",
             nargs="+",
-        )(),
+        ).as_dict(),
     )
     no_guess: bool = dataclasses.field(
         default=False,
@@ -132,7 +132,7 @@ class SettingStore:
             flags=["--no_guess", "--no-guess", "--noguess"],
             group=SettingType.PARAMETER,
             help="--no-guess: disable best guess; e.g. when no matches or network down",
-        )(),
+        ).as_dict(),
     )
     no_overwrite: bool = dataclasses.field(
         default=False,
@@ -142,7 +142,7 @@ class SettingStore:
             flags=["--no_overwrite", "--no-overwrite", "--nooverwrite"],
             group=SettingType.PARAMETER,
             help="--no-overwrite: prevent relocation if it would overwrite a file",
-        )(),
+        ).as_dict(),
     )
     no_style: bool = dataclasses.field(
         default=False,
@@ -152,7 +152,7 @@ class SettingStore:
             flags=["--no_style", "--no-style", "--nostyle"],
             group=SettingType.PARAMETER,
             help="--no-style: print to stdout without using colour or unicode chars",
-        )(),
+        ).as_dict(),
     )
     movie_api: Union[ProviderType, str] = dataclasses.field(
         default=ProviderType.TMDB,
@@ -162,7 +162,7 @@ class SettingStore:
             flags=["--movie_api", "--movie-api", "--movieapi"],
             group=SettingType.PARAMETER,
             help="--movie-api={*tmdb,omdb}: set movie api provider",
-        )(),
+        ).as_dict(),
     )
     movie_directory: Optional[Path] = dataclasses.field(
         default=None,
@@ -175,7 +175,7 @@ class SettingStore:
             ],
             group=SettingType.PARAMETER,
             help="--movie-directory: set movie relocation directory",
-        )(),
+        ).as_dict(),
     )
     movie_format: str = dataclasses.field(
         default="{name} ({year}).{extension}",
@@ -184,7 +184,7 @@ class SettingStore:
             flags=["--movie_format", "--movie-format", "--movieformat"],
             group=SettingType.PARAMETER,
             help="--movie-format: set movie renaming format specification",
-        )(),
+        ).as_dict(),
     )
     episode_api: Union[ProviderType, str] = dataclasses.field(
         default=ProviderType.TVMAZE,
@@ -194,7 +194,7 @@ class SettingStore:
             flags=["--episode_api", "--episode-api", "--episodeapi"],
             group=SettingType.PARAMETER,
             help="--episode-api={tvdb,*tvmaze}: set episode api provider",
-        )(),
+        ).as_dict(),
     )
     episode_directory: Path = dataclasses.field(
         default=None,
@@ -207,7 +207,7 @@ class SettingStore:
             ],
             group=SettingType.PARAMETER,
             help="--episode-directory: set episode relocation directory",
-        )(),
+        ).as_dict(),
     )
     episode_format: str = dataclasses.field(
         default="{series} - S{season:02}E{episode:02} - {title}.{extension}",
@@ -216,7 +216,7 @@ class SettingStore:
             flags=["--episode_format", "--episode-format", "--episodeformat"],
             group=SettingType.PARAMETER,
             help="--episode-format: set episode renaming format specification",
-        )(),
+        ).as_dict(),
     )
 
     # directive attributes -----------------------------------------------------
@@ -228,7 +228,7 @@ class SettingStore:
             flags=["-V", "--version"],
             group=SettingType.DIRECTIVE,
             help="-V, --version: display the running mnamer version number",
-        )(),
+        ).as_dict(),
     )
     clear_cache: bool = dataclasses.field(
         default=False,
@@ -238,7 +238,7 @@ class SettingStore:
             flags=["--clear_cache", "--clear-cache", "--clearcache"],
             group=SettingType.DIRECTIVE,
             help="--clear-cache: clear request cache",
-        )(),
+        ).as_dict(),
     )
     config_dump: bool = dataclasses.field(
         default=False,
@@ -248,7 +248,7 @@ class SettingStore:
             flags=["--config_dump", "--config-dump", "--configdump"],
             group=SettingType.DIRECTIVE,
             help="--config-dump: prints current config JSON to stdout then exits",
-        )(),
+        ).as_dict(),
     )
     config_ignore: bool = dataclasses.field(
         default=False,
@@ -258,7 +258,7 @@ class SettingStore:
             flags=["--config_ignore", "--config-ignore", "--configignore"],
             group=SettingType.DIRECTIVE,
             help="--config-ignore: skips loading config file for session",
-        )(),
+        ).as_dict(),
     )
     config_path: str = dataclasses.field(
         default=None,
@@ -266,7 +266,7 @@ class SettingStore:
             flags=["--config_path", "--config-path"],
             group=SettingType.DIRECTIVE,
             help="--config-path=<PATH>: specifies configuration path to load",
-        )(),
+        ).as_dict(),
     )
     id_imdb: str = dataclasses.field(
         default=None,
@@ -274,7 +274,7 @@ class SettingStore:
             flags=["--id_imdb", "--id-imdb", "--idimdb"],
             group=SettingType.DIRECTIVE,
             help="--id-imdb=<ID>: specify an IMDb movie id override",
-        )(),
+        ).as_dict(),
     )
     id_tmdb: str = dataclasses.field(
         default=None,
@@ -282,7 +282,7 @@ class SettingStore:
             flags=["--id_tmdb", "--id-tmdb", "--idtmdb"],
             group=SettingType.DIRECTIVE,
             help="--id-tmdb=<ID>: specify a TMDb movie id override",
-        )(),
+        ).as_dict(),
     )
     id_tvdb: str = dataclasses.field(
         default=None,
@@ -290,7 +290,7 @@ class SettingStore:
             flags=["--id_tvdb", "--id-tvdb", "--idtvdb"],
             group=SettingType.DIRECTIVE,
             help="--id-tvdb=<ID>: specify a TVDb series id override",
-        )(),
+        ).as_dict(),
     )
     id_tvmaze: str = dataclasses.field(
         default=None,
@@ -298,7 +298,7 @@ class SettingStore:
             flags=["--id_tvmaze", "--id-tvmaze", "--idtvmaze"],
             group=SettingType.DIRECTIVE,
             help="--id-tvmaze=<ID>: specify a TvMaze series id override",
-        )(),
+        ).as_dict(),
     )
     no_cache: bool = dataclasses.field(
         default=False,
@@ -308,7 +308,7 @@ class SettingStore:
             flags=["--no_cache", "--no-cache", "--nocache"],
             group=SettingType.DIRECTIVE,
             help="--no-cache: disable request cache",
-        )(),
+        ).as_dict(),
     )
     media: Optional[Union[MediaType, str]] = dataclasses.field(
         default=None,
@@ -317,7 +317,7 @@ class SettingStore:
             flags=["--media"],
             group=SettingType.DIRECTIVE,
             help="--media={movie,episode}: override media detection",
-        )(),
+        ).as_dict(),
     )
     test: bool = dataclasses.field(
         default=False,
@@ -326,34 +326,34 @@ class SettingStore:
             flags=["--test"],
             group=SettingType.DIRECTIVE,
             help="--test: mocks the renaming and moving of files",
-        )(),
+        ).as_dict(),
     )
 
     # config-only attributes ---------------------------------------------------
 
     api_key_omdb: str = dataclasses.field(
         default=None,
-        metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
+        metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
     api_key_tmdb: str = dataclasses.field(
         default=None,
-        metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
+        metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
     api_key_tvdb: str = dataclasses.field(
         default=None,
-        metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
+        metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
     api_key_tvmaze: str = dataclasses.field(
         default=None,
-        metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
+        metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
     replace_before: Dict[str, str] = dataclasses.field(
         default_factory=lambda: {},
-        metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
+        metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
     replace_after: Dict[str, str] = dataclasses.field(
         default_factory=lambda: {"&": "and", "@": "at", ";": ","},
-        metadata=SettingSpec(group=SettingType.CONFIGURATION)(),
+        metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
 
     @classmethod

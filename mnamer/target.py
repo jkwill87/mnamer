@@ -1,6 +1,6 @@
 from datetime import date
 from os import path
-from pathlib import Path, PurePath
+from pathlib import Path
 from shutil import move
 from typing import Dict, List, Optional, Union
 
@@ -35,7 +35,7 @@ class Target:
     _has_renamed: bool
     _raw_metadata: Dict[str, str]
     _parsed_metadata: Metadata
-    source: PurePath
+    source: Path
 
     def __init__(self, file_path: Path, settings: SettingStore = None):
         self._settings = settings or SettingStore()
@@ -80,12 +80,12 @@ class Target:
         return self._settings.api_for(self.metadata.media)
 
     @property
-    def directory(self) -> Optional[PurePath]:
+    def directory(self) -> Optional[Path]:
         directory = getattr(self._settings, f"{self.metadata.media.value}_directory")
         return self._make_path(directory) if directory else None
 
     @property
-    def destination(self) -> PurePath:
+    def destination(self) -> Path:
         """
         The destination Path for the target based on its metadata and user
         preferences.
@@ -110,13 +110,13 @@ class Target:
         directory = self._make_path(dir_head, dir_tail)
         return self._make_path(directory, filename)
 
-    def _make_path(self, *obj: Union[str, Path, PurePath]) -> Union[PurePath, Path]:
+    def _make_path(self, *obj: Union[str, Path]) -> Path:
         # Calling PurePath will create a PurePoxisPath or PureWindowsPath based
         # on the system platform. This will create one based on the type of the
         # source path class type instead.
         return type(self.source)(*obj)
 
-    def _parse(self, file_path: PurePath):
+    def _parse(self, file_path: Path):
         path_data = {}
         options = {"type": self._settings.media}
         raw_data = dict(guessit(str(file_path), options))

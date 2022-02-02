@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from mnamer.types import SettingType
 
@@ -14,13 +14,13 @@ class SettingSpec:
     """
 
     group: SettingType
-    dest: str = None
-    action: str = None
-    choices: List[str] = None
-    flags: List[str] = None
-    help: str = None
-    nargs: str = None
-    type: type = None
+    dest: Optional[str] = None
+    action: Optional[str] = None
+    choices: Optional[List[str]] = None
+    flags: Optional[List[str]] = None
+    help: Optional[str] = None
+    nargs: Optional[str] = None
+    type: Optional[type] = None
 
     def as_dict(self) -> Dict[str, Any]:
         """Converts ArgSpec instance into a Python dictionary."""

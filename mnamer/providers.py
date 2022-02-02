@@ -1,5 +1,7 @@
 """Provides a high-level interface for metadata media providers."""
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from datetime import date, datetime
 from os import environ
@@ -34,10 +36,10 @@ __all__ = ["Provider", "Omdb", "Tmdb", "Tvdb", "TvMaze"]
 class Provider(ABC):
     """ABC for Providers, high-level interfaces for metadata media providers."""
 
-    api_key: str = None
+    api_key: Optional[str] = None
     cache: bool = True
 
-    def __init__(self, api_key: str = None, cache: bool = True):
+    def __init__(self, api_key: Optional[str] = None, cache: bool = True):
         """Initializes the provider."""
         if api_key:
             self.api_key = api_key
@@ -57,15 +59,15 @@ class Provider(ABC):
         pass
 
     @staticmethod
-    def provider_factory(provider: ProviderType, settings: SettingStore) -> "Provider":
+    def provider_factory(provider: ProviderType, settings: SettingStore) -> Provider:
         """Factory function for DB Provider concrete classes."""
-        provider = {
+        provider_cls = {
             ProviderType.TMDB: Tmdb,
             ProviderType.TVDB: Tvdb,
             ProviderType.TVMAZE: TvMaze,
             ProviderType.OMDB: Omdb,
         }[provider]
-        return provider.from_settings(settings)
+        return provider_cls.from_settings(settings)
 
 
 class Omdb(Provider):
@@ -73,7 +75,7 @@ class Omdb(Provider):
 
     api_key = environ.get("API_KEY_OMDB", "477a7ebc")
 
-    def __init__(self, api_key: str = None, cache: bool = True):
+    def __init__(self, api_key: Optional[str] = None, cache: bool = True):
         super().__init__(api_key, cache)
         assert self.api_key
 
@@ -110,7 +112,7 @@ class Omdb(Provider):
         yield meta
 
     def _search_movie(
-        self, name: str, year: int
+        self, name: str, year: Optional[int]
     ) -> Generator[MetadataMovie, None, None]:
         assert self.api_key
         year_from, year_to = year_range_parse(year, 5)
@@ -144,7 +146,7 @@ class Tmdb(Provider):
 
     api_key = environ.get("API_KEY_TMDB", "db972a607f2760bb19ff8bb34074b4c7")
 
-    def __init__(self, api_key: str = None, cache: bool = True):
+    def __init__(self, api_key: Optional[str] = None, cache: bool = True):
         super().__init__(api_key, cache)
         assert self.api_key
 
@@ -160,7 +162,7 @@ class Tmdb(Provider):
         yield from results
 
     def _search_id(
-        self, id_tmdb: int, language: Optional[Language] = None
+        self, id_tmdb: str, language: Optional[Language] = None
     ) -> Generator[MetadataMovie, None, None]:
         response = tmdb_movies(self.api_key, id_tmdb, language, self.cache)
         yield MetadataMovie(
@@ -216,7 +218,7 @@ class Tvdb(Provider):
 
     api_key = environ.get("API_KEY_TVDB", "E69C7A2CEF2F3152")
 
-    def __init__(self, api_key: str = None, cache: bool = True):
+    def __init__(self, api_key: Optional[str] = None, cache: bool = True):
         super().__init__(api_key, cache)
         assert self.api_key
         self.token = "" if self.cache else self._login()
@@ -248,7 +250,7 @@ class Tvdb(Provider):
 
     def _search_id(
         self,
-        id_tvdb: int,
+        id_tvdb: str,
         season: int = None,
         episode: int = None,
         language: Optional[Language] = None,
@@ -317,7 +319,7 @@ class Tvdb(Provider):
             raise MnamerNotFoundException
 
     def _search_tvdb_date(
-        self, id_tvdb: int, release_date: date, language: Optional[Language]
+        self, id_tvdb: str, release_date: date, language: Optional[Language]
     ):
         release_date = parse_date(release_date)
         found = False
@@ -375,7 +377,7 @@ class TvMaze(Provider):
             raise MnamerNotFoundException
 
     def _lookup_with_tmaze_id_and_season_and_episode(
-        self, id_tvmaze: int, season: Optional[int], episode: Optional[int]
+        self, id_tvmaze: str, season: Optional[int], episode: Optional[int]
     ) -> Generator[MetadataEpisode, None, None]:
         series_data = tvmaze_show(id_tvmaze)
         episode_data = tvmaze_episode_by_number(id_tvmaze, season, episode)
@@ -383,7 +385,7 @@ class TvMaze(Provider):
         yield self._transform_meta(id_tvmaze, id_tvdb, series_data, episode_data)
 
     def _lookup_with_id_and_date(
-        self, id_tvmaze: Optional[int], id_tvdb: Optional[str], air_date: date
+        self, id_tvmaze: Optional[str], id_tvdb: Optional[str], air_date: date
     ) -> Generator[MetadataEpisode, None, None]:
         assert id_tvmaze or id_tvdb
         if id_tvmaze:
@@ -398,7 +400,7 @@ class TvMaze(Provider):
 
     def _lookup_with_id(
         self,
-        id_tvmaze: Optional[int],
+        id_tvmaze: Optional[str],
         id_tvdb: Optional[str],
         season: Optional[int],
         episode: Optional[int],
@@ -464,8 +466,8 @@ class TvMaze(Provider):
 
     @staticmethod
     def _transform_meta(
-        id_tvmaze: int,
-        id_tvdb: Optional[int],
+        id_tvmaze: str,
+        id_tvdb: Optional[str],
         series_entry: dict,
         episode_entry: dict,
     ) -> MetadataEpisode:

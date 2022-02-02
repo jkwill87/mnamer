@@ -1,3 +1,5 @@
+# type: ignore
+
 """Provides an interface for handling user input and printing output."""
 
 import traceback

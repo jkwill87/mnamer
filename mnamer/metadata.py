@@ -25,9 +25,10 @@ class _MetaFormatter(Formatter):
         return format(value, format_spec) if value is not None else ""
 
     def get_value(
-        self, key: str, args: Optional[Any], kwargs: Dict[str, Any]
+        self, key: Union[str, int], args: Optional[dict], kwargs: Dict[str, Any]
     ) -> Union[None, int, str]:
         if isinstance(key, int):
+            assert args
             return args[key]
         else:
             return kwargs.get(key, "")
@@ -37,13 +38,13 @@ class _MetaFormatter(Formatter):
 class Metadata:
     """A dataclass which transforms and stores media metadata information."""
 
-    container: str = None
-    group: str = None
-    language: Language = None
-    language_sub: Language = None
-    quality: str = None
-    synopsis: str = None
-    media: MediaType = None
+    container: Optional[str] = None
+    group: Optional[str] = None
+    language: Optional[Language] = None
+    language_sub: Optional[Language] = None
+    quality: Optional[str] = None
+    synopsis: Optional[str] = None
+    media: Union[MediaType, str, None] = None
 
     def __setattr__(self, key: str, value: Any):
         converter = {
@@ -79,7 +80,7 @@ class Metadata:
 
     def _format_repl(self, mobj) -> str:
         format_string, key = mobj.groups()
-        value = _MetaFormatter().vformat(format_string, None, self.as_dict())
+        value = _MetaFormatter().vformat(format_string, "", self.as_dict())
         if key in {"name", "series", "synopsis", "title"}:
             value = str_title_case(value)
         return value
@@ -100,10 +101,10 @@ class MetadataMovie(Metadata):
     to movies.
     """
 
-    name: str = None
-    year: int = None
-    id_imdb: str = None
-    id_tmdb: Union[int, str] = None
+    name: Optional[str] = None
+    year: Optional[int] = None
+    id_imdb: Optional[str] = None
+    id_tmdb: Union[str, None] = None
     media: MediaType = MediaType.MOVIE
 
     def __format__(self, format_spec: Optional[str]):
@@ -130,13 +131,13 @@ class MetadataEpisode(Metadata):
     to television episodes.
     """
 
-    series: str = None
-    season: Union[int, str] = None
-    episode: Union[int, str] = None
-    date: Union[date, str] = None
-    title: str = None
-    id_tvdb: Union[int, str] = None
-    id_tvmaze: Union[int, str] = None
+    series: Optional[str] = None
+    season: Union[int, str, None] = None
+    episode: Union[int, str, None] = None
+    date: Union[date, str, None] = None
+    title: Optional[str] = None
+    id_tvdb: Optional[str] = None
+    id_tvmaze: Optional[str] = None
     media: MediaType = MediaType.EPISODE
 
     def __format__(self, format_spec: Optional[str]):
