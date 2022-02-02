@@ -5,7 +5,8 @@ from pathlib import Path
 from platform import platform, python_version
 from sys import argv, gettrace, version_info
 
-from appdirs import __version__ as appdirs_version, user_cache_dir
+from appdirs import __version__ as appdirs_version  # type: ignore
+from appdirs import user_cache_dir
 from guessit import __version__ as guessit_version
 from requests import __version__ as requests_version
 from requests_cache import __version__ as requests_cache_version

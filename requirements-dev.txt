@@ -1,5 +1,7 @@
 -r requirements-test.txt
 black==22.1.*
+isort==5.10.*
+pycln==1.1.*
 pylint==2.12.*
 twine==3.7.*
 vbump==1.2.*

@@ -2,7 +2,7 @@ from datetime import date
 from os import path
 from pathlib import Path, PurePath
 from shutil import move
-from typing import Dict, List, Optional, Set, Union
+from typing import Dict, List, Optional, Union
 
 from guessit import guessit
 

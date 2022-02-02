@@ -4,14 +4,7 @@ import json
 import re
 from datetime import date, datetime
 from os import walk
-from os.path import (
-    exists,
-    expanduser,
-    expandvars,
-    getsize,
-    splitdrive,
-    splitext,
-)
+from os.path import exists, expanduser, expandvars, getsize, splitdrive, splitext
 from pathlib import Path, PurePath
 from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
 from unicodedata import normalize

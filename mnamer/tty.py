@@ -8,11 +8,7 @@ from teletype.components import ChoiceHelper, SelectOne
 from teletype.io import style_format, style_print
 
 from mnamer.const import SYSTEM
-from mnamer.exceptions import (
-    MnamerAbortException,
-    MnamerException,
-    MnamerSkipException,
-)
+from mnamer.exceptions import MnamerAbortException, MnamerException, MnamerSkipException
 from mnamer.language import Language
 from mnamer.metadata import Metadata
 from mnamer.setting_store import SettingStore

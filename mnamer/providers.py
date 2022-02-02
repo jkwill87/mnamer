@@ -5,7 +5,22 @@ from datetime import date, datetime
 from os import environ
 from typing import Generator, Optional
 
-from mnamer.endpoints import *
+from mnamer.endpoints import (
+    omdb_search,
+    omdb_title,
+    tmdb_movies,
+    tmdb_search_movies,
+    tvdb_login,
+    tvdb_search_series,
+    tvdb_series_id,
+    tvdb_series_id_episodes_query,
+    tvmaze_episode_by_number,
+    tvmaze_episodes_by_date,
+    tvmaze_show,
+    tvmaze_show_episodes_list,
+    tvmaze_show_lookup,
+    tvmaze_show_search,
+)
 from mnamer.exceptions import MnamerNotFoundException
 from mnamer.language import Language
 from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
