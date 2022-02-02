@@ -1,5 +1,5 @@
 -r requirements-test.txt
-black
-pylint
-twine
-vbump
+black==22.1.*
+pylint==2.12.*
+twine==3.7.*
+vbump==1.2.*

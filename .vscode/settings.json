@@ -1,7 +1,7 @@
 {
   "editor.formatOnSave": true,
   "editor.rulers": [
-    80
+    88
   ],
   "explorer.sortOrder": "type",
   "files.exclude": {
@@ -21,5 +21,6 @@
   "python.linting.pylintArgs": [
     "--disable",
     "protected-access,bare-except,expression-not-assigned,line-too-long,missing-module-docstring,unused-wildcard-import,missing-function-docstring,attribute-defined-outside-init"
-  ]
+  ],
+  "python.pythonPath": "venv/bin/python"
 }
