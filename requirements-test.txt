@@ -1,5 +1,5 @@
 -r requirements.txt
-codecov
-pytest
-pytest-cov
-pytest-rerunfailures
+codecov==2.1.*
+pytest==6.2.*
+pytest-cov==3.0.*
+pytest-rerunfailures==10.2
