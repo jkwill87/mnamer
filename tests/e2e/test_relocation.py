@@ -1,10 +1,77 @@
 from pathlib import Path
 
 import pytest
+from functools import partial
 
 from mnamer.const import SUBTITLE_CONTAINERS
 
 pytestmark = pytest.mark.e2e
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_copy2(e2e_run, setup_test_files):
+    _run_relocation_operation(
+        partial(e2e_run, "--relocation-operation=copy-with-metadata"),
+        setup_test_files,
+    )
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_copy(e2e_run, setup_test_files):
+    _run_relocation_operation(
+        partial(e2e_run, "--relocation-operation=copy"), setup_test_files
+    )
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_symlink(e2e_run, setup_test_files):
+    _run_relocation_operation(
+        partial(e2e_run, "--relocation-operation=symlink"), setup_test_files
+    )
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_hardlink(e2e_run, setup_test_files):
+    _run_relocation_operation(
+        partial(e2e_run, "--relocation-operation=hardlink"), setup_test_files
+    )
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_move(e2e_run, setup_test_files):
+    _run_relocation_operation(
+        partial(e2e_run, "--relocation-operation=move"), setup_test_files
+    )
+
+
+def _run_relocation_operation(e2e_run, setup_test_files):
+    setup_test_files(
+        "Quien a hierro mata [MicroHD 1080p][DTS 5.1-Castellano-AC3 5.1-Castellano+Subs][ES-EN].mkv"
+    )
+    result = e2e_run("--batch", "--media=movie", ".")
+    assert result.code == 0
+    assert "Quien a Hierro Mata (2019).mkv" in result.out
+    assert "1 out of 1 files processed successfully" in result.out
+
+
+@pytest.mark.tvdb
+@pytest.mark.usefixtures("setup_test_dir")
+def test_sanitize_episode_format_path(e2e_run, setup_test_files):
+    setup_test_files(
+        "The.Great.Fire.In.Real.Time.S01E01.1080p.HEVC.x265-MeGusta.mkv"
+    )
+    result = e2e_run(
+        "--batch",
+        "--episode-api=tvdb",
+        "--episode-format='{series}/{series}'",
+        ".",
+    )
+    print(result.out)
+    assert result.code == 0
+    assert (
+        "The Great Fire in Real Time/The Great Fire in Real Time" in result.out
+    )
+    assert "1 out of 1 files processed successfully" in result.out
 
 
 @pytest.mark.usefixtures("setup_test_dir")

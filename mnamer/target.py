@@ -1,7 +1,7 @@
 from datetime import date
-from os import path
+from os import path, symlink, link
 from pathlib import Path, PurePath
-from shutil import move
+from shutil import move, copy, copy2
 from typing import Dict, List, Optional, Set, Union
 
 from guessit import guessit
@@ -11,7 +11,7 @@ from mnamer.language import Language
 from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
 from mnamer.providers import Provider
 from mnamer.setting_store import SettingStore
-from mnamer.types import MediaType, ProviderType
+from mnamer.types import MediaType, ProviderType, RelocateType
 from mnamer.utils import (
     crawl_in,
     filename_replace,
@@ -36,6 +36,14 @@ class Target:
     _raw_metadata: Dict[str, str]
     _parsed_metadata: Metadata
     source: PurePath
+
+    _relocation_strategy = {
+        RelocateType.DEFAULT.value: move,
+        RelocateType.HARDLINK.value: link,
+        RelocateType.SYMBOLICLINK.value: symlink,
+        RelocateType.COPY2.value: copy2,
+        RelocateType.COPY.value: copy,
+    }
 
     def __init__(self, file_path: Path, settings: SettingStore = None):
         self._settings = settings or SettingStore()
@@ -101,6 +109,12 @@ class Target:
         )
         file_path = self._make_path(file_path)
         dir_tail, filename = path.split(file_path)
+
+        # Required to sanitize paths that have been inserted into --episode-format
+        dir_tail = self._make_path(
+            *[str_sanitize(px) for px in self._make_path(dir_tail).parts]
+        )
+
         filename = filename_replace(filename, self._settings.replace_after)
         if self._settings.scene:
             filename = str_scenify(filename)
@@ -236,6 +250,9 @@ class Target:
         destination_path = Path(self.destination).resolve()
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            move(self.source, destination_path)
+            relocate_function = self._relocation_strategy[
+                self._settings.relocation_strategy
+            ]
+            relocate_function(self.source, destination_path)
         except OSError:  # pragma: no cover
             raise MnamerException
