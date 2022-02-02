@@ -21,9 +21,7 @@ __all__ = ["Metadata", "MetadataMovie", "MetadataEpisode"]
 
 
 class _MetaFormatter(Formatter):
-    def format_field(
-        self, value: Union[None, int, str], format_spec: str
-    ) -> str:
+    def format_field(self, value: Union[None, int, str], format_spec: str) -> str:
         return format(value, format_spec) if value is not None else ""
 
     def get_value(

@@ -67,36 +67,28 @@ def test_metadata_episode__convert_episode():
 
 
 def test_metadata_episode__format_default():
-    metadata = MetadataEpisode(
-        series="Spongebob Squarepants", season=4, episode=4
-    )
+    metadata = MetadataEpisode(series="Spongebob Squarepants", season=4, episode=4)
     actual = format(metadata)
     expected = "Spongebob Squarepants - 04x04"
     assert actual == expected
 
 
 def test_metadata_episode__specials__00x00():
-    metadata = MetadataEpisode(
-        season=0, episode=1, series="Parks and Recreation"
-    )
+    metadata = MetadataEpisode(season=0, episode=1, series="Parks and Recreation")
     actual = format(metadata, "{series} - {season:02}x{episode:02}")
     expected = "Parks and Recreation - 00x01"
     assert actual == expected
 
 
 def test_metadata_episode__specials__s00e00():
-    metadata = MetadataEpisode(
-        season=0, episode=1, series="Parks and Recreation"
-    )
+    metadata = MetadataEpisode(season=0, episode=1, series="Parks and Recreation")
     actual = format(metadata, "{series} - S{season:02}E{episode:02}")
     expected = "Parks and Recreation - S00E01"
     assert actual == expected
 
 
 def test_metadata_episode__format_with_specifiers():
-    metadata = MetadataEpisode(
-        series="Spongebob Squarepants", season=4, episode=4
-    )
+    metadata = MetadataEpisode(series="Spongebob Squarepants", season=4, episode=4)
     format_spec = "{series[0]}/{series} season={season} episode={episode:04}"
     actual = format(metadata, format_spec)
     expected = "S/Spongebob Squarepants season=4 episode=0004"

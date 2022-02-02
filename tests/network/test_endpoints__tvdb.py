@@ -115,7 +115,7 @@ def test_tvdb_episodes_id__invalid_id_imdb(tvdb_token):
 
 def test_tvdb_episodes_id__no_hits(tvdb_token):
     with pytest.raises(MnamerNotFoundException):
-        tvdb_episodes_id(tvdb_token, LOST_TVDB_ID_EPISODE ** 2, cache=False)
+        tvdb_episodes_id(tvdb_token, LOST_TVDB_ID_EPISODE**2, cache=False)
 
 
 def test_tvdb_episodes_id__success(tvdb_token):
@@ -231,9 +231,7 @@ def test_tvdb_series_id_episodes__invalid_id_imdb(tvdb_token):
 
 def test_tvdb_series_id_episodes__no_hits(tvdb_token):
     with pytest.raises(MnamerNotFoundException):
-        tvdb_series_id_episodes(
-            tvdb_token, LOST_TVDB_ID_SERIES * 2, cache=False
-        )
+        tvdb_series_id_episodes(tvdb_token, LOST_TVDB_ID_SERIES * 2, cache=False)
 
 
 def test_tvdb_series_id_episodes__success(tvdb_token):
@@ -255,9 +253,7 @@ def test_tvdb_series_id_episodes__language(tvdb_token):
 @pytest.mark.xfail(strict=False)
 def test_tvdb_series_id_episodes_query__invalid_token():
     with pytest.raises(MnamerException):
-        tvdb_series_id_episodes_query(
-            JUNK_TEXT, LOST_TVDB_ID_SERIES, cache=False
-        )
+        tvdb_series_id_episodes_query(JUNK_TEXT, LOST_TVDB_ID_SERIES, cache=False)
 
 
 def test_tvdb_series_id_episodes_query__invalid_lang(tvdb_token):
@@ -277,9 +273,7 @@ def test_tvdb_series_id_episodes_query__invalid_id_tvdb(tvdb_token):
 
 def test_tvdb_series_id_episodes_query__page_valid(tvdb_token):
     tvdb_series_id_episodes_query(tvdb_token, LOST_TVDB_ID_SERIES, page=1)
-    tvdb_series_id_episodes_query(
-        tvdb_token, LOST_TVDB_ID_SERIES, page=1, season=1
-    )
+    tvdb_series_id_episodes_query(tvdb_token, LOST_TVDB_ID_SERIES, page=1, season=1)
     tvdb_series_id_episodes_query(
         tvdb_token, LOST_TVDB_ID_SERIES, page=1, season=1, episode=1
     )
@@ -314,9 +308,7 @@ def test_tvdb_series_id_episodes_query__success_id_tvdb(tvdb_token):
 
 
 def test_tvdb_series_id_episodes_query__success_id_tvdb_season(tvdb_token):
-    result = tvdb_series_id_episodes_query(
-        tvdb_token, LOST_TVDB_ID_SERIES, season=1
-    )
+    result = tvdb_series_id_episodes_query(tvdb_token, LOST_TVDB_ID_SERIES, season=1)
     assert isinstance(result, dict)
     assert "data" in result
     data = result["data"]

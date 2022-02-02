@@ -35,9 +35,7 @@ def test_search_id__no_hits(provider: Tvdb):
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
 def test_search__series(meta: dict, provider: Tvdb):
     query = MetadataEpisode(series=meta["series"])
-    assert any(
-        result.id_tvdb == meta["id_tvdb"] for result in provider.search(query)
-    )
+    assert any(result.id_tvdb == meta["id_tvdb"] for result in provider.search(query))
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
@@ -57,9 +55,7 @@ def test_search__id_tvdb_episode(meta: dict, provider: Tvdb):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_tvdb_provider__search__id_tvdb_season_episode(
-    meta: dict, provider: Tvdb
-):
+def test_tvdb_provider__search__id_tvdb_season_episode(meta: dict, provider: Tvdb):
     query = MetadataEpisode(season=1, episode=3, id_tvdb=meta["id_tvdb"])
     results = list(provider.search(query))
     assert len(results) == 1
@@ -94,9 +90,7 @@ def test_tvdb_provider__search__title_season(meta: dict, provider: Tvdb):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_tvdb_provider__search__title_season_episode(
-    meta: dict, provider: Tvdb
-):
+def test_tvdb_provider__search__title_season_episode(meta: dict, provider: Tvdb):
     query = MetadataEpisode(series=meta["series"], season=1, episode=3)
     results = list(provider.search(query))
     assert results[0].season == 1

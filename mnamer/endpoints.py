@@ -56,9 +56,7 @@ def omdb_title(
     if (not title and not id_imdb) or (title and id_imdb):
         raise MnamerException("either id_imdb or title must be specified")
     elif plot and plot not in OMDB_PLOT_TYPES:
-        raise MnamerException(
-            "plot must be one of %s" % ",".join(OMDB_PLOT_TYPES)
-        )
+        raise MnamerException("plot must be one of %s" % ",".join(OMDB_PLOT_TYPES))
     url = "http://www.omdbapi.com"
     parameters = {
         "apikey": api_key,
@@ -450,9 +448,7 @@ def tvmaze_show(
     return content
 
 
-def tvmaze_show_search(
-    query: str, cache: bool = True, attempt: int = 1
-) -> dict:
+def tvmaze_show_search(query: str, cache: bool = True, attempt: int = 1) -> dict:
     """
     Search through all the shows in the database by the show's name. A fuzzy
     algorithm is used (with a fuzziness value of 2), meaning that shows will be
@@ -474,9 +470,7 @@ def tvmaze_show_search(
     return content
 
 
-def tvmaze_show_single_search(
-    query: str, cache: bool = True, attempt: int = 1
-) -> dict:
+def tvmaze_show_single_search(query: str, cache: bool = True, attempt: int = 1) -> dict:
     """
     Singlesearch endpoint either returns exactly one result, or no result at
     all. This endpoint is also forgiving of typos, but less so than the regular
@@ -596,9 +590,7 @@ def tvmaze_episode_by_number(
     status, content = request_json(url, parameters, cache=cache)
     if status == 443 and attempt <= MAX_RETRIES:  # pragma: no cover
         sleep(attempt * 2)
-        return tvmaze_episode_by_number(
-            id_tvmaze, season, episode, cache, attempt + 1
-        )
+        return tvmaze_episode_by_number(id_tvmaze, season, episode, cache, attempt + 1)
     elif status == 404:
         raise MnamerNotFoundException
     elif status != 200 or not content:  # pragma: no cover
