@@ -77,9 +77,7 @@ def test_search_id_tvmaze_and_season(meta: dict, provider: TvMaze):
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
 def test_search_id_tvmaze_and_episode(meta: dict, provider: TvMaze):
-    query = MetadataEpisode(
-        id_tvmaze=meta["id_tvmaze"], episode=meta["episode"]
-    )
+    query = MetadataEpisode(id_tvmaze=meta["id_tvmaze"], episode=meta["episode"])
     results = list(provider.search(query))
     assert results
     assert any(result.title == meta["title"] for result in results)

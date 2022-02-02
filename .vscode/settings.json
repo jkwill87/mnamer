@@ -1,7 +1,7 @@
 {
   "editor.formatOnSave": true,
   "editor.rulers": [
-    80
+    88
   ],
   "explorer.sortOrder": "type",
   "files.exclude": {

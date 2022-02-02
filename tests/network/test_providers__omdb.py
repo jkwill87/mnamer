@@ -38,9 +38,7 @@ def test_search__id__no_hits(provider: Omdb):
 def test_search__name(meta, provider: Omdb):
     provider = Omdb()
     query = MetadataMovie(name=meta["name"])
-    assert any(
-        result.id_imdb == meta["id_imdb"] for result in provider.search(query)
-    )
+    assert any(result.id_imdb == meta["id_imdb"] for result in provider.search(query))
 
 
 @pytest.mark.parametrize("meta", MOVIE_META.values(), ids=list(MOVIE_META))

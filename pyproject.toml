@@ -1,3 +1,18 @@
 [tool.black]
-line-length = 80
-exclude = 'venv/'
+line-length = 88
+target-version = ["py310"]
+
+[tool.pyright]
+reportGeneralTypeIssues = "information"
+ignore = ["venv"]
+pythonVersion = "3.7"
+extraPaths = ["services/backbone_svc"]
+
+[tool.isort]
+profile = "black"
+py_version = 37
+line_length = 88
+known_first_party = "mnamer"
+combine_star = true
+combine_straight_imports = false
+overwrite_in_place = true

@@ -19,7 +19,7 @@ jobs:
           python-version: 3.x
 
       - name: Installing Black from PyPI
-        run: pip install -q black
+        run: pip install -q $(grep -h black requirements*.txt)
 
       - name: Verifying Codebase is Formatted using Black
         run: black --check .

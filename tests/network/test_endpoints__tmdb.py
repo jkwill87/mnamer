@@ -44,9 +44,7 @@ def test_tmdb_find__imdb_success():
     assert isinstance(result, dict)
     assert set(result.keys()) == expected_top_level_keys
     assert len(result.get("movie_results", {})) > 0
-    assert expected_movie_results_keys == set(
-        result.get("movie_results", {})[0].keys()
-    )
+    assert expected_movie_results_keys == set(result.get("movie_results", {})[0].keys())
 
 
 def test_tmdb_find__api_key_fail():
@@ -66,9 +64,7 @@ def test_tmdb_find__not_found():
 
 def test_tmdb_find__language():
     results = tmdb_find(Tmdb.api_key, "imdb_id", GOONIES_IMDB_ID, RUSSIAN_LANG)
-    assert any(
-        result["title"] == "Балбесы" for result in results["movie_results"]
-    )
+    assert any(result["title"] == "Балбесы" for result in results["movie_results"])
 
 
 def test_tmdb_find__invalid_source():
@@ -174,7 +170,5 @@ def test_tmdb_search_movies__bad_title():
 
 
 def test_search_movies__language():
-    results = tmdb_search_movies(
-        Tmdb.api_key, "the goonies", language=RUSSIAN_LANG
-    )
+    results = tmdb_search_movies(Tmdb.api_key, "the goonies", language=RUSSIAN_LANG)
     assert any(result["title"] == "Балбесы" for result in results["results"])

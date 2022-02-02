@@ -81,9 +81,7 @@ class Target:
 
     @property
     def directory(self) -> Optional[PurePath]:
-        directory = getattr(
-            self._settings, f"{self.metadata.media.value}_directory"
-        )
+        directory = getattr(self._settings, f"{self.metadata.media.value}_directory")
         return self._make_path(directory) if directory else None
 
     @property
@@ -112,9 +110,7 @@ class Target:
         directory = self._make_path(dir_head, dir_tail)
         return self._make_path(directory, filename)
 
-    def _make_path(
-        self, *obj: Union[str, Path, PurePath]
-    ) -> Union[PurePath, Path]:
+    def _make_path(self, *obj: Union[str, Path, PurePath]) -> Union[PurePath, Path]:
         # Calling PurePath will create a PurePoxisPath or PureWindowsPath based
         # on the system platform. This will create one based on the type of the
         # source path class type instead.
@@ -134,9 +130,7 @@ class Target:
                     continue
             elif isinstance(v, (int, str, date)):
                 path_data[k] = v
-            elif isinstance(v, list) and all(
-                [isinstance(_, (int, str)) for _ in v]
-            ):
+            elif isinstance(v, list) and all([isinstance(_, (int, str)) for _ in v]):
                 path_data[k] = v[0]
         if self._settings.media:
             media_type = self._settings.media
@@ -187,9 +181,7 @@ class Target:
             self.metadata.series = path_data.get("title")
             alternative_title = path_data.get("alternative_title")
             if alternative_title:
-                self.metadata.series = (
-                    f"{self.metadata.series} {alternative_title}"
-                )
+                self.metadata.series = f"{self.metadata.series} {alternative_title}"
             # adding year to title can reduce false positives
             # year = path_data.get("year")
             # if year:

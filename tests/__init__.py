@@ -30,8 +30,7 @@ DEFAULT_SETTINGS = {
     "id_tvmaze": None,
     "ignore": [".*sample.*", "^RARBG.*"],
     "lower": False,
-    "mask": [".avi", ".m4v", ".mp4", ".mkv", ".ts", ".wmv"]
-    + SUBTITLE_CONTAINERS,
+    "mask": [".avi", ".m4v", ".mp4", ".mkv", ".ts", ".wmv"] + SUBTITLE_CONTAINERS,
     "media": None,
     "movie_api": ProviderType.TMDB,
     "movie_directory": None,

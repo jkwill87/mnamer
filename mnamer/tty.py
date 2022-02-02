@@ -127,9 +127,7 @@ def metadata_guess(
 
 def subtitle_prompt() -> Metadata:
     msg("select language")
-    choices = [
-        ChoiceHelper(language, language.name) for language in Language.all()
-    ]
+    choices = [ChoiceHelper(language, language.name) for language in Language.all()]
     selector = SelectOne(choices + _abort_helpers(), **_chars())
     choice = selector.prompt()
     if choice in (MnamerAbortException, MnamerSkipException):

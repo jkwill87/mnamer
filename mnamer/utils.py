@@ -60,8 +60,7 @@ def clean_dict(target_dict: Dict[Any, Any], whitelist=None) -> Dict[Any, Any]:
     return {
         str(k).strip(): str(v).strip()
         for k, v in target_dict.items()
-        if v not in (None, Ellipsis, [], (), "")
-        and (not whitelist or k in whitelist)
+        if v not in (None, Ellipsis, [], (), "") and (not whitelist or k in whitelist)
     }
 
 
@@ -162,9 +161,7 @@ def format_dict(body: Dict[Any, Any]) -> str:
     """
     Formats a dictionary into a multi-line bulleted string of key-value pairs.
     """
-    return "\n".join(
-        [f" - {k} = {getattr(v, 'value', v)}" for k, v in body.items()]
-    )
+    return "\n".join([f" - {k} = {getattr(v, 'value', v)}" for k, v in body.items()])
 
 
 def format_exception(body: Exception) -> str:
@@ -490,15 +487,11 @@ def str_title_case(s: str) -> str:
         for pos in findall(string_lower, exception):
             starts = pos == 0
             prev_char = None if starts else string_lower[pos - 1]
-            left_partitioned = (
-                starts or prev_char in padding_chars + punctuation_chars
-            )
+            left_partitioned = starts or prev_char in padding_chars + punctuation_chars
             word_length = len(exception)
             ends = pos + word_length == string_length
             next_char = "" if ends else string_lower[pos + word_length]
-            right_partitioned = (
-                ends or next_char in padding_chars + punctuation_chars
-            )
+            right_partitioned = ends or next_char in padding_chars + punctuation_chars
             if left_partitioned and right_partitioned:
                 s = s[:pos] + exception.upper() + s[pos + word_length :]
 

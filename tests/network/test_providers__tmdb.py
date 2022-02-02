@@ -35,9 +35,7 @@ def test_search_id__no_hits(provider: Tmdb):
 @pytest.mark.parametrize("meta", MOVIE_META.values(), ids=list(MOVIE_META))
 def test_search__name(meta: dict, provider: Tmdb):
     query = MetadataMovie(name=meta["name"])
-    assert any(
-        result.id_tmdb == meta["id_tmdb"] for result in provider.search(query)
-    )
+    assert any(result.id_tmdb == meta["id_tmdb"] for result in provider.search(query))
 
 
 def test_search__no_hits(provider: Tmdb):
