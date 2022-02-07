@@ -176,7 +176,9 @@ def get_session() -> requests_cache.CachedSession:
     """Convenience function that returns request-cache session singleton."""
     if not hasattr(get_session, "session"):
         get_session.session = requests_cache.CachedSession(
-            cache_name=str(CACHE_PATH), expire_after=518_400  # 6 days
+            cache_name=str(CACHE_PATH),
+            extension="sqlite",
+            expire_after=518_400,  # 6 days
         )
         adapter = HTTPAdapter(max_retries=3)
         get_session.session.mount("http://", adapter)

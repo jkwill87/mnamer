@@ -68,7 +68,7 @@ SYSTEM = {
     "date": date.today(),
     "platform": platform(),
     "arguments": argv[1:],
-    "cache location": f"{CACHE_PATH}.sql",
+    "cache location": f"{CACHE_PATH}.sqlite",
     "python version": python_version(),
     "mnamer version": VERSION,
     "appdirs version": appdirs_version,
