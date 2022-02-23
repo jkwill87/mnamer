@@ -5,3 +5,4 @@ pycln==1.1.*
 pylint==2.12.*
 twine==3.7.*
 vbump==1.2.*
+wheel
