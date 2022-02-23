@@ -29,8 +29,8 @@ class SettingSpec:
     __call__ = as_dict
 
     @property
-    def registration(self) -> Tuple[List[str], Dict[str, str]]:
-        names = self.flags
+    def registration(self) -> Tuple[List[str], Dict[str, Any]]:
+        names = self.flags or []
         options = {
             "action": self.action,
             "choices": self.choices,
@@ -43,6 +43,6 @@ class SettingSpec:
         return names, {k: v for k, v in options.items() if v is not None}
 
     @property
-    def name(self) -> str:
+    def name(self) -> Optional[str]:
         if self.flags:
             return max(self.flags, key=len).lstrip("-")

@@ -100,7 +100,7 @@ class Omdb(Provider):
             if response.get("Year") in (None, "N/A"):
                 release_date = None
             else:
-                release_date = "%s-01-01" % response["Year"]
+                release_date = "{}-01-01".format(response["Year"])
         meta = MetadataMovie(
             name=response["Title"],
             year=release_date,
@@ -112,7 +112,7 @@ class Omdb(Provider):
         yield meta
 
     def _search_movie(
-        self, name: str, year: Optional[int]
+        self, name: str, year: Optional[str]
     ) -> Generator[MetadataMovie, None, None]:
         assert self.api_key
         year_from, year_to = year_range_parse(year, 5)
@@ -164,6 +164,7 @@ class Tmdb(Provider):
     def _search_id(
         self, id_tmdb: str, language: Optional[Language] = None
     ) -> Generator[MetadataMovie, None, None]:
+        assert self.api_key
         response = tmdb_movies(self.api_key, id_tmdb, language, self.cache)
         yield MetadataMovie(
             name=response["title"],
@@ -175,8 +176,9 @@ class Tmdb(Provider):
         )
 
     def _search_name(
-        self, name: str, year: Optional[int], language: Optional[Language]
+        self, name: str, year: Optional[str], language: Optional[Language]
     ):
+        assert self.api_key
         year_from, year_to = year_range_parse(year, 5)
         page = 1
         page_max = 5  # each page yields a maximum of 20 results
@@ -199,7 +201,9 @@ class Tmdb(Provider):
                         synopsis=entry["overview"],
                         year=entry["release_date"],
                     )
-                    if year_from <= meta.year <= year_to:
+                    if not meta.year:
+                        continue
+                    if year_from <= int(meta.year) <= year_to:
                         yield meta
                         found = True
                 except (AttributeError, KeyError, TypeError, ValueError):
@@ -251,8 +255,8 @@ class Tvdb(Provider):
     def _search_id(
         self,
         id_tvdb: str,
-        season: int = None,
-        episode: int = None,
+        season: Optional[int] = None,
+        episode: Optional[int] = None,
         language: Optional[Language] = None,
     ):
         found = False
@@ -279,7 +283,7 @@ class Tvdb(Provider):
                         season=entry["airedSeason"],
                         series=series_data["data"]["seriesName"],
                         language=language,
-                        synopsis=(entry["overview"] or None)
+                        synopsis=(entry["overview"] or "")
                         .replace("\r\n", "")
                         .replace("  ", "")
                         .strip(),
@@ -297,8 +301,8 @@ class Tvdb(Provider):
     def _search_series(
         self,
         series: str,
-        season: int,
-        episode: int,
+        season: Optional[int],
+        episode: Optional[int],
         language: Optional[Language],
     ):
         found = False
@@ -390,13 +394,17 @@ class TvMaze(Provider):
         assert id_tvmaze or id_tvdb
         if id_tvmaze:
             series_data = tvmaze_show(id_tvmaze)
-            id_tvdb = series_data["externals"]["thetvdb"]
+            query_id_tvmaze = id_tvmaze
+            query_id_tvdb = series_data["externals"]["thetvdb"]
         else:
             series_data = tvmaze_show_lookup(id_tvdb=id_tvdb)
-            id_tvmaze = series_data["id"]
-        episode_data = tvmaze_episodes_by_date(id_tvmaze, air_date)
+            query_id_tvmaze = series_data["id"]
+            query_id_tvdb = id_tvdb
+        episode_data = tvmaze_episodes_by_date(query_id_tvmaze, air_date)
         for episode_entry in episode_data:
-            yield self._transform_meta(id_tvmaze, id_tvdb, series_data, episode_entry)
+            yield self._transform_meta(
+                query_id_tvmaze, query_id_tvdb, series_data, episode_entry
+            )
 
     def _lookup_with_id(
         self,
@@ -407,14 +415,18 @@ class TvMaze(Provider):
     ) -> Generator[MetadataEpisode, None, None]:
         assert id_tvmaze or id_tvdb
         if id_tvmaze:
+            query_id_tvmaze = id_tvmaze
             series_data = tvmaze_show(id_tvmaze)
-            id_tvdb = series_data["externals"]["thetvdb"]
+            query_id_tvdb = series_data["externals"]["thetvdb"]
         else:
             series_data = tvmaze_show_lookup(id_tvdb=id_tvdb)
-            id_tvmaze = series_data["id"]
-        episode_data = tvmaze_show_episodes_list(id_tvmaze)
+            query_id_tvdb = id_tvdb
+            query_id_tvmaze = series_data["id"]
+        episode_data = tvmaze_show_episodes_list(query_id_tvmaze)
         for episode_entry in episode_data:
-            meta = self._transform_meta(id_tvmaze, id_tvdb, series_data, episode_entry)
+            meta = self._transform_meta(
+                query_id_tvmaze, query_id_tvdb, series_data, episode_entry
+            )
             if season is not None and season != meta.season:
                 continue
             if episode is not None and episode != meta.episode:

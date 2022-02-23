@@ -1,5 +1,3 @@
-# type: ignore
-
 """Provides an interface for handling user input and printing output."""
 
 import traceback
@@ -99,10 +97,9 @@ def metadata_prompt(
     msg("select match")
     selector = SelectOne(matches + _abort_helpers(), **_chars())
     choice = selector.prompt()
-    if choice in (MnamerAbortException, MnamerSkipException):
+    if isinstance(choice, (MnamerAbortException, MnamerSkipException)):
         raise choice
-    else:
-        return choice
+    return choice
 
 
 def metadata_guess(
@@ -117,7 +114,7 @@ def metadata_guess(
     option = ChoiceHelper(metadata, label)
     selector = SelectOne([option] + _abort_helpers(), **_chars())
     choice = selector.prompt()
-    if choice in (MnamerAbortException, MnamerSkipException):
+    if isinstance(choice, (MnamerAbortException, MnamerSkipException)):
         raise choice
     else:
         return choice
@@ -128,7 +125,7 @@ def subtitle_prompt() -> Metadata:
     choices = [ChoiceHelper(language, language.name) for language in Language.all()]
     selector = SelectOne(choices + _abort_helpers(), **_chars())
     choice = selector.prompt()
-    if choice in (MnamerAbortException, MnamerSkipException):
+    if isinstance(choice, (MnamerAbortException, MnamerSkipException)):
         raise choice
     else:
         return choice

@@ -196,7 +196,7 @@ class SettingStore:
             help="--episode-api={tvdb,*tvmaze}: set episode api provider",
         ).as_dict(),
     )
-    episode_directory: Path = dataclasses.field(
+    episode_directory: Optional[Path] = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             dest="episode_directory",
@@ -260,7 +260,7 @@ class SettingStore:
             help="--config-ignore: skips loading config file for session",
         ).as_dict(),
     )
-    config_path: str = dataclasses.field(
+    config_path: Optional[str] = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             flags=["--config_path", "--config-path"],
@@ -268,7 +268,7 @@ class SettingStore:
             help="--config-path=<PATH>: specifies configuration path to load",
         ).as_dict(),
     )
-    id_imdb: str = dataclasses.field(
+    id_imdb: Optional[str] = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             flags=["--id_imdb", "--id-imdb", "--idimdb"],
@@ -276,7 +276,7 @@ class SettingStore:
             help="--id-imdb=<ID>: specify an IMDb movie id override",
         ).as_dict(),
     )
-    id_tmdb: str = dataclasses.field(
+    id_tmdb: Optional[str] = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             flags=["--id_tmdb", "--id-tmdb", "--idtmdb"],
@@ -284,7 +284,7 @@ class SettingStore:
             help="--id-tmdb=<ID>: specify a TMDb movie id override",
         ).as_dict(),
     )
-    id_tvdb: str = dataclasses.field(
+    id_tvdb: Optional[str] = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             flags=["--id_tvdb", "--id-tvdb", "--idtvdb"],
@@ -292,7 +292,7 @@ class SettingStore:
             help="--id-tvdb=<ID>: specify a TVDb series id override",
         ).as_dict(),
     )
-    id_tvmaze: str = dataclasses.field(
+    id_tvmaze: Optional[str] = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             flags=["--id_tvmaze", "--id-tvmaze", "--idtvmaze"],
@@ -310,7 +310,7 @@ class SettingStore:
             help="--no-cache: disable request cache",
         ).as_dict(),
     )
-    media: Optional[Union[MediaType, str]] = dataclasses.field(
+    media: Optional[MediaType] = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             choices=[MediaType.EPISODE.value, MediaType.MOVIE.value],
@@ -331,19 +331,19 @@ class SettingStore:
 
     # config-only attributes ---------------------------------------------------
 
-    api_key_omdb: str = dataclasses.field(
+    api_key_omdb: Optional[str] = dataclasses.field(
         default=None,
         metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
-    api_key_tmdb: str = dataclasses.field(
+    api_key_tmdb: Optional[str] = dataclasses.field(
         default=None,
         metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
-    api_key_tvdb: str = dataclasses.field(
+    api_key_tvdb: Optional[str] = dataclasses.field(
         default=None,
         metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
-    api_key_tvmaze: str = dataclasses.field(
+    api_key_tvmaze: Optional[str] = dataclasses.field(
         default=None,
         metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
@@ -430,7 +430,7 @@ class SettingStore:
         if arguments:
             self.bulk_apply(arguments)
 
-    def api_for(self, media_type: MediaType) -> Optional[ProviderType]:
+    def api_for(self, media_type: Optional[MediaType]) -> Optional[ProviderType]:
         """Returns the ProviderType for a given media type."""
         if media_type:
             return getattr(self, f"{media_type.value}_api")
@@ -440,6 +440,5 @@ class SettingStore:
         if provider_type:
             return getattr(self, f"api_key_{provider_type.value}")
 
-    def formatting_for(self, media_type: MediaType) -> Optional[str]:
-        if media_type:
-            return getattr(self, f"{media_type.value}_format")
+    def formatting_for(self, media_type: MediaType) -> str:
+        return getattr(self, f"{media_type.value}_format") if media_type else ""

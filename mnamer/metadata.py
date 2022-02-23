@@ -1,6 +1,6 @@
 import dataclasses
 import re
-from datetime import date
+from datetime import date as dt_date
 from string import Formatter
 from typing import Any, Dict, Optional, Union
 
@@ -102,7 +102,7 @@ class MetadataMovie(Metadata):
     """
 
     name: Optional[str] = None
-    year: Optional[int] = None
+    year: Optional[str] = None
     id_imdb: Optional[str] = None
     id_tmdb: Union[str, None] = None
     media: MediaType = MediaType.MOVIE
@@ -132,13 +132,21 @@ class MetadataEpisode(Metadata):
     """
 
     series: Optional[str] = None
-    season: Union[int, str, None] = None
-    episode: Union[int, str, None] = None
-    date: Union[date, str, None] = None
+    season: Optional[int] = None
+    episode: Optional[int] = None
+    date: Optional[dt_date] = None
     title: Optional[str] = None
     id_tvdb: Optional[str] = None
     id_tvmaze: Optional[str] = None
     media: MediaType = MediaType.EPISODE
+
+    def __post_init__(self):
+        if isinstance(self.season, str):
+            self.season = int(self.season)
+        if isinstance(self.episode, str):
+            self.episode = int(self.episode)
+        if isinstance(self.date, str):
+            self.date = parse_date(self.date)
 
     def __format__(self, format_spec: Optional[str]):
         default = "{series} - {season:02}x{episode:02} - {title}"

@@ -7,6 +7,28 @@ from mnamer.types import SettingType
 
 __all__ = ["ArgLoader"]
 
+HELP_TEMPLATE = """
+{usage}
+
+POSITIONAL:
+  {positional_options}
+
+PARAMETERS:
+  The following flags can be used to customize mnamer's behaviour. Their long
+  forms may also be set in a '.mnamer-v2.json' config file, in which case cli
+  arguments will take precedence.
+
+  {parameter_options}
+
+DIRECTIVES:
+  Directives are one-off arguments that are used to perform secondary tasks
+  like overriding media detection. They can't be used in '.mnamer-v2.json'.
+
+  {directive_options}
+
+{epilog}
+"""
+
 
 class ArgLoader(argparse.ArgumentParser):
     """
@@ -64,24 +86,13 @@ class ArgLoader(argparse.ArgumentParser):
             actions = getattr(self, f"_{group.value}_group")._group_actions
             return "\n  ".join([action.help for action in actions])
 
-        return f"""
-{self.usage}
-
-POSITIONAL:
-  {help_for_group(SettingType.POSITIONAL)}
-
-PARAMETERS:
-  The following flags can be used to customize mnamer's behaviour. Their long
-  forms may also be set in a '.mnamer-v2.json' config file, in which case cli
-  arguments will take precedence.
-
-  {help_for_group(SettingType.PARAMETER)}
-
-DIRECTIVES:
-  Directives are one-off arguments that are used to perform secondary tasks
-  like overriding media detection. They can't be used in '.mnamer-v2.json'.
-
-  {help_for_group(SettingType.DIRECTIVE)}
-
-{self.epilog}
-"""
+        positional_options = help_for_group(SettingType.POSITIONAL)
+        parameter_options = help_for_group(SettingType.PARAMETER)
+        directive_options = help_for_group(SettingType.DIRECTIVE)
+        return HELP_TEMPLATE.format(
+            usage=self.usage,
+            epilog=self.epilog,
+            positional_options=positional_options,
+            parameter_options=parameter_options,
+            directive_options=directive_options,
+        )

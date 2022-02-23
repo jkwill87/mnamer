@@ -1,12 +1,13 @@
 [tool.black]
 line-length = 88
-target-version = ["py310"]
+target-version = ["py37"]
 
 [tool.pyright]
 reportGeneralTypeIssues = "information"
-ignore = ["venv"]
 pythonVersion = "3.7"
-extraPaths = ["services/backbone_svc"]
+include = ["mnamer"]
+exclude = ["playground.py", "venv", "tests"]
+venv = ["venv"]
 
 [tool.isort]
 profile = "black"

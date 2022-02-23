@@ -163,7 +163,7 @@ def tmdb_find(
 def tmdb_movies(
     api_key: str,
     id_tmdb: str,
-    language: Optional[str] = None,
+    language: Optional[Language] = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -218,7 +218,7 @@ def tmdb_search_movies(
     return content
 
 
-def tvdb_login(api_key: str) -> str:
+def tvdb_login(api_key: Optional[str]) -> str:
     """
     Logs into TVDb using the provided api key.
 
@@ -574,8 +574,8 @@ def tvmaze_episodes_by_date(
 
 def tvmaze_episode_by_number(
     id_tvmaze: str,
-    season: int,
-    episode: int,
+    season: Optional[int],
+    episode: Optional[int],
     cache: bool = True,
     attempt: int = 1,
 ) -> dict:

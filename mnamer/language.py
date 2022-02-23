@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 from typing import Any, Optional, Tuple
 
@@ -34,7 +36,7 @@ class Language:
     a3: str
 
     @classmethod
-    def parse(cls, value: Any) -> Optional["Language"]:
+    def parse(cls, value: Any) -> Optional[Language]:
         if not value:
             return None
         if isinstance(value, cls):
@@ -56,7 +58,7 @@ class Language:
         raise MnamerException("Could not determine language")
 
     @classmethod
-    def all(cls) -> Tuple["Language"]:
+    def all(cls) -> Tuple[Language, ...]:
         return tuple(cls(row[0].capitalize(), row[1], row[2]) for row in _KNOWN)
 
     def __str__(self) -> str:

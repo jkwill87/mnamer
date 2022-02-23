@@ -177,7 +177,7 @@ def get_session() -> requests_cache.CachedSession:
     if not hasattr(get_session, "session"):
         get_session.session = requests_cache.CachedSession(
             cache_name=str(CACHE_PATH),
-            extension="sqlite",
+            extension=".sqlite",
             expire_after=518_400,  # 6 days
         )
         adapter = HTTPAdapter(max_retries=3)

@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from datetime import date
 from os import path
 from pathlib import Path
 from shutil import move
-from typing import Dict, List, Optional, Union
+from typing import ClassVar, Dict, List, Optional, Type, Union
 
 from guessit import guessit
 
@@ -28,23 +30,25 @@ __all__ = ["Target"]
 class Target:
     """Manages metadata state for a media file and facilitates its relocation."""
 
+    _providers: ClassVar[Dict[ProviderType, Provider]] = {}
+
     _settings: SettingStore
-    _providers: Dict[ProviderType, Provider] = {}
     _provider: Provider
     _has_moved: bool
     _has_renamed: bool
     _raw_metadata: Dict[str, str]
     _parsed_metadata: Metadata
+
     source: Path
 
     def __init__(self, file_path: Path, settings: SettingStore = None):
-        self._settings = settings or SettingStore()
-        self._has_moved: False
-        self._has_renamed: False
         self.source = file_path
+        self._settings = settings or SettingStore()
+        self._has_moved = False
+        self._has_renamed = False
         self._parse(file_path)
         self._replace_before()
-        self._override_metadata_ids(settings)
+        self._override_metadata_ids()
         self._register_provider()
 
     def __str__(self) -> str:
@@ -54,7 +58,7 @@ class Target:
             return str(self.source)
 
     @classmethod
-    def populate_paths(cls, settings: SettingStore) -> List["Target"]:
+    def populate_paths(cls: Type[Target], settings: SettingStore) -> List[Target]:
         """Creates a list of Target objects for media files found in paths."""
         file_paths = crawl_in(settings.targets, settings.recurse)
         file_paths = filter_blacklist(file_paths, settings.ignore)
@@ -65,7 +69,7 @@ class Target:
         return targets
 
     @classmethod
-    def reset_providers(cls) -> None:
+    def reset_providers(cls):
         cls._providers.clear()
 
     @staticmethod
@@ -77,7 +81,9 @@ class Target:
 
     @property
     def provider_type(self) -> ProviderType:
-        return self._settings.api_for(self.metadata.media)
+        provider_type = self._settings.api_for(self.metadata.media)
+        assert provider_type
+        return provider_type
 
     @property
     def directory(self) -> Optional[Path]:
@@ -187,13 +193,13 @@ class Target:
             # if year:
             #     self.metadata.series = f"{self.metadata.series} {year}"
 
-    def _override_metadata_ids(self, settings: SettingStore):
+    def _override_metadata_ids(self):
         id_types = {"imdb", "tmdb", "tvdb", "tvmaze"}
         for id_type in id_types:
             attr = f"id_{id_type}"
             if not hasattr(self.metadata, attr):
                 continue  # ensure metadata subclass supports id type
-            value = getattr(settings, attr, None)
+            value = getattr(self._settings, attr, None)
             if not value:
                 continue  # apply override if set in directives
             setattr(self.metadata, attr, value)
@@ -204,7 +210,7 @@ class Target:
             self._providers[provider_type] = Provider.provider_factory(
                 provider_type, self._settings
             )
-        self._provider = self._providers.get(provider_type)
+        self._provider = self._providers[provider_type]
 
     def _replace_before(self) -> None:
         if not self._settings.replace_before:
@@ -219,7 +225,7 @@ class Target:
 
     def query(self) -> List[Metadata]:
         """Queries the target's respective media provider for metadata."""
-        results = self._provider.search(self.metadata)
+        results = self._provider.search(self.metadata) or []
         seen = set()
         response = []
         for idx, result in enumerate(results, start=1):
@@ -236,6 +242,6 @@ class Target:
         destination_path = Path(self.destination).resolve()
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            move(self.source, destination_path)
+            move(str(self.source), destination_path)
         except OSError:  # pragma: no cover
             raise MnamerException
