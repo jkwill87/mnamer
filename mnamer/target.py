@@ -4,9 +4,9 @@ from datetime import date
 from os import path
 from pathlib import Path
 from shutil import move
-from typing import ClassVar, Dict, List, Optional, Type, Union
+from typing import Any, ClassVar, Dict, List, Optional, Type
 
-from guessit import guessit
+from guessit import guessit  # type: ignore
 
 from mnamer.exceptions import MnamerException
 from mnamer.language import Language
@@ -88,7 +88,7 @@ class Target:
     @property
     def directory(self) -> Optional[Path]:
         directory = getattr(self._settings, f"{self.metadata.media.value}_directory")
-        return self._make_path(directory) if directory else None
+        return Path(directory) if directory else None
 
     @property
     def destination(self) -> Path:
@@ -97,33 +97,26 @@ class Target:
         preferences.
         """
         if self.directory:
-            dir_head = format(self.metadata, str(self.directory))
-            dir_head = str_sanitize(dir_head)
-            dir_head = self._make_path(dir_head)
+            dir_head_ = format(self.metadata, str(self.directory))
+            dir_head_ = str_sanitize(dir_head_)
+            dir_head = Path(dir_head_)
         else:
             dir_head = self.source.parent
         file_path = format(
             self.metadata, self._settings.formatting_for(self.metadata.media)
         )
-        file_path = self._make_path(file_path)
-        dir_tail, filename = path.split(file_path)
+        dir_tail, filename = path.split(Path(file_path))
         filename = filename_replace(filename, self._settings.replace_after)
         if self._settings.scene:
             filename = str_scenify(filename)
         if self._settings.lower:
             filename = filename.lower()
         filename = str_sanitize(filename)
-        directory = self._make_path(dir_head, dir_tail)
-        return self._make_path(directory, filename)
-
-    def _make_path(self, *obj: Union[str, Path]) -> Path:
-        # Calling PurePath will create a PurePoxisPath or PureWindowsPath based
-        # on the system platform. This will create one based on the type of the
-        # source path class type instead.
-        return type(self.source)(*obj)
+        directory = Path(dir_head, dir_tail)
+        return Path(directory, filename)
 
     def _parse(self, file_path: Path):
-        path_data = {}
+        path_data: Dict[str, Any] = {}
         options = {"type": self._settings.media}
         raw_data = dict(guessit(str(file_path), options))
         if isinstance(raw_data.get("season"), list):
@@ -225,7 +218,9 @@ class Target:
 
     def query(self) -> List[Metadata]:
         """Queries the target's respective media provider for metadata."""
-        results = self._provider.search(self.metadata) or []
+        results = self._provider.search(self.metadata)
+        if not results:
+            return []
         seen = set()
         response = []
         for idx, result in enumerate(results, start=1):

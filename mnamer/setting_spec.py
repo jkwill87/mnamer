@@ -46,3 +46,4 @@ class SettingSpec:
     def name(self) -> Optional[str]:
         if self.flags:
             return max(self.flags, key=len).lstrip("-")
+        return None

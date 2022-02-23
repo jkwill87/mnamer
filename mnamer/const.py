@@ -18,7 +18,7 @@ except ModuleNotFoundError:
     cache_dir = "N/A"
 
 try:
-    from guessit import __version__ as guessit_version
+    from guessit import __version__ as guessit_version  # type: ignore
 except ModuleNotFoundError:
     guessit_version = "N/A"
 
@@ -33,7 +33,7 @@ except ModuleNotFoundError:
     requests_cache_version = "N/A"
 
 try:
-    from teletype import VERSION as teletype_version
+    from teletype import VERSION as teletype_version  # type: ignore
 except ModuleNotFoundError:
     teletype_version = "N/A"
 

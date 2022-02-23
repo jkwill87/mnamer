@@ -2,7 +2,7 @@ import dataclasses
 import re
 from datetime import date as dt_date
 from string import Formatter
-from typing import Any, Dict, Optional, Union
+from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Union
 
 from mnamer.language import Language
 from mnamer.types import MediaType
@@ -25,7 +25,7 @@ class _MetaFormatter(Formatter):
         return format(value, format_spec) if value is not None else ""
 
     def get_value(
-        self, key: Union[str, int], args: Optional[dict], kwargs: Dict[str, Any]
+        self, key: Union[str, int], args: Sequence[Any], kwargs: Mapping[str, Any]
     ) -> Union[None, int, str]:
         if isinstance(key, int):
             assert args
@@ -47,7 +47,7 @@ class Metadata:
     media: Union[MediaType, str, None] = None
 
     def __setattr__(self, key: str, value: Any):
-        converter = {
+        converter_map: Dict[str, Callable] = {
             "container": normalize_container,
             "group": str.upper,
             "language": Language.parse,
@@ -55,7 +55,8 @@ class Metadata:
             "media": MediaType,
             "quality": str.lower,
             "synopsis": str.capitalize,
-        }.get(key)
+        }
+        converter: Optional[Callable] = converter_map.get(key)
         if value is not None and converter:
             value = converter(value)
         super().__setattr__(key, value)
@@ -115,10 +116,11 @@ class MetadataMovie(Metadata):
         return s
 
     def __setattr__(self, key: str, value: Any):
-        converter = {
+        converter_map: Dict[str, Callable] = {
             "name": fn_pipe(str_replace_slashes, str_title_case),
             "year": year_parse,
-        }.get(key)
+        }
+        converter: Optional[Callable] = converter_map.get(key)
         if value is not None and converter:
             value = converter(value)
         super().__setattr__(key, value)
@@ -156,13 +158,14 @@ class MetadataEpisode(Metadata):
         return s
 
     def __setattr__(self, key: str, value: Any):
-        converter = {
+        converter_map: Dict[str, Callable] = {
             "date": parse_date,
             "episode": int,
             "season": int,
             "series": fn_pipe(str_replace_slashes, str_title_case),
             "title": fn_pipe(str_replace_slashes, str_title_case),
-        }.get(key)
+        }
+        converter: Optional[Callable] = converter_map.get(key)
         if value is not None and converter:
             value = converter(value)
         super().__setattr__(key, value)

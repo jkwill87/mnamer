@@ -57,12 +57,12 @@ def test_metadata_episode__convert_series(value):
 
 
 def test_metadata_episode__convert_season():
-    metadata = MetadataEpisode(season="01")
+    metadata = MetadataEpisode(season=1)
     assert metadata.season == 1
 
 
 def test_metadata_episode__convert_episode():
-    metadata = MetadataEpisode(episode="01")
+    metadata = MetadataEpisode(episode=1)
     assert metadata.episode == 1
 
 
@@ -102,7 +102,7 @@ def test_metadata_movie__convert_name(value):
 
 
 def test_metadata_movie__format_default():
-    metadata = MetadataMovie(name="Napoleon Dynamite", year=2004)
+    metadata = MetadataMovie(name="Napoleon Dynamite", year="2004")
     expected = "Napoleon Dynamite (2004)"
     actual = format(metadata)
     assert actual == expected
@@ -117,7 +117,7 @@ def test_metadata_movie__format_default():
     ),
 )
 def test_metadata_movie__format_missing_field(format_spec: str):
-    metadata = MetadataMovie(name="jojo rabbit", year=2019)
+    metadata = MetadataMovie(name="jojo rabbit", year="2019")
     expected = "Jojo Rabbit - 2019"
     actual = format(metadata, format_spec)
     assert actual == expected

@@ -6,7 +6,7 @@ from datetime import date, datetime
 from os import walk
 from os.path import exists, expanduser, expandvars, getsize, splitdrive, splitext
 from pathlib import Path, PurePath
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
 from unicodedata import normalize
 
 import requests_cache
@@ -126,7 +126,7 @@ def filter_containers(
     ]
 
 
-def findall(s, ss) -> Generator[int, None, None]:
+def findall(s, ss) -> Iterator[int]:
     """Yields indexes of all start positions of substring matches in string."""
     i = s.find(ss)
     while i != -1:
@@ -169,26 +169,37 @@ def format_iter(body: list) -> str:
 
 
 def is_subtitle(container: Optional[str]) -> bool:
-    return bool(container) and container.endswith(tuple(SUBTITLE_CONTAINERS))
+    """Returns True if container is a subtitle container."""
+    if not container:
+        return False
+    return container.endswith(tuple(SUBTITLE_CONTAINERS))
 
 
 def get_session() -> requests_cache.CachedSession:
     """Convenience function that returns request-cache session singleton."""
-    if not hasattr(get_session, "session"):
-        get_session.session = requests_cache.CachedSession(
+
+    def make_session():
+        session = requests_cache.CachedSession(
             cache_name=str(CACHE_PATH),
             extension=".sqlite",
             expire_after=518_400,  # 6 days
         )
         adapter = HTTPAdapter(max_retries=3)
-        get_session.session.mount("http://", adapter)
-        get_session.session.mount("https://", adapter)
-    return get_session.session
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
+        return session
+
+    if hasattr(get_session, "session"):
+        session: requests_cache.CachedSession = getattr(get_session, "session")
+        return session
+    session = make_session()
+    setattr(get_session, "session", session)
+    return session
 
 
 def get_filesize(path: Path) -> str:
     """Returns the human-readable filesize for a given path."""
-    size = getsize(path)
+    size = float(getsize(path))
     for unit in ["B", "KB", "MB", "GB", "TB"]:
         if size < 1024.0:
             break
@@ -488,7 +499,7 @@ def str_title_case(s: str) -> str:
     for exception in uppercase_exceptions:
         for pos in findall(string_lower, exception):
             is_start = pos == 0
-            prev_char = None if is_start else string_lower[pos - 1]
+            prev_char = None if is_start else string_lower[pos - 1]  # type: ignore
             is_left_partitioned = is_start or prev_char in partition_chars  # type: ignore
             word_length = len(exception)
             ends = pos + word_length == string_length

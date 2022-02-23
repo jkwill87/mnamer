@@ -184,7 +184,7 @@ def test_tvmaze_show_episodes_list__no_hits():
 
 
 def test_tvmaze_episodes_by_date__success():
-    results = tvmaze_episodes_by_date(247, TEST_DATE)
+    results = tvmaze_episodes_by_date("247", TEST_DATE)
     assert results
     result = results[0]
     assert result["airdate"] == str(TEST_DATE)

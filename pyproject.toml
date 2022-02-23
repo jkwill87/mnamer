@@ -6,7 +6,7 @@ target-version = ["py37"]
 reportGeneralTypeIssues = "information"
 pythonVersion = "3.7"
 include = ["mnamer"]
-exclude = ["playground.py", "venv", "tests"]
+exclude = ["playground.py", "venv"]
 venv = ["venv"]
 
 [tool.isort]

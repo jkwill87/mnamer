@@ -1,7 +1,7 @@
 import dataclasses
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from mnamer.argument import ArgLoader
 from mnamer.const import SUBTITLE_CONTAINERS
@@ -369,7 +369,7 @@ class SettingStore:
         return Path(path).resolve()
 
     def __setattr__(self, key: str, value: Any):
-        converter = {
+        converter_map: Dict[str, Callable] = {
             "episode_api": ProviderType,
             "episode_directory": self._resolve_path,
             "language": Language.parse,
@@ -378,7 +378,8 @@ class SettingStore:
             "movie_api": ProviderType,
             "movie_directory": self._resolve_path,
             "targets": lambda targets: [Path(target) for target in targets],
-        }.get(key)
+        }
+        converter: Optional[Callable] = converter_map.get(key)
         if value is not None and converter:
             value = converter(value)
         super().__setattr__(key, value)
@@ -415,7 +416,9 @@ class SettingStore:
         )
 
     def bulk_apply(self, d: Dict[str, Any]):
-        [setattr(self, k, v) for k, v in d.items() if v]
+        for k, v in d.items():
+            if v:
+                setattr(self, k, v)
 
     def load(self) -> None:
         arg_loader = ArgLoader(*self.specifications())
@@ -429,16 +432,19 @@ class SettingStore:
             self.bulk_apply(config)
         if arguments:
             self.bulk_apply(arguments)
+        return None
 
     def api_for(self, media_type: Optional[MediaType]) -> Optional[ProviderType]:
         """Returns the ProviderType for a given media type."""
         if media_type:
             return getattr(self, f"{media_type.value}_api")
+        return None
 
     def api_key_for(self, provider_type: ProviderType) -> Optional[str]:
         """Returns the API key for a provider type."""
         if provider_type:
             return getattr(self, f"api_key_{provider_type.value}")
+        return None
 
     def formatting_for(self, media_type: MediaType) -> str:
         return getattr(self, f"{media_type.value}_format") if media_type else ""

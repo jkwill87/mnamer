@@ -55,7 +55,10 @@ class Frontend(ABC):
         tty.msg("\nsettings", debug=True)
         tty.msg(self.settings.as_dict(), debug=True)
         tty.msg("\ntargets", debug=True)
-        tty.msg(self.targets or [None], debug=True)
+        if self.targets:
+            tty.msg(self.targets, debug=True)
+        else:
+            tty.msg([None], debug=True)
 
     @abstractmethod
     def launch(self):

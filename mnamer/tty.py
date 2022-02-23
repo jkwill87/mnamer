@@ -1,11 +1,11 @@
 """Provides an interface for handling user input and printing output."""
 
 import traceback
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
-from teletype import codes
-from teletype.components import ChoiceHelper, SelectOne
-from teletype.io import style_format, style_print
+from teletype import codes  # type: ignore
+from teletype.components import ChoiceHelper, SelectOne  # type: ignore
+from teletype.io import style_format, style_print  # type: ignore
 
 from mnamer.const import SYSTEM
 from mnamer.exceptions import MnamerAbortException, MnamerException, MnamerSkipException
@@ -52,13 +52,14 @@ def _abort_helpers() -> List[ChoiceHelper]:
 
 
 def _msg_format(body: Any):
-    converter = {
+    converter_map: Dict[type, Callable] = {
         dict: format_dict,
         list: format_iter,
         tuple: format_iter,
         set: format_iter,
         MnamerException: format_exception,
-    }.get(type(body))
+    }
+    converter: Optional[Callable] = converter_map.get(type(body), str)
     if converter:
         body = converter(body)
     else:

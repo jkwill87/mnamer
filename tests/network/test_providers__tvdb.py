@@ -1,3 +1,5 @@
+import datetime as dt
+
 import pytest
 
 from mnamer.exceptions import MnamerNotFoundException
@@ -98,7 +100,7 @@ def test_tvdb_provider__search__title_season_episode(meta: dict, provider: Tvdb)
 
 
 def test_tvdb_provider__search_series_date__year(provider: Tvdb):
-    query = MetadataEpisode(series="The Daily Show", date="2017-11-01")
+    query = MetadataEpisode(series="The Daily Show", date=dt.date(2017, 11, 1))
     results = list(provider.search(query))
     assert len(results) == 1
     assert results[0].title == "Hillary Clinton"
