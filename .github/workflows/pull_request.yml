@@ -4,23 +4,42 @@ on: pull_request
 
 jobs:
 
-  black:
+  lint: # ------------------------------------------------------------------------------
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: 3.x
-    - run: pip install -q black
-    - run: black --check .
 
-  test:
+    steps:
+      - name: Checking out Git Commit
+        uses: actions/checkout@v2
+
+      - name: Installing Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+          cache: pip
+          cache-dependency-path: setup.cfg
+
+      - name: Installing Linters from PyPI
+        run: pip install -e .[test] -e .[dev]
+
+      - name: Linting with black
+        run: black --check mnamer tests
+
+      - name: Linting isort
+        run: isort --check-only mnamer tests
+
+      - name: Linting mypy
+        run: mypy mnamer
+
+  test: # ------------------------------------------------------------------------------
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v2
       with:
         python-version: 3.x
+        cache: pip
+        cache-dependency-path: setup.cfg
+
     - run: pip install -q -U pip -e .[test]
     - run: >-
         python -m pytest -m 'not tvdb'

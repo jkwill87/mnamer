@@ -6,7 +6,7 @@ on:
     - cron: "0 8 * * 1" # Mondays at 8am
 
 jobs:
-  lint: # --------------------------------------------------------------------
+  lint: # ------------------------------------------------------------------------------
     runs-on: ubuntu-latest
 
     steps:
@@ -17,6 +17,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.x
+          cache: pip
+          cache-dependency-path: setup.cfg
 
       - name: Installing Linters from PyPI
         run: pip install -e .[test] -e .[dev]
@@ -30,10 +32,24 @@ jobs:
       - name: Linting mypy
         run: mypy mnamer
 
+  build: # -----------------------------------------------------------------------------
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checking out Git Commit
+        uses: actions/checkout@v2
+
+      - name: Installing Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+          cache: pip
+          cache-dependency-path: setup.cfg
+
       - name: Attempting build
         run: python3 -m build --no-isolation
 
-  test: # ---------------------------------------------------------------------
+  test: # ------------------------------------------------------------------------------
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -48,6 +64,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{matrix.python-version}}
+          cache: pip
+          cache-dependency-path: setup.cfg
 
       - name: Installing Requirements
         run: pip install -q -U pip -e .[test]
@@ -92,7 +110,7 @@ jobs:
           && matrix['python-version'] == '3.x'
         uses: codecov/codecov-action@v1
 
-  publish: # ---------------------------------------------------------------------
+  publish: # ---------------------------------------------------------------------------
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags')
 
@@ -103,7 +121,7 @@ jobs:
       - name: Installing Python 3
         uses: actions/setup-python@v2
         with:
-          python-version: 3.x
+          python-version: 3.7
 
       - name: Installing Requirements
         run: pip install -q -U pip -e .[dev]
