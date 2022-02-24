@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from abc import ABC, abstractmethod
-from datetime import date, datetime
 from os import environ
 from typing import Iterator, Optional, TypeVar
 
@@ -94,9 +94,9 @@ class Omdb(Provider):
         assert self.api_key
         response = omdb_title(self.api_key, id_imdb, cache=self.cache)
         try:
-            release_date = datetime.strptime(response["Released"], "%d %b %Y").strftime(
-                "%Y-%m-%d"
-            )
+            release_date = dt.datetime.strptime(
+                response["Released"], "%d %b %Y"
+            ).strftime("%Y-%m-%d")
         except (KeyError, ValueError):
             if response.get("Year") in (None, "N/A"):
                 release_date = None
@@ -322,7 +322,7 @@ class Tvdb(Provider):
             raise MnamerNotFoundException
 
     def _search_tvdb_date(
-        self, id_tvdb: str, release_date: date, language: Optional[Language]
+        self, id_tvdb: str, release_date: dt.date, language: Optional[Language]
     ):
         release_date = parse_date(release_date)
         found = False
@@ -334,7 +334,7 @@ class Tvdb(Provider):
             raise MnamerNotFoundException
 
     def _search_series_date(
-        self, series: str, release_date: date, language: Optional[Language]
+        self, series: str, release_date: dt.date, language: Optional[Language]
     ):
         release_date = parse_date(release_date)
         series_data = tvdb_search_series(
@@ -388,7 +388,7 @@ class TvMaze(Provider):
         yield self._transform_meta(id_tvmaze, id_tvdb, series_data, episode_data)
 
     def _lookup_with_id_and_date(
-        self, id_tvmaze: Optional[str], id_tvdb: Optional[str], air_date: date
+        self, id_tvmaze: Optional[str], id_tvdb: Optional[str], air_date: dt.date
     ) -> Iterator[MetadataEpisode]:
         assert id_tvmaze or id_tvdb
         if id_tvmaze:
@@ -477,10 +477,7 @@ class TvMaze(Provider):
 
     @staticmethod
     def _transform_meta(
-        id_tvmaze: str,
-        id_tvdb: Optional[str],
-        series_entry: dict,
-        episode_entry: dict,
+        id_tvmaze: str, id_tvdb: Optional[str], series_entry: dict, episode_entry: dict
     ) -> MetadataEpisode:
         return MetadataEpisode(
             date=episode_entry["airdate"] or None,

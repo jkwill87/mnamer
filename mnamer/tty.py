@@ -3,9 +3,9 @@
 import traceback
 from typing import Any, Callable, Dict, List, Optional
 
-from teletype import codes  # type: ignore
-from teletype.components import ChoiceHelper, SelectOne  # type: ignore
-from teletype.io import style_format, style_print  # type: ignore
+from teletype import codes
+from teletype.components import ChoiceHelper, SelectOne
+from teletype.io import style_format, style_print
 
 from mnamer.const import SYSTEM
 from mnamer.exceptions import MnamerAbortException, MnamerException, MnamerSkipException
@@ -91,12 +91,11 @@ def error(body: Any):
     msg(body, message_type=MessageType.ERROR, debug=False)
 
 
-def metadata_prompt(
-    matches: List[Metadata],
-) -> Optional[Metadata]:  # pragma: no cover
+def metadata_prompt(matches: List[Metadata]) -> Optional[Metadata]:  # pragma: no cover
     """Prompts user to choose a match from a list of matches."""
     msg("select match")
-    selector = SelectOne(matches + _abort_helpers(), **_chars())
+    options = matches + _abort_helpers()  # type: ignore
+    selector = SelectOne(options, **_chars())
     choice = selector.prompt()
     if isinstance(choice, (MnamerAbortException, MnamerSkipException)):
         raise choice

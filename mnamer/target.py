@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+import datetime as dt
 from os import path
 from pathlib import Path
 from shutil import move
@@ -127,7 +127,7 @@ class Target:
                     path_data[k] = Language.parse(v)
                 except MnamerException:
                     continue
-            elif isinstance(v, (int, str, date)):
+            elif isinstance(v, (int, str, dt.date)):
                 path_data[k] = v
             elif isinstance(v, list) and all([isinstance(_, (int, str)) for _ in v]):
                 path_data[k] = v[0]

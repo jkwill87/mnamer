@@ -1,3 +1,5 @@
+"""Provides a low-level interface for metadata media APIs."""
+
 import datetime
 from re import match
 from time import sleep
@@ -332,10 +334,7 @@ def tvdb_series_id_episodes(
         headers["Accept-Language"] = language.a2
     parameters = {"page": page}
     status, content = request_json(
-        url,
-        parameters,
-        headers=headers,
-        cache=cache is True and language is None,
+        url, parameters, headers=headers, cache=cache is True and language is None
     )
     if status == 401:
         raise MnamerException("invalid token")
@@ -404,10 +403,7 @@ def tvdb_search_series(
     if language:
         headers["Accept-Language"] = language.a2
     status, content = request_json(
-        url,
-        parameters,
-        headers=headers,
-        cache=cache is True and language is None,
+        url, parameters, headers=headers, cache=cache is True and language is None
     )
     if status == 401:
         raise MnamerException("invalid token")

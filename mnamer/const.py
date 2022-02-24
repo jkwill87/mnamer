@@ -1,6 +1,6 @@
 """Shared constant definitions."""
 
-from datetime import date, datetime
+import datetime as dt
 from pathlib import Path
 from platform import platform, python_version
 from sys import argv, gettrace, version_info
@@ -33,7 +33,7 @@ except ModuleNotFoundError:
     requests_cache_version = "N/A"
 
 try:
-    from teletype import VERSION as teletype_version  # type: ignore
+    from teletype import VERSION as teletype_version
 except ModuleNotFoundError:
     teletype_version = "N/A"
 
@@ -56,7 +56,7 @@ CACHE_PATH = Path(
     cache_dir, f"mnamer-py{version_info.major}.{version_info.minor}"
 ).absolute()
 
-CURRENT_YEAR = datetime.now().year
+CURRENT_YEAR = dt.datetime.now().year
 
 DEPRECATED = {"no_replace", "replacements"}
 
@@ -65,7 +65,7 @@ IS_DEBUG = gettrace() is not None
 SUBTITLE_CONTAINERS = [".srt", ".idx", ".sub"]
 
 SYSTEM = {
-    "date": date.today(),
+    "date": dt.date.today(),
     "platform": platform(),
     "arguments": argv[1:],
     "cache location": f"{CACHE_PATH}.sqlite",

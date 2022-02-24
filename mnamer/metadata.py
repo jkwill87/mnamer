@@ -1,6 +1,6 @@
 import dataclasses
+import datetime as dt
 import re
-from datetime import date as dt_date
 from string import Formatter
 from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Union
 
@@ -136,7 +136,7 @@ class MetadataEpisode(Metadata):
     series: Optional[str] = None
     season: Optional[int] = None
     episode: Optional[int] = None
-    date: Optional[dt_date] = None
+    date: Optional[dt.date] = None
     title: Optional[str] = None
     id_tvdb: Optional[str] = None
     id_tvmaze: Optional[str] = None

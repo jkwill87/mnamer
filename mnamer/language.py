@@ -65,7 +65,7 @@ class Language:
         return self.a2
 
     @staticmethod
-    def ensure_valid_for_tvdb(language: Optional["Language"]):
+    def ensure_valid_for_tvdb(language: Optional[Language]):
         valid = {
             "cs",
             "da",

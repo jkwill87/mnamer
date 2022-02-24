@@ -45,8 +45,7 @@ class Frontend(ABC):
             tty.msg("testing mode", MessageType.ALERT)
         if self.settings.config_path:
             tty.msg(
-                f"loaded config from '{self.settings.config_path}'",
-                MessageType.ALERT,
+                f"loaded config from '{self.settings.config_path}'", MessageType.ALERT
             )
 
     def _print_configuration(self) -> None:
@@ -147,10 +146,7 @@ class Cli(Frontend):
                 )
                 continue
             if self.settings.no_overwrite and target.destination.exists():
-                tty.msg(
-                    "skipping (--no-overwrite)",
-                    MessageType.ALERT,
-                )
+                tty.msg("skipping (--no-overwrite)", MessageType.ALERT)
                 continue
 
             self._rename_and_move_file(target)
@@ -171,11 +167,7 @@ class Cli(Frontend):
         tty.msg(target.source, debug=True)
 
     def _list_details(self, target: Target):
-        tty.msg(
-            f"using {target.provider_type.value}",
-            MessageType.ALERT,
-            debug=True,
-        )
+        tty.msg(f"using {target.provider_type.value}", MessageType.ALERT, debug=True)
         tty.msg("\nsearch parameters", debug=True)
         tty.msg(target.metadata.as_dict(), debug=True)
         tty.msg("", debug=True)

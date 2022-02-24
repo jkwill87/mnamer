@@ -1,8 +1,8 @@
 """A collection of utility functions non-specific to mnamer's domain logic."""
 
+import datetime as dt
 import json
 import re
-from datetime import date, datetime
 from os import walk
 from os.path import exists, expanduser, expandvars, getsize, splitdrive, splitext
 from pathlib import Path, PurePath
@@ -245,13 +245,13 @@ def normalize_containers(container_list: List[str]) -> List[str]:
     return [normalize_container(container) for container in container_list]
 
 
-def parse_date(value: Union[str, date, datetime]) -> date:
+def parse_date(value: Union[str, dt.date, dt.datetime]) -> dt.date:
     """Converts an ambiguously formatted date type into a date object."""
     if isinstance(value, str):
         value = value.replace("/", "-")
         value = value.replace(".", "-")
-        value = datetime.strptime(value, "%Y-%m-%d")
-    if isinstance(value, datetime):
+        value = dt.datetime.strptime(value, "%Y-%m-%d")
+    if isinstance(value, dt.datetime):
         value = value.date()
     return value
 
