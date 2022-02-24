@@ -30,6 +30,9 @@ jobs:
       - name: Linting mypy
         run: mypy mnamer
 
+      - name: Attempting build
+        run: python3 -m build --no-isolation
+
   test: # ---------------------------------------------------------------------
     runs-on: ubuntu-latest
     strategy:
