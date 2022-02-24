@@ -92,12 +92,7 @@ def test_arg_parser__load__valid_directive():
 
 
 def test_arg_parser__load__valid_positional():
-    spec = SettingSpec(
-        group=SettingType.POSITIONAL,
-        flags=["f"],
-        help="foo",
-        type=int,
-    )
+    spec = SettingSpec(group=SettingType.POSITIONAL, flags=["f"], help="foo", type=int)
     arg_parser = ArgLoader(spec)
     with patch.object(sys, "argv", ["mnamer", "01"]):
         assert arg_parser.load() == {"f": 1}

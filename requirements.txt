@@ -1,6 +1,0 @@
-appdirs==1.4.*
-babelfish==0.6.*
-guessit==3.2.*
-requests_cache~=0.9.1
-requests==2.*
-teletype==1.1.*

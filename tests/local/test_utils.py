@@ -740,11 +740,7 @@ def test_str_title__after_punctuation__end(s: str):
 
 @pytest.mark.parametrize(
     "s",
-    (
-        "Don't stop",
-        "DON'T STOP",
-        "don't stop",
-    ),
+    ("Don't stop", "DON'T STOP", "don't stop"),
 )
 def test_str_title_case__apostrophes(s):
     expected = "Don't Stop"
@@ -768,11 +764,7 @@ def test_str_title__padding__space(s):
 
 @pytest.mark.parametrize(
     "s",
-    (
-        "Who Let the Dog(s) out",
-        "WHO LET THE DOG(S) OUT",
-        "who let the dog(s) out",
-    ),
+    ("Who Let the Dog(s) out", "WHO LET THE DOG(S) OUT", "who let the dog(s) out"),
 )
 def test_str_title__padding__no_space(s):
     expected = "Who Let the Dog(s) Out"

@@ -21,8 +21,6 @@ jobs:
     - uses: actions/setup-python@v2
       with:
         python-version: 3.x
-    - run: pip install -q -U pip -r requirements-test.txt
+    - run: pip install -q -U pip -e .[test]
     - run: >-
         python -m pytest -m 'not tvdb'
-
-  

@@ -1,4 +1,4 @@
-from datetime import date
+import datetime as dt
 
 import pytest
 
@@ -47,7 +47,7 @@ def test_metadata__format():
 @pytest.mark.parametrize("value", ["1987/10/01", "1987-10-01", "1987.10.01"])
 def test_metadata_episode__convert__date(value):
     metadata = MetadataEpisode(date=value)
-    assert metadata.date == date(1987, 10, 1)
+    assert metadata.date == dt.date(1987, 10, 1)
 
 
 @pytest.mark.parametrize("value", TEXT_CASES)

@@ -6,7 +6,7 @@ on:
     - cron: "0 8 * * 1" # Mondays at 8am
 
 jobs:
-  black: # --------------------------------------------------------------------
+  lint: # --------------------------------------------------------------------
     runs-on: ubuntu-latest
 
     steps:
@@ -18,11 +18,17 @@ jobs:
         with:
           python-version: 3.x
 
-      - name: Installing Black from PyPI
-        run: pip install -q $(grep -h black requirements*.txt)
+      - name: Installing Linters from PyPI
+        run: pip install -e .[test] -e .[dev]
 
-      - name: Verifying Codebase is Formatted using Black
-        run: black --check .
+      - name: Linting with black
+        run: black --check mnamer tests
+
+      - name: Linting isort
+        run: isort --check-only mnamer tests
+
+      - name: Linting mypy
+        run: mypy mnamer
 
   test: # ---------------------------------------------------------------------
     runs-on: ubuntu-latest
@@ -41,7 +47,7 @@ jobs:
           python-version: ${{matrix.python-version}}
 
       - name: Installing Requirements
-        run: pip install -q -U pip -r requirements-test.txt
+        run: pip install -q -U pip -e .[test]
 
       - name: Running Local Unit Tests
         run: >-
@@ -97,14 +103,14 @@ jobs:
           python-version: 3.x
 
       - name: Installing Requirements
-        run: pip install -q -U pip -r requirements.txt twine
+        run: pip install -q -U pip -e .[dev]
 
       - name: Building universal wheel
-        run: python setup.py sdist bdist_wheel --universal
+        run: python -m build
 
       - name: Uploading to PyPI
         run: >-
           twine upload
-          --username jkwill87
+          --username __token__
           --password ${{secrets.pypi_password}}
           dist/*

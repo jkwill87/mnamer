@@ -1,4 +1,4 @@
-from datetime import date
+import datetime as dt
 from pathlib import Path
 
 import pytest
@@ -41,7 +41,7 @@ def test_parse__container():
 def test_parse__date():
     file_path = Path("the.colbert.show.2010.10.01.avi")
     target = Target(file_path, SettingStore())
-    assert target.metadata.date == date(2010, 10, 1)
+    assert target.metadata.date == dt.date(2010, 10, 1)
 
 
 def test_parse__episode():

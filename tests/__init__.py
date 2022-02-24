@@ -1,4 +1,4 @@
-from datetime import date
+import datetime as dt
 from typing import Any, Dict, NamedTuple
 
 from mnamer.const import SUBTITLE_CONTAINERS
@@ -54,7 +54,7 @@ JUNK_TEXT = "blablablabla"
 
 EPISODE_META = {
     "The Walking Dead": {
-        "date": date(2015, 2, 22),
+        "date": dt.date(2015, 2, 22),
         "episode": 11,
         "id_imdb": "tt1520211",
         "id_tvdb": 153021,
@@ -65,7 +65,7 @@ EPISODE_META = {
         "title": "The Distance",
     },
     "Downtown": {
-        "date": date(1999, 11, 8),
+        "date": dt.date(1999, 11, 8),
         "episode": 13,
         "id_imdb": "tt0208616",
         "id_tvdb": 78342,
@@ -76,7 +76,7 @@ EPISODE_META = {
         "title": "Trip or Treat",
     },
     "Fargo": {
-        "date": date(2015, 10, 19),
+        "date": dt.date(2015, 10, 19),
         "episode": 2,
         "id_imdb": "tt2802850",
         "id_tvdb": 269613,
@@ -112,7 +112,7 @@ MOVIE_META = {
     },
 }
 
-TEST_DATE = date(2010, 12, 9)
+TEST_DATE = dt.date(2010, 12, 9)
 
 RUSSIAN_LANG = Language.parse("ru")
 
