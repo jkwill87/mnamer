@@ -6,32 +6,6 @@ on:
     - cron: "0 8 * * 1" # Mondays at 8am
 
 jobs:
-  lint: # ------------------------------------------------------------------------------
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checking out Git Commit
-        uses: actions/checkout@v2
-
-      - name: Installing Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.x
-          cache: pip
-          cache-dependency-path: setup.cfg
-
-      - name: Installing Linters from PyPI
-        run: pip install -e .[test] -e .[dev]
-
-      - name: Linting with black
-        run: black --check mnamer tests
-
-      - name: Linting isort
-        run: isort --check-only mnamer tests
-
-      - name: Linting mypy
-        run: mypy mnamer
-
   build: # -----------------------------------------------------------------------------
     runs-on: ubuntu-latest
 
@@ -46,8 +20,44 @@ jobs:
           cache: pip
           cache-dependency-path: setup.cfg
 
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}-${{ hashFiles('MANIFEST.in') }}-${{ hashFiles('pyproject.toml') }}
+
+      - name: Installing dependencies
+        run: pip install -e .[test] -e .[dev]
+
       - name: Attempting build
-        run: python3 -m build --no-isolation
+        run: python -m build --no-isolation
+
+  lint: # ------------------------------------------------------------------------------
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checking out Git Commit
+        uses: actions/checkout@v2
+
+      - name: Installing Python 3
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+          cache: pip
+          cache-dependency-path: setup.cfg
+
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}-${{ hashFiles('MANIFEST.in') }}-${{ hashFiles('pyproject.toml') }}
+
+      - name: Linting with black
+        run: black --check mnamer tests
+
+      - name: Linting isort
+        run: isort --check-only mnamer tests
+
+      - name: Linting mypy
+        run: mypy mnamer
 
   test: # ------------------------------------------------------------------------------
     runs-on: ubuntu-latest
@@ -67,8 +77,10 @@ jobs:
           cache: pip
           cache-dependency-path: setup.cfg
 
-      - name: Installing Requirements
-        run: pip install -q -U pip -e .[test]
+      - uses: actions/cache@v2
+        with:
+          path: ${{ env.pythonLocation }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}-${{ hashFiles('MANIFEST.in') }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Running Local Unit Tests
         run: >-
@@ -113,6 +125,7 @@ jobs:
   publish: # ---------------------------------------------------------------------------
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags')
+    needs: build lint test
 
     steps:
       - name: Checking out Git Commit
