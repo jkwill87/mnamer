@@ -9,14 +9,19 @@ jobs:
   build: # -----------------------------------------------------------------------------
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        python-version: ["3.7", "3.x"]
+    name: build-v${{matrix.python-version}}
+
     steps:
       - name: Checking out Git Commit
         uses: actions/checkout@v2
 
-      - name: Installing Python 3
+      - name: Installing Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: ${{matrix.python-version}}
           cache: pip
           cache-dependency-path: setup.cfg
 
@@ -33,12 +38,13 @@ jobs:
 
   lint: # ------------------------------------------------------------------------------
     runs-on: ubuntu-latest
+    needs: build
 
     steps:
       - name: Checking out Git Commit
         uses: actions/checkout@v2
 
-      - name: Installing Python 3
+      - name: Installing Python
         uses: actions/setup-python@v2
         with:
           python-version: 3.x
@@ -61,6 +67,8 @@ jobs:
 
   test: # ------------------------------------------------------------------------------
     runs-on: ubuntu-latest
+    needs: build
+
     strategy:
       matrix:
         python-version: ["3.7", "3.x"]
@@ -70,7 +78,7 @@ jobs:
       - name: Checking out Git Commit
         uses: actions/checkout@v2
 
-      - name: Installing Python 3
+      - name: Installing Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{matrix.python-version}}
@@ -125,13 +133,16 @@ jobs:
   publish: # ---------------------------------------------------------------------------
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags')
-    needs: build lint test
+    needs:
+      - build
+      - lint
+      - test
 
     steps:
       - name: Checking out Git Commit
         uses: actions/checkout@v2
 
-      - name: Installing Python 3
+      - name: Installing Python
         uses: actions/setup-python@v2
         with:
           python-version: 3.7
