@@ -13,7 +13,7 @@ from tests import *
 
 # Move up to root directory if run from subdirectory
 cwd = Path().resolve()
-while not (cwd / "setup.py").exists():
+while not (cwd / "setup.cfg").exists():
     assert cwd != cwd.parent, "could not determine testing root"
     cwd = cwd.parent
     chdir(cwd)
