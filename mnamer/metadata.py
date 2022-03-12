@@ -2,7 +2,7 @@ import dataclasses
 import datetime as dt
 import re
 from string import Formatter
-from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Union
+from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Union, List
 
 from mnamer.language import Language
 from mnamer.types import MediaType
@@ -29,9 +29,12 @@ class _MetaFormatter(Formatter):
     ) -> Union[None, int, str]:
         if isinstance(key, int):
             assert args
-            return args[key]
+            value = args[key]
         else:
-            return kwargs.get(key, "")
+            value = kwargs.get(key, "")
+        if isinstance(value, list):
+            value = ", ".join(value)
+        return value
 
 
 @dataclasses.dataclass
@@ -44,6 +47,7 @@ class Metadata:
     language_sub: Optional[Language] = None
     quality: Optional[str] = None
     synopsis: Optional[str] = None
+    genres: Optional[List[str]] = None
     media: Union[MediaType, str, None] = None
 
     def __setattr__(self, key: str, value: Any):
@@ -77,6 +81,9 @@ class Metadata:
     def as_dict(self) -> Dict[str, Any]:
         d = dataclasses.asdict(self)
         d["extension"] = self.extension
+        genres = d.get("genres")
+        if genres:
+            d["genre"] = genres[0]
         return d
 
     def _format_repl(self, mobj) -> str:

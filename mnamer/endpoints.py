@@ -185,6 +185,26 @@ def tmdb_movies(
     return content
 
 
+def tmdb_genres(
+    api_key: str,
+    language: Optional[Language] = None,
+    cache: bool = True,
+) -> dict:
+    """
+    Lookup a genres using The Movie Database.
+
+    Online docs: developers.themoviedb.org/3/genres/get-movie-list.
+    """
+    url = f"https://api.themoviedb.org/3/genre/movie/list"
+    parameters = {"api_key": api_key, "language": language}
+    status, content = request_json(url, parameters, cache=cache)
+    if status == 401:
+        raise MnamerException("invalid API key")
+    elif status != 200 or not any(content.keys()):  # pragma: no cover
+        raise MnamerNetworkException("TMDb down or unavailable?")
+    return content
+
+
 def tmdb_search_movies(
     api_key: str,
     title: str,

@@ -10,6 +10,7 @@ from typing import Iterator, Optional, TypeVar
 from mnamer.endpoints import (
     omdb_search,
     omdb_title,
+    tmdb_genres,
     tmdb_movies,
     tmdb_search_movies,
     tvdb_login,
@@ -102,7 +103,12 @@ class Omdb(Provider):
                 release_date = None
             else:
                 release_date = "{}-01-01".format(response["Year"])
+        genres = None
+        genre = response.get("Genre")
+        if genre:
+            genres = [g.strip() for g in genre.split(",")]
         meta = MetadataMovie(
+            genres=genres,
             name=response["Title"],
             year=release_date,
             synopsis=response["Plot"],
@@ -192,8 +198,10 @@ class Tmdb(Provider):
                 cache=self.cache,
             )
             for entry in response["results"]:
+                genres = self._get_genres(entry, language)
                 try:
                     meta = MetadataMovie(
+                        genres=genres,
                         id_tmdb=entry["id"],
                         name=entry["title"],
                         language=language,
@@ -214,6 +222,23 @@ class Tmdb(Provider):
             page += 1
         if not found:
             raise MnamerNotFoundException
+
+    def _get_genres(self, entry, language):
+        genres = None
+        genre_ids = entry.get('genre_ids')
+        if genre_ids:
+            genre_map = self._get_all_genres(language)
+            genres = [genre_map[gid] for gid in genre_ids if gid in genre_map]
+        return genres
+
+    def _get_all_genres(self, language):
+        genre_map = getattr(self, "_genre_map", None)
+        if not genre_map:
+            assert self.api_key
+            response = tmdb_genres(self.api_key, language, self.cache)
+            genre_map = dict([(g['id'], g['name']) for g in response['genres']])
+            self._genre_map = genre_map
+        return genre_map
 
 
 class Tvdb(Provider):
