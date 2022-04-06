@@ -31,7 +31,7 @@ jobs:
           key: ${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}-${{ hashFiles('MANIFEST.in') }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Installing dependencies
-        run: pip install -e .[test] -e .[dev]
+        run: pip install -U -e .[test,dev]
 
       - name: Attempting build
         run: python -m build --no-isolation
@@ -148,7 +148,7 @@ jobs:
           python-version: 3.7
 
       - name: Installing Requirements
-        run: pip install -q -U pip -e .[dev]
+        run: pip install -U pip -e .[dev]
 
       - name: Building universal wheel
         run: python -m build
