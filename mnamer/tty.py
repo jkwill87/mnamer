@@ -1,18 +1,14 @@
 """Provides an interface for handling user input and printing output."""
 
 import traceback
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from teletype import codes
 from teletype.components import ChoiceHelper, SelectOne
 from teletype.io import style_format, style_print
 
 from mnamer.const import SYSTEM
-from mnamer.exceptions import (
-    MnamerAbortException,
-    MnamerException,
-    MnamerSkipException,
-)
+from mnamer.exceptions import MnamerAbortException, MnamerException, MnamerSkipException
 from mnamer.language import Language
 from mnamer.metadata import Metadata
 from mnamer.setting_store import SettingStore
@@ -56,13 +52,14 @@ def _abort_helpers() -> List[ChoiceHelper]:
 
 
 def _msg_format(body: Any):
-    converter = {
+    converter_map: Dict[type, Callable] = {
         dict: format_dict,
         list: format_iter,
         tuple: format_iter,
         set: format_iter,
         MnamerException: format_exception,
-    }.get(type(body))
+    }
+    converter: Optional[Callable] = converter_map.get(type(body), str)
     if converter:
         body = converter(body)
     else:
@@ -94,17 +91,15 @@ def error(body: Any):
     msg(body, message_type=MessageType.ERROR, debug=False)
 
 
-def metadata_prompt(
-    matches: List[Metadata],
-) -> Optional[Metadata]:  # pragma: no cover
+def metadata_prompt(matches: List[Metadata]) -> Optional[Metadata]:  # pragma: no cover
     """Prompts user to choose a match from a list of matches."""
     msg("select match")
-    selector = SelectOne(matches + _abort_helpers(), **_chars())
+    options = matches + _abort_helpers()  # type: ignore
+    selector = SelectOne(options, **_chars())
     choice = selector.prompt()
-    if choice in (MnamerAbortException, MnamerSkipException):
+    if isinstance(choice, (MnamerAbortException, MnamerSkipException)):
         raise choice
-    else:
-        return choice
+    return choice
 
 
 def metadata_guess(
@@ -119,7 +114,7 @@ def metadata_guess(
     option = ChoiceHelper(metadata, label)
     selector = SelectOne([option] + _abort_helpers(), **_chars())
     choice = selector.prompt()
-    if choice in (MnamerAbortException, MnamerSkipException):
+    if isinstance(choice, (MnamerAbortException, MnamerSkipException)):
         raise choice
     else:
         return choice
@@ -127,12 +122,10 @@ def metadata_guess(
 
 def subtitle_prompt() -> Metadata:
     msg("select language")
-    choices = [
-        ChoiceHelper(language, language.name) for language in Language.all()
-    ]
+    choices = [ChoiceHelper(language, language.name) for language in Language.all()]
     selector = SelectOne(choices + _abort_helpers(), **_chars())
     choice = selector.prompt()
-    if choice in (MnamerAbortException, MnamerSkipException):
+    if isinstance(choice, (MnamerAbortException, MnamerSkipException)):
         raise choice
     else:
         return choice

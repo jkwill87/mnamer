@@ -1,7 +1,12 @@
 {
-  "editor.formatOnSave": true,
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "python.sortImports": true
+    },
+    "editor.formatOnSave": true
+  },
   "editor.rulers": [
-    80
+    88
   ],
   "explorer.sortOrder": "type",
   "files.exclude": {
@@ -17,9 +22,5 @@
     "demo": true,
     "venv": true
   },
-  "python.formatting.provider": "black",
-  "python.linting.pylintArgs": [
-    "--disable",
-    "protected-access,bare-except,expression-not-assigned,line-too-long,missing-module-docstring,unused-wildcard-import,missing-function-docstring,attribute-defined-outside-init"
-  ]
+  "python.formatting.provider": "black"
 }

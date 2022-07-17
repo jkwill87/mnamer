@@ -1,3 +1,5 @@
+"""Provides a low-level interface for metadata media APIs."""
+
 import datetime
 from re import match
 from time import sleep
@@ -56,9 +58,7 @@ def omdb_title(
     if (not title and not id_imdb) or (title and id_imdb):
         raise MnamerException("either id_imdb or title must be specified")
     elif plot and plot not in OMDB_PLOT_TYPES:
-        raise MnamerException(
-            "plot must be one of %s" % ",".join(OMDB_PLOT_TYPES)
-        )
+        raise MnamerException("plot must be one of %s" % ",".join(OMDB_PLOT_TYPES))
     url = "http://www.omdbapi.com"
     parameters = {
         "apikey": api_key,
@@ -164,8 +164,8 @@ def tmdb_find(
 
 def tmdb_movies(
     api_key: str,
-    id_tmdb: Union[int, str],
-    language: Optional[str] = None,
+    id_tmdb: str,
+    language: Optional[Language] = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -220,7 +220,7 @@ def tmdb_search_movies(
     return content
 
 
-def tvdb_login(api_key: str) -> str:
+def tvdb_login(api_key: Optional[str]) -> str:
     """
     Logs into TVDb using the provided api key.
 
@@ -255,7 +255,7 @@ def tvdb_refresh_token(token: str) -> str:
 
 def tvdb_episodes_id(
     token: str,
-    id_tvdb: Union[str, int],
+    id_tvdb: str,
     language: Optional[Language] = None,
     cache: bool = True,
 ) -> dict:
@@ -285,7 +285,7 @@ def tvdb_episodes_id(
 
 def tvdb_series_id(
     token: str,
-    id_tvdb: Union[str, int],
+    id_tvdb: str,
     language: Optional[Language] = None,
     cache: bool = True,
 ) -> dict:
@@ -316,7 +316,7 @@ def tvdb_series_id(
 
 def tvdb_series_id_episodes(
     token: str,
-    id_tvdb: Union[str, int],
+    id_tvdb: str,
     page: int = 1,
     language: Optional[Language] = None,
     cache: bool = True,
@@ -334,10 +334,7 @@ def tvdb_series_id_episodes(
         headers["Accept-Language"] = language.a2
     parameters = {"page": page}
     status, content = request_json(
-        url,
-        parameters,
-        headers=headers,
-        cache=cache is True and language is None,
+        url, parameters, headers=headers, cache=cache is True and language is None
     )
     if status == 401:
         raise MnamerException("invalid token")
@@ -350,7 +347,7 @@ def tvdb_series_id_episodes(
 
 def tvdb_series_id_episodes_query(
     token: str,
-    id_tvdb: Union[str, int],
+    id_tvdb: str,
     episode: Optional[int] = None,
     season: Optional[int] = None,
     page: int = 1,
@@ -406,10 +403,7 @@ def tvdb_search_series(
     if language:
         headers["Accept-Language"] = language.a2
     status, content = request_json(
-        url,
-        parameters,
-        headers=headers,
-        cache=cache is True and language is None,
+        url, parameters, headers=headers, cache=cache is True and language is None
     )
     if status == 401:
         raise MnamerException("invalid token")
@@ -425,7 +419,7 @@ def tvdb_search_series(
 
 
 def tvmaze_show(
-    id_tvmaze: Union[str, int],
+    id_tvmaze: str,
     embed_episodes: bool = False,
     cache: bool = False,
     attempt: int = 1,
@@ -450,9 +444,7 @@ def tvmaze_show(
     return content
 
 
-def tvmaze_show_search(
-    query: str, cache: bool = True, attempt: int = 1
-) -> dict:
+def tvmaze_show_search(query: str, cache: bool = True, attempt: int = 1) -> dict:
     """
     Search through all the shows in the database by the show's name. A fuzzy
     algorithm is used (with a fuzziness value of 2), meaning that shows will be
@@ -474,9 +466,7 @@ def tvmaze_show_search(
     return content
 
 
-def tvmaze_show_single_search(
-    query: str, cache: bool = True, attempt: int = 1
-) -> dict:
+def tvmaze_show_single_search(query: str, cache: bool = True, attempt: int = 1) -> dict:
     """
     Singlesearch endpoint either returns exactly one result, or no result at
     all. This endpoint is also forgiving of typos, but less so than the regular
@@ -500,7 +490,7 @@ def tvmaze_show_single_search(
 
 def tvmaze_show_lookup(
     id_imdb: Optional[str] = None,
-    id_tvdb: Union[str, int] = None,
+    id_tvdb: Optional[str] = None,
     cache: bool = True,
     attempt: int = 1,
 ) -> dict:
@@ -526,7 +516,7 @@ def tvmaze_show_lookup(
 
 
 def tvmaze_show_episodes_list(
-    id_tvmaze: Union[str, int],
+    id_tvmaze: str,
     include_specials: bool = False,
     cache: bool = True,
     attempt: int = 1,
@@ -554,7 +544,7 @@ def tvmaze_show_episodes_list(
 
 
 def tvmaze_episodes_by_date(
-    id_tvmaze: Union[str, int],
+    id_tvmaze: str,
     air_date: Union[datetime.date, str],
     cache: bool = True,
     attempt: int = 1,
@@ -579,9 +569,9 @@ def tvmaze_episodes_by_date(
 
 
 def tvmaze_episode_by_number(
-    id_tvmaze: Union[str, int],
-    season: int,
-    episode: int,
+    id_tvmaze: str,
+    season: Optional[int],
+    episode: Optional[int],
     cache: bool = True,
     attempt: int = 1,
 ) -> dict:
@@ -596,9 +586,7 @@ def tvmaze_episode_by_number(
     status, content = request_json(url, parameters, cache=cache)
     if status == 443 and attempt <= MAX_RETRIES:  # pragma: no cover
         sleep(attempt * 2)
-        return tvmaze_episode_by_number(
-            id_tvmaze, season, episode, cache, attempt + 1
-        )
+        return tvmaze_episode_by_number(id_tvmaze, season, episode, cache, attempt + 1)
     elif status == 404:
         raise MnamerNotFoundException
     elif status != 200 or not content:  # pragma: no cover

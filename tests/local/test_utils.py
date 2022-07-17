@@ -48,18 +48,12 @@ FILENAME_REPLACEMENT = "The quick brown fox jumps over the lazy dog"
 
 
 def paths_for(*filenames: str):
-    return [
-        path.absolute()
-        for name, path in TEST_FILES.items()
-        if name in filenames
-    ]
+    return [path.absolute() for name, path in TEST_FILES.items() if name in filenames]
 
 
 def paths_except_for(*filenames: str):
     return [
-        path.absolute()
-        for name, path in TEST_FILES.items()
-        if name not in filenames
+        path.absolute() for name, path in TEST_FILES.items() if name not in filenames
     ]
 
 
@@ -178,9 +172,7 @@ def test_dir_crawl_in__files__flat(setup_test_files):
 @pytest.mark.usefixtures("setup_test_dir")
 def test_dir_crawl_in__dirs__multiple(setup_test_files):
     setup_test_files(*TEST_FILES.keys())
-    file_paths = [
-        Path(filename) for filename in ("Desktop", "Downloads", "Images")
-    ]
+    file_paths = [Path(filename) for filename in ("Desktop", "Downloads", "Images")]
     actual = crawl_in(file_paths)
     expected = paths_for(
         "Downloads/Return of the Jedi 1080p.mkv",
@@ -254,9 +246,7 @@ def test_str_sanitize__remove_illegal_chars():
     assert actual == expected
 
 
-@pytest.mark.parametrize(
-    "filename", ("xx.mkv.srt", "xx..mkv.srt", "xx.mkv..srt")
-)
+@pytest.mark.parametrize("filename", ("xx.mkv.srt", "xx..mkv.srt", "xx.mkv..srt"))
 def test_srt_sanitize__subtitle(filename):
     expected = "xx.mkv.srt"
     actual = str_sanitize(filename)
@@ -363,9 +353,7 @@ def test_filter_containers__filter_none():
 def test_filter_containers__filter_multiple_paths_single_pattern(
     containers: List[str],
 ):
-    expected = paths_for(
-        "Images/Photos/DCM0001.jpg", "Images/Photos/DCM0002.jpg"
-    )
+    expected = paths_for("Images/Photos/DCM0001.jpg", "Images/Photos/DCM0002.jpg")
     actual = filter_containers(FILTER_FILENAMES, containers)
     assert expected == actual
 
@@ -406,9 +394,9 @@ def test_fn_chain():
         return x * y
 
     def exponent(x, y):
-        return x ** y
+        return x**y
 
-    expected = (7 + 8, 7 * 8, 7 ** 8)
+    expected = (7 + 8, 7 * 8, 7**8)
     actual = fn_chain(add, multiply, exponent)(7, 8)
     assert actual == expected
 
@@ -421,7 +409,7 @@ def test_fn_pipe():
         return x * 5
 
     def exponent(x):
-        return x ** 5
+        return x**5
 
     expected = ((8 + 5) * 5) ** 5
     actual = fn_pipe(add, multiply, exponent)(8)
@@ -542,7 +530,7 @@ def test_request_json__xml_data(mock_request):
     mock_request.return_value = mock_response
     status, content = request_json("http://...", cache=False)
     assert status == 500
-    assert content is None
+    assert content == {}
 
 
 @patch("mnamer.utils.requests_cache.CachedSession.request")
@@ -564,15 +552,13 @@ def test_request_json__html_data(mock_request):
     mock_request.return_value = mock_response
     status, content = request_json("http://...", cache=False)
     assert status == 500
-    assert content is None
+    assert content == {}
 
 
 @patch("mnamer.utils.requests_cache.CachedSession.request")
 def test_request_json__get_headers(mock_request):
     mock_request.side_effect = Session().request
-    request_json(
-        url="http://google.com", headers={"apple": "pie", "orange": None}
-    )
+    request_json(url="http://google.com", headers={"apple": "pie", "orange": None})
     _, kwargs = mock_request.call_args
     assert kwargs["method"] == "GET"
     assert len(kwargs["headers"]) == 2
@@ -593,7 +579,7 @@ def test_request_json__get_parameters(mock_request):
 def test_request_json__get_invalid_url():
     status, content = request_json("mapi rulez", cache=False)
     assert status == 500
-    assert content is None
+    assert content == {}
 
 
 @patch("mnamer.utils.requests_cache.CachedSession.request")
@@ -632,7 +618,7 @@ def test_request_json__failure(mock_request):
     mock_request.side_effect = Exception
     status, content = request_json(url="http://google.com")
     assert status == 500
-    assert content is None
+    assert content == {}
 
 
 @pytest.mark.parametrize("s", ("()x", "x()", "()[]x", "[]x()()"))
@@ -754,11 +740,7 @@ def test_str_title__after_punctuation__end(s: str):
 
 @pytest.mark.parametrize(
     "s",
-    (
-        "Don't stop",
-        "DON'T STOP",
-        "don't stop",
-    ),
+    ("Don't stop", "DON'T STOP", "don't stop"),
 )
 def test_str_title_case__apostrophes(s):
     expected = "Don't Stop"
@@ -782,11 +764,7 @@ def test_str_title__padding__space(s):
 
 @pytest.mark.parametrize(
     "s",
-    (
-        "Who Let the Dog(s) out",
-        "WHO LET THE DOG(S) OUT",
-        "who let the dog(s) out",
-    ),
+    ("Who Let the Dog(s) out", "WHO LET THE DOG(S) OUT", "who let the dog(s) out"),
 )
 def test_str_title__padding__no_space(s):
     expected = "Who Let the Dog(s) Out"
@@ -825,9 +803,7 @@ def test_year_range_parse__exact(t: int, s: str):
     assert actual == expected
 
 
-@pytest.mark.parametrize(
-    "s", ("1990-2000", "1990 -  2000", "1990,2000", "1990:2000")
-)
+@pytest.mark.parametrize("s", ("1990-2000", "1990 -  2000", "1990,2000", "1990:2000"))
 @pytest.mark.parametrize("t", (0, 10, 100))
 def test_year_range_parse__has_start_has_end(t: int, s: str):
     expected = (1990 - t, 2000 + t)

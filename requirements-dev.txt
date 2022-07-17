@@ -1,5 +1,0 @@
--r requirements-test.txt
-black
-pylint
-twine
-vbump

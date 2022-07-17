@@ -1,19 +1,12 @@
 """A collection of utility functions non-specific to mnamer's domain logic."""
 
+import datetime as dt
 import json
 import re
-from datetime import date, datetime
 from os import walk
-from os.path import (
-    exists,
-    expanduser,
-    expandvars,
-    getsize,
-    splitdrive,
-    splitext,
-)
+from os.path import exists, expanduser, expandvars, getsize, splitdrive, splitext
 from pathlib import Path, PurePath
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
 from unicodedata import normalize
 
 import requests_cache
@@ -60,8 +53,7 @@ def clean_dict(target_dict: Dict[Any, Any], whitelist=None) -> Dict[Any, Any]:
     return {
         str(k).strip(): str(v).strip()
         for k, v in target_dict.items()
-        if v not in (None, Ellipsis, [], (), "")
-        and (not whitelist or k in whitelist)
+        if v not in (None, Ellipsis, [], (), "") and (not whitelist or k in whitelist)
     }
 
 
@@ -87,7 +79,7 @@ def crawl_in(file_paths: List[Path], recurse: bool = False) -> List[Path]:
     return sorted(list(found_files))
 
 
-def crawl_out(filename: str) -> Optional[Path]:
+def crawl_out(filename: Union[str, Path, PurePath]) -> Optional[Path]:
     """Looks for a file in the home directory and each directory up from cwd."""
     working_dir = Path.cwd()
     while True:
@@ -134,7 +126,7 @@ def filter_containers(
     ]
 
 
-def findall(s, ss) -> Generator[int, None, None]:
+def findall(s, ss) -> Iterator[int]:
     """Yields indexes of all start positions of substring matches in string."""
     i = s.find(ss)
     while i != -1:
@@ -162,9 +154,7 @@ def format_dict(body: Dict[Any, Any]) -> str:
     """
     Formats a dictionary into a multi-line bulleted string of key-value pairs.
     """
-    return "\n".join(
-        [f" - {k} = {getattr(v, 'value', v)}" for k, v in body.items()]
-    )
+    return "\n".join([f" - {k} = {getattr(v, 'value', v)}" for k, v in body.items()])
 
 
 def format_exception(body: Exception) -> str:
@@ -179,28 +169,43 @@ def format_iter(body: list) -> str:
 
 
 def is_subtitle(container: Optional[str]) -> bool:
-    return bool(container) and container.endswith(tuple(SUBTITLE_CONTAINERS))
+    """Returns True if container is a subtitle container."""
+    if not container:
+        return False
+    return container.endswith(tuple(SUBTITLE_CONTAINERS))
 
 
 def get_session() -> requests_cache.CachedSession:
     """Convenience function that returns request-cache session singleton."""
-    if not hasattr(get_session, "session"):
-        get_session.session = requests_cache.CachedSession(
-            cache_name=str(CACHE_PATH), expire_after=518_400  # 6 days
+
+    def make_session():
+        session = requests_cache.CachedSession(
+            cache_name=str(CACHE_PATH),
+            extension=".sqlite",
+            expire_after=518_400,  # 6 days
         )
         adapter = HTTPAdapter(max_retries=3)
-        get_session.session.mount("http://", adapter)
-        get_session.session.mount("https://", adapter)
-    return get_session.session
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
+        return session
+
+    if hasattr(get_session, "session"):
+        session: requests_cache.CachedSession = getattr(get_session, "session")
+        return session
+    session = make_session()
+    setattr(get_session, "session", session)
+    return session
 
 
-def get_filesize(path: Union[PurePath, Path]) -> str:
+def get_filesize(path: Path) -> str:
     """Returns the human-readable filesize for a given path."""
-    size = getsize(path)
+    size = float(getsize(path))
     for unit in ["B", "KB", "MB", "GB", "TB"]:
         if size < 1024.0:
             break
         size /= 1024.0
+    else:
+        return "undetermined size"
     return f"{size:.{2}f}{unit}"
 
 
@@ -240,19 +245,23 @@ def normalize_containers(container_list: List[str]) -> List[str]:
     return [normalize_container(container) for container in container_list]
 
 
-def parse_date(value: Union[str, date, datetime]) -> date:
+def parse_date(value: Union[str, dt.date, dt.datetime]) -> dt.date:
     """Converts an ambiguously formatted date type into a date object."""
     if isinstance(value, str):
         value = value.replace("/", "-")
         value = value.replace(".", "-")
-        value = datetime.strptime(value, "%Y-%m-%d")
-    if isinstance(value, datetime):
+        value = dt.datetime.strptime(value, "%Y-%m-%d")
+    if isinstance(value, dt.datetime):
         value = value.date()
     return value
 
 
 def request_json(
-    url, parameters=None, body=None, headers=None, cache=True
+    url,
+    parameters: Optional[Union[dict, list]] = None,
+    body: Optional[dict] = None,
+    headers: Optional[dict] = None,
+    cache: bool = True,
 ) -> Tuple[int, dict]:
     """
     Queries a url for json data.
@@ -280,9 +289,9 @@ def request_json(
         "like Gecko) Chrome/79.0.3945.88 Safari/537.36"
     )
 
-    initial_cache_state = session._is_cache_disabled  # yes, i'm a bad person
+    initial_cache_state = session._disabled  # yes, i'm a bad person
     try:
-        session._is_cache_disabled = not cache
+        session._disabled = not cache
         response = session.request(
             url=url,
             params=parameters,
@@ -297,8 +306,8 @@ def request_json(
         content = None
         status = 500
     finally:
-        session._is_cache_disabled = initial_cache_state
-    return status, content
+        session._disabled = initial_cache_state
+    return status, (content or {})
 
 
 def str_fix_padding(s: str) -> str:
@@ -445,6 +454,7 @@ def str_title_case(s: str) -> str:
     padding_chars = ".- "
     paren_chars = "[](){}<>{}"
     punctuation_chars = paren_chars + "\"!?$,-.:;@_`'"
+    partition_chars: str = padding_chars + punctuation_chars
     string_lower = s.lower()
     string_length = len(s)
 
@@ -473,46 +483,41 @@ def str_title_case(s: str) -> str:
     # process lowercase transformations
     for exception in lowercase_exceptions:
         for pos in findall(string_lower, exception):
-            starts = pos < 2
-            if starts:
+            is_start = pos < 2
+            if is_start:
                 break
             prev_char = string_lower[pos - 1]
-            left_partitioned = prev_char in padding_chars
+            is_left_partitioned = prev_char in padding_chars
             word_length = len(exception)
             ends = pos + word_length == string_length
             next_char = "" if ends else string_lower[pos + word_length]
-            right_partitioned = not ends and next_char in padding_chars
-            if left_partitioned and right_partitioned:
+            is_right_partitioned = not ends and next_char in padding_chars
+            if is_left_partitioned and is_right_partitioned:
                 s = s[:pos] + exception.lower() + s[pos + word_length :]
 
     # process uppercase transformations
     for exception in uppercase_exceptions:
         for pos in findall(string_lower, exception):
-            starts = pos == 0
-            prev_char = None if starts else string_lower[pos - 1]
-            left_partitioned = (
-                starts or prev_char in padding_chars + punctuation_chars
-            )
+            is_start = pos == 0
+            prev_char = None if is_start else string_lower[pos - 1]  # type: ignore
+            is_left_partitioned = is_start or prev_char in partition_chars  # type: ignore
             word_length = len(exception)
             ends = pos + word_length == string_length
             next_char = "" if ends else string_lower[pos + word_length]
-            right_partitioned = (
-                ends or next_char in padding_chars + punctuation_chars
-            )
-            if left_partitioned and right_partitioned:
+            is_right_partitioned = ends or next_char in partition_chars
+            if is_left_partitioned and is_right_partitioned:
                 s = s[:pos] + exception.upper() + s[pos + word_length :]
 
     return s
 
 
-def year_parse(s: str) -> int:
+def year_parse(s: str) -> Optional[int]:
     """Parses a year from a string."""
     regex = r"((?:19|20)\d{2})(?:$|[-/]\d{2}[-/]\d{2})"
     try:
-        year = int(re.findall(regex, str(s))[0])
+        return int(re.findall(regex, str(s))[0])
     except IndexError:
-        year = None
-    return year
+        return None
 
 
 def year_range_parse(
@@ -523,7 +528,7 @@ def year_range_parse(
     default_start = 1900
     default_end = CURRENT_YEAR
     try:
-        start, dash, end = re.match(regex, str(years).strip()).groups()
+        start, dash, end = re.match(regex, str(years).strip()).groups()  # type: ignore
     except AttributeError:
         start, end, dash = None, None, True
     if not start and not end:

@@ -4,6 +4,7 @@ __pycache__/
 .env
 .exrc
 .idea
+.mypy_cache/
 .pytest_cache/
 .python-version
 .vimrc

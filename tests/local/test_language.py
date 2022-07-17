@@ -1,5 +1,5 @@
 import pytest
-from babelfish import Language as BabelLang
+from babelfish import Language as BabelLang  # type: ignore
 
 from mnamer.language import Language
 

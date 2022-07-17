@@ -26,9 +26,7 @@ def test_arg_loader__add_spec(settings_type: SettingType):
 
 def test_arg_loader__add_spec_other():
     arg_loader = ArgLoader()
-    spec = SettingSpec(
-        group=SettingType.CONFIGURATION, flags=["-f"], help="foo"
-    )
+    spec = SettingSpec(group=SettingType.CONFIGURATION, flags=["-f"], help="foo")
     with pytest.raises(RuntimeError):
         arg_loader += spec
 
@@ -80,39 +78,28 @@ Visit https://github.com/jkwill87/mnamer for more information.
 
 
 def test_arg_parser__load__valid_parameter():
-    spec = SettingSpec(
-        group=SettingType.PARAMETER, flags=["-f"], help="foo", type=int
-    )
+    spec = SettingSpec(group=SettingType.PARAMETER, flags=["-f"], help="foo", type=int)
     arg_parser = ArgLoader(spec)
     with patch.object(sys, "argv", ["mnamer", "-f", "01"]):
         assert arg_parser.load() == {"f": 1}
 
 
 def test_arg_parser__load__valid_directive():
-    spec = SettingSpec(
-        group=SettingType.DIRECTIVE, flags=["-f"], help="foo", type=int
-    )
+    spec = SettingSpec(group=SettingType.DIRECTIVE, flags=["-f"], help="foo", type=int)
     arg_parser = ArgLoader(spec)
     with patch.object(sys, "argv", ["mnamer", "-f", "01"]):
         assert arg_parser.load() == {"f": 1}
 
 
 def test_arg_parser__load__valid_positional():
-    spec = SettingSpec(
-        group=SettingType.POSITIONAL,
-        flags=["f"],
-        help="foo",
-        type=int,
-    )
+    spec = SettingSpec(group=SettingType.POSITIONAL, flags=["f"], help="foo", type=int)
     arg_parser = ArgLoader(spec)
     with patch.object(sys, "argv", ["mnamer", "01"]):
         assert arg_parser.load() == {"f": 1}
 
 
 def test_arg_parser__load__invalid_configuration():
-    spec = SettingSpec(
-        group=SettingType.CONFIGURATION, flags=["-f"], help="foo"
-    )
+    spec = SettingSpec(group=SettingType.CONFIGURATION, flags=["-f"], help="foo")
     arg_parser = ArgLoader(spec)
     with patch.object(sys, "argv", ["mnamer", "-f", "1"]):
         with pytest.raises(RuntimeError):

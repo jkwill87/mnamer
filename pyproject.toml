@@ -1,3 +1,31 @@
+[build-system]
+requires = ["setuptools >= 42.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [tool.black]
-line-length = 80
-exclude = 'venv/'
+line-length = 88
+target-version = ["py37"]
+
+[tool.pyright]
+reportGeneralTypeIssues = "information"
+pythonVersion = "3.7"
+include = ["mnamer"]
+exclude = ["playground.py", "venv"]
+venv = ["venv"]
+
+[tool.isort]
+profile = "black"
+py_version = 37
+line_length = 88
+known_first_party = "mnamer"
+combine_star = true
+combine_straight_imports = false
+overwrite_in_place = true
+
+[tool.pylint.messages_control]
+max-line-length = 88
+disable = ["C0103", "C0114", "C0116", "C0209", "E0401", "R0801"]
+
+[tool.mypy]
+incremental = false
+python_version = "3.7"
