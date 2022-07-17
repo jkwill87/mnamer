@@ -118,9 +118,7 @@ class Target:
     def _parse(self, file_path: Path):
         path_data: Dict[str, Any] = {}
         options = {"type": self._settings.media}
-        raw_data = dict(guessit(str(file_path), options))
-        if isinstance(raw_data.get("season"), list):
-            raw_data = dict(guessit(str(file_path.parts[-1]), options))
+        raw_data = dict(guessit(str(file_path.parts[-1]), options))
         for k, v in raw_data.items():
             if hasattr(v, "alpha3"):
                 try:

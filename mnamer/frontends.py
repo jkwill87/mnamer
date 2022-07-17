@@ -191,15 +191,18 @@ class Cli(Frontend):
     def _report_results(self) -> None:
         if self.success_count == 0:
             message_type = MessageType.ERROR
+            exit = 1
         elif self.success_count == self.total_count:
             message_type = MessageType.SUCCESS
+            exit = None
         else:
             message_type = MessageType.ALERT
+            exit = 2
         tty.msg(
             f"\n{self.success_count} out of {self.total_count} files processed successfully",
             message_type,
         )
-
+        raise SystemExit(exit)
 
 class Gui(Frontend):
     def launch(self):
