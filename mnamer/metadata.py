@@ -45,6 +45,7 @@ class Metadata:
     quality: Optional[str] = None
     synopsis: Optional[str] = None
     media: Union[MediaType, str, None] = None
+    forced_sub: Optional[bool] = None
 
     def __setattr__(self, key: str, value: Any):
         converter_map: Dict[str, Callable] = {
@@ -55,8 +56,7 @@ class Metadata:
             "media": MediaType,
             "quality": str.lower,
             "synopsis": str.capitalize,
-        }
-        converter: Optional[Callable] = converter_map.get(key)
+        }.get(key)
         if value is not None and converter:
             value = converter(value)
         super().__setattr__(key, value)
@@ -70,7 +70,7 @@ class Metadata:
     @property
     def extension(self):
         if is_subtitle(self.container) and self.language_sub:
-            return f".{self.language_sub.a2}{self.container}"
+            return f".{self.language_sub.a2}{'-forced' if self.forced_sub else ''}{self.container}"
         else:
             return self.container
 
