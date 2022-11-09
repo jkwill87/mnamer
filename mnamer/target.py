@@ -143,6 +143,7 @@ class Target:
             None: Metadata,
         }[media_type]
         self.metadata = meta_cls(language=self._settings.language)
+        self.metadata.original = self.source.name
         self.metadata.quality = (
             " ".join(
                 path_data[key]
