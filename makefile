@@ -24,7 +24,7 @@ clean: clean-build clean-demo clean-venv
 
 build: clean-build
 	$(info * building distributable)
-	@python3 setup.py sdist bdist_wheel --universal > /dev/null
+	@python3 -m build --sdist --wheel --no-isolation > /dev/null 2>&1
 
 publish: build
 	$(info * publishing to PyPI repository)

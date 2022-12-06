@@ -23,18 +23,18 @@ jobs:
         with:
           python-version: ${{matrix.python-version}}
           cache: pip
-          cache-dependency-path: setup.cfg
+          cache-dependency-path: pyproject.toml
 
       - uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}-${{ hashFiles('MANIFEST.in') }}-${{ hashFiles('pyproject.toml') }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('MANIFEST.in') }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Installing dependencies
-        run: pip install -U -e .[test,dev]
+        run: pip install -U -r requirements.txt -r requirements-test.txt -r requirements-dev.txt
 
       - name: Attempting build
-        run: python -m build --no-isolation
+        run: python -m build --wheel --no-isolation
 
   lint: # ------------------------------------------------------------------------------
     runs-on: ubuntu-latest
@@ -49,12 +49,12 @@ jobs:
         with:
           python-version: 3.x
           cache: pip
-          cache-dependency-path: setup.cfg
+          cache-dependency-path: pyproject.toml
 
       - uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}-${{ hashFiles('MANIFEST.in') }}-${{ hashFiles('pyproject.toml') }}
+          key: ${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-text.txt') }}-${{ hashFiles('MANIFEST.in') }}
 
       - name: Linting with black
         run: black --check mnamer tests
@@ -83,13 +83,12 @@ jobs:
         with:
           python-version: ${{matrix.python-version}}
           cache: pip
-          cache-dependency-path: setup.cfg
+          cache-dependency-path: pyproject.toml
 
       - uses: actions/cache@v2
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('setup.cfg') }}-${{ hashFiles('MANIFEST.in') }}-${{ hashFiles('pyproject.toml') }}
-
+          key: ${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-text.txt') }}-${{ hashFiles('MANIFEST.in') }}
       - name: Running Local Unit Tests
         run: >-
           python -m pytest
@@ -148,10 +147,10 @@ jobs:
           python-version: 3.7
 
       - name: Installing Requirements
-        run: pip install -U pip -e .[dev]
+        run: pip install -U -r requirements.txt -r -r requirements-dev.txt
 
-      - name: Building universal wheel
-        run: python -m build
+      - name: Building wheel and source distribution
+        run: python -m build --sdist --wheel
 
       - name: Uploading to PyPI
         run: >-

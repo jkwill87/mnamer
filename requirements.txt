@@ -1,0 +1,7 @@
+appdirs ~= 1.4.0
+babelfish ~= 0.6.0
+guessit ~= 3.5.0
+requests == 2.*
+requests_cache ~= 0.9.7
+setuptools ~= 61.0.0
+teletype >= 1.1.0,<1.4.0

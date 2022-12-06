@@ -16,10 +16,10 @@ jobs:
         with:
           python-version: 3.x
           cache: pip
-          cache-dependency-path: setup.cfg
+          cache-dependency-path: pyproject.toml
 
       - name: Installing Linters from PyPI
-        run: pip install -e .[test] -e .[dev]
+        run: pip install .[test,dev]
 
       - name: Linting with black
         run: black --check mnamer tests
@@ -38,8 +38,8 @@ jobs:
       with:
         python-version: 3.x
         cache: pip
-        cache-dependency-path: setup.cfg
+        cache-dependency-path: pyproject.toml
 
-    - run: pip install -q -U pip -e .[test]
+    - run: pip install -q -U pip .[test]
     - run: >-
         python -m pytest -m 'not tvdb'
