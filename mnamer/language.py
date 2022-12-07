@@ -8,7 +8,7 @@ from mnamer.exceptions import MnamerException
 _KNOWN = (
     ("arabic", "ar", "ara"),
     ("chinese", "zh", "zho"),
-    ("croation", "hr", "hrv"),
+    ("croatian", "hr", "hrv"),
     ("czech", "cs", "ces"),
     ("danish", "da", "dan"),
     ("english", "en", "eng"),
@@ -24,7 +24,7 @@ _KNOWN = (
     ("persian", "fa", "fas"),
     ("portuguese", "pt", "por"),
     ("russian", "ru", "rus"),
-    ("slovanian", "sl", "slv"),
+    ("slovenian", "sl", "slv"),
     ("spanish", "es", "spa"),
     ("swedish", "sv", "swe"),
     ("turkish", "tr", "tur"),
