@@ -4,7 +4,7 @@ import datetime as dt
 from os import path
 from pathlib import Path
 from shutil import move
-from typing import Any, ClassVar, Dict, List, Optional, Type
+from typing import Any, ClassVar, Type
 
 from guessit import guessit  # type: ignore
 
@@ -19,29 +19,29 @@ from mnamer.utils import (
     filename_replace,
     filter_blacklist,
     filter_containers,
+    is_subtitle,
     str_replace,
     str_sanitize,
     str_scenify,
 )
 
-__all__ = ["Target"]
-
 
 class Target:
     """Manages metadata state for a media file and facilitates its relocation."""
 
-    _providers: ClassVar[Dict[ProviderType, Provider]] = {}
+    _providers: ClassVar[dict[ProviderType, Provider]] = {}
 
     _settings: SettingStore
     _provider: Provider
     _has_moved: bool
     _has_renamed: bool
-    _raw_metadata: Dict[str, str]
+    _raw_metadata: dict[str, str]
     _parsed_metadata: Metadata
 
     source: Path
+    metadata: Metadata
 
-    def __init__(self, file_path: Path, settings: SettingStore = None):
+    def __init__(self, file_path: Path, settings: SettingStore | None = None):
         self.source = file_path
         self._settings = settings or SettingStore()
         self._has_moved = False
@@ -58,7 +58,7 @@ class Target:
             return str(self.source)
 
     @classmethod
-    def populate_paths(cls: Type[Target], settings: SettingStore) -> List[Target]:
+    def populate_paths(cls: Type[Target], settings: SettingStore) -> list[Target]:
         """Creates a list of Target objects for media files found in paths."""
         file_paths = crawl_in(settings.targets, settings.recurse)
         file_paths = filter_blacklist(file_paths, settings.ignore)
@@ -73,21 +73,22 @@ class Target:
         cls._providers.clear()
 
     @staticmethod
-    def _matches_media(target: "Target") -> bool:
+    def _matches_media(target: Target) -> bool:
         if not target._settings.media:
             return True
         else:
-            return target._settings.media is target.metadata.media
+            return target._settings.media is target.metadata.to_media_type()
 
     @property
     def provider_type(self) -> ProviderType:
-        provider_type = self._settings.api_for(self.metadata.media)
+        provider_type = self._settings.api_for(self.metadata.to_media_type())
         assert provider_type
         return provider_type
 
     @property
-    def directory(self) -> Optional[Path]:
-        directory = getattr(self._settings, f"{self.metadata.media.value}_directory")
+    def directory(self) -> Path | None:
+        settings_key = f"{self.metadata.to_media_type().value}_directory"
+        directory = getattr(self._settings, settings_key)
         return Path(directory) if directory else None
 
     @property
@@ -102,9 +103,7 @@ class Target:
             dir_head = Path(dir_head_)
         else:
             dir_head = self.source.parent
-        file_path = format(
-            self.metadata, self._settings.formatting_for(self.metadata.media)
-        )
+        file_path = format(self.metadata, self._settings.formatting_for(self.metadata))
         dir_tail, filename = path.split(Path(file_path))
         filename = filename_replace(filename, self._settings.replace_after)
         if self._settings.scene:
@@ -116,8 +115,14 @@ class Target:
         return Path(directory, filename)
 
     def _parse(self, file_path: Path):
-        path_data: Dict[str, Any] = {}
-        options = {"type": self._settings.media}
+        path_data: dict[str, Any] = {"language": self._settings.language}
+        if is_subtitle(self.source):
+            try:
+                path_data["language"] = Language.parse(self.source.stem[-2:])
+                file_path = Path(self.source.parent, self.source.stem[:-2])
+            except MnamerException:
+                pass
+        options = {"type": self._settings.media, "language": path_data["language"]}
         raw_data = dict(guessit(str(file_path), options))
         if isinstance(raw_data.get("season"), list):
             raw_data = dict(guessit(str(file_path.parts[-1]), options))
@@ -142,7 +147,7 @@ class Target:
             MediaType.MOVIE: MetadataMovie,
             None: Metadata,
         }[media_type]
-        self.metadata = meta_cls(language=self._settings.language)
+        self.metadata = meta_cls()
         self.metadata.quality = (
             " ".join(
                 path_data[key]
@@ -159,6 +164,7 @@ class Target:
             )
             or None
         )
+        self.metadata.language = path_data.get("language")
         self.metadata.group = path_data.get("release_group")
         self.metadata.container = file_path.suffix or None
         if not self.metadata.language:
@@ -170,10 +176,10 @@ class Target:
             self.metadata.language_sub = path_data.get("subtitle_language")
         except MnamerException:
             pass
-        if self.metadata.media is MediaType.MOVIE:
+        if isinstance(self.metadata, MetadataMovie):
             self.metadata.name = path_data.get("title")
             self.metadata.year = path_data.get("year")
-        elif self.metadata.media is MediaType.EPISODE:
+        elif isinstance(self.metadata, MetadataEpisode):
             self.metadata.date = path_data.get("date")
             self.metadata.episode = path_data.get("episode")
             self.metadata.season = path_data.get("season")
@@ -216,7 +222,7 @@ class Target:
             value = str_replace(value, self._settings.replace_before)
             setattr(self.metadata, attr, value)
 
-    def query(self) -> List[Metadata]:
+    def query(self) -> list[Metadata]:
         """Queries the target's respective media provider for metadata."""
         results = self._provider.search(self.metadata)
         if not results:

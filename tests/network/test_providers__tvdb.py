@@ -5,7 +5,7 @@ import pytest
 from mnamer.exceptions import MnamerNotFoundException
 from mnamer.metadata import MetadataEpisode
 from mnamer.providers import Tvdb
-from tests import *
+from tests import EPISODE_META, JUNK_TEXT
 
 pytestmark = [
     pytest.mark.network,

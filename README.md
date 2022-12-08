@@ -1,10 +1,10 @@
 [![PyPI](https://img.shields.io/pypi/v/mnamer.svg?style=for-the-badge)](https://pypi.python.org/pypi/mnamer)
-[![Tests](https://img.shields.io/github/workflow/status/jkwill87/mnamer/push?style=for-the-badge&label=Tests)](https://github.com/jkwill87/mnamer/actions?query=workflow:push)
-[![Coverage](https://img.shields.io/codecov/c/github/jkwill87/mnamer/master.svg?style=for-the-badge)](https://codecov.io/gh/jkwill87/mnamer)
+[![Tests](https://img.shields.io/github/workflow/status/jkwill87/mnamer/push?style=for-the-badge&label=Tests)](https://img.shields.io/github/actions/workflow/status/jkwill87/mnamer/.github/workflows/push.yml?branch=main)
+[![Coverage](https://img.shields.io/codecov/c/github/jkwill87/mnamer/main.svg?style=for-the-badge)](https://codecov.io/gh/jkwill87/mnamer)
 [![Licence](https://img.shields.io/github/license/jkwill87/mnamer.svg?style=for-the-badge)](https://en.wikipedia.org/wiki/MIT_License)
 [![Style: Black](https://img.shields.io/badge/Style-Black-black.svg?style=for-the-badge)](https://github.com/ambv/black)
 
-<img src="https://github.com/jkwill87/mnamer/raw/master/assets/logo.png" width="450"/>
+<img src="https://github.com/jkwill87/mnamer/raw/main/assets/logo.png" width="450"/>
 
 # mnamer
 
@@ -12,7 +12,7 @@ mnamer (**m**edia re**namer**) is an intelligent and highly configurable media o
 
 Currently it has integration support with [TVDb](https://thetvdb.com) and [TvMaze](https://www.tvmaze.com) for television episodes and [TMDb](https://www.themoviedb.org/) and [OMDb](https://www.omdbapi.com) for movies.
 
-<img src="https://github.com/jkwill87/mnamer/raw/master/assets/screenshot.png" width="750"/>
+<img src="https://github.com/jkwill87/mnamer/raw/main/assets/screenshot.png" width="750"/>
 
 ## Documentation
 

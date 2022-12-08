@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import dataclasses
 import datetime as dt
 import re
 from string import Formatter
-from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Union
+from typing import Any, Callable, Mapping, Sequence
 
 from mnamer.language import Language
 from mnamer.types import MediaType
@@ -17,16 +19,14 @@ from mnamer.utils import (
     year_parse,
 )
 
-__all__ = ["Metadata", "MetadataMovie", "MetadataEpisode"]
-
 
 class _MetaFormatter(Formatter):
-    def format_field(self, value: Union[None, int, str], format_spec: str) -> str:
+    def format_field(self, value: None | int | str, format_spec: str) -> str:
         return format(value, format_spec) if value is not None else ""
 
     def get_value(
-        self, key: Union[str, int], args: Sequence[Any], kwargs: Mapping[str, Any]
-    ) -> Union[None, int, str]:
+        self, key: str | int, args: Sequence[Any], kwargs: Mapping[str, Any]
+    ) -> None | int | str:
         if isinstance(key, int):
             assert args
             return args[key]
@@ -38,16 +38,24 @@ class _MetaFormatter(Formatter):
 class Metadata:
     """A dataclass which transforms and stores media metadata information."""
 
-    container: Optional[str] = None
-    group: Optional[str] = None
-    language: Optional[Language] = None
-    language_sub: Optional[Language] = None
-    quality: Optional[str] = None
-    synopsis: Optional[str] = None
-    media: Union[MediaType, str, None] = None
+    container: str | None = None
+    group: str | None = None
+    language: Language | None = None
+    language_sub: Language | None = None
+    quality: str | None = None
+    synopsis: str | None = None
+
+    @classmethod
+    def to_media_type(cls) -> MediaType:
+        if cls is MetadataEpisode:
+            return MediaType.EPISODE
+        elif cls is MetadataMovie:
+            return MediaType.MOVIE
+        else:
+            raise ValueError(f"Unknown metadata class: {cls}")
 
     def __setattr__(self, key: str, value: Any):
-        converter_map: Dict[str, Callable] = {
+        converter_map: dict[str, Callable] = {
             "container": normalize_container,
             "group": str.upper,
             "language": Language.parse,
@@ -56,12 +64,12 @@ class Metadata:
             "quality": str.lower,
             "synopsis": str.capitalize,
         }
-        converter: Optional[Callable] = converter_map.get(key)
+        converter: Callable | None = converter_map.get(key)
         if value is not None and converter:
             value = converter(value)
         super().__setattr__(key, value)
 
-    def __format__(self, format_spec: Optional[str]):
+    def __format__(self, format_spec: str | None):
         raise NotImplementedError
 
     def __str__(self) -> str:
@@ -74,7 +82,7 @@ class Metadata:
         else:
             return self.container
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         d = dataclasses.asdict(self)
         d["extension"] = self.extension
         return d
@@ -86,7 +94,7 @@ class Metadata:
             value = str_title_case(value)
         return value
 
-    def update(self, metadata: "Metadata"):
+    def update(self, metadata: Metadata):
         """Overlays all none value from another Metadata instance."""
         for field in dataclasses.asdict(self).keys():
             value = getattr(metadata, field)
@@ -102,13 +110,12 @@ class MetadataMovie(Metadata):
     to movies.
     """
 
-    name: Optional[str] = None
-    year: Optional[str] = None
-    id_imdb: Optional[str] = None
-    id_tmdb: Union[str, None] = None
-    media: MediaType = MediaType.MOVIE
+    name: str | None = None
+    year: str | None = None
+    id_imdb: str | None = None
+    id_tmdb: str | None = None
 
-    def __format__(self, format_spec: Optional[str]):
+    def __format__(self, format_spec: str | None):
         default = "{name} ({year})"
         re_pattern = r"({(\w+)(?:\[[\w:]+\])?(?:\:\d{1,2})?})"
         s = re.sub(re_pattern, self._format_repl, format_spec or default)
@@ -116,11 +123,11 @@ class MetadataMovie(Metadata):
         return s
 
     def __setattr__(self, key: str, value: Any):
-        converter_map: Dict[str, Callable] = {
+        converter_map: dict[str, Callable] = {
             "name": fn_pipe(str_replace_slashes, str_title_case),
             "year": year_parse,
         }
-        converter: Optional[Callable] = converter_map.get(key)
+        converter: Callable | None = converter_map.get(key)
         if value is not None and converter:
             value = converter(value)
         super().__setattr__(key, value)
@@ -129,18 +136,17 @@ class MetadataMovie(Metadata):
 @dataclasses.dataclass
 class MetadataEpisode(Metadata):
     """
-    A dataclass which transforms and stores media metadata information specific
-    to television episodes.
+    A dataclass which transforms and stores media metadata information specific to
+    television episodes.
     """
 
-    series: Optional[str] = None
-    season: Optional[int] = None
-    episode: Optional[int] = None
-    date: Optional[dt.date] = None
-    title: Optional[str] = None
-    id_tvdb: Optional[str] = None
-    id_tvmaze: Optional[str] = None
-    media: MediaType = MediaType.EPISODE
+    series: str | None = None
+    season: int | None = None
+    episode: int | None = None
+    date: dt.date | None = None
+    title: str | None = None
+    id_tvdb: str | None = None
+    id_tvmaze: str | None = None
 
     def __post_init__(self):
         if isinstance(self.season, str):
@@ -150,7 +156,7 @@ class MetadataEpisode(Metadata):
         if isinstance(self.date, str):
             self.date = parse_date(self.date)
 
-    def __format__(self, format_spec: Optional[str]):
+    def __format__(self, format_spec: str | None):
         default = "{series} - {season:02}x{episode:02} - {title}"
         re_pattern = r"({(\w+)(?:\[[\w:]+\])?(?:\:\d{1,2})?})"
         s = re.sub(re_pattern, self._format_repl, format_spec or default)
@@ -158,14 +164,14 @@ class MetadataEpisode(Metadata):
         return s
 
     def __setattr__(self, key: str, value: Any):
-        converter_map: Dict[str, Callable] = {
+        converter_map: dict[str, Callable] = {
             "date": parse_date,
             "episode": int,
             "season": int,
             "series": fn_pipe(str_replace_slashes, str_title_case),
             "title": fn_pipe(str_replace_slashes, str_title_case),
         }
-        converter: Optional[Callable] = converter_map.get(key)
+        converter: Callable | None = converter_map.get(key)
         if value is not None and converter:
             value = converter(value)
         super().__setattr__(key, value)

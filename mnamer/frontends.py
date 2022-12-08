@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import List
 
 from mnamer import tty
 from mnamer.const import SYSTEM, USAGE, VERSION
@@ -18,7 +17,7 @@ from mnamer.utils import clear_cache, get_filesize, is_subtitle
 
 class Frontend(ABC):
     settings: SettingStore
-    targets: List[Target]
+    targets: list[Target]
 
     def __init__(self, settings: SettingStore):
         self.settings = settings
@@ -152,7 +151,7 @@ class Cli(Frontend):
             self._rename_and_move_file(target)
 
     def _announce_file(self, target: Target):
-        media_type = target.metadata.media.value.title()
+        media_type = target.metadata.to_media_type().value.title()
         description = (
             f"{media_type} Subtitle"
             if is_subtitle(target.metadata.container)

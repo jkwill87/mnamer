@@ -4,7 +4,10 @@ import pytest
 
 from mnamer.const import SUBTITLE_CONTAINERS
 
-pytestmark = pytest.mark.e2e
+pytestmark = [
+    pytest.mark.e2e,
+    pytest.mark.flaky(reruns=2),
+]
 
 
 @pytest.mark.usefixtures("setup_test_dir")

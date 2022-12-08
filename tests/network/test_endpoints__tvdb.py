@@ -12,7 +12,7 @@ from mnamer.endpoints import (
 from mnamer.exceptions import MnamerException, MnamerNotFoundException
 from mnamer.language import Language
 from mnamer.providers import Tvdb
-from tests import *
+from tests import JUNK_TEXT, RUSSIAN_LANG
 
 pytestmark = [
     pytest.mark.network,

@@ -1,0 +1,46 @@
+name: Test
+description: Tests the codebase with pytest
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/init
+
+    - name: Running Local Unit Tests
+      run: >-
+        python -m pytest
+        -m local
+        --durations=10
+        --cov=./
+        --cov-append
+        --cov-report=term-missing
+        --cov-report=xml
+      shell: sh
+
+    - name: Running Network Unit Tests
+      run: >-
+        python -m pytest
+        -m network
+        --reruns 3
+        --durations=10
+        --cov=./
+        --cov-append
+        --cov-report=term-missing
+        --cov-report=xml
+      shell: sh
+
+    - name: Running End to End Tests
+      run: >-
+        python -m pytest
+        -m e2e
+        --reruns 3
+        --durations=10
+        --cov=./
+        --cov-append
+        --cov-report=term-missing
+        --cov-report=xml
+      shell: sh
+
+    - name: Reporting Coverage Statistics
+      uses: codecov/codecov-action@v1
+      if: success() && github.ref == 'refs/heads/main'

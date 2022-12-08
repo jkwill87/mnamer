@@ -1,13 +1,17 @@
 """Enum type definitions."""
+from __future__ import annotations
 
 from enum import Enum
-
-__all__ = ["MediaType", "MessageType", "ProviderType", "SettingType"]
+from typing import Type
 
 
 class MediaType(Enum):
     EPISODE = "episode"
     MOVIE = "movie"
+
+    @classmethod
+    def to_media_type(cls) -> Type[MediaType]:
+        return cls
 
 
 class MessageType(Enum):

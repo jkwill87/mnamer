@@ -2,9 +2,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from mnamer.__version__ import VERSION
+from mnamer.const import VERSION
 
-pytestmark = pytest.mark.e2e
+pytestmark = [
+    pytest.mark.e2e,
+    pytest.mark.flaky(reruns=1),
+]
 
 
 @pytest.mark.parametrize("flag", ("-V", "--version"))
@@ -20,21 +23,6 @@ def test_directives__clear_cache(mock_clear_cache: MagicMock, e2e_run):
     assert result.code == 0
     assert "cache cleared" in result.out
     mock_clear_cache.assert_called_once()
-
-
-# @pytest.mark.parametrize("key", SettingStore._serializable_fields())
-# @patch("mnamer.utils.crawl_out")
-# def test_directives__config_dump(mock_crawl_out: MagicMock, key: str, e2e_run):
-#     mock_crawl_out.return_value = None
-#     result = e2e_run("--config_dump")
-#     assert result.code == 0
-#     if key.startswith("api_key"):
-#         return
-#     json_out = json.loads(result.out)
-#     value = DEFAULT_SETTINGS[key]
-#     expected = getattr(value, "value", value)
-#     actual = json_out[key]
-#     assert actual == expected
 
 
 @pytest.mark.omdb

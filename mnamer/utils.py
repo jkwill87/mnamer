@@ -6,7 +6,7 @@ import re
 from os import walk
 from os.path import exists, expanduser, expandvars, getsize, splitdrive, splitext
 from pathlib import Path, PurePath
-from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, Callable, Iterator
 from unicodedata import normalize
 
 import requests_cache
@@ -14,41 +14,8 @@ from requests.adapters import HTTPAdapter
 
 from mnamer.const import CACHE_PATH, CURRENT_YEAR, SUBTITLE_CONTAINERS
 
-__all__ = [
-    "clean_dict",
-    "clear_cache",
-    "crawl_in",
-    "crawl_out",
-    "filename_replace",
-    "filter_blacklist",
-    "filter_containers",
-    "findall",
-    "fn_chain",
-    "fn_pipe",
-    "format_dict",
-    "format_exception",
-    "format_iter",
-    "get_filesize",
-    "get_session",
-    "is_subtitle",
-    "json_dumps",
-    "json_loads",
-    "normalize_container",
-    "normalize_containers",
-    "parse_date",
-    "request_json",
-    "str_fix_padding",
-    "str_replace",
-    "str_replace_slashes",
-    "str_sanitize",
-    "str_scenify",
-    "str_title_case",
-    "year_parse",
-    "year_range_parse",
-]
 
-
-def clean_dict(target_dict: Dict[Any, Any], whitelist=None) -> Dict[Any, Any]:
+def clean_dict(target_dict: dict, whitelist=None) -> dict:
     """Convenience function that removes a dicts keys that have falsy values."""
     return {
         str(k).strip(): str(v).strip()
@@ -62,7 +29,7 @@ def clear_cache():
     get_session().cache.clear()
 
 
-def crawl_in(file_paths: List[Path], recurse: bool = False) -> List[Path]:
+def crawl_in(file_paths: list[Path], recurse: bool = False) -> list[Path]:
     """Looks for files amongst or within paths provided."""
     found_files = set()
     for file_path in file_paths:
@@ -79,7 +46,7 @@ def crawl_in(file_paths: List[Path], recurse: bool = False) -> List[Path]:
     return sorted(list(found_files))
 
 
-def crawl_out(filename: Union[str, Path, PurePath]) -> Optional[Path]:
+def crawl_out(filename: str | Path | PurePath) -> Path | None:
     """Looks for a file in the home directory and each directory up from cwd."""
     working_dir = Path.cwd()
     while True:
@@ -94,14 +61,14 @@ def crawl_out(filename: Union[str, Path, PurePath]) -> Optional[Path]:
     return target if target.exists() else None
 
 
-def filename_replace(filename: str, replacements: Dict[str, str]) -> str:
+def filename_replace(filename: str, replacements: dict[str, str]) -> str:
     """Replaces keys in replacements dict with their values."""
     base, container = splitext(filename)
     base = str_replace(base, replacements)
     return base + container
 
 
-def filter_blacklist(paths: List[Path], blacklist: List[str]) -> List[Path]:
+def filter_blacklist(paths: list[Path], blacklist: list[str]) -> list[Path]:
     """Filters (set difference) paths by a collection of regex pattens."""
     return [
         path.absolute()
@@ -115,8 +82,8 @@ def filter_blacklist(paths: List[Path], blacklist: List[str]) -> List[Path]:
 
 
 def filter_containers(
-    file_paths: List[Path], valid_containers: List[str]
-) -> List[Path]:
+    file_paths: list[Path], valid_containers: list[str]
+) -> list[Path]:
     """Filters (set intersection) a collection of containers."""
     valid_containers = normalize_containers(valid_containers)
     return [
@@ -150,7 +117,7 @@ def fn_pipe(*fn_list: Callable) -> Callable:
     return resolver
 
 
-def format_dict(body: Dict[Any, Any]) -> str:
+def format_dict(body: dict) -> str:
     """
     Formats a dictionary into a multi-line bulleted string of key-value pairs.
     """
@@ -168,11 +135,11 @@ def format_iter(body: list) -> str:
     return "\n".join(sorted([f" - {getattr(v, 'value', v)}" for v in body]))
 
 
-def is_subtitle(container: Optional[str]) -> bool:
+def is_subtitle(container: str | Path | None) -> bool:
     """Returns True if container is a subtitle container."""
     if not container:
         return False
-    return container.endswith(tuple(SUBTITLE_CONTAINERS))
+    return str(container).endswith(tuple(SUBTITLE_CONTAINERS))
 
 
 def get_session() -> requests_cache.CachedSession:
@@ -209,7 +176,7 @@ def get_filesize(path: Path) -> str:
     return f"{size:.{2}f}{unit}"
 
 
-def json_dumps(d: Dict[str, Any]) -> str:
+def json_dumps(d: dict[str, Any]) -> str:
     """A wrapper for json.dumps."""
     return json.dumps(
         {k: getattr(v, "value", v) for k, v in d.items()},
@@ -222,7 +189,7 @@ def json_dumps(d: Dict[str, Any]) -> str:
     )
 
 
-def json_loads(path: str) -> Dict[str, Any]:
+def json_loads(path: str) -> dict[str, Any]:
     json_data = ""
     path = expanduser(path)
     path = expandvars(path)
@@ -240,12 +207,12 @@ def normalize_container(container: str) -> str:
     return container.lower()
 
 
-def normalize_containers(container_list: List[str]) -> List[str]:
+def normalize_containers(container_list: list[str]) -> list[str]:
     """For a list of containers ensures that all containers begin with a dot."""
     return [normalize_container(container) for container in container_list]
 
 
-def parse_date(value: Union[str, dt.date, dt.datetime]) -> dt.date:
+def parse_date(value: str | dt.date | dt.datetime) -> dt.date:
     """Converts an ambiguously formatted date type into a date object."""
     if isinstance(value, str):
         value = value.replace("/", "-")
@@ -258,11 +225,11 @@ def parse_date(value: Union[str, dt.date, dt.datetime]) -> dt.date:
 
 def request_json(
     url,
-    parameters: Optional[Union[dict, list]] = None,
-    body: Optional[dict] = None,
-    headers: Optional[dict] = None,
+    parameters: dict | list | None = None,
+    body: dict | None = None,
+    headers: dict | None = None,
     cache: bool = True,
-) -> Tuple[int, dict]:
+) -> tuple[int, dict]:
     """
     Queries a url for json data.
 
@@ -330,7 +297,7 @@ def str_fix_padding(s: str) -> str:
     return s if len_before == len_after else str_fix_padding(s)
 
 
-def str_replace(s: str, replacements: Dict[str, str]) -> str:
+def str_replace(s: str, replacements: dict[str, str]) -> str:
     """Replaces keys in replacements dict with their values."""
     for word, replacement in replacements.items():
         if word in s:
@@ -511,7 +478,7 @@ def str_title_case(s: str) -> str:
     return s
 
 
-def year_parse(s: str) -> Optional[int]:
+def year_parse(s: str) -> int | None:
     """Parses a year from a string."""
     regex = r"((?:19|20)\d{2})(?:$|[-/]\d{2}[-/]\d{2})"
     try:
@@ -520,9 +487,7 @@ def year_parse(s: str) -> Optional[int]:
         return None
 
 
-def year_range_parse(
-    years: Optional[Union[str, int]], tolerance: int = 1
-) -> Tuple[int, int]:
+def year_range_parse(years: str | int | None, tolerance: int = 1) -> tuple[int, int]:
     """Parses a year or dash-delimited year range."""
     regex = r"^((?:19|20)\d{2})?([-,: ]*)?((?:19|20)\d{2})?$"
     default_start = 1900

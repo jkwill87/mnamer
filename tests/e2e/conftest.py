@@ -9,7 +9,7 @@ from mnamer.exceptions import MnamerException
 from mnamer.frontends import Cli
 from mnamer.setting_store import SettingStore
 from mnamer.target import Target
-from tests import *
+from tests import E2EResult
 
 # Move up to root directory if run from subdirectory
 cwd = Path().resolve()

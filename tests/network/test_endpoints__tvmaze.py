@@ -10,7 +10,7 @@ from mnamer.endpoints import (
     tvmaze_show_single_search,
 )
 from mnamer.exceptions import MnamerException, MnamerNotFoundException
-from tests import *
+from tests import EPISODE_META, JUNK_TEXT, TEST_DATE
 
 pytestmark = [
     pytest.mark.network,

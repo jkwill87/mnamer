@@ -5,7 +5,7 @@ import pytest
 from mnamer.endpoints import omdb_search, omdb_title
 from mnamer.exceptions import MnamerException, MnamerNotFoundException
 from mnamer.providers import Omdb
-from tests import *
+from tests import JUNK_TEXT, MockRequestResponse
 
 pytestmark = [
     pytest.mark.network,

@@ -3,154 +3,45 @@ name: push
 on:
   push:
   schedule:
-    - cron: "0 8 * * 1" # Mondays at 8am
+    - cron: "0 8 * * 1" # mondays at 8am
 
 jobs:
-  build: # -----------------------------------------------------------------------------
+  lint:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        python-version: ["3.8", "3.x"]
-    name: build-v${{matrix.python-version}}
 
     steps:
-      - name: Checking out Git Commit
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/lint
 
-      - name: Installing Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{matrix.python-version}}
-          cache: pip
-          cache-dependency-path: pyproject.toml
-
-      - uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('MANIFEST.in') }}-${{ hashFiles('pyproject.toml') }}
-
-      - name: Installing dependencies
-        run: pip install -U -r requirements.txt -r requirements-test.txt -r requirements-dev.txt
-
-      - name: Attempting build
-        run: python -m build --wheel --no-isolation
-
-  lint: # ------------------------------------------------------------------------------
+  test:
     runs-on: ubuntu-latest
-    needs: build
 
     steps:
-      - name: Checking out Git Commit
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/test
 
-      - name: Installing Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.x
-          cache: pip
-          cache-dependency-path: pyproject.toml
-
-      - uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-text.txt') }}-${{ hashFiles('MANIFEST.in') }}
-
-      - name: Linting with black
-        run: black --check mnamer tests
-
-      - name: Linting isort
-        run: isort --check-only mnamer tests
-
-      - name: Linting mypy
-        run: mypy mnamer
-
-  test: # ------------------------------------------------------------------------------
+  publish:
     runs-on: ubuntu-latest
-    needs: build
 
-    strategy:
-      matrix:
-        python-version: ["8", "3.x"]
-    name: test-v${{matrix.python-version}}
+    if: >-
+      success()
+      && github.event_name == 'push'
+      && github.ref == 'refs/heads/main'
 
-    steps:
-      - name: Checking out Git Commit
-        uses: actions/checkout@v2
-
-      - name: Installing Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{matrix.python-version}}
-          cache: pip
-          cache-dependency-path: pyproject.toml
-
-      - uses: actions/cache@v2
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-text.txt') }}-${{ hashFiles('MANIFEST.in') }}
-      - name: Running Local Unit Tests
-        run: >-
-          python -m pytest
-          -m local
-          --durations=10
-          --cov=./
-          --cov-append
-          --cov-report=term-missing
-          --cov-report=xml
-
-      - name: Running Network Unit Tests
-        run: >-
-          python -m pytest
-          -m network
-          --reruns 3
-          --durations=10
-          --cov=./
-          --cov-append
-          --cov-report=term-missing
-          --cov-report=xml
-
-      - name: Running End to End Tests
-        run: >-
-          python -m pytest
-          -m e2e
-          --reruns 3
-          --durations=10
-          --cov=./
-          --cov-append
-          --cov-report=term-missing
-          --cov-report=xml
-
-      - name: Reporting Coverage Statistics
-        if: >
-          success()
-          && github.event_name == 'push'
-          && github.ref == 'refs/heads/master'
-          && matrix['python-version'] == '3.x'
-        uses: codecov/codecov-action@v1
-
-  publish: # ---------------------------------------------------------------------------
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags')
     needs:
-      - build
       - lint
       - test
 
     steps:
-      - name: Checking out Git Commit
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with: { fetch-depth: 0 } # required for setuptools_scm to detect git tags
+      - uses: ./.github/actions/init
 
-      - name: Installing Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
+      - name: Building
+        run: python3 -m build --sdist --wheel --no-isolation
 
-      - name: Installing Requirements
-        run: pip install -U -r requirements.txt -r -r requirements-dev.txt
-
-      - name: Building wheel and source distribution
-        run: python -m build --sdist --wheel
+      - name: Reporting Version
+        run: python3 -m mnamer --version
 
       - name: Uploading to PyPI
         run: >-

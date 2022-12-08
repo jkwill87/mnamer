@@ -1,17 +1,16 @@
 import dataclasses
 import json
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable
 
 from mnamer.argument import ArgLoader
 from mnamer.const import SUBTITLE_CONTAINERS
 from mnamer.exceptions import MnamerException
 from mnamer.language import Language
+from mnamer.metadata import Metadata
 from mnamer.setting_spec import SettingSpec
 from mnamer.types import MediaType, ProviderType, SettingType
 from mnamer.utils import crawl_out, json_loads, normalize_containers
-
-__all__ = ["SettingStore"]
 
 
 @dataclasses.dataclass
@@ -23,7 +22,7 @@ class SettingStore:
 
     # positional attributes ----------------------------------------------------
 
-    targets: List[Path] = dataclasses.field(
+    targets: list[Path] = dataclasses.field(
         default_factory=lambda: [],
         metadata=SettingSpec(
             flags=["targets"],
@@ -87,10 +86,10 @@ class SettingStore:
             flags=["--hits"],
             group=SettingType.PARAMETER,
             help="--hits=<NUMBER>: limit the maximum number of hits for each query",
-            type=int,
+            typevar=int,
         ).as_dict(),
     )
-    ignore: List[str] = dataclasses.field(
+    ignore: list[str] = dataclasses.field(
         default_factory=lambda: [".*sample.*", "^RARBG.*"],
         metadata=SettingSpec(
             flags=["--ignore"],
@@ -99,7 +98,7 @@ class SettingStore:
             nargs="+",
         ).as_dict(),
     )
-    language: Optional[Language] = dataclasses.field(
+    language: Language | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             flags=["--language"],
@@ -107,7 +106,7 @@ class SettingStore:
             help="--language=<LANG>: specify the search language",
         ).as_dict(),
     )
-    mask: List[str] = dataclasses.field(
+    mask: list[str] = dataclasses.field(
         default_factory=lambda: [
             "avi",
             "m4v",
@@ -154,7 +153,7 @@ class SettingStore:
             help="--no-style: print to stdout without using colour or unicode chars",
         ).as_dict(),
     )
-    movie_api: Union[ProviderType, str] = dataclasses.field(
+    movie_api: ProviderType | str = dataclasses.field(
         default=ProviderType.TMDB,
         metadata=SettingSpec(
             choices=[ProviderType.TMDB.value, ProviderType.OMDB.value],
@@ -164,7 +163,7 @@ class SettingStore:
             help="--movie-api={*tmdb,omdb}: set movie api provider",
         ).as_dict(),
     )
-    movie_directory: Optional[Path] = dataclasses.field(
+    movie_directory: Path | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             dest="movie_directory",
@@ -186,7 +185,7 @@ class SettingStore:
             help="--movie-format: set movie renaming format specification",
         ).as_dict(),
     )
-    episode_api: Union[ProviderType, str] = dataclasses.field(
+    episode_api: ProviderType | str = dataclasses.field(
         default=ProviderType.TVMAZE,
         metadata=SettingSpec(
             choices=[ProviderType.TVDB.value, ProviderType.TVMAZE.value],
@@ -196,7 +195,7 @@ class SettingStore:
             help="--episode-api={tvdb,*tvmaze}: set episode api provider",
         ).as_dict(),
     )
-    episode_directory: Optional[Path] = dataclasses.field(
+    episode_directory: Path | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             dest="episode_directory",
@@ -260,7 +259,7 @@ class SettingStore:
             help="--config-ignore: skips loading config file for session",
         ).as_dict(),
     )
-    config_path: Optional[str] = dataclasses.field(
+    config_path: str | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             flags=["--config_path", "--config-path"],
@@ -268,7 +267,7 @@ class SettingStore:
             help="--config-path=<PATH>: specifies configuration path to load",
         ).as_dict(),
     )
-    id_imdb: Optional[str] = dataclasses.field(
+    id_imdb: str | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             flags=["--id_imdb", "--id-imdb", "--idimdb"],
@@ -276,7 +275,7 @@ class SettingStore:
             help="--id-imdb=<ID>: specify an IMDb movie id override",
         ).as_dict(),
     )
-    id_tmdb: Optional[str] = dataclasses.field(
+    id_tmdb: str | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             flags=["--id_tmdb", "--id-tmdb", "--idtmdb"],
@@ -284,7 +283,7 @@ class SettingStore:
             help="--id-tmdb=<ID>: specify a TMDb movie id override",
         ).as_dict(),
     )
-    id_tvdb: Optional[str] = dataclasses.field(
+    id_tvdb: str | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             flags=["--id_tvdb", "--id-tvdb", "--idtvdb"],
@@ -292,7 +291,7 @@ class SettingStore:
             help="--id-tvdb=<ID>: specify a TVDb series id override",
         ).as_dict(),
     )
-    id_tvmaze: Optional[str] = dataclasses.field(
+    id_tvmaze: str | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             flags=["--id_tvmaze", "--id-tvmaze", "--idtvmaze"],
@@ -310,7 +309,7 @@ class SettingStore:
             help="--no-cache: disable request cache",
         ).as_dict(),
     )
-    media: Optional[MediaType] = dataclasses.field(
+    media: MediaType | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(
             choices=[MediaType.EPISODE.value, MediaType.MOVIE.value],
@@ -331,33 +330,33 @@ class SettingStore:
 
     # config-only attributes ---------------------------------------------------
 
-    api_key_omdb: Optional[str] = dataclasses.field(
+    api_key_omdb: str | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
-    api_key_tmdb: Optional[str] = dataclasses.field(
+    api_key_tmdb: str | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
-    api_key_tvdb: Optional[str] = dataclasses.field(
+    api_key_tvdb: str | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
-    api_key_tvmaze: Optional[str] = dataclasses.field(
+    api_key_tvmaze: str | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
-    replace_before: Dict[str, str] = dataclasses.field(
+    replace_before: dict[str, str] = dataclasses.field(
         default_factory=lambda: {},
         metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
-    replace_after: Dict[str, str] = dataclasses.field(
+    replace_after: dict[str, str] = dataclasses.field(
         default_factory=lambda: {"&": "and", "@": "at", ";": ","},
         metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
 
     @classmethod
-    def specifications(cls) -> List[SettingSpec]:
+    def specifications(cls) -> list[SettingSpec]:
         return [
             SettingSpec(**f.metadata)
             for f in dataclasses.fields(SettingStore)
@@ -365,11 +364,11 @@ class SettingStore:
         ]
 
     @staticmethod
-    def _resolve_path(path: Union[str, Path]) -> Path:
+    def _resolve_path(path: str | Path) -> Path:
         return Path(path).resolve()
 
     def __setattr__(self, key: str, value: Any):
-        converter_map: Dict[str, Callable] = {
+        converter_map: dict[str, Callable] = {
             "episode_api": ProviderType,
             "episode_directory": self._resolve_path,
             "language": Language.parse,
@@ -379,12 +378,12 @@ class SettingStore:
             "movie_directory": self._resolve_path,
             "targets": lambda targets: [Path(target) for target in targets],
         }
-        converter: Optional[Callable] = converter_map.get(key)
+        converter: Callable | None = converter_map.get(key)
         if value is not None and converter:
             value = converter(value)
         super().__setattr__(key, value)
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         return dataclasses.asdict(self)
 
     def as_json(self) -> str:
@@ -415,7 +414,7 @@ class SettingStore:
             sort_keys=True,
         )
 
-    def bulk_apply(self, d: Dict[str, Any]):
+    def bulk_apply(self, d: dict[str, Any]):
         for k, v in d.items():
             if v:
                 setattr(self, k, v)
@@ -434,17 +433,18 @@ class SettingStore:
             self.bulk_apply(arguments)
         return None
 
-    def api_for(self, media_type: Optional[MediaType]) -> Optional[ProviderType]:
+    def api_for(self, media_type: MediaType | None) -> ProviderType | None:
         """Returns the ProviderType for a given media type."""
         if media_type:
             return getattr(self, f"{media_type.value}_api")
         return None
 
-    def api_key_for(self, provider_type: ProviderType) -> Optional[str]:
+    def api_key_for(self, provider_type: ProviderType) -> str | None:
         """Returns the API key for a provider type."""
         if provider_type:
             return getattr(self, f"api_key_{provider_type.value}")
         return None
 
-    def formatting_for(self, media_type: MediaType) -> str:
-        return getattr(self, f"{media_type.value}_format") if media_type else ""
+    def formatting_for(self, media: MediaType | Metadata) -> str:
+        """Returns the formatting string for a given media type or metadata."""
+        return getattr(self, f"{ media.to_media_type().value}_format")

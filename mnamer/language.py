@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Any, Optional, Tuple
+from typing import Any
 
 from mnamer.exceptions import MnamerException
 
-_KNOWN = (
+KNOWN_LANGUAGES = (
     ("arabic", "ar", "ara"),
     ("chinese", "zh", "zho"),
     ("croatian", "hr", "hrv"),
@@ -41,7 +41,7 @@ class Language:
     a3: str
 
     @classmethod
-    def parse(cls, value: Any) -> Optional[Language]:
+    def parse(cls, value: Any) -> Language | None:
         if not value:
             return None
         if isinstance(value, cls):
@@ -56,21 +56,23 @@ class Language:
         except:
             raise MnamerException("Could not determine language")
         value = value.lower()
-        for row in _KNOWN:
+        for row in KNOWN_LANGUAGES:
             for item in row:
                 if value == item:
                     return cls(row[0].capitalize(), row[1], row[2])
         raise MnamerException("Could not determine language")
 
     @classmethod
-    def all(cls) -> Tuple[Language, ...]:
-        return tuple(cls(row[0].capitalize(), row[1], row[2]) for row in _KNOWN)
+    def all(cls) -> tuple[Language, ...]:
+        return tuple(
+            cls(row[0].capitalize(), row[1], row[2]) for row in KNOWN_LANGUAGES
+        )
 
     def __str__(self) -> str:
         return self.a2
 
     @staticmethod
-    def ensure_valid_for_tvdb(language: Optional[Language]):
+    def ensure_valid_for_tvdb(language: Language | None):
         valid = {
             "cs",
             "da",

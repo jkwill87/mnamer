@@ -1,20 +1,9 @@
 import datetime as dt
-from typing import Any, Dict, NamedTuple
+from typing import Any, NamedTuple
 
 from mnamer.const import SUBTITLE_CONTAINERS
 from mnamer.language import Language
 from mnamer.types import ProviderType
-
-__all__ = [
-    "DEFAULT_SETTINGS",
-    "EPISODE_META",
-    "JUNK_TEXT",
-    "MOVIE_META",
-    "TEST_DATE",
-    "RUSSIAN_LANG",
-    "E2EResult",
-    "MockRequestResponse",
-]
 
 DEFAULT_SETTINGS = {
     "batch": False,
@@ -127,7 +116,7 @@ class MockRequestResponse:
         self.status_code = status
         self.content = content
 
-    def json(self) -> Dict[str, Any]:
+    def json(self) -> dict[str, Any]:
         from json import loads
 
         return loads(self.content)

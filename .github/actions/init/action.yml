@@ -1,0 +1,19 @@
+name: Init
+description: Sets up the environment for build, lint, and test jobs
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v4
+      with:
+        cache: pip
+        cache-dependency-path: |
+          pyproject.toml
+          requirements.txt
+          requirements-dev.txt
+
+    - name: Installing dependencies
+      shell: sh
+      run: >-
+        pip install -U pip &&
+        pip install -U -r requirements.txt -r requirements-dev.txt

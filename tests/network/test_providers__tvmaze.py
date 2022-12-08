@@ -3,7 +3,7 @@ import pytest
 from mnamer.exceptions import MnamerNotFoundException
 from mnamer.metadata import MetadataEpisode
 from mnamer.providers import TvMaze
-from tests import *
+from tests import EPISODE_META, JUNK_TEXT, TEST_DATE
 
 pytestmark = [
     pytest.mark.network,

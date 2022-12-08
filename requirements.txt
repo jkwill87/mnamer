@@ -3,5 +3,6 @@ babelfish ~= 0.6.0
 guessit ~= 3.5.0
 requests == 2.*
 requests_cache ~= 0.9.7
-setuptools ~= 61.0.0
+setuptools_scm ~= 7.1.0
 teletype >= 1.1.0,<1.4.0
+typing-extensions ~= 4.4.0

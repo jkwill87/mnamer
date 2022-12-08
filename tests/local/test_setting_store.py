@@ -2,7 +2,7 @@ import pytest
 
 from mnamer.setting_store import SettingStore
 from mnamer.types import MediaType, ProviderType
-from tests import *
+from tests import DEFAULT_SETTINGS
 
 pytestmark = pytest.mark.local
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime as dt
 from abc import ABC, abstractmethod
 from os import environ
-from typing import Iterator, Optional, TypeVar
+from typing import Iterator
 
 from mnamer.endpoints import (
     omdb_search,
@@ -30,16 +30,14 @@ from mnamer.setting_store import SettingStore
 from mnamer.types import MediaType, ProviderType
 from mnamer.utils import parse_date, year_range_parse
 
-__all__ = ["Provider", "Omdb", "Tmdb", "Tvdb", "TvMaze"]
-
 
 class Provider(ABC):
     """ABC for Providers, high-level interfaces for metadata media providers."""
 
-    api_key: Optional[str] = None
+    api_key: str | None = None
     cache: bool = True
 
-    def __init__(self, api_key: Optional[str] = None, cache: bool = True):
+    def __init__(self, api_key: str | None = None, cache: bool = True):
         """Initializes the provider."""
         if api_key:
             self.api_key = api_key
@@ -75,7 +73,7 @@ class Omdb(Provider):
 
     api_key: str = environ.get("API_KEY_OMDB", "477a7ebc")
 
-    def __init__(self, api_key: Optional[str] = None, cache: bool = True):
+    def __init__(self, api_key: str | None = None, cache: bool = True):
         super().__init__(api_key, cache)
         assert self.api_key
 
@@ -112,7 +110,7 @@ class Omdb(Provider):
             meta.synopsis = None
         yield meta
 
-    def _search_movie(self, name: str, year: Optional[str]) -> Iterator[MetadataMovie]:
+    def _search_movie(self, name: str, year: str | None) -> Iterator[MetadataMovie]:
         assert self.api_key
         year_from, year_to = year_range_parse(year, 5)
         found = False
@@ -145,7 +143,7 @@ class Tmdb(Provider):
 
     api_key: str = environ.get("API_KEY_TMDB", "db972a607f2760bb19ff8bb34074b4c7")
 
-    def __init__(self, api_key: Optional[str] = None, cache: bool = True):
+    def __init__(self, api_key: str | None = None, cache: bool = True):
         super().__init__(api_key, cache)
         assert self.api_key
 
@@ -161,7 +159,7 @@ class Tmdb(Provider):
         yield from results
 
     def _search_id(
-        self, id_tmdb: str, language: Optional[Language] = None
+        self, id_tmdb: str, language: Language | None = None
     ) -> Iterator[MetadataMovie]:
         assert self.api_key
         response = tmdb_movies(self.api_key, id_tmdb, language, self.cache)
@@ -174,9 +172,7 @@ class Tmdb(Provider):
             id_imdb=response["imdb_id"],
         )
 
-    def _search_name(
-        self, name: str, year: Optional[str], language: Optional[Language]
-    ):
+    def _search_name(self, name: str, year: str | None, language: Language | None):
         assert self.api_key
         year_from, year_to = year_range_parse(year, 5)
         page = 1
@@ -221,7 +217,7 @@ class Tvdb(Provider):
 
     api_key: str = environ.get("API_KEY_TVDB", "E69C7A2CEF2F3152")
 
-    def __init__(self, api_key: Optional[str] = None, cache: bool = True):
+    def __init__(self, api_key: str | None = None, cache: bool = True):
         super().__init__(api_key, cache)
         assert self.api_key
         self.token = "" if self.cache else self._login()
@@ -254,9 +250,9 @@ class Tvdb(Provider):
     def _search_id(
         self,
         id_tvdb: str,
-        season: Optional[int] = None,
-        episode: Optional[int] = None,
-        language: Optional[Language] = None,
+        season: int | None = None,
+        episode: int | None = None,
+        language: Language | None = None,
     ):
         found = False
         series_data = tvdb_series_id(
@@ -300,9 +296,9 @@ class Tvdb(Provider):
     def _search_series(
         self,
         series: str,
-        season: Optional[int],
-        episode: Optional[int],
-        language: Optional[Language],
+        season: int | None,
+        episode: int | None,
+        language: Language | None,
     ):
         found = False
         series_data = tvdb_search_series(
@@ -322,7 +318,7 @@ class Tvdb(Provider):
             raise MnamerNotFoundException
 
     def _search_tvdb_date(
-        self, id_tvdb: str, release_date: dt.date, language: Optional[Language]
+        self, id_tvdb: str, release_date: dt.date, language: Language | None
     ):
         release_date = parse_date(release_date)
         found = False
@@ -334,7 +330,7 @@ class Tvdb(Provider):
             raise MnamerNotFoundException
 
     def _search_series_date(
-        self, series: str, release_date: dt.date, language: Optional[Language]
+        self, series: str, release_date: dt.date, language: Language | None
     ):
         release_date = parse_date(release_date)
         series_data = tvdb_search_series(
@@ -380,7 +376,7 @@ class TvMaze(Provider):
             raise MnamerNotFoundException
 
     def _lookup_with_tmaze_id_and_season_and_episode(
-        self, id_tvmaze: str, season: Optional[int], episode: Optional[int]
+        self, id_tvmaze: str, season: int | None, episode: int | None
     ) -> Iterator[MetadataEpisode]:
         series_data = tvmaze_show(id_tvmaze)
         episode_data = tvmaze_episode_by_number(id_tvmaze, season, episode)
@@ -388,7 +384,7 @@ class TvMaze(Provider):
         yield self._transform_meta(id_tvmaze, id_tvdb, series_data, episode_data)
 
     def _lookup_with_id_and_date(
-        self, id_tvmaze: Optional[str], id_tvdb: Optional[str], air_date: dt.date
+        self, id_tvmaze: str | None, id_tvdb: str | None, air_date: dt.date
     ) -> Iterator[MetadataEpisode]:
         assert id_tvmaze or id_tvdb
         if id_tvmaze:
@@ -407,10 +403,10 @@ class TvMaze(Provider):
 
     def _lookup_with_id(
         self,
-        id_tvmaze: Optional[str],
-        id_tvdb: Optional[str],
-        season: Optional[int],
-        episode: Optional[int],
+        id_tvmaze: str | None,
+        id_tvdb: str | None,
+        season: int | None,
+        episode: int | None,
     ) -> Iterator[MetadataEpisode]:
         assert id_tvmaze or id_tvdb
         if id_tvmaze:
@@ -433,7 +429,7 @@ class TvMaze(Provider):
             yield meta
 
     def _search_with_season_and_episode(
-        self, series: str, season: Optional[int], episode: Optional[int]
+        self, series: str, season: int | None, episode: int | None
     ) -> Iterator[MetadataEpisode]:
         assert season
         series_data = tvmaze_show_search(series)
@@ -454,7 +450,7 @@ class TvMaze(Provider):
             yield meta
 
     def _search(
-        self, series: str, season: Optional[int], episode: Optional[int]
+        self, series: str, season: int | None, episode: int | None
     ) -> Iterator[MetadataEpisode]:
         assert series
         series_data = tvmaze_show_search(series)
@@ -477,7 +473,7 @@ class TvMaze(Provider):
 
     @staticmethod
     def _transform_meta(
-        id_tvmaze: str, id_tvdb: Optional[str], series_entry: dict, episode_entry: dict
+        id_tvmaze: str, id_tvdb: str | None, series_entry: dict, episode_entry: dict
     ) -> MetadataEpisode:
         return MetadataEpisode(
             date=episode_entry["airdate"] or None,

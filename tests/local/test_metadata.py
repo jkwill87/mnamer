@@ -2,17 +2,11 @@ import datetime as dt
 
 import pytest
 
-from mnamer.metadata import *
-from mnamer.types import MediaType
+from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
 
 pytestmark = pytest.mark.local
 
 TEXT_CASES = ["test", "Test", "TEST", "TeSt"]
-
-
-def test_metadata__convert__media():
-    metadata = Metadata(media="episode")
-    assert metadata.media is MediaType.EPISODE
 
 
 @pytest.mark.parametrize("value", TEXT_CASES)

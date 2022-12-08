@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Dict, List
 from unittest.mock import patch
 
 import pytest
@@ -7,12 +6,34 @@ from requests import Session
 
 from mnamer.const import CURRENT_YEAR, SUBTITLE_CONTAINERS
 from mnamer.types import MediaType
-from mnamer.utils import *
-from tests import *
+from mnamer.utils import (
+    clean_dict,
+    crawl_in,
+    crawl_out,
+    filter_blacklist,
+    filter_containers,
+    fn_chain,
+    fn_pipe,
+    format_dict,
+    format_exception,
+    format_iter,
+    is_subtitle,
+    normalize_container,
+    parse_date,
+    request_json,
+    str_fix_padding,
+    str_replace,
+    str_sanitize,
+    str_scenify,
+    str_title_case,
+    year_parse,
+    year_range_parse,
+)
+from tests import JUNK_TEXT, MockRequestResponse
 
 pytestmark = pytest.mark.local
 
-TEST_FILES: Dict[str, Path] = {
+TEST_FILES: dict[str, Path] = {
     test_file: Path(*test_file.split("/"))
     for test_file in (
         "Avengers Infinity War/Avengers.Infinity.War.srt",
@@ -351,7 +372,7 @@ def test_filter_containers__filter_none():
 
 @pytest.mark.parametrize("containers", (["jpg"], [".jpg"]))
 def test_filter_containers__filter_multiple_paths_single_pattern(
-    containers: List[str],
+    containers: list[str],
 ):
     expected = paths_for("Images/Photos/DCM0001.jpg", "Images/Photos/DCM0002.jpg")
     actual = filter_containers(FILTER_FILENAMES, containers)
@@ -360,7 +381,7 @@ def test_filter_containers__filter_multiple_paths_single_pattern(
 
 @pytest.mark.parametrize("containers", (["mkv", "zip"], [".mkv", ".zip"]))
 def test_filter_containers__filter_multiple_paths_multi_pattern(
-    containers: List[str],
+    containers: list[str],
 ):
     expected = paths_for(
         "Desktop/temp.zip",
@@ -378,7 +399,7 @@ def test_filter_containers__filter_multiple_paths_multi_pattern(
 
 @pytest.mark.parametrize("containers", (["mp4", "zip"], [".mp4", ".zip"]))
 def test_filter_containers__filter_single_path_multi_pattern(
-    containers: List[str],
+    containers: list[str],
 ):
     filepaths = paths_for("Images/Skiing Trip.mp4")
     expected = filepaths

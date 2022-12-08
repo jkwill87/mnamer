@@ -3,43 +3,16 @@ name: pr
 on: pull_request
 
 jobs:
-
-  lint: # ------------------------------------------------------------------------------
+  lint:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checking out Git Commit
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/lint
 
-      - name: Installing Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.x
-          cache: pip
-          cache-dependency-path: pyproject.toml
-
-      - name: Installing Linters from PyPI
-        run: pip install .[test,dev]
-
-      - name: Linting with black
-        run: black --check mnamer tests
-
-      - name: Linting isort
-        run: isort --check-only mnamer tests
-
-      - name: Linting mypy
-        run: mypy mnamer
-
-  test: # ------------------------------------------------------------------------------
+  test:
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
-      with:
-        python-version: 3.x
-        cache: pip
-        cache-dependency-path: pyproject.toml
 
-    - run: pip install -q -U pip .[test]
-    - run: >-
-        python -m pytest -m 'not tvdb'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/test

@@ -1,7 +1,6 @@
 help:
 	$(info * deployment:  build, publish, publish-test)
-	$(info * versioning:  bump-patch, bump-minor, bump-major)
-	$(info * setup:       venv, demo)
+	$(info * setup:       init, demo)
 
 clean-build:
 	$(info * cleaning build files)
@@ -12,63 +11,28 @@ clean-demo:
 	$(info * cleaning demo files)
 	@rm -rf build dist *.egg-info demo
 
-clean-venv:
-	$(info * removing venv files)
-	@deactivate 2> /dev/null || true
-	@rm -rf venv
-
-clean: clean-build clean-demo clean-venv
+clean: clean-build clean-demo
 
 
 # Deployment Helpers -----------------------------------------------------------
 
-build: clean-build
+init:
+	$(info * installing dependencies)
+	pip3 install -U pip
+	pip3 install -Ur requirements.txt
+	pip3 install -Ur requirements-dev.txt
+
+build: clean-build init
 	$(info * building distributable)
-	@python3 -m build --sdist --wheel --no-isolation > /dev/null 2>&1
+	python3 -m build --sdist --wheel --no-isolation > /dev/null 2>&1
 
 publish: build
 	$(info * publishing to PyPI repository)
-	twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+	python3 -m twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
 
 publish-test: build
 	$(info * publishing to PyPI test repository)
-	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-
-
-# Version Helpers --------------------------------------------------------------
-
-bump-patch:
-	$(info * resetting any current changes)
-	git reset --
-	$(info * bumping patch version)
-	@vbump --patch
-	git add mnamer/__version__.py
-	$(info * commiting version change)
-	git commit -m "Patch version bump"
-	$(info * creating tag)
-	git tag `vbump | egrep -o '[0-9].*'`
-
-bump-minor:
-	$(info * resetting any current changes)
-	git reset --
-	$(info * bumping minor version)
-	vbump --minor
-	git add mnamer/__version__.py
-	$(info * commiting version change)
-	git commit -m "Minor version bump"
-	$(info * creating tag)
-	git tag `vbump | egrep -o '[0-9].*'`
-
-bump-major:
-	$(info * resetting any current changes)
-	git reset --
-	$(info * bumping major version)
-	vbump --major
-	git add mnamer/__version__.py
-	$(info * commiting version change)
-	git commit -m "Major version bump"
-	$(info * creating tag)
-	git tag `vbump | egrep -o '[0-9].*'`
+	python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
 
 # Setup Helpers ----------------------------------------------------------------
@@ -107,10 +71,3 @@ demo: clean-demo
         "s.w.a.t.2017.s02e01.mkv" \
         "scan001.tiff" \
         "temp.zip"
-
-venv: clean-venv
-	$(info * initializing venv)
-	@python3 -m venv venv
-	$(info * installing dev requirements)
-	@./venv/bin/pip install -qU pip
-	@./venv/bin/pip install -qr requirements-dev.txt

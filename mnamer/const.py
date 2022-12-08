@@ -5,6 +5,8 @@ from pathlib import Path
 from platform import platform, python_version
 from sys import argv, gettrace, version_info
 
+from setuptools_scm import get_version  # type: ignore
+
 try:
     from appdirs import __version__ as appdirs_version  # type: ignore
 except ModuleNotFoundError:
@@ -37,20 +39,6 @@ try:
 except ModuleNotFoundError:
     teletype_version = "N/A"
 
-from mnamer.__version__ import VERSION
-
-__all__ = [
-    "CACHE_PATH",
-    "CURRENT_YEAR",
-    "DEPRECATED",
-    "IS_DEBUG",
-    "SUBTITLE_CONTAINERS",
-    "SYSTEM",
-    "USAGE",
-    "VERSION",
-    "VERSION_MAJOR",
-]
-
 
 CACHE_PATH = Path(
     cache_dir, f"mnamer-py{version_info.major}.{version_info.minor}"
@@ -63,6 +51,8 @@ DEPRECATED = {"no_replace", "replacements"}
 IS_DEBUG = gettrace() is not None
 
 SUBTITLE_CONTAINERS = [".srt", ".idx", ".sub"]
+
+VERSION = get_version(root="..", relative_to=__file__, local_scheme="dirty-tag")
 
 SYSTEM = {
     "date": dt.date.today(),
@@ -79,5 +69,3 @@ SYSTEM = {
 }
 
 USAGE = "USAGE: mnamer [preferences] [directives] target [targets ...]"
-
-VERSION_MAJOR = int(VERSION[0])

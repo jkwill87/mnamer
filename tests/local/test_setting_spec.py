@@ -15,7 +15,7 @@ def test_setting_spec__serialize__default():
         "group": SettingType.PARAMETER,
         "help": None,
         "nargs": None,
-        "type": None,
+        "typevar": None,
     }
     setting_spec = SettingSpec(SettingType.PARAMETER)
     assert setting_spec.as_dict() == default
@@ -30,7 +30,7 @@ def test_setting_spec__serialize__override():
         "group": SettingType.PARAMETER,
         "help": "foos your bars",
         "nargs": "+",
-        "type": int,
+        "typevar": int,
     }
     setting_spec = SettingSpec(**spec)
     assert setting_spec.as_dict() == spec

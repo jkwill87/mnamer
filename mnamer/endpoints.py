@@ -3,7 +3,6 @@
 import datetime
 from re import match
 from time import sleep
-from typing import Optional, Union
 
 from mnamer.exceptions import (
     MnamerException,
@@ -13,41 +12,19 @@ from mnamer.exceptions import (
 from mnamer.language import Language
 from mnamer.utils import clean_dict, parse_date, request_json
 
-__all__ = [
-    "omdb_search",
-    "omdb_title",
-    "tmdb_find",
-    "tmdb_movies",
-    "tmdb_search_movies",
-    "tvdb_episodes_id",
-    "tvdb_login",
-    "tvdb_refresh_token",
-    "tvdb_search_series",
-    "tvdb_series_id_episodes_query",
-    "tvdb_series_id_episodes",
-    "tvdb_series_id",
-    "tvmaze_episode_by_number",
-    "tvmaze_episodes_by_date",
-    "tvmaze_show",
-    "tvmaze_show_episodes_list",
-    "tvmaze_show_lookup",
-    "tvmaze_show_search",
-    "tvmaze_show_single_search",
-]
-
 OMDB_PLOT_TYPES = {"short", "long"}
 MAX_RETRIES = 5
 
 
 def omdb_title(
     api_key: str,
-    id_imdb: Optional[str] = None,
-    media: Optional[str] = None,
-    title: Optional[str] = None,
-    season: Optional[int] = None,
-    episode: Optional[int] = None,
-    year: Optional[int] = None,
-    plot: Optional[str] = None,
+    id_imdb: str | None = None,
+    media: str | None = None,
+    title: str | None = None,
+    season: int | None = None,
+    episode: int | None = None,
+    year: int | None = None,
+    plot: str | None = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -87,8 +64,8 @@ def omdb_title(
 def omdb_search(
     api_key: str,
     query: str,
-    year: Optional[int] = None,
-    media: Optional[str] = None,
+    year: int | None = None,
+    media: str | None = None,
     page: int = 1,
     cache: bool = True,
 ) -> dict:
@@ -122,7 +99,7 @@ def tmdb_find(
     api_key: str,
     external_source: str,
     external_id: str,
-    language: Optional[Language] = None,
+    language: Language | None = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -165,7 +142,7 @@ def tmdb_find(
 def tmdb_movies(
     api_key: str,
     id_tmdb: str,
-    language: Optional[Language] = None,
+    language: Language | None = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -188,9 +165,9 @@ def tmdb_movies(
 def tmdb_search_movies(
     api_key: str,
     title: str,
-    year: Optional[Union[int, str]] = None,
-    language: Optional[Language] = None,
-    region: Optional[str] = None,
+    year: int | str | None = None,
+    language: Language | None = None,
+    region: str | None = None,
     adult: bool = False,
     page: int = 1,
     cache: bool = True,
@@ -220,7 +197,7 @@ def tmdb_search_movies(
     return content
 
 
-def tvdb_login(api_key: Optional[str]) -> str:
+def tvdb_login(api_key: str | None) -> str:
     """
     Logs into TVDb using the provided api key.
 
@@ -256,7 +233,7 @@ def tvdb_refresh_token(token: str) -> str:
 def tvdb_episodes_id(
     token: str,
     id_tvdb: str,
-    language: Optional[Language] = None,
+    language: Language | None = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -286,7 +263,7 @@ def tvdb_episodes_id(
 def tvdb_series_id(
     token: str,
     id_tvdb: str,
-    language: Optional[Language] = None,
+    language: Language | None = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -318,7 +295,7 @@ def tvdb_series_id_episodes(
     token: str,
     id_tvdb: str,
     page: int = 1,
-    language: Optional[Language] = None,
+    language: Language | None = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -348,10 +325,10 @@ def tvdb_series_id_episodes(
 def tvdb_series_id_episodes_query(
     token: str,
     id_tvdb: str,
-    episode: Optional[int] = None,
-    season: Optional[int] = None,
+    episode: int | None = None,
+    season: int | None = None,
     page: int = 1,
-    language: Optional[Language] = None,
+    language: Language | None = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -384,10 +361,10 @@ def tvdb_series_id_episodes_query(
 
 def tvdb_search_series(
     token: str,
-    series: Optional[str] = None,
-    id_imdb: Optional[str] = None,
-    id_zap2it: Optional[str] = None,
-    language: Optional[Language] = None,
+    series: str | None = None,
+    id_imdb: str | None = None,
+    id_zap2it: str | None = None,
+    language: Language | None = None,
     cache: bool = True,
 ) -> dict:
     """
@@ -489,8 +466,8 @@ def tvmaze_show_single_search(query: str, cache: bool = True, attempt: int = 1) 
 
 
 def tvmaze_show_lookup(
-    id_imdb: Optional[str] = None,
-    id_tvdb: Optional[str] = None,
+    id_imdb: str | None = None,
+    id_tvdb: str | None = None,
     cache: bool = True,
     attempt: int = 1,
 ) -> dict:
@@ -545,7 +522,7 @@ def tvmaze_show_episodes_list(
 
 def tvmaze_episodes_by_date(
     id_tvmaze: str,
-    air_date: Union[datetime.date, str],
+    air_date: datetime.date | str,
     cache: bool = True,
     attempt: int = 1,
 ) -> dict:
@@ -570,8 +547,8 @@ def tvmaze_episodes_by_date(
 
 def tvmaze_episode_by_number(
     id_tvmaze: str,
-    season: Optional[int],
-    episode: Optional[int],
+    season: int | None,
+    episode: int | None,
     cache: bool = True,
     attempt: int = 1,
 ) -> dict:

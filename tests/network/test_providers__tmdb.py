@@ -3,7 +3,7 @@ import pytest
 from mnamer.exceptions import MnamerNotFoundException
 from mnamer.metadata import MetadataMovie
 from mnamer.providers import Tmdb
-from tests import *
+from tests import JUNK_TEXT, MOVIE_META
 
 pytestmark = [
     pytest.mark.network,

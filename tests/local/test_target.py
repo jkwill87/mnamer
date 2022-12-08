@@ -3,8 +3,9 @@ from pathlib import Path
 
 import pytest
 
+from mnamer.metadata import MetadataEpisode, MetadataMovie
 from mnamer.setting_store import SettingStore
-from mnamer.target import *
+from mnamer.target import Target
 from mnamer.types import MediaType
 
 pytestmark = pytest.mark.local
@@ -12,12 +13,12 @@ pytestmark = pytest.mark.local
 
 def test_parse__media__movie():
     target = Target(Path("ninja turtles (1990).mkv"), SettingStore())
-    assert target.metadata.media is MediaType.MOVIE
+    assert target.metadata.to_media_type() is MediaType.MOVIE
 
 
 def test_parse__media__episode():
     target = Target(Path("ninja turtles s01e01.mkv"), SettingStore())
-    assert target.metadata.media is MediaType.EPISODE
+    assert target.metadata.to_media_type() is MediaType.EPISODE
 
 
 def test_parse__quality():
@@ -41,43 +42,49 @@ def test_parse__container():
 def test_parse__date():
     file_path = Path("the.colbert.show.2010.10.01.avi")
     target = Target(file_path, SettingStore())
+    assert isinstance(target.metadata, MetadataEpisode)
     assert target.metadata.date == dt.date(2010, 10, 1)
 
 
 def test_parse__episode():
     file_path = Path("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mp4")
     target = Target(file_path, SettingStore())
+    assert isinstance(target.metadata, MetadataEpisode)
     assert target.metadata.episode == 4
 
 
 def test_parse__season():
     file_path = Path("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mp4")
     target = Target(file_path, SettingStore())
+    assert isinstance(target.metadata, MetadataEpisode)
     assert target.metadata.season == 1
 
 
 def test_parse__series():
     file_path = Path("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mp4")
     target = Target(file_path, SettingStore())
+    assert isinstance(target.metadata, MetadataEpisode)
     assert target.metadata.series == "Ninja Turtles"
 
 
 def test_parse__year():
     file_path = Path("the.goonies.1985")
     target = Target(file_path, SettingStore())
+    assert isinstance(target.metadata, MetadataMovie)
     assert target.metadata.year == 1985
 
 
 def testparse__name():
     file_path = Path("the.goonies.1985")
     target = Target(file_path, SettingStore())
+    assert isinstance(target.metadata, MetadataMovie)
     assert target.metadata.name == "The Goonies"
 
 
 @pytest.mark.parametrize("media", MediaType)
 def test_media__override(media: MediaType):
     target = Target(Path(), SettingStore(media=media))
-    assert target.metadata.media is media
+    assert target.metadata.to_media_type() == media
 
 
 def test_directory__movie():
@@ -105,7 +112,7 @@ def test_ambiguous_subtitle_language():
 
 
 def test_destination__simple():
-    target = Target(Path("star.trek.enterprise.s01e1.mkv"))
+    pass  # TODO
 
 
 def test_query():

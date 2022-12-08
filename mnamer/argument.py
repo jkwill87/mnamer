@@ -1,11 +1,9 @@
 import argparse
-from typing import Any, Dict
+from typing import Any
 
 from mnamer.const import USAGE
 from mnamer.setting_spec import SettingSpec
 from mnamer.types import SettingType
-
-__all__ = ["ArgLoader"]
 
 HELP_TEMPLATE = """
 {usage}
@@ -32,9 +30,8 @@ DIRECTIVES:
 
 class ArgLoader(argparse.ArgumentParser):
     """
-    An overridden ArgumentParser class which is build to accommodate mnamer's
-    setting patterns and delineation of parameter, directive, and positional
-    arguments.
+    An overridden ArgumentParser class which is build to accommodate mnamer's setting
+    patterns and delineation of parameter, directive, and positional arguments.
     """
 
     def __init__(self, *specs: SettingSpec):
@@ -70,7 +67,7 @@ class ArgLoader(argparse.ArgumentParser):
 
     __iadd__ = _add_spec
 
-    def load(self) -> Dict[str, Any]:
+    def load(self) -> dict[str, Any]:
         load_arguments, unknowns = self.parse_known_args()
         if unknowns:
             raise RuntimeError(f"invalid arguments: {','.join(unknowns)}")
@@ -78,8 +75,8 @@ class ArgLoader(argparse.ArgumentParser):
 
     def format_help(self) -> str:
         """
-        Overrides ArgumentParser's format_help to dynamically generate a help
-        message for use with the `--help` flag.
+        Overrides ArgumentParser's format_help to dynamically generate a help message
+        for use with the `--help` flag.
         """
 
         def help_for_group(group: SettingType) -> str:

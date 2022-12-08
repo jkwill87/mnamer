@@ -1,9 +1,12 @@
 import pytest
 
 from mnamer.argument import ArgLoader
-from tests import *
+from tests import JUNK_TEXT
 
-pytestmark = pytest.mark.e2e
+pytestmark = [
+    pytest.mark.e2e,
+    pytest.mark.flaky(reruns=1),
+]
 
 
 def test_invalid_arguments(e2e_run):

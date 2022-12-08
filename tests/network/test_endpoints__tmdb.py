@@ -3,7 +3,7 @@ import pytest
 from mnamer.endpoints import tmdb_find, tmdb_movies, tmdb_search_movies
 from mnamer.exceptions import MnamerException, MnamerNotFoundException
 from mnamer.providers import Tmdb
-from tests import *
+from tests import JUNK_TEXT, RUSSIAN_LANG
 
 pytestmark = [
     pytest.mark.network,

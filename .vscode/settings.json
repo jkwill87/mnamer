@@ -14,13 +14,12 @@
     "**/.DS_Store": true,
     "**/.git": true,
     "**/.pytest_cache/": true,
-    "**/.svn": true,
     "**/__pycache__": true,
     "*.egg-info": true,
-    "*.egg-info/": true,
     ".idea": true,
     "demo": true,
     "venv": true
   },
-  "python.formatting.provider": "black"
+  "python.formatting.provider": "black",
+  "python.linting.mypyEnabled": true
 }

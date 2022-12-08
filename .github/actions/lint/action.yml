@@ -1,0 +1,23 @@
+name: Lint
+description: Lints the codebase with black, isort, pyflakes, and mypy
+
+runs:
+  using: composite
+  steps:
+    - uses: ./.github/actions/init
+
+    - name: Linting with black
+      run: black --check mnamer tests
+      shell: sh
+
+    - name: Linting isort
+      run: isort --check-only mnamer tests
+      shell: sh
+
+    - name: Linting pyflakes
+      run: pyflakes mnamer tests
+      shell: sh
+
+    - name: Linting mypy
+      run: mypy mnamer tests
+      shell: sh

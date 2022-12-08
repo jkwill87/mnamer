@@ -78,21 +78,27 @@ Visit https://github.com/jkwill87/mnamer for more information.
 
 
 def test_arg_parser__load__valid_parameter():
-    spec = SettingSpec(group=SettingType.PARAMETER, flags=["-f"], help="foo", type=int)
+    spec = SettingSpec(
+        group=SettingType.PARAMETER, flags=["-f"], help="foo", typevar=int
+    )
     arg_parser = ArgLoader(spec)
     with patch.object(sys, "argv", ["mnamer", "-f", "01"]):
         assert arg_parser.load() == {"f": 1}
 
 
 def test_arg_parser__load__valid_directive():
-    spec = SettingSpec(group=SettingType.DIRECTIVE, flags=["-f"], help="foo", type=int)
+    spec = SettingSpec(
+        group=SettingType.DIRECTIVE, flags=["-f"], help="foo", typevar=int
+    )
     arg_parser = ArgLoader(spec)
     with patch.object(sys, "argv", ["mnamer", "-f", "01"]):
         assert arg_parser.load() == {"f": 1}
 
 
 def test_arg_parser__load__valid_positional():
-    spec = SettingSpec(group=SettingType.POSITIONAL, flags=["f"], help="foo", type=int)
+    spec = SettingSpec(
+        group=SettingType.POSITIONAL, flags=["f"], help="foo", typevar=int
+    )
     arg_parser = ArgLoader(spec)
     with patch.object(sys, "argv", ["mnamer", "01"]):
         assert arg_parser.load() == {"f": 1}
