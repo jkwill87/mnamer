@@ -4,7 +4,7 @@ description = "A command-line utility for organizing media files."
 authors = [{ name = "Jessy Williams", email = "jessy@jessywilliams.com" }]
 maintainers = [{ name = "Jessy Williams", email = "jessy@jessywilliams.com" }]
 license = { file = "LICENSE.txt" }
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dynamic = ["version", "readme", "dependencies", "optional-dependencies"]
 scripts = { mnamer = "mnamer.__main__:main" }
 urls = { repository = "https://github.com/jkwill87/mnamer" }
@@ -30,18 +30,18 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 88
-target-version = ["py37"]
+target-version = ["py38"]
 
 [tool.pyright]
 reportGeneralTypeIssues = "information"
-pythonVersion = "3.7"
+pythonVersion = "3.8"
 include = ["mnamer"]
 exclude = ["playground.py", "venv"]
 venv = ["venv"]
 
 [tool.isort]
 profile = "black"
-py_version = 37
+py_version = 38
 line_length = 88
 known_first_party = "mnamer"
 combine_star = true
@@ -54,4 +54,4 @@ disable = ["C0103", "C0114", "C0116", "C0209", "E0401", "R0801"]
 
 [tool.mypy]
 incremental = false
-python_version = "3.7"
+python_version = "3.8"

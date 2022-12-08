@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.7", "3.x"]
+        python-version: ["3.8", "3.x"]
     name: build-v${{matrix.python-version}}
 
     steps:
@@ -71,7 +71,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.7", "3.x"]
+        python-version: ["8", "3.x"]
     name: test-v${{matrix.python-version}}
 
     steps:
@@ -144,7 +144,7 @@ jobs:
       - name: Installing Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.7
+          python-version: 3.8
 
       - name: Installing Requirements
         run: pip install -U -r requirements.txt -r -r requirements-dev.txt
