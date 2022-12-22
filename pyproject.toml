@@ -5,9 +5,10 @@ authors = [{ name = "Jessy Williams", email = "jessy@jessywilliams.com" }]
 maintainers = [{ name = "Jessy Williams", email = "jessy@jessywilliams.com" }]
 license = { file = "LICENSE.txt" }
 requires-python = ">=3.10"
-dynamic = ["version", "readme", "dependencies", "optional-dependencies"]
+dynamic = ["version", "dependencies", "optional-dependencies"]
 scripts = { mnamer = "mnamer.__main__:main" }
 urls = { repository = "https://github.com/jkwill87/mnamer" }
+readme = "README.md"
 
 [tool.setuptools]
 packages = ["mnamer"]
@@ -16,7 +17,6 @@ packages = ["mnamer"]
 "*" = ["LICENSE.txt", "README.md", "py.typed"]
 
 [tool.setuptools.dynamic]
-readme = { file = ["README.md"] }
 dependencies = { file = "requirements.txt" }
 
 [tool.setuptools.dynamic.optional-dependencies]
