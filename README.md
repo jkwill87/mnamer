@@ -1,5 +1,5 @@
 [![PyPI](https://img.shields.io/pypi/v/mnamer.svg?style=for-the-badge)](https://pypi.python.org/pypi/mnamer)
-[![Tests](https://img.shields.io/github/workflow/status/jkwill87/mnamer/push?style=for-the-badge&label=Tests)](https://img.shields.io/github/actions/workflow/status/jkwill87/mnamer/.github/workflows/push.yml?branch=main)
+[![Tests](https://img.shields.io/github/actions/workflow/status/jkwill87/mnamer/.github/workflows/push.yml?branch=main&style=for-the-badge&label=Tests)](https://github.com/jkwill87/mnamer/actions/workflows/push.yml?query=branch:main)
 [![Coverage](https://img.shields.io/codecov/c/github/jkwill87/mnamer/main.svg?style=for-the-badge)](https://codecov.io/gh/jkwill87/mnamer)
 [![Licence](https://img.shields.io/github/license/jkwill87/mnamer.svg?style=for-the-badge)](https://en.wikipedia.org/wiki/MIT_License)
 [![Style: Black](https://img.shields.io/badge/Style-Black-black.svg?style=for-the-badge)](https://github.com/ambv/black)
