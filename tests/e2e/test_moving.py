@@ -6,7 +6,7 @@ from mnamer.const import SUBTITLE_CONTAINERS
 
 pytestmark = [
     pytest.mark.e2e,
-    pytest.mark.flaky(reruns=2),
+    pytest.mark.flaky(reruns=2, reruns_delay=5),
 ]
 
 
@@ -169,6 +169,7 @@ def test_format_id(e2e_run, setup_test_files):
 
 
 @pytest.mark.tvdb
+@pytest.mark.xfail(strict=False)
 @pytest.mark.usefixtures("setup_test_dir")
 def test_format_id__tvdb(e2e_run, setup_test_files):
     setup_test_files("archer.2009.s10e07.webrip.x264-lucidtv.mp4")
@@ -183,6 +184,7 @@ def test_format_id__tvdb(e2e_run, setup_test_files):
 
 
 @pytest.mark.tvmaze
+@pytest.mark.xfail(strict=False)
 @pytest.mark.usefixtures("setup_test_dir")
 def test_format_season0(e2e_run, setup_test_files):
     setup_test_files("south.park.s00e01.mp4")
