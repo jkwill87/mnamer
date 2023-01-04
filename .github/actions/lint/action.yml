@@ -4,8 +4,6 @@ description: Lints the codebase with black, isort, pyflakes, and mypy
 runs:
   using: composite
   steps:
-    - uses: ./.github/actions/init
-
     - name: Linting with black
       run: black --check mnamer tests
       shell: sh

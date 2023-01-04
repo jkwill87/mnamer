@@ -4,8 +4,6 @@ description: Tests the codebase with pytest
 runs:
   using: composite
   steps:
-    - uses: ./.github/actions/init
-
     - name: Running Local Unit Tests
       run: >-
         python -m pytest
@@ -43,4 +41,7 @@ runs:
 
     - name: Reporting Coverage Statistics
       uses: codecov/codecov-action@v3
-      if: success() && github.ref == 'refs/heads/main'
+      if: >-
+        success()
+        && github.event_name == 'push'
+        && github.ref == 'refs/heads/main'
