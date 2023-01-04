@@ -39,6 +39,11 @@ runs:
         --cov-report=xml
       shell: sh
 
+    - name: Printing E2E Logs
+      run: cat e2e.log
+      shell: sh
+      if: failure()
+
     - name: Reporting Coverage Statistics
       uses: codecov/codecov-action@v3
       if: >-
