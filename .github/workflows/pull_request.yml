@@ -8,11 +8,38 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/lint
+      - uses: ./.github/actions/init
+
+      - name: Linting
+        uses: ./.github/actions/lint
+        if: github.actor != 'dependabot[bot]'
+        with:
+          black: true
+          isort: true
+          pyflakes: true
+          mypy: true
 
   test:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
+      - uses: ./.github/actions/init
+
+      - name: Testing (contributor)
       - uses: ./.github/actions/test
+        if: github.actor != 'dependabot[bot]'
+        with:
+          local: true
+          network: true
+          e2e: true
+          coverage: false
+
+      - name: Testing (dependabot)
+      - uses: ./.github/actions/test
+        if: github.actor == 'dependabot[bot]'
+        with:
+          local: true
+          network: false
+          e2e: false
+          coverage: false

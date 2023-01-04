@@ -1,10 +1,32 @@
 name: Test
 description: Tests the codebase with pytest
 
+inputs:
+  local:
+    description: Whether to run local tests
+    required: false
+    default: true
+
+  network:
+    description: Whether to run network tests
+    required: false
+    default: true
+
+  e2e:
+    description: Whether to run end to end tests
+    required: false
+    default: true
+
+  coverage:
+    description: Whether to report coverage statistics
+    required: false
+    default: false
+
 runs:
   using: composite
   steps:
     - name: Running Local Unit Tests
+      if: inputs.local == 'true'
       run: >-
         python -m pytest
         -m local
@@ -16,6 +38,7 @@ runs:
       shell: sh
 
     - name: Running Network Unit Tests
+      if: inputs.network == 'true'
       run: >-
         python -m pytest
         -m network
@@ -28,6 +51,7 @@ runs:
       shell: sh
 
     - name: Running End to End Tests
+      if: inputs.e2e == 'true'
       run: >-
         python -m pytest
         -m e2e
@@ -42,11 +66,14 @@ runs:
     - name: Printing E2E Logs
       run: cat e2e.log
       shell: sh
-      if: failure()
+      if: >-
+        inputs.e2e == 'true'
+        && failure()
 
     - name: Reporting Coverage Statistics
       uses: codecov/codecov-action@v3
       if: >-
         success()
+        && inputs.coverage == 'true'
         && github.event_name == 'push'
         && github.ref == 'refs/heads/main'

@@ -1,21 +1,46 @@
 name: Lint
 description: Lints the codebase with black, isort, pyflakes, and mypy
 
+inputs:
+  black:
+    description: Whether to run black
+    required: false
+    default: true
+
+  isort:
+    description: Whether to run isort
+    required: false
+    default: true
+
+  pyflakes:
+    description: Whether to run pyflakes
+    required: false
+    default: true
+
+  mypy:
+    description: Whether to run mypy
+    required: false
+    default: true
+
 runs:
   using: composite
   steps:
     - name: Linting with black
+      if: inputs.black == 'true'
       run: black --check mnamer tests
       shell: sh
 
     - name: Linting isort
+      if: inputs.isort == 'true'
       run: isort --check-only mnamer tests
       shell: sh
 
     - name: Linting pyflakes
+      if: inputs.pyflakes == 'true'
       run: pyflakes mnamer tests
       shell: sh
 
     - name: Linting mypy
+      if: inputs.mypy == 'true'
       run: mypy mnamer tests
       shell: sh
