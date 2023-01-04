@@ -5,7 +5,12 @@ from pathlib import Path
 from platform import platform, python_version
 from sys import argv, gettrace, version_info
 
-from setuptools_scm import get_version  # type: ignore
+try:
+    from mnamer.__version__ import __version__ as VERSION  # type: ignore
+except ModuleNotFoundError:
+    from setuptools_scm import get_version  # type: ignore
+
+    VERSION = get_version(root="..", relative_to=__file__, local_scheme="dirty-tag")
 
 try:
     from appdirs import __version__ as appdirs_version  # type: ignore
@@ -52,7 +57,6 @@ IS_DEBUG = gettrace() is not None
 
 SUBTITLE_CONTAINERS = [".srt", ".idx", ".sub"]
 
-VERSION = get_version(root="..", relative_to=__file__, local_scheme="dirty-tag")
 
 SYSTEM = {
     "date": dt.date.today(),
