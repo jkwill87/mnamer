@@ -12,7 +12,6 @@ jobs:
 
       - name: Linting
         uses: ./.github/actions/lint
-        if: github.actor != 'dependabot[bot]'
         with:
           black: true
           isort: true
