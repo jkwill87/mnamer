@@ -251,9 +251,9 @@ def tvdb_episodes_id(
     )
     if status == 401:
         raise MnamerException("invalid token")
-    elif status == 404:
+    elif status == 404 or not content.get("data"):
         raise MnamerNotFoundException
-    elif status != 200 or not content.get("data"):  # pragma: no cover
+    elif status != 200:  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
     elif content["data"]["id"] == 0:
         raise MnamerNotFoundException
@@ -282,9 +282,9 @@ def tvdb_series_id(
     )
     if status == 401:
         raise MnamerException("invalid token")
-    elif status == 404:
+    elif status == 404 or not content.get("data"):
         raise MnamerNotFoundException
-    elif status != 200 or not content.get("data"):  # pragma: no cover
+    elif status != 200:  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
     elif content["data"]["id"] == 0:
         raise MnamerNotFoundException
@@ -315,9 +315,9 @@ def tvdb_series_id_episodes(
     )
     if status == 401:
         raise MnamerException("invalid token")
-    elif status == 404:
+    elif status == 404 or not content.get("data"):
         raise MnamerNotFoundException
-    elif status != 200 or not content.get("data"):  # pragma: no cover
+    elif status != 200:  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
     return content
 
@@ -352,9 +352,9 @@ def tvdb_series_id_episodes_query(
     )
     if status == 401:
         raise MnamerException("invalid token")
-    elif status == 404:
+    elif status == 404 or not content.get("data"):
         raise MnamerNotFoundException
-    elif status != 200 or not content.get("data"):  # pragma: no cover
+    elif status != 200:  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
     return content
 
@@ -388,9 +388,9 @@ def tvdb_search_series(
         raise MnamerException(
             "series, id_imdb, id_zap2it parameters are mutually exclusive"
         )
-    elif status == 404:
+    elif status == 404 or not content.get("data"):
         raise MnamerNotFoundException
-    elif status != 200 or not content.get("data"):  # pragma: no cover
+    elif status != 200:  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
     return content
 
