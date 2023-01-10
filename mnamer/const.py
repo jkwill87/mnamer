@@ -5,6 +5,8 @@ from pathlib import Path
 from platform import platform, python_version
 from sys import argv, gettrace, version_info
 
+VERSION: str
+
 try:
     from mnamer.__version__ import __version__ as VERSION  # type: ignore
 except ModuleNotFoundError:
