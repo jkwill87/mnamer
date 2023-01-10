@@ -1,4 +1,4 @@
-appdirs ~= 1.4.0
+appdirs ~= 1.4.4
 babelfish ~= 0.6.0
 guessit ~= 3.5.0
 requests == 2.*
