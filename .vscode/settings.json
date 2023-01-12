@@ -20,6 +20,7 @@
     "demo": true,
     "venv": true
   },
+  "python.analysis.typeCheckingMode": "strict",
   "python.formatting.provider": "black",
   "python.linting.mypyEnabled": true
 }
