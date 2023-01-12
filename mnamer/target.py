@@ -6,7 +6,7 @@ from pathlib import Path
 from shutil import move
 from typing import Any, ClassVar, Type
 
-from guessit import guessit  # type: ignore
+from guessit import guessit
 
 from mnamer.exceptions import MnamerException
 from mnamer.language import Language
@@ -52,10 +52,7 @@ class Target:
         self._register_provider()
 
     def __str__(self) -> str:
-        if isinstance(self.source, Path):
-            return str(self.source.resolve())
-        else:
-            return str(self.source)
+        return str(self.source.resolve())
 
     @classmethod
     def populate_paths(cls: Type[Target], settings: SettingStore) -> list[Target]:
