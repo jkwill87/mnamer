@@ -244,5 +244,8 @@ class Target:
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         try:
             move(str(self.source), destination_path)
+            if self._settings.symlink:
+                symlink(destination_path, str(self.source))
+            
         except OSError:  # pragma: no cover
             raise MnamerException
