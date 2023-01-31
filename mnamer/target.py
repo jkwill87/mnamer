@@ -247,6 +247,5 @@ class Target:
             move(str(self.source), destination_path)
             if self._settings.symlink:
                 symlink(destination_path, str(self.source))
-            
         except OSError:  # pragma: no cover
             raise MnamerException
