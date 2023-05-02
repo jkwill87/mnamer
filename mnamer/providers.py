@@ -197,7 +197,7 @@ class Tmdb(Provider):
                     )
                     if not meta.year:
                         continue
-                    if year == int(meta.year):
+                    if int(year) == int(meta.year):
                         yield meta
                         found = True
                 except (AttributeError, KeyError, TypeError, ValueError):
