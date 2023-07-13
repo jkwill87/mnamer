@@ -197,9 +197,8 @@ class Tmdb(Provider):
                     )
                     if not meta.year:
                         continue
-                    if int(year) == int(meta.year):
-                        yield meta
-                        found = True
+                    yield meta
+                    found = True
                 except (AttributeError, KeyError, TypeError, ValueError):
                     continue
             if page == response["total_pages"]:
