@@ -41,4 +41,7 @@ jobs:
       - lint
       - test
 
+    secrets:
+      inherit
+
     uses: ./.github/workflows/publish.yml
