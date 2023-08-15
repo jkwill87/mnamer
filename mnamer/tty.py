@@ -28,9 +28,9 @@ def _chars() -> dict[str, str]:
     return chars
 
 
-def _abort_helpers() -> tuple[
-    ChoiceHelper[MnamerSkipException], ChoiceHelper[MnamerAbortException]
-]:
+def _abort_helpers() -> (
+    tuple[ChoiceHelper[MnamerSkipException], ChoiceHelper[MnamerAbortException]]
+):
     if no_style:
         style = None
         skip_mnemonic = "[s]"
