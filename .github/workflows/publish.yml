@@ -1,0 +1,26 @@
+name: publish
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish-pypi:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with: { fetch-depth: 0 } # required for setuptools_scm to detect git tags
+      - uses: ./.github/actions/init
+
+      - name: Building
+        run: python3 -m build --sdist --wheel --no-isolation
+
+      - name: Reporting Version
+        run: python3 -m mnamer --version
+
+      - name: Uploading to PyPI
+        run: >-
+          twine upload
+          --username __token__
+          --password ${{secrets.pypi_password}}
+          dist/*

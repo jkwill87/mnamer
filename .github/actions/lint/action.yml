@@ -5,22 +5,22 @@ inputs:
   black:
     description: Whether to run black
     required: false
-    default: true
+    default: "true"
 
   isort:
     description: Whether to run isort
     required: false
-    default: true
+    default: "true"
 
   pyflakes:
     description: Whether to run pyflakes
     required: false
-    default: true
+    default: "true"
 
   mypy:
     description: Whether to run mypy
     required: false
-    default: true
+    default: "true"
 
 runs:
   using: composite
