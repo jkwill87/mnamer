@@ -34,6 +34,7 @@ jobs:
   publish-pypi:
     if: >-
       success()
+      && github.ref == 'refs/heads/main'
 
     needs:
       - lint
