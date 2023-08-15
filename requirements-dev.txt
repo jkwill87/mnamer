@@ -1,6 +1,6 @@
 black ~= 22.12.0
 build ~= 0.10.0
-codecov ~= 2.1.12
+codecov ~= 2.1.13
 isort ~= 5.11.4
 mypy ~= 0.991
 pyflakes ~= 3.0.1
