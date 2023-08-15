@@ -34,7 +34,6 @@ jobs:
   publish-pypi:
     if: >-
       success()
-      && github.event_name == 'published'
 
     needs:
       - lint
