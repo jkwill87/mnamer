@@ -22,7 +22,7 @@ from mnamer.utils import (
 
 class _MetaFormatter(Formatter):
     def format_field(self, value: None | int | str, format_spec: str) -> str:
-        return format(value, format_spec) if value is not None else ""
+        return format(value, format_spec) if value else ""
 
     def get_value(
         self, key: str | int, args: Sequence[Any], kwargs: Mapping[str, Any]
@@ -65,7 +65,7 @@ class Metadata:
             "synopsis": str.capitalize,
         }
         converter: Callable | None = converter_map.get(key)
-        if value is not None and converter:
+        if value and converter:
             value = converter(value)
         super().__setattr__(key, value)
 
@@ -128,7 +128,7 @@ class MetadataMovie(Metadata):
             "year": year_parse,
         }
         converter: Callable | None = converter_map.get(key)
-        if value is not None and converter:
+        if value and converter:
             value = converter(value)
         super().__setattr__(key, value)
 
@@ -172,6 +172,6 @@ class MetadataEpisode(Metadata):
             "title": fn_pipe(str_replace_slashes, str_title_case),
         }
         converter: Callable | None = converter_map.get(key)
-        if value is not None and converter:
+        if value and converter:
             value = converter(value)
         super().__setattr__(key, value)
