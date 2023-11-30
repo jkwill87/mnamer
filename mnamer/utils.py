@@ -3,9 +3,10 @@
 import datetime as dt
 import json
 import re
-from os import walk
+from os import listdir, walk
 from os.path import exists, expanduser, expandvars, getsize, splitdrive, splitext
 from pathlib import Path, PurePath
+from shutil import rmtree
 from typing import Any, Callable, Iterator
 from unicodedata import normalize
 
@@ -503,3 +504,12 @@ def year_range_parse(years: str | int | None, tolerance: int = 1) -> tuple[int, 
     if not dash:
         end = start
     return start - tolerance, end + tolerance
+
+
+def remove_empty_directory(path: Path, test: bool) -> bool:
+    if not listdir(path):
+        if not test:
+            rmtree(path)
+        return True
+    else:
+        return False

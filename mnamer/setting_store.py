@@ -217,6 +217,19 @@ class SettingStore:
             help="--episode-format: set episode renaming format specification",
         ).as_dict(),
     )
+    remove_empty_source_directory: bool = dataclasses.field(
+        default=False,
+        metadata=SettingSpec(
+            action="store_true",
+            dest="remove_empty_source_directory",
+            flags=[
+                "--remove_empty_source_directory",
+                "--remove-empty-source-directory",
+            ],
+            group=SettingType.PARAMETER,
+            help="--remove-empty-source-directory: remove source directory if it's empty after file processing",
+        )(),
+    )
 
     # directive attributes -----------------------------------------------------
 
