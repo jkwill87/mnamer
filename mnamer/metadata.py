@@ -112,6 +112,7 @@ class MetadataMovie(Metadata):
 
     name: str | None = None
     year: str | None = None
+    release_name: str | None = None
     id_imdb: str | None = None
     id_tmdb: str | None = None
 

@@ -122,6 +122,7 @@ class Target:
                 file_path = Path(self.source.parent, self.source.stem[:-2])
             except MnamerException:
                 pass
+        path_data["release_name"] = file_path.parent.name
         options = {"type": self._settings.media, "language": path_data["language"]}
         raw_data = dict(guessit(str(file_path), options))
         if isinstance(raw_data.get("season"), list):
@@ -179,6 +180,7 @@ class Target:
         if isinstance(self.metadata, MetadataMovie):
             self.metadata.name = path_data.get("title")
             self.metadata.year = path_data.get("year")
+            self.metadata.release_name = path_data.get("release_name")
         elif isinstance(self.metadata, MetadataEpisode):
             self.metadata.date = path_data.get("date")
             self.metadata.episode = path_data.get("episode")
