@@ -62,7 +62,16 @@ class TextLanguageGuesser(ABC):
                 return True
         return False
 
-    def _detect_file_encoding(self, filepath):
+    def _detect_file_encoding(self, filepath) -> dict:
+        """
+        Tries to guess the encoding (utf-8, iso-8859-1, etc).
+
+        The returned dict has these fields of interest:
+            {
+                "encoding": str,
+                "confidence": float between 0 and 1
+            }
+        """
         self.encoding_detector.reset()
         for line in open(filepath, "rb"):
             if self._skip_line(line, self.skip_line_expressions_bytes):
@@ -80,6 +89,17 @@ class TextLanguageGuesser(ABC):
     def _read_lines_from_file(
         self, filepath, encoding: str, lines=200, skip_first_lines=10
     ) -> str:
+        """
+        Read a certain number of lines from the file, returning a unicode string.
+
+        Lines that are subtitle control lines (only numbers, or time ranges)
+        are filtered out, and do not count towards the number of lines.
+
+        By default, the 10 first lines are skipped. The reasoning behind
+        that is that perhaps the first lines contain subtitle credits
+        (e.g. a little advertisement for the subtitle creator), which may
+        not correspond to the principal language of the file.
+        """
         stop_count = lines + skip_first_lines
         text = ""
         i = 0
@@ -96,7 +116,13 @@ class TextLanguageGuesser(ABC):
                 break
         return text
 
-    def _get_file_text(self, filepath):
+    def _get_file_text(self, filepath) -> Optional[str]:
+        """
+        Tries to determine the file encoding and read some lines from the file.
+
+        If the confidence for the encoding is not high enough, or an error
+        occurs while reading lines from the file, the return value is None.
+        """
         encoding = self._detect_file_encoding(filepath)
         text = None
         if encoding["confidence"] >= 0.6:
@@ -122,6 +148,12 @@ class TextLanguageGuesser(ABC):
         return False
 
     def guess_language(self, filepath: Path) -> Optional[Language]:
+        """
+        Reads text from the file and passes it the implementation-specific
+        guess_language_from_text() method.
+
+        If a matching mnamer.Language exists, it is returned, otherwise None.
+        """
         text = self._get_file_text(filepath)
 
         if not text:
