@@ -1,5 +1,5 @@
 from typing import Optional
-from langid.langid import LanguageIdentifier, model
+from py3langid.langid import LanguageIdentifier, MODEL_FILE
 from mnamer.text_lang_guesser.base import TextLanguageGuesser
 
 
@@ -12,7 +12,7 @@ class LangidGuesser(TextLanguageGuesser):
         self.min_confidence = self.default_min_confidence
 
     def _initialize_identifier(self, restrict_to_langs: Optional[list[str]] = None):
-        identifier = LanguageIdentifier.from_modelstring(model, norm_probs=True)
+        identifier = LanguageIdentifier.from_pickled_model(MODEL_FILE, norm_probs=True)
         if restrict_to_langs:
             identifier.set_languages(restrict_to_langs)
         return identifier
