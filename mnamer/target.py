@@ -177,9 +177,15 @@ class Target:
             self.metadata.language_sub = path_data.get("subtitle_language")
         except MnamerException:
             pass
-        if source_is_subtitle and not self.metadata.language_sub and self._settings.subtitle_lang_guesser:
+        if (
+            source_is_subtitle
+            and not self.metadata.language_sub
+            and self._settings.subtitle_lang_guesser
+        ):
             try:
-                self.metadata.language_sub = self._settings.text_lang_guesser.guess_language(self.source)
+                self.metadata.language_sub = (
+                    self._settings.text_lang_guesser.guess_language(self.source)
+                )
             except MnamerException:
                 pass
         if isinstance(self.metadata, MetadataMovie):

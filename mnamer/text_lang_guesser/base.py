@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
+import logging
 import re
 from typing import List, Optional
 from chardet.universaldetector import UniversalDetector
@@ -7,8 +8,9 @@ from mnamer.language import Language
 
 
 class TextLanguageGuesser(ABC):
-    def __init__(self, guess_languages: List[Language]):
+    def __init__(self, guess_languages: List[Language], min_confidence: float = 0.9):
         self.guess_languages = guess_languages
+        self.min_confidence = min_confidence
         exp_only_nums = r"^\d+$"
         exp_timeframe = r"^[\s0-9:.,>-]+$"
         skip_patterns = [exp_only_nums, exp_timeframe]
@@ -63,4 +65,19 @@ class TextLanguageGuesser(ABC):
             text += line
             if i > stop_count:
                 break
+        return text
+
+    def _get_file_text(self, filepath):
+        encoding = self._detect_file_encoding(filepath)
+        text = None
+        if encoding["confidence"] >= 0.6:
+            try:
+                text = self._read_lines_from_file(
+                    filepath, encoding=encoding["encoding"]
+                )
+            except Exception as e:
+                logging.warning(
+                    f"Unable to read file {filepath} with encoding {encoding['encoding']}. "
+                    f"Error: {e}"
+                )
         return text

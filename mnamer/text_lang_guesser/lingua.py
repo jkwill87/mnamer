@@ -8,11 +8,11 @@ from mnamer.text_lang_guesser.base import TextLanguageGuesser
 
 
 class LinguaGuesser(TextLanguageGuesser):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        guess_upper = {
-            lang.name.upper(): lang for lang in self.guess_languages
-        }
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        guess_upper = {lang.name.upper(): lang for lang in self.guess_languages}
+
+        # Limit the languages that lingua will evaluate to ones known to mnamer.
         self.search_langs = {
             lang: guess_upper[lang.name]
             for lang in LinguaLanguage.all()
@@ -21,23 +21,12 @@ class LinguaGuesser(TextLanguageGuesser):
 
         self.detector = (
             LanguageDetectorBuilder.from_languages(*self.search_langs.keys())
-            .with_minimum_relative_distance(0.9)
+            .with_minimum_relative_distance(self.min_confidence)
             .build()
         )
 
     def guess_language(self, filepath: Path) -> Optional[Language]:
-        encoding = self._detect_file_encoding(filepath)
-        text = None
-        if encoding["confidence"] >= 0.6:
-            try:
-                text = self._read_lines_from_file(
-                    filepath, encoding=encoding["encoding"]
-                )
-            except Exception as e:
-                logging.warning(
-                    f"Unable to read file {filepath} with encoding {encoding['encoding']}. "
-                    f"Error: {e}"
-                )
+        text = self._get_file_text(filepath)
 
         if not text:
             return None
