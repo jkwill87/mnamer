@@ -11,7 +11,9 @@ class FasttextGuesser(TextLanguageGuesser):
         super().__init__(**kwargs)
         self.search_langs = {lang.a2: lang for lang in self.guess_languages}
 
-    def detect(self, text: str, low_memory=False) -> Optional[Dict[str, Union[str, float]]]:
+    def detect(
+        self, text: str, low_memory=False
+    ) -> Optional[Dict[str, Union[str, float]]]:
         """
         Modified version of ftlangdetect.detect.detect, that specifies the threshold.
         """
@@ -19,7 +21,7 @@ class FasttextGuesser(TextLanguageGuesser):
         labels, scores = model.predict(text, threshold=self.min_confidence)
         if not labels:
             return None
-        label = labels[0].replace("__label__", '')
+        label = labels[0].replace("__label__", "")
         score = min(float(scores[0]), 1.0)
         return {
             "lang": label,
@@ -32,7 +34,7 @@ class FasttextGuesser(TextLanguageGuesser):
         if not text:
             return None
 
-        text = text.replace('\n', ' ').replace('\r', '')
+        text = text.replace("\n", " ").replace("\r", "")
 
         guessed_language = None
         try:
@@ -46,4 +48,4 @@ class FasttextGuesser(TextLanguageGuesser):
         if not guessed_language:
             return None
 
-        return self.search_langs.get(guessed_language['lang'], None)
+        return self.search_langs.get(guessed_language["lang"], None)
