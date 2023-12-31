@@ -21,10 +21,9 @@ class MnamerNotFoundException(MnamerException):
     """Raised when a lookup or search works as expected yet yields no results."""
 
 
-class MnamerFailedLangGuesserImport(MnamerException):
+class MnamerFailedLangGuesserInstantiation(MnamerException):
     """
-    Raised when a requested text language guesser failed to import, probably
-    because the python packages that the guesser depends on are not installed.
+    Raised when a requested text language guesser failed to instantiate.
     """
 
 
