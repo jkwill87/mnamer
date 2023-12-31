@@ -9,10 +9,10 @@ from mnamer.language import Language
 
 
 class TextLanguageGuesser(ABC):
-    def __init__(self, guess_languages: List[Language], min_confidence: float = 0.9):
+    def __init__(self, guess_languages: List[Language], min_probability: float = 0.9):
         self.guess_languages = guess_languages
         self.language_map = self._language_map(guess_languages)
-        self.min_confidence = min_confidence
+        self.min_probability = min_probability
         self.identifier = self._initialize_identifier()
 
         exp_only_nums = r"^\d+$"
@@ -78,7 +78,7 @@ class TextLanguageGuesser(ABC):
         return result
 
     def _read_lines_from_file(
-        self, filepath, encoding: str, lines=100, skip_first_lines=10
+        self, filepath, encoding: str, lines=200, skip_first_lines=10
     ) -> str:
         stop_count = lines + skip_first_lines
         text = ""

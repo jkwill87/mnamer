@@ -13,7 +13,7 @@ class FasttextGuesser(TextLanguageGuesser):
         """
         Modified version of ftlangdetect.detect.detect, that specifies the threshold.
         """
-        labels, scores = self.identifier.predict(text, threshold=self.min_confidence)
+        labels, scores = self.identifier.predict(text, threshold=self.min_probability)
         if not labels:
             return None
         label = labels[0].replace("__label__", "")

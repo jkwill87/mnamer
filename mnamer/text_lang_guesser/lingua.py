@@ -26,7 +26,7 @@ class LinguaGuesser(TextLanguageGuesser):
 
         return (
             LanguageDetectorBuilder.from_languages(*language_list)
-            .with_minimum_relative_distance(self.min_confidence)
+            .with_minimum_relative_distance(self.min_probability)
             .build()
         )
 

@@ -43,5 +43,5 @@ class LangdetectGuesser(TextLanguageGuesser):
         if not guessed_languages:
             return None
         lang = guessed_languages[0]
-        if lang.prob >= self.min_confidence:
+        if lang.prob >= self.min_probability:
             return lang.lang
