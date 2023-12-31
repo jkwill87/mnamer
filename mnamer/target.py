@@ -116,7 +116,8 @@ class Target:
 
     def _parse(self, file_path: Path):
         path_data: dict[str, Any] = {"language": self._settings.language}
-        if is_subtitle(self.source):
+        source_is_subtitle = is_subtitle(self.source)
+        if source_is_subtitle:
             try:
                 path_data["language"] = Language.parse(self.source.stem[-2:])
                 file_path = Path(self.source.parent, self.source.stem[:-2])
@@ -176,6 +177,11 @@ class Target:
             self.metadata.language_sub = path_data.get("subtitle_language")
         except MnamerException:
             pass
+        if source_is_subtitle and not self.metadata.language_sub and self._settings.subtitle_lang_guesser:
+            try:
+                self.metadata.language_sub = self._settings.text_lang_guesser.guess_language(self.source)
+            except MnamerException:
+                pass
         if isinstance(self.metadata, MetadataMovie):
             self.metadata.name = path_data.get("title")
             self.metadata.year = path_data.get("year")
