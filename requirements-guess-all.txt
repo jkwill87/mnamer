@@ -1,0 +1,5 @@
+chardet >= 5.2.0
+py3langid ~= 0.2.2
+lingua-language-detector ~= 2.0.2
+fasttext-langdetect ~= 1.0.5
+langdetect ~= 1.0.9
