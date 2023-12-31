@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 import logging
+import os
 import re
 from typing import List, Optional
 from chardet.universaldetector import UniversalDetector
@@ -10,7 +11,10 @@ from mnamer.language import Language
 class TextLanguageGuesser(ABC):
     def __init__(self, guess_languages: List[Language], min_confidence: float = 0.9):
         self.guess_languages = guess_languages
+        self.language_map = self._language_map(guess_languages)
         self.min_confidence = min_confidence
+        self.identifier = self._initialize_identifier()
+
         exp_only_nums = r"^\d+$"
         exp_timeframe = r"^[\s0-9:.,>-]+$"
         skip_patterns = [exp_only_nums, exp_timeframe]
@@ -21,7 +25,32 @@ class TextLanguageGuesser(ABC):
         self.encoding_detector = UniversalDetector()
 
     @abstractmethod
-    def guess_language(self, filepath: Path) -> Optional[Language]:
+    def guess_language_from_text(self, text: str) -> Optional[str]:
+        """
+        Guess the language, based on the text in the file.
+        """
+        pass
+
+    def _language_map(self, lang_list: List[Language]):
+        """
+        Returns a dict that will be used to map an identification result to a Language.
+        """
+        return {lang.a2: lang for lang in lang_list}
+
+    @abstractmethod
+    def _initialize_identifier(self, restrict_to_langs: Optional[list[str]] = None):
+        """
+        Set up the language identifier, and return it.
+        It will be available in self.identifier.
+
+        If restrict_to_langs is present, the identifier should restrict
+        its identification efforts to the given languages.
+
+        Note that restricting the languages used is usually not a good idea
+        because it increases the possibility of false positives.
+
+        :param restrict_to_langs: a list of two-letter language codes.
+        """
         pass
 
     def _skip_line(self, line, skip_expressions) -> bool:
@@ -81,3 +110,33 @@ class TextLanguageGuesser(ABC):
                     f"Error: {e}"
                 )
         return text
+
+    @staticmethod
+    def boolean_env_var(env_var, default=None) -> Optional[bool]:
+        value = os.getenv(env_var)
+        if value is None:
+            return default
+        value = value.strip().lower()
+        if value in ["true", "yes", "1"]:
+            return True
+        return False
+
+    def guess_language(self, filepath: Path) -> Optional[Language]:
+        text = self._get_file_text(filepath)
+
+        if not text:
+            return None
+
+        guessed_language = None
+        try:
+            guessed_language = self.guess_language_from_text(text)
+        except Exception as e:
+            logging.warning(
+                "Unexpected error while guessing language from file text. "
+                f"File: {filepath}, Error: {e}"
+            )
+
+        if not guessed_language:
+            return None
+
+        return self.language_map.get(guessed_language, None)

@@ -113,7 +113,7 @@ class SettingStore:
         metadata=SettingSpec(
             flags=["--subtitle-lang-guesser"],
             group=SettingType.PARAMETER,
-            choices=["lingua", "langdetect", "fasttext"],
+            choices=["lingua", "langdetect", "fasttext", "langid"],
             help="--subtitle-lang-guesser=<GUESSER>: subtitle file text language guesser (must be installed)",
         ).as_dict(),
     )

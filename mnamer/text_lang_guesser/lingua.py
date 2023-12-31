@@ -1,6 +1,4 @@
-import logging
-from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 from lingua import LanguageDetectorBuilder
 from lingua import Language as LinguaLanguage
 from mnamer.language import Language
@@ -8,39 +6,29 @@ from mnamer.text_lang_guesser.base import TextLanguageGuesser
 
 
 class LinguaGuesser(TextLanguageGuesser):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        guess_upper = {lang.name.upper(): lang for lang in self.guess_languages}
+    def _language_map(self, lang_list: List[Language]):
+        """
+        Returns a dict that will be used to map an identification result to a Language.
+        """
+        upcase_map = {lang.name.upper(): lang for lang in lang_list}
 
-        # Limit the languages that lingua will evaluate to ones known to mnamer.
-        self.search_langs = {
-            lang: guess_upper[lang.name]
+        return {
+            lang: upcase_map[lang.name]
             for lang in LinguaLanguage.all()
-            if lang.name in guess_upper
+            if lang.name in upcase_map
         }
 
-        self.detector = (
-            LanguageDetectorBuilder.from_languages(*self.search_langs.keys())
+    def _initialize_identifier(self, restrict_to_langs: Optional[list[str]] = None):
+        if restrict_to_langs:
+            language_list = self.language_map.keys()
+        else:
+            language_list = LinguaLanguage.all()
+
+        return (
+            LanguageDetectorBuilder.from_languages(*language_list)
             .with_minimum_relative_distance(self.min_confidence)
             .build()
         )
 
-    def guess_language(self, filepath: Path) -> Optional[Language]:
-        text = self._get_file_text(filepath)
-
-        if not text:
-            return None
-
-        guessed_language = None
-        try:
-            guessed_language = self.detector.detect_language_of(text)
-        except Exception as e:
-            logging.warning(
-                "Unexpected error while guessing language from file text. "
-                f"File: {filepath}, Error: {e}"
-            )
-
-        if not guessed_language:
-            return None
-
-        return self.search_langs[guessed_language]
+    def guess_language_from_text(self, text: str) -> Optional[str]:
+        return self.identifier.detect_language_of(text)

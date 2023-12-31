@@ -8,17 +8,21 @@ def guesser(name: str, guess_languages: Dict[str, Language]):
     lower_name = name.lower()
     try:
         if lower_name == "lingua":  # noqa
-            from mnamer.text_lang_guesser.lingua import LinguaGuesser  # noqa
+            from mnamer.text_lang_guesser.lingua import LinguaGuesser
 
             guesser_cls = LinguaGuesser  # noqa
         elif lower_name == "langdetect":
-            from mnamer.text_lang_guesser.langdetect import LangdetectGuesser  # noqa
+            from mnamer.text_lang_guesser.langdetect import LangdetectGuesser
 
             guesser_cls = LangdetectGuesser
         elif lower_name == "langdetect":
-            from mnamer.text_lang_guesser.fasttext import FasttextGuesser  # noqa
+            from mnamer.text_lang_guesser.fasttext import FasttextGuesser
 
             guesser_cls = FasttextGuesser
+        elif lower_name == "langid":
+            from mnamer.text_lang_guesser.langid import LangidGuesser
+
+            guesser_cls = LangidGuesser
         else:
             raise MnamerNoSuchLangGuesser("Unrecognized language guesser")
     except ImportError as e:
