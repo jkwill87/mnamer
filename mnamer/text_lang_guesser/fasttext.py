@@ -4,6 +4,10 @@ from mnamer.text_lang_guesser.base import TextLanguageGuesser
 
 
 class FasttextGuesser(TextLanguageGuesser):
+    """
+    Installation note: a modern g++ version is required for building fasttext.
+    """
+
     def _initialize_identifier(self, restrict_to_langs: Optional[list[str]] = None):
         # Note: It seems there is no way to restrict languages for fasttext.
         low_memory = self.boolean_env_var("FASTTEXT_LOW_MEMORY", False)
