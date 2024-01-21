@@ -68,29 +68,19 @@ def filename_replace(filename: str, replacements: dict[str, str]) -> str:
     return base + container
 
 
-def filter_blacklist(paths: list[Path], blacklist: list[str]) -> list[Path]:
+def filter_blacklist(file_path: Path, blacklist: list[str]) -> bool:
     """Filters (set difference) paths by a collection of regex pattens."""
-    return [
-        path.absolute()
-        for path in paths
-        if not any(
-            re.search(pattern, str(path), re.IGNORECASE)
-            for pattern in blacklist
-            if pattern
-        )
-    ]
+    return not any(
+        re.search(pattern, str(file_path), re.IGNORECASE)
+        for pattern in blacklist
+        if pattern
+    )
 
 
-def filter_containers(
-    file_paths: list[Path], valid_containers: list[str]
-) -> list[Path]:
+def filter_containers(file_path: Path, valid_containers: list[str]) -> bool:
     """Filters (set intersection) a collection of containers."""
     valid_containers = normalize_containers(valid_containers)
-    return [
-        file_path
-        for file_path in file_paths
-        if not valid_containers or file_path.suffix.lower() in valid_containers
-    ]
+    return not valid_containers or file_path.suffix.lower() in valid_containers
 
 
 def findall(s, ss) -> Iterator[int]:

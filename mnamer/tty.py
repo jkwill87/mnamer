@@ -76,9 +76,9 @@ def msg(
     if debug and not verbose:
         return
     if no_style:
-        print(_msg_format(body))
+        print(_msg_format(body), flush=True)
     else:
-        style_print(_msg_format(body), style=message_type.value)
+        style_print(_msg_format(body), style=message_type.value, flush=True)
 
 
 def error(body: Any):

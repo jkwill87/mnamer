@@ -80,6 +80,15 @@ class SettingStore:
             help="-v, --verbose: increase output verbosity",
         ).as_dict(),
     )
+    watch: bool = dataclasses.field(
+        default=False,
+        metadata=SettingSpec(
+            action="store_true",
+            flags=["--watch", "-w"],
+            group=SettingType.PARAMETER,
+            help="-w, --watch: watch target(s) for changes",
+        ).as_dict(),
+    )
     hits: int = dataclasses.field(
         default=5,
         metadata=SettingSpec(
