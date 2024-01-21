@@ -243,6 +243,9 @@ class Target:
         """Performs the action of renaming and/or moving a file."""
         destination_path = Path(self.destination).resolve()
         destination_path.parent.mkdir(parents=True, exist_ok=True)
+        if path.isLink(destination_path) == True:
+            print("Skipped symlink")
+            return
         try:
             move(str(self.source), destination_path)
             if self._settings.symlink:
