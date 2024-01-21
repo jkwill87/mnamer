@@ -217,6 +217,15 @@ class SettingStore:
             help="--episode-format: set episode renaming format specification",
         ).as_dict(),
     )
+    symlink: bool = dataclasses.field(
+        default=False,
+        metadata=SettingSpec(
+            action="store_true",
+            flags=["--symlink"],
+            group=SettingType.PARAMETER,
+            help="--symlink: leaves a trailing symlink",
+        ).as_dict(),
+    )
 
     # directive attributes -----------------------------------------------------
 

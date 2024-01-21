@@ -141,6 +141,8 @@ def is_subtitle(container: str | Path | None) -> bool:
         return False
     return str(container).endswith(tuple(SUBTITLE_CONTAINERS))
 
+def is_symlink(path: Path) -> str:
+    return os.path.islink(str(Path))
 
 def get_session() -> requests_cache.CachedSession:
     """Convenience function that returns request-cache session singleton."""
