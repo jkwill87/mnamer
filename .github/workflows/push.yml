@@ -4,6 +4,10 @@ on:
   push:
   schedule:
     - cron: "0 8 * * 1" # mondays at 8am
+  release:
+    types:
+      - published
+      - prereleased
 
 jobs:
   lint:
@@ -28,8 +32,6 @@ jobs:
           coverage: true
 
   publish-pypi:
-    runs-on: ubuntu-latest
-
     if: >-
       success()
       && github.event_name == 'push'
@@ -39,20 +41,7 @@ jobs:
       - lint
       - test
 
-    steps:
-      - uses: actions/checkout@v3
-        with: { fetch-depth: 0 } # required for setuptools_scm to detect git tags
-      - uses: ./.github/actions/init
+    secrets:
+      inherit
 
-      - name: Building
-        run: python3 -m build --sdist --wheel --no-isolation
-
-      - name: Reporting Version
-        run: python3 -m mnamer --version
-
-      - name: Uploading to PyPI
-        run: >-
-          twine upload
-          --username __token__
-          --password ${{secrets.pypi_password}}
-          dist/*
+    uses: ./.github/workflows/publish.yml

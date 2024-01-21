@@ -5,22 +5,22 @@ inputs:
   local:
     description: Whether to run local tests
     required: false
-    default: true
+    default: "true"
 
   network:
     description: Whether to run network tests
     required: false
-    default: true
+    default: "true"
 
   e2e:
     description: Whether to run end to end tests
     required: false
-    default: true
+    default: "true"
 
   coverage:
     description: Whether to report coverage statistics
     required: false
-    default: false
+    default: "false"
 
 runs:
   using: composite

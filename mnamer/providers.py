@@ -174,7 +174,6 @@ class Tmdb(Provider):
 
     def _search_name(self, name: str, year: str | None, language: Language | None):
         assert self.api_key
-        year_from, year_to = year_range_parse(year, 5)
         page = 1
         page_max = 5  # each page yields a maximum of 20 results
         found = False
@@ -182,7 +181,7 @@ class Tmdb(Provider):
             response = tmdb_search_movies(
                 self.api_key,
                 name,
-                f"{year_from}-{year_to}",
+                year,
                 language,
                 page=page,
                 cache=self.cache,
@@ -198,9 +197,8 @@ class Tmdb(Provider):
                     )
                     if not meta.year:
                         continue
-                    if year_from <= int(meta.year) <= year_to:
-                        yield meta
-                        found = True
+                    yield meta
+                    found = True
                 except (AttributeError, KeyError, TypeError, ValueError):
                     continue
             if page == response["total_pages"]:

@@ -26,7 +26,7 @@ jobs:
       - uses: ./.github/actions/init
 
       - name: Testing (contributor)
-      - uses: ./.github/actions/test
+        uses: ./.github/actions/test
         if: github.actor != 'dependabot[bot]'
         with:
           local: true
@@ -35,7 +35,7 @@ jobs:
           coverage: false
 
       - name: Testing (dependabot)
-      - uses: ./.github/actions/test
+        uses: ./.github/actions/test
         if: github.actor == 'dependabot[bot]'
         with:
           local: true

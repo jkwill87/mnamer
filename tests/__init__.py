@@ -78,12 +78,12 @@ EPISODE_META = {
 }
 
 MOVIE_META = {
-    "The Goonies": {
-        "id_imdb": "tt0089218",
-        "id_tmdb": 9340,
+    "Idiocracy": {
+        "id_imdb": "tt0387808",
+        "id_tmdb": 7512,
         "media": "movie",
-        "name": "The Goonies",
-        "year": 1985,
+        "name": "Idiocracy",
+        "year": 2006,
     },
     "Citizen Kane": {
         "id_imdb": "tt0033467",
