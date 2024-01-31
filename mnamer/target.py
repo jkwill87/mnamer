@@ -164,14 +164,12 @@ class Target:
             )
             or None
         )
-        self.metadata.language = path_data.get("language")
         self.metadata.group = path_data.get("release_group")
         self.metadata.container = file_path.suffix or None
-        if not self.metadata.language:
-            try:
-                self.metadata.language = path_data.get("language")
-            except MnamerException:
-                pass
+        try:
+            self.metadata.language = path_data.get("language")
+        except MnamerException:
+            pass
         try:
             self.metadata.language_sub = path_data.get("subtitle_language")
         except MnamerException:
