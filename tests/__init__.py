@@ -36,6 +36,7 @@ DEFAULT_SETTINGS = {
     "test": False,
     "verbose": False,
     "version": False,
+    "watch": False,
 }
 
 

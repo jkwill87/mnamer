@@ -305,7 +305,9 @@ def test_str_scenify__utf8_to_ascii():
 @pytest.mark.parametrize("sequence", (list(), set(), tuple()))
 def test_filter_blacklist__filter_none(sequence):
     expected = FILTER_FILENAMES
-    actual = filter_blacklist(FILTER_FILENAMES, sequence)
+    actual = list(
+        filter(lambda file: filter_blacklist(file, sequence), FILTER_FILENAMES)
+    )
     assert actual == expected
 
 
@@ -313,7 +315,9 @@ def test_filter_blacklist__filter_multiple_paths_single_pattern():
     expected = paths_except_for(
         "Images/Photos/DCM0001.jpg", "Images/Photos/DCM0002.jpg"
     )
-    actual = filter_blacklist(FILTER_FILENAMES, ["dcm"])
+    actual = list(
+        filter(lambda file: filter_blacklist(file, ["dcm"]), FILTER_FILENAMES)
+    )
     assert actual == expected
 
 
@@ -323,7 +327,11 @@ def test_filter_blacklist__filter_multiple_paths_multiple_patterns():
         "Downloads/the.goonies.1985.sample.mp4",
         "Sample/the mandalorian s01x02.mp4",
     )
-    actual = filter_blacklist(FILTER_FILENAMES, ["temp", "sample"])
+    actual = list(
+        filter(
+            lambda file: filter_blacklist(file, ["temp", "sample"]), FILTER_FILENAMES
+        )
+    )
     assert actual == expected
 
 
@@ -331,7 +339,7 @@ def test_filter_blacklist__filter_single_path_single_pattern():
     expected = paths_except_for(
         "Images/sample.file.mp4", "Sample/the mandalorian s01x02.mp4"
     )
-    actual = filter_blacklist(expected, ["sample"])
+    actual = list(filter(lambda file: filter_blacklist(file, ["sample"]), expected))
     assert actual == expected
 
 
@@ -339,7 +347,9 @@ def test_filter_blacklist__filter_single_path_multiple_patterns():
     expected = paths_except_for(
         "Images/sample.file.mp4", "Sample/the mandalorian s01x02.mp4"
     )
-    actual = filter_blacklist(expected, ["files", "sample"])
+    actual = list(
+        filter(lambda file: filter_blacklist(file, ["files", "sample"]), expected)
+    )
     assert expected == actual
 
 
@@ -360,13 +370,15 @@ def test_filter_blacklist__regex():
         "made up movie.mp4",
         "made up show s01e10.mkv",
     )
-    actual = filter_blacklist(FILTER_FILENAMES, [pattern])
+    actual = list(
+        filter(lambda file: filter_blacklist(file, [pattern]), FILTER_FILENAMES)
+    )
     assert actual == expected
 
 
 def test_filter_containers__filter_none():
     expected = FILTER_FILENAMES
-    actual = filter_containers(FILTER_FILENAMES, [])
+    actual = list(filter(lambda file: filter_containers(file, []), FILTER_FILENAMES))
     assert expected == actual
 
 
@@ -375,7 +387,9 @@ def test_filter_containers__filter_multiple_paths_single_pattern(
     containers: list[str],
 ):
     expected = paths_for("Images/Photos/DCM0001.jpg", "Images/Photos/DCM0002.jpg")
-    actual = filter_containers(FILTER_FILENAMES, containers)
+    actual = list(
+        filter(lambda file: filter_containers(file, containers), FILTER_FILENAMES)
+    )
     assert expected == actual
 
 
@@ -393,7 +407,9 @@ def test_filter_containers__filter_multiple_paths_multi_pattern(
         "s.w.a.t.2017.s02e01.mkv",
         "temp.zip",
     )
-    actual = filter_containers(FILTER_FILENAMES, containers)
+    actual = list(
+        filter(lambda file: filter_containers(file, containers), FILTER_FILENAMES)
+    )
     assert expected == actual
 
 
@@ -403,7 +419,7 @@ def test_filter_containers__filter_single_path_multi_pattern(
 ):
     filepaths = paths_for("Images/Skiing Trip.mp4")
     expected = filepaths
-    actual = filter_containers(filepaths, containers)
+    actual = list(filter(lambda file: filter_containers(file, containers), filepaths))
     assert expected == actual
 
 

@@ -61,12 +61,34 @@ class Target:
     def populate_paths(cls: Type[Target], settings: SettingStore) -> list[Target]:
         """Creates a list of Target objects for media files found in paths."""
         file_paths = crawl_in(settings.targets, settings.recurse)
-        file_paths = filter_blacklist(file_paths, settings.ignore)
-        file_paths = filter_containers(file_paths, settings.mask)
-        targets = [cls(file_path, settings) for file_path in file_paths]
-        targets = list(dict.fromkeys(targets))  # unique values
-        targets = list(filter(cls._matches_media, targets))
-        return targets
+        return cls.find_targets(settings, file_paths)
+
+    @classmethod
+    def find_targets(
+        cls: Type[Target], settings: SettingStore, file_paths: list[Path]
+    ) -> list[Target]:
+        targets = set[Target]()
+        for file_path in file_paths:
+            target = cls.filter_file_path(settings, file_path)
+            if target is not None:
+                targets.add(target)
+        return sorted(targets, key=lambda target: target.source)
+
+    @classmethod
+    def filter_file_path(
+        cls: Type[Target], settings: SettingStore, file_path: Path
+    ) -> Target | None:
+        file_path = file_path.absolute()
+        if not filter_blacklist(file_path, settings.ignore):
+            return None
+        elif not filter_containers(file_path, settings.mask):
+            return None
+
+        target = cls(file_path, settings)
+        if not cls._matches_media(target):
+            return None
+
+        return target
 
     @classmethod
     def reset_providers(cls):

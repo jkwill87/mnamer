@@ -6,3 +6,4 @@ requests_cache ~= 0.9.7
 setuptools_scm ~= 7.1.0
 teletype ~= 1.3.4
 typing-extensions ~= 4.7.1
+watchdog ~= 3.0.0
