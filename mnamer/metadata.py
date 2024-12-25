@@ -44,6 +44,7 @@ class Metadata:
     language_sub: Language | None = None
     quality: str | None = None
     synopsis: str | None = None
+    original_filename: str | None = None
 
     @classmethod
     def to_media_type(cls) -> MediaType:
