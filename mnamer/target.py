@@ -167,6 +167,9 @@ class Target:
         self.metadata.language = path_data.get("language")
         self.metadata.group = path_data.get("release_group")
         self.metadata.container = file_path.suffix or None
+        self.metadata.resolution = path_data.get("screen_size")
+        self.metadata.video_codec = path_data.get("video_codec")
+        self.metadata.source = path_data.get("source")
         if not self.metadata.language:
             try:
                 self.metadata.language = path_data.get("language")
