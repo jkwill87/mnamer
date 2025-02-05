@@ -158,7 +158,7 @@ class MetadataEpisode(Metadata):
 
     def __format__(self, format_spec: str | None):
         default = "{series} - {season:02}x{episode:02} - {title}"
-        re_pattern = r"({(\w+)(?:\[[\w:]+\])?(?:\:\d{1,2})?})"
+        re_pattern = r"({(\w+)(?:\[[\w:]+\]|\.\w+)?(?:\:\d{1,2})?})"
         s = re.sub(re_pattern, self._format_repl, format_spec or default)
         s = str_fix_padding(s)
         return s
