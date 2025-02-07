@@ -28,7 +28,7 @@ from mnamer.language import Language
 from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
 from mnamer.setting_store import SettingStore
 from mnamer.types import MediaType, ProviderType
-from mnamer.utils import parse_date, year_range_parse
+from mnamer.utils import parse_date
 
 
 class Provider(ABC):
@@ -83,7 +83,7 @@ class Omdb(Provider):
         if query.id_imdb:
             results = self._lookup_movie(query.id_imdb)
         elif query.name:
-            results = self._search_movie(query.name, query.year)
+            results = self._search_movie(query.name, query.date.year)
         else:
             raise MnamerNotFoundException
         yield from results
@@ -94,15 +94,17 @@ class Omdb(Provider):
         try:
             release_date = dt.datetime.strptime(
                 response["Released"], "%d %b %Y"
-            ).strftime("%Y-%m-%d")
+            )
         except (KeyError, ValueError):
             if response.get("Year") in (None, "N/A"):
                 release_date = None
             else:
-                release_date = "{}-01-01".format(response["Year"])
+                release_date = dt.datetime.strptime(
+                    "{}-01-01".format(response["Year"]), "%Y-%m-%d"
+                )
         meta = MetadataMovie(
             name=response["Title"],
-            year=release_date,
+            date=release_date,
             synopsis=response["Plot"],
             id_imdb=response["imdbID"],
         )
@@ -110,9 +112,9 @@ class Omdb(Provider):
             meta.synopsis = None
         yield meta
 
-    def _search_movie(self, name: str, year: str | None) -> Iterator[MetadataMovie]:
+    def _search_movie(self, name: str, year: int | None) -> Iterator[MetadataMovie]:
         assert self.api_key
-        year_from, year_to = year_range_parse(year, 5)
+        year_from, year_to = year - 5, year + 5
         found = False
         page = 1
         page_max = 10  # each page yields a maximum of 10 results
@@ -153,7 +155,7 @@ class Tmdb(Provider):
         if query.id_tmdb:
             results = self._search_id(query.id_tmdb, query.language)
         elif query.name:
-            results = self._search_name(query.name, query.year, query.language)
+            results = self._search_name(query.name, query.date.year, query.language)
         else:
             raise MnamerNotFoundException
         yield from results
@@ -166,13 +168,13 @@ class Tmdb(Provider):
         yield MetadataMovie(
             name=response["title"],
             language=language,
-            year=response["release_date"],
+            date=response["release_date"],
             synopsis=response["overview"],
             id_tmdb=response["id"],
             id_imdb=response["imdb_id"],
         )
 
-    def _search_name(self, name: str, year: str | None, language: Language | None):
+    def _search_name(self, name: str, year: int | None, language: Language | None):
         assert self.api_key
         page = 1
         page_max = 5  # each page yields a maximum of 20 results
@@ -193,7 +195,7 @@ class Tmdb(Provider):
                         name=entry["title"],
                         language=language,
                         synopsis=entry["overview"],
-                        year=entry["release_date"],
+                        date=entry["release_date"],
                     )
                     if not meta.year:
                         continue
@@ -275,6 +277,7 @@ class Tvdb(Provider):
                         id_tvdb=id_tvdb,
                         season=entry["airedSeason"],
                         series=series_data["data"]["seriesName"],
+                        series_date=series_data["data"]["firstAired"],
                         language=language,
                         synopsis=(entry["overview"] or "")
                         .replace("\r\n", "")
@@ -480,6 +483,7 @@ class TvMaze(Provider):
             id_tvmaze=id_tvmaze or None,
             season=episode_entry["season"],
             series=series_entry["name"],
+            series_date=series_entry["premiered"],
             synopsis=episode_entry["summary"] or None,
             title=episode_entry["name"] or None,
         )

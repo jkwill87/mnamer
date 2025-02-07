@@ -178,7 +178,7 @@ class Target:
             pass
         if isinstance(self.metadata, MetadataMovie):
             self.metadata.name = path_data.get("title")
-            self.metadata.year = path_data.get("year")
+            self.metadata.date = path_data.get("date")
         elif isinstance(self.metadata, MetadataEpisode):
             self.metadata.date = path_data.get("date")
             self.metadata.episode = path_data.get("episode")
