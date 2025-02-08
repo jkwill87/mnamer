@@ -83,7 +83,7 @@ class Omdb(Provider):
         if query.id_imdb:
             results = self._lookup_movie(query.id_imdb)
         elif query.name:
-            results = self._search_movie(query.name, query.date.year)
+            results = self._search_movie(query.name, None if query.date is None else query.date.year)
         else:
             raise MnamerNotFoundException
         yield from results
@@ -155,7 +155,7 @@ class Tmdb(Provider):
         if query.id_tmdb:
             results = self._search_id(query.id_tmdb, query.language)
         elif query.name:
-            results = self._search_name(query.name, query.date.year, query.language)
+            results = self._search_name(query.name, None if query.date is None else query.date.year, query.language)
         else:
             raise MnamerNotFoundException
         yield from results
@@ -197,7 +197,7 @@ class Tmdb(Provider):
                         synopsis=entry["overview"],
                         date=entry["release_date"],
                     )
-                    if not meta.year:
+                    if not meta.date:
                         continue
                     yield meta
                     found = True

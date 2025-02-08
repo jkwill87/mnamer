@@ -175,7 +175,7 @@ class MetadataEpisode(Metadata):
             "episode": int,
             "season": int,
             "series": fn_pipe(str_replace_slashes, str_title_case),
-            "series_date": fn_pipe(str_replace_slashes, str_title_case),
+            "series_date": parse_date,
             "title": fn_pipe(str_replace_slashes, str_title_case),
         }
         converter: Callable | None = converter_map.get(key)

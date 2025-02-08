@@ -167,6 +167,10 @@ class Target:
         self.metadata.language = path_data.get("language")
         self.metadata.group = path_data.get("release_group")
         self.metadata.container = file_path.suffix or None
+        if "date" in path_data:
+            self.metadata.date = path_data.get("date")
+        elif "year" in path_data:
+            self.metadata.date = "{}-01-01".format(path_data.get("year"))
         if not self.metadata.language:
             try:
                 self.metadata.language = path_data.get("language")
@@ -178,9 +182,7 @@ class Target:
             pass
         if isinstance(self.metadata, MetadataMovie):
             self.metadata.name = path_data.get("title")
-            self.metadata.date = path_data.get("date")
         elif isinstance(self.metadata, MetadataEpisode):
-            self.metadata.date = path_data.get("date")
             self.metadata.episode = path_data.get("episode")
             self.metadata.season = path_data.get("season")
             self.metadata.series = path_data.get("title")
