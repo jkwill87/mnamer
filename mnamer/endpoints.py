@@ -165,7 +165,7 @@ def tmdb_movies(
 def tmdb_search_movies(
     api_key: str,
     title: str,
-    year: int | str | None = None,
+    year: int | None = None,
     language: Language | None = None,
     region: str | None = None,
     adult: bool = False,

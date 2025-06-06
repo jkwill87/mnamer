@@ -1,0 +1,2 @@
+chardet >= 5.2.0
+py3langid ~= 0.2.2

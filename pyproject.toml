@@ -21,6 +21,11 @@ dependencies = { file = "requirements.txt" }
 
 [tool.setuptools.dynamic.optional-dependencies]
 dev = { file = "requirements-dev.txt" }
+guess_langid =  { file = "requirements-guess-langid.txt" }
+guess_lingua =  { file = "requirements-guess-lingua.txt" }
+guess_fasttext =  { file = "requirements-guess-fasttext.txt" }
+guess_langdetect =  { file = "requirements-guess-langdetect.txt" }
+guess_all =  { file = "requirements-guess-all.txt" }
 
 [build-system]
 requires = ["setuptools >= 61.0.0", "setuptools_scm[toml] >= 6.2", "wheel"]

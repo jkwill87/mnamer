@@ -1,5 +1,6 @@
 import dataclasses
 import json
+from functools import cached_property
 from pathlib import Path
 from typing import Any, Callable
 
@@ -11,6 +12,7 @@ from mnamer.metadata import Metadata
 from mnamer.setting_spec import SettingSpec
 from mnamer.types import MediaType, ProviderType, SettingType
 from mnamer.utils import crawl_out, json_loads, normalize_containers
+from mnamer import text_lang_guesser
 
 
 @dataclasses.dataclass
@@ -106,6 +108,15 @@ class SettingStore:
             help="--language=<LANG>: specify the search language",
         ).as_dict(),
     )
+    subtitle_lang_guesser: Language | None = dataclasses.field(
+        default=None,
+        metadata=SettingSpec(
+            flags=["--subtitle-lang-guesser"],
+            group=SettingType.PARAMETER,
+            choices=list(text_lang_guesser.available_guessers),
+            help="--subtitle-lang-guesser=<GUESSER>: subtitle file text language guesser (must be installed)",
+        ).as_dict(),
+    )
     mask: list[str] = dataclasses.field(
         default_factory=lambda: [
             "avi",
@@ -177,7 +188,7 @@ class SettingStore:
         ).as_dict(),
     )
     movie_format: str = dataclasses.field(
-        default="{name} ({year}).{extension}",
+        default="{name} ({date.year}).{extension}",
         metadata=SettingSpec(
             dest="movie_format",
             flags=["--movie_format", "--movie-format", "--movieformat"],
@@ -215,6 +226,15 @@ class SettingStore:
             flags=["--episode_format", "--episode-format", "--episodeformat"],
             group=SettingType.PARAMETER,
             help="--episode-format: set episode renaming format specification",
+        ).as_dict(),
+    )
+    symlink: bool = dataclasses.field(
+        default=False,
+        metadata=SettingSpec(
+            action="store_true",
+            flags=["--symlink"],
+            group=SettingType.PARAMETER,
+            help="--symlink: leaves a trailing symlink",
         ).as_dict(),
     )
 
@@ -322,7 +342,7 @@ class SettingStore:
         default=False,
         metadata=SettingSpec(
             action="store_true",
-            flags=["--test"],
+            flags=["--test", "--dry-run", "--dryrun"],
             group=SettingType.DIRECTIVE,
             help="--test: mocks the renaming and moving of files",
         ).as_dict(),
@@ -366,6 +386,12 @@ class SettingStore:
     @staticmethod
     def _resolve_path(path: str | Path) -> Path:
         return Path(path).resolve()
+
+    @cached_property
+    def text_lang_guesser(self):
+        if not self.subtitle_lang_guesser:
+            return None
+        return text_lang_guesser.guesser(self.subtitle_lang_guesser, Language.all())
 
     def __setattr__(self, key: str, value: Any):
         converter_map: dict[str, Callable] = {

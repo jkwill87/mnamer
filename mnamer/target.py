@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 from os import path
+from os import symlink
 from pathlib import Path
 from shutil import move
 from typing import Any, ClassVar, Type
@@ -116,7 +117,8 @@ class Target:
 
     def _parse(self, file_path: Path):
         path_data: dict[str, Any] = {"language": self._settings.language}
-        if is_subtitle(self.source):
+        source_is_subtitle = is_subtitle(self.source)
+        if source_is_subtitle:
             try:
                 path_data["language"] = Language.parse(self.source.stem[-2:])
                 file_path = Path(self.source.parent, self.source.stem[:-2])
@@ -148,6 +150,7 @@ class Target:
             None: Metadata,
         }[media_type]
         self.metadata = meta_cls()
+        self.metadata.original_filename = self.source.name
         self.metadata.quality = (
             " ".join(
                 path_data[key]
@@ -167,6 +170,10 @@ class Target:
         self.metadata.language = path_data.get("language")
         self.metadata.group = path_data.get("release_group")
         self.metadata.container = file_path.suffix or None
+        if "date" in path_data:
+            self.metadata.date = path_data.get("date")
+        elif "year" in path_data:
+            self.metadata.date = "{}-01-01".format(path_data.get("year"))
         if not self.metadata.language:
             try:
                 self.metadata.language = path_data.get("language")
@@ -176,11 +183,20 @@ class Target:
             self.metadata.language_sub = path_data.get("subtitle_language")
         except MnamerException:
             pass
+        if (
+            source_is_subtitle
+            and not self.metadata.language_sub
+            and self._settings.subtitle_lang_guesser
+        ):
+            try:
+                self.metadata.language_sub = (
+                    self._settings.text_lang_guesser.guess_language(self.source)
+                )
+            except MnamerException:
+                pass
         if isinstance(self.metadata, MetadataMovie):
             self.metadata.name = path_data.get("title")
-            self.metadata.year = path_data.get("year")
         elif isinstance(self.metadata, MetadataEpisode):
-            self.metadata.date = path_data.get("date")
             self.metadata.episode = path_data.get("episode")
             self.metadata.season = path_data.get("season")
             self.metadata.series = path_data.get("title")
@@ -242,7 +258,14 @@ class Target:
         """Performs the action of renaming and/or moving a file."""
         destination_path = Path(self.destination).resolve()
         destination_path.parent.mkdir(parents=True, exist_ok=True)
+        if path.isLink(destination_path) == True:
+            print("Skipped symlink")
+            return
         try:
             move(str(self.source), destination_path)
+            if self._settings.symlink:
+                if path.islink(destination_path) == False:
+                    symlink(destination_path, str(self.source))
+
         except OSError:  # pragma: no cover
             raise MnamerException

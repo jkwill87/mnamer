@@ -16,7 +16,6 @@ from mnamer.utils import (
     str_fix_padding,
     str_replace_slashes,
     str_title_case,
-    year_parse,
 )
 
 
@@ -44,6 +43,7 @@ class Metadata:
     language_sub: Language | None = None
     quality: str | None = None
     synopsis: str | None = None
+    original_filename: str | None = None
 
     @classmethod
     def to_media_type(cls) -> MediaType:
@@ -111,13 +111,17 @@ class MetadataMovie(Metadata):
     """
 
     name: str | None = None
-    year: str | None = None
+    date: dt.date | None = None
     id_imdb: str | None = None
     id_tmdb: str | None = None
 
+    def __post_init__(self):
+        if isinstance(self.date, str):
+            self.date = parse_date(self.date)
+
     def __format__(self, format_spec: str | None):
-        default = "{name} ({year})"
-        re_pattern = r"({(\w+)(?:\[[\w:]+\])?(?:\:\d{1,2})?})"
+        default = "{name} ({date.year})"
+        re_pattern = r"({(\w+)(?:\[[\w:]+\]|\.\w+)?(?:\:\d{1,2})?})"
         s = re.sub(re_pattern, self._format_repl, format_spec or default)
         s = str_fix_padding(s)
         return s
@@ -125,7 +129,7 @@ class MetadataMovie(Metadata):
     def __setattr__(self, key: str, value: Any):
         converter_map: dict[str, Callable] = {
             "name": fn_pipe(str_replace_slashes, str_title_case),
-            "year": year_parse,
+            "date": parse_date,
         }
         converter: Callable | None = converter_map.get(key)
         if value is not None and converter:
@@ -141,6 +145,7 @@ class MetadataEpisode(Metadata):
     """
 
     series: str | None = None
+    series_date: dt.date | None = None
     season: int | None = None
     episode: int | None = None
     date: dt.date | None = None
@@ -155,10 +160,12 @@ class MetadataEpisode(Metadata):
             self.episode = int(self.episode)
         if isinstance(self.date, str):
             self.date = parse_date(self.date)
+        if isinstance(self.series_date, str):
+            self.series_date = parse_date(self.series_date)
 
     def __format__(self, format_spec: str | None):
         default = "{series} - {season:02}x{episode:02} - {title}"
-        re_pattern = r"({(\w+)(?:\[[\w:]+\])?(?:\:\d{1,2})?})"
+        re_pattern = r"({(\w+)(?:\[[\w:]+\]|\.\w+)?(?:\:\d{1,2})?})"
         s = re.sub(re_pattern, self._format_repl, format_spec or default)
         s = str_fix_padding(s)
         return s
@@ -169,6 +176,7 @@ class MetadataEpisode(Metadata):
             "episode": int,
             "season": int,
             "series": fn_pipe(str_replace_slashes, str_title_case),
+            "series_date": parse_date,
             "title": fn_pipe(str_replace_slashes, str_title_case),
         }
         converter: Callable | None = converter_map.get(key)
