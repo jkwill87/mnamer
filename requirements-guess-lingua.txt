@@ -1,0 +1,2 @@
+chardet >= 5.2.0
+lingua-language-detector ~= 2.0.2

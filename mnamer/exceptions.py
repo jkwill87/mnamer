@@ -19,3 +19,13 @@ class MnamerNetworkException(MnamerException):
 
 class MnamerNotFoundException(MnamerException):
     """Raised when a lookup or search works as expected yet yields no results."""
+
+
+class MnamerFailedLangGuesserInstantiation(MnamerException):
+    """
+    Raised when a requested text language guesser failed to instantiate.
+    """
+
+
+class MnamerNoSuchLangGuesser(MnamerException):
+    """Raised when a requested text language guesser name does not match any known guessers."""
