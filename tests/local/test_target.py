@@ -112,12 +112,70 @@ def test_ambiguous_subtitle_language():
 
 
 def test_destination__simple():
-    pass  # TODO
+    """Test basic destination path generation."""
+    settings = SettingStore(
+        media=MediaType.MOVIE, movie_format="{name} ({year}).{extension}"
+    )
+    target = Target(Path("test.mkv"), settings)
+    target.metadata.name = "Test Movie"
+    target.metadata.year = 2023
+    target.metadata.container = ".mkv"
+
+    expected = Path("Test Movie (2023).mkv")
+    assert target.destination == expected
 
 
 def test_query():
-    pass  # TODO
+    """Test that query method calls provider search."""
+    from unittest.mock import Mock, patch
+
+    settings = SettingStore(media=MediaType.MOVIE)
+    target = Target(Path("test.mkv"), settings)
+
+    mock_results = [Mock(), Mock(), Mock()]
+    with patch.object(target._provider, "search", return_value=mock_results):
+        results = target.query()
+        assert len(results) == 3
 
 
-def test_relocate():
-    pass  # TODO
+def test_relocate_with_symlink():
+    """Test relocate method with symlink creation."""
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        source_file = Path(tmp_dir) / "source.mkv"
+        source_file.write_text("test")
+
+        settings = SettingStore(media=MediaType.MOVIE)
+        target = Target(source_file, settings)
+        target.metadata.name = "Test"
+        target.metadata.year = 2023
+        target.metadata.container = ".mkv"
+
+        # Test symlink creation
+        target.relocate(should_relocate_with_symlink=True)
+
+        assert source_file.exists()  # Original should remain
+        assert target.destination.is_symlink()
+
+
+def test_relocate_with_move():
+    """Test relocate method with file moving."""
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        source_file = Path(tmp_dir) / "source.mkv"
+        source_file.write_text("test")
+
+        settings = SettingStore(media=MediaType.MOVIE)
+        target = Target(source_file, settings)
+        target.metadata.name = "Test"
+        target.metadata.year = 2023
+        target.metadata.container = ".mkv"
+
+        # Test file moving
+        target.relocate(should_relocate_with_symlink=False)
+
+        assert not source_file.exists()  # Original should be moved
+        assert target.destination.exists()
+        assert not target.destination.is_symlink()
