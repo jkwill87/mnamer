@@ -44,6 +44,25 @@ class SettingStore:
             help="-b, --batch: process automatically without interactive prompts",
         ).as_dict(),
     )
+    move: bool = dataclasses.field(
+        default=False,
+        metadata=SettingSpec(
+            action="store_true",
+            flags=["--move"],
+            group=SettingType.PARAMETER,
+            help="--move: move files to their new location instead of symlinking them",
+        ).as_dict(),
+    )
+    recreate_symlink: bool = dataclasses.field(
+        default=False,
+        metadata=SettingSpec(
+            action="store_true",
+            dest="recreate_symlink",
+            flags=["--recreate_symlink", "--recreate-symlink", "--recreatesymlink"],
+            group=SettingType.PARAMETER,
+            help="--recreate-symlink: will recreate symlinks if they already exist",
+        ).as_dict(),
+    )
     lower: bool = dataclasses.field(
         default=False,
         metadata=SettingSpec(
@@ -447,4 +466,4 @@ class SettingStore:
 
     def formatting_for(self, media: MediaType | Metadata) -> str:
         """Returns the formatting string for a given media type or metadata."""
-        return getattr(self, f"{ media.to_media_type().value}_format")
+        return getattr(self, f"{media.to_media_type().value}_format")
