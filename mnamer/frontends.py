@@ -9,6 +9,7 @@ from mnamer.exceptions import (
     MnamerNotFoundException,
     MnamerSkipException,
 )
+from mnamer.language import Language
 from mnamer.setting_store import SettingStore
 from mnamer.target import Target
 from mnamer.types import MessageType
@@ -122,30 +123,64 @@ class Cli(Frontend):
                 is_subtitle(target.metadata.container)
                 and not target.metadata.language_sub
             ):
-                if self.settings.batch:
+                #! Harcoding subtitle language to English
+                english = Language(name="English", a2="en", a3="eng")
+                Language.ensure_valid_for_tvdb(english)
+                target.metadata.language_sub = english
+
+                #! # Uncomment the following lines if you want to prompt for subtitle language
+                # try:
+                #     # target.metadata.language_sub = tty.subtitle_prompt()
+                # except MnamerSkipException:
+                #     tty.msg("skipping (user request)", MessageType.ALERT)
+                #     continue
+                # except MnamerAbortException:
+                #     tty.msg("aborting (user request)", MessageType.ERROR)
+                #     break
+
+            if target.source.is_symlink():
+                error_msg = "Source is a symlink"
+                tty.msg(error_msg, MessageType.ERROR)
+
+                raise MnamerException(error_msg)
+
+            if target.destination.resolve() == target.source.resolve():
+                if target.source.is_symlink():
+                    "This means that the source and symlink destination are in the same directory"
+                    error_msg = (
+                        "Source and destination symlinks are in the same directory"
+                    )
+                    tty.msg(error_msg, MessageType.ERROR)
+
+                    raise MnamerException(error_msg)
+
+                if target.destination.is_symlink():
+                    if self.settings.move:
+                        self._rename_and_move_file(target)
+
                     tty.msg(
-                        "skipping (subtitle language can't be detected)",
+                        "Destination is already a symlink of source",
+                        MessageType.ALERT,
+                    )
+
+                    if self.settings.recreate_symlink:
+                        tty.msg(
+                            "Recreating symlink is enabled, recreating it",
+                            MessageType.ALERT,
+                        )
+                        self._recreate_symlink(target)
+
+                    continue
+                else:
+                    # source and destination are the same, skip
+                    tty.msg(
+                        "Skipping (source and destination paths are the same)",
                         MessageType.ALERT,
                     )
                     continue
-                try:
-                    target.metadata.language_sub = tty.subtitle_prompt()
-                except MnamerSkipException:
-                    tty.msg("skipping (user request)", MessageType.ALERT)
-                    continue
-                except MnamerAbortException:
-                    tty.msg("aborting (user request)", MessageType.ERROR)
-                    break
 
-            # sanity check move
-            if target.destination == target.source:
-                tty.msg(
-                    "skipping (source and destination paths are the same)",
-                    MessageType.ALERT,
-                )
-                continue
             if self.settings.no_overwrite and target.destination.exists():
-                tty.msg("skipping (--no-overwrite)", MessageType.ALERT)
+                tty.msg("Skipping (--no-overwrite)", MessageType.ALERT)
                 continue
 
             self._rename_and_move_file(target)
@@ -171,18 +206,44 @@ class Cli(Frontend):
         tty.msg(target.metadata.as_dict(), debug=True)
         tty.msg("", debug=True)
 
-    def _rename_and_move_file(self, target: Target):
+    def _recreate_symlink(self, target: Target):
         tty.msg(
-            f"moving to {target.destination.absolute()}",
+            f"Re-creating symlink in {target.destination.absolute()}",
             MessageType.SUCCESS,
         )
+
         if self.settings.test:
             self.success_count += 1
             return
         try:
-            target.relocate()
+            # recreate symlink
+            target.relocate(should_relocate_with_symlink=True)
+        except MnamerException as e:
+            tty.msg("FAILED!", MessageType.ERROR)
+            tty.msg(str(e), MessageType.ERROR)
+        else:
+            tty.msg("OK!", MessageType.SUCCESS)
+            self.success_count += 1
+
+    def _rename_and_move_file(self, target: Target):
+        should_relocate_with_symlink = not self.settings.move
+        action_name = "Symlink" if should_relocate_with_symlink else "Moving"
+
+        tty.msg(
+            f"{action_name} to {target.destination.absolute()}", MessageType.SUCCESS
+        )
+
+        if self.settings.test:
+            self.success_count += 1
+            return
+
+        try:
+            target.relocate(should_relocate_with_symlink=should_relocate_with_symlink)
         except MnamerException:
             tty.msg("FAILED!", MessageType.ERROR)
+        except PermissionError as e:
+            tty.msg("FAILED!", MessageType.ERROR)
+            tty.msg(f"Permission error: {e.strerror} ({e.filename})", MessageType.ERROR)
         else:
             tty.msg("OK!", MessageType.SUCCESS)
             self.success_count += 1
