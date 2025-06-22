@@ -39,7 +39,8 @@ def e2e_run(capsys, request):
         out = ""
         code = 0
         for arg in args:
-            sys.argv.append(arg)
+            if arg not in sys.argv:
+                sys.argv.append(arg)
         try:
             settings = SettingStore()
             settings.load()
