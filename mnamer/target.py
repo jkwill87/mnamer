@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import os
 from os import path
 from pathlib import Path
 from shutil import move
@@ -238,11 +239,35 @@ class Target:
                 break
         return response
 
-    def relocate(self) -> None:
-        """Performs the action of renaming and/or moving a file."""
+    def is_destination_symlink(self) -> bool:
+        return self.destination.exists() and self.destination.is_symlink()
+
+    def remove_destination_symlink(self) -> None:
+        """Removes the destination symlink if it exists."""
+        if self.is_destination_symlink():
+            self.destination.unlink()
+
+    def _relocate_with_symlink(self) -> None:
+        """Performs the action of symlinking a file."""
         destination_path = Path(self.destination).resolve()
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            move(str(self.source), destination_path)
-        except OSError:  # pragma: no cover
-            raise MnamerException
+            os.symlink(self.source, destination_path)
+        except OSError as e:
+            raise MnamerException(str(e))
+
+    def relocate(self, *, should_relocate_with_symlink: bool = True) -> None:
+        """Performs the action of renaming and/or moving a file."""
+
+        #! If the destination is a symlink, we remove it first
+        self.remove_destination_symlink()
+
+        if should_relocate_with_symlink:
+            self._relocate_with_symlink()
+        else:
+            destination_path = Path(self.destination).resolve()
+            destination_path.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                move(str(self.source), destination_path)
+            except OSError:  # pragma: no cover
+                raise MnamerException
