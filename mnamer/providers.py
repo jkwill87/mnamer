@@ -334,14 +334,16 @@ class Tvdb(Provider):
         found = False
         for meta in self._search_id(id_tvdb, language=language):
             if meta.date:
-                if season is not None and season == meta.season and episode is not None and episode == meta.episode:
+                if season is not None and season == meta.season \
+                   and episode is not None and episode == meta.episode:
                     if meta.date == release_date:
                         found = True
                         yield meta
-                    elif release_date.month == 1 and release_date.month == 1:
-                        if meta.date.year == release_date.year or meta.series_date.year == release_date.year:
-                            found = True
-                            yield meta
+                    elif release_date.month == 1 and release_date.month == 1 and \
+                         ( meta.date.year == release_date.year or \
+                           meta.series_date.year == release_date.year ):
+                        found = True
+                        yield meta
                 else:
                     if meta.date == release_date:
                         found = True

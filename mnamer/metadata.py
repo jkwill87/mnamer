@@ -121,8 +121,15 @@ class MetadataMovie(Metadata):
     def __format__(self, format_spec: str | None):
         default = "{name} ({date.year})"
         re_pattern = r"({(\w+)(?:\[[\w:]+\]|\.\w+)?(?:\:\d{1,2})?})"
+        tname = ''
+        if ( format_spec is None or re.search("{(date.year|date)}", format_spec) is not None ) \
+           and self.name is not None and self.date is not None \
+           and self.name.endswith(f" ({self.date.year})"):
+            tname = f" ({self.date.year})"
+            self.name = self.name[:-len(tname)]
         s = re.sub(re_pattern, self._format_repl, format_spec or default)
         s = str_fix_padding(s)
+        self.name+=tname
         return s
 
     def __setattr__(self, key: str, value: Any):
@@ -165,8 +172,15 @@ class MetadataEpisode(Metadata):
     def __format__(self, format_spec: str | None):
         default = "{series} - {season:02}x{episode:02} - {title}"
         re_pattern = r"({(\w+)(?:\[[\w:]+\]|\.\w+)?(?:\:\d{1,2})?})"
+        tseries = ''
+        if ( format_spec is None or re.search("{(series_date.year|series_date|date.year|date)}", format_spec) is not None ) \
+           and self.series is not None and self.series_date is not None \
+           and self.series.endswith(f" ({self.series_date.year})"):
+            tseries = f" ({self.series_date.year})"
+            self.series = self.series[:-len(tseries)]
         s = re.sub(re_pattern, self._format_repl, format_spec or default)
         s = str_fix_padding(s)
+        self.series+=tseries
         return s
 
     def __setattr__(self, key: str, value: Any):
