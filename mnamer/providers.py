@@ -231,13 +231,17 @@ class Tvdb(Provider):
         if not self.token:
             self.token = self._login()
         if query.id_tvdb and query.date:
-            results = self._search_tvdb_date(query.id_tvdb, query.date, query.language)
+            results = self._search_tvdb_date(
+                query.id_tvdb, query.date, query.language, query.season, query.episode
+            )
         elif query.id_tvdb:
             results = self._search_id(
                 query.id_tvdb, query.season, query.episode, query.language
             )
         elif query.series and query.date:
-            results = self._search_series_date(query.series, query.date, query.language)
+            results = self._search_series_date(
+                query.series, query.date, query.language, query.season, query.episode
+            )
         elif query.series:
             results = self._search_series(
                 query.series, query.season, query.episode, query.language
@@ -319,19 +323,39 @@ class Tvdb(Provider):
             raise MnamerNotFoundException
 
     def _search_tvdb_date(
-        self, id_tvdb: str, release_date: dt.date, language: Language | None
+        self,
+        id_tvdb: str,
+        release_date: dt.date,
+        language: Language | None,
+        season: int | None = None,
+        episode: int | None = None
     ):
         release_date = parse_date(release_date)
         found = False
         for meta in self._search_id(id_tvdb, language=language):
-            if meta.date and meta.date == release_date:
-                found = True
-                yield meta
+            if meta.date:
+                if season is not None and season == meta.season and episode is not None and episode == meta.episode:
+                    if meta.date == release_date:
+                        found = True
+                        yield meta
+                    elif release_date.month == 1 and release_date.month == 1:
+                        if meta.date.year == release_date.year or meta.series_date.year == release_date.year:
+                            found = True
+                            yield meta
+                else:
+                    if meta.date == release_date:
+                        found = True
+                        yield meta
         if not found:
             raise MnamerNotFoundException
 
     def _search_series_date(
-        self, series: str, release_date: dt.date, language: Language | None
+        self,
+        series: str,
+        release_date: dt.date,
+        language: Language | None,
+        season: int | None = None,
+        episode: int | None = None
     ):
         release_date = parse_date(release_date)
         series_data = tvdb_search_series(
@@ -341,7 +365,7 @@ class Tvdb(Provider):
         found = False
         for tvdb_id in tvdb_ids:
             try:
-                yield from self._search_tvdb_date(tvdb_id, release_date, language)
+                yield from self._search_tvdb_date(tvdb_id, release_date, language, season, episode)
                 found = True
             except MnamerNotFoundException:
                 continue
