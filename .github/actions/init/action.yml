@@ -4,16 +4,16 @@ description: Sets up the environment for build, lint, and test jobs
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
-        cache: pip
-        cache-dependency-path: |
-          pyproject.toml
-          requirements.txt
-          requirements-dev.txt
+        python-version: '3.12'
+        
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        enable-cache: true
+        cache-dependency-glob: "**/pyproject.toml"
 
-    - name: Installing dependencies
+    - name: Install dependencies
       shell: sh
-      run: >-
-        pip install -U pip &&
-        pip install -U -r requirements.txt -r requirements-dev.txt
+      run: uv sync --dev

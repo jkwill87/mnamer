@@ -4,7 +4,7 @@ import datetime as dt
 from os import path
 from pathlib import Path
 from shutil import move
-from typing import Any, ClassVar, Type
+from typing import Any, ClassVar
 
 from guessit import guessit  # type: ignore
 
@@ -58,7 +58,7 @@ class Target:
             return str(self.source)
 
     @classmethod
-    def populate_paths(cls: Type[Target], settings: SettingStore) -> list[Target]:
+    def populate_paths(cls: type[Target], settings: SettingStore) -> list[Target]:
         """Creates a list of Target objects for media files found in paths."""
         file_paths = crawl_in(settings.targets, settings.recurse)
         file_paths = filter_blacklist(file_paths, settings.ignore)
@@ -132,9 +132,9 @@ class Target:
                     path_data[k] = Language.parse(v)
                 except MnamerException:
                     continue
-            elif isinstance(v, (int, str, dt.date)):
+            elif isinstance(v, int | str | dt.date):
                 path_data[k] = v
-            elif isinstance(v, list) and all([isinstance(_, (int, str)) for _ in v]):
+            elif isinstance(v, list) and all(isinstance(_, int | str) for _ in v):
                 path_data[k] = v[0]
         if self._settings.media:
             media_type = self._settings.media
@@ -244,5 +244,5 @@ class Target:
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         try:
             move(str(self.source), destination_path)
-        except OSError:  # pragma: no cover
-            raise MnamerException
+        except OSError as e:  # pragma: no cover
+            raise MnamerException from e

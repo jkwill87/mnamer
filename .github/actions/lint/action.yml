@@ -1,19 +1,9 @@
 name: Lint
-description: Lints the codebase with black, isort, pyflakes, and mypy
+description: Lints the codebase with ruff and mypy
 
 inputs:
-  black:
-    description: Whether to run black
-    required: false
-    default: "true"
-
-  isort:
-    description: Whether to run isort
-    required: false
-    default: "true"
-
-  pyflakes:
-    description: Whether to run pyflakes
+  ruff:
+    description: Whether to run ruff
     required: false
     default: "true"
 
@@ -25,22 +15,17 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Linting with black
-      if: inputs.black == 'true'
-      run: black --check mnamer tests
+    - name: Linting with ruff
+      if: inputs.ruff == 'true'
+      run: uv run ruff check mnamer tests
       shell: sh
 
-    - name: Linting isort
-      if: inputs.isort == 'true'
-      run: isort --check-only mnamer tests
+    - name: Formatting with ruff
+      if: inputs.ruff == 'true'
+      run: uv run ruff format --check mnamer tests
       shell: sh
 
-    - name: Linting pyflakes
-      if: inputs.pyflakes == 'true'
-      run: pyflakes mnamer tests
-      shell: sh
-
-    - name: Linting mypy
+    - name: Type checking with mypy
       if: inputs.mypy == 'true'
-      run: mypy mnamer tests
+      run: uv run mypy mnamer tests
       shell: sh

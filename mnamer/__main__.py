@@ -17,13 +17,13 @@ def main():  # pragma: no cover
         settings.load()
     except MnamerException as e:
         tty.error(e)
-        raise SystemExit(2)
+        raise SystemExit(2) from None
     try:
         frontend = Cli(settings)
         frontend.launch()
     except SystemExit:
         raise
-    except:
+    except Exception:
         if IS_DEBUG:
             # allow exceptions to raised when debugging
             raise

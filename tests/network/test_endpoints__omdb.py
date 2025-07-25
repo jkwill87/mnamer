@@ -146,12 +146,12 @@ def test_omdb_search__fields__search():
 
 def test_omdb_search__query__movie():
     result = omdb_search(Omdb.api_key, "ninja turtles", media="movie")
-    assert all([entry["Type"] == "movie" for entry in result["Search"]])
+    assert all(entry["Type"] == "movie" for entry in result["Search"])
 
 
 def test_omdb_search__query__series():
     result = omdb_search(Omdb.api_key, "ninja turtles", media="series")
-    assert all([entry["Type"] == "series" for entry in result["Search"]])
+    assert all(entry["Type"] == "series" for entry in result["Search"])
 
 
 def test_omdb_search__api_key_fail():

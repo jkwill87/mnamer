@@ -28,7 +28,7 @@ runs:
     - name: Running Local Unit Tests
       if: inputs.local == 'true'
       run: >-
-        python -m pytest
+        uv run pytest
         -m local
         --durations=10
         --cov=./
@@ -40,7 +40,7 @@ runs:
     - name: Running Network Unit Tests
       if: inputs.network == 'true'
       run: >-
-        python -m pytest
+        uv run pytest
         -m network
         --reruns 3
         --durations=10
@@ -53,7 +53,7 @@ runs:
     - name: Running End to End Tests
       if: inputs.e2e == 'true'
       run: >-
-        python -m pytest
+        uv run pytest
         -m e2e
         --reruns 3
         --durations=10
@@ -71,7 +71,7 @@ runs:
         && failure()
 
     - name: Reporting Coverage Statistics
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       if: >-
         success()
         && inputs.coverage == 'true'
