@@ -158,10 +158,10 @@ def get_session() -> requests_cache.CachedSession:
         return session
 
     if hasattr(get_session, "session"):
-        session: requests_cache.CachedSession = get_session.session
+        session: requests_cache.CachedSession = get_session.session  # type: ignore[attr-defined]
         return session
     session = make_session()
-    get_session.session = session
+    get_session.session = session  # type: ignore[attr-defined]
     return session
 
 
