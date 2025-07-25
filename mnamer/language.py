@@ -53,8 +53,8 @@ class Language:
         try:
             if getattr(value, "alpha3", None):
                 return cls(value.name, value.alpha2, value.alpha3)
-        except:
-            raise MnamerException("Could not determine language")
+        except Exception:
+            raise MnamerException("Could not determine language") from None
         value = value.lower()
         for row in KNOWN_LANGUAGES:
             for item in row:
@@ -99,4 +99,4 @@ class Language:
             "zh",
         }
         if language is not None and language.a2 not in valid:
-            raise MnamerException("'lang' must be one of %s" % ",".join(valid))
+            raise MnamerException(f"'lang' must be one of {','.join(valid)}")

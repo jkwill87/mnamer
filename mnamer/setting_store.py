@@ -1,7 +1,8 @@
 import dataclasses
 import json
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from mnamer.argument import ArgLoader
 from mnamer.const import SUBTITLE_CONTAINERS
@@ -424,7 +425,7 @@ class SettingStore:
         try:
             arguments = arg_loader.load()
         except RuntimeError as e:
-            raise MnamerException(e)
+            raise MnamerException(e) from e
         config_path = arguments.get("config_path", crawl_out(".mnamer-v2.json"))
         config = json_loads(str(config_path)) if config_path else {}
         if not self.config_ignore and not arguments.get("config_ignore"):
@@ -447,4 +448,4 @@ class SettingStore:
 
     def formatting_for(self, media: MediaType | Metadata) -> str:
         """Returns the formatting string for a given media type or metadata."""
-        return getattr(self, f"{ media.to_media_type().value}_format")
+        return getattr(self, f"{media.to_media_type().value}_format")

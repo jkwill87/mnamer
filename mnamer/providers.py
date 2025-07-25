@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import datetime as dt
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 from os import environ
-from typing import Iterator
 
 from mnamer.endpoints import (
     omdb_search,
@@ -242,8 +242,7 @@ class Tvdb(Provider):
             )
         else:
             raise MnamerNotFoundException
-        for result in results:
-            yield result
+        yield from results
 
     def _search_id(
         self,

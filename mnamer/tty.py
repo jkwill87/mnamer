@@ -1,7 +1,8 @@
 """Provides an interface for handling user input and printing output."""
 
 import traceback
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from teletype import codes
 from teletype.components import ChoiceHelper, SelectOne
@@ -28,9 +29,9 @@ def _chars() -> dict[str, str]:
     return chars
 
 
-def _abort_helpers() -> (
-    tuple[ChoiceHelper[MnamerSkipException], ChoiceHelper[MnamerAbortException]]
-):
+def _abort_helpers() -> tuple[
+    ChoiceHelper[MnamerSkipException], ChoiceHelper[MnamerAbortException]
+]:
     if no_style:
         style = None
         skip_mnemonic = "[s]"
@@ -90,7 +91,7 @@ def metadata_prompt(matches: list[Metadata]) -> Metadata:  # pragma: no cover
     msg("select match")
     selector = SelectOne([*matches, *_abort_helpers()], **_chars())
     choice = selector.prompt()
-    if isinstance(choice, (MnamerAbortException, MnamerSkipException)):
+    if isinstance(choice, MnamerAbortException | MnamerSkipException):
         raise choice
     return choice
 
@@ -105,7 +106,7 @@ def metadata_guess(metadata: Metadata) -> Metadata:  # pragma: no cover
     option = ChoiceHelper(metadata, label)
     selector = SelectOne([option, *_abort_helpers()], **_chars())
     choice = selector.prompt()
-    if isinstance(choice, (MnamerAbortException, MnamerSkipException)):
+    if isinstance(choice, MnamerAbortException | MnamerSkipException):
         raise choice
     else:
         return choice
@@ -116,7 +117,7 @@ def subtitle_prompt() -> Language:
     choices = [ChoiceHelper(language, language.name) for language in Language.all()]
     selector = SelectOne([*choices, *_abort_helpers()], **_chars())
     choice = selector.prompt()
-    if isinstance(choice, (MnamerAbortException, MnamerSkipException)):
+    if isinstance(choice, MnamerAbortException | MnamerSkipException):
         raise choice
     else:
         return choice

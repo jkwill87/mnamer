@@ -7,22 +7,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/init
 
       - name: Linting
         uses: ./.github/actions/lint
         with:
-          black: true
-          isort: true
-          pyflakes: true
+          ruff: true
           mypy: true
 
   test:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/init
 
       - name: Testing (contributor)

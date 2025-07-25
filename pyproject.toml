@@ -4,11 +4,37 @@ description = "A command-line utility for organizing media files."
 authors = [{ name = "Jessy Williams", email = "jessy@jessywilliams.com" }]
 maintainers = [{ name = "Jessy Williams", email = "jessy@jessywilliams.com" }]
 license = { file = "LICENSE.txt" }
-requires-python = ">=3.10"
-dynamic = ["version", "dependencies", "optional-dependencies"]
+requires-python = ">=3.11"
+dynamic = ["version"]
 scripts = { mnamer = "mnamer.__main__:main" }
 urls = { repository = "https://github.com/jkwill87/mnamer" }
 readme = "README.md"
+dependencies = [
+    "appdirs>=1.4.4",
+    "babelfish>=0.6.0",
+    "guessit>=3.8.0",
+    "requests>=2.32.0",
+    "requests-cache~=0.9.8",
+    "setuptools-scm>=8.0.0",
+    "teletype>=1.3.4",
+    "typing-extensions>=4.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "build>=1.2.0",
+    "codecov>=2.1.13",
+    "mypy>=1.17.0",
+    "pylint>=3.3.0",
+    "pytest>=8.4.0",
+    "pytest-cov>=6.2.0",
+    "pytest-rerunfailures>=15.0",
+    "setuptools>=80.0.0",
+    "twine>=6.0.0",
+    "types-requests>=2.32.0",
+    "wheel>=0.45.0",
+    "ruff>=0.9.0",
+]
 
 [tool.setuptools]
 packages = ["mnamer"]
@@ -16,35 +42,45 @@ packages = ["mnamer"]
 [tool.setuptools.package-data]
 "*" = ["LICENSE.txt", "README.md", "py.typed"]
 
-[tool.setuptools.dynamic]
-dependencies = { file = "requirements.txt" }
-
-[tool.setuptools.dynamic.optional-dependencies]
-dev = { file = "requirements-dev.txt" }
-
 [build-system]
 requires = ["setuptools >= 61.0.0", "setuptools_scm[toml] >= 6.2", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.black]
+[tool.ruff]
 line-length = 88
-target-version = ["py310"]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501", # line too long (handled by formatter)
+    "C901", # too complex
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 [tool.pyright]
 reportGeneralTypeIssues = "information"
-pythonVersion = "3.10"
+pythonVersion = "3.11"
 include = ["mnamer"]
 exclude = ["playground.py", "venv"]
-venv = ["venv"]
+venv = "venv"
 
-[tool.isort]
-profile = "black"
-py_version = 38
-line_length = 88
-known_first_party = "mnamer"
-combine_star = true
-combine_straight_imports = false
-overwrite_in_place = true
+[tool.ruff.lint.isort]
+known-first-party = ["mnamer"]
+combine-as-imports = true
 
 [tool.pylint.messages_control]
 max-line-length = 88
@@ -52,7 +88,7 @@ disable = ["C0103", "C0114", "C0116", "C0209", "E0401", "R0801"]
 
 [tool.mypy]
 incremental = false
-python_version = "3.10"
+python_version = "3.11"
 
 [tool.setuptools_scm]
 local_scheme = "dirty-tag"
