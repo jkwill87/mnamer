@@ -2,6 +2,8 @@ name: push
 
 on:
   push:
+    branches:
+      - main
   schedule:
     - cron: "0 8 * * 1" # mondays at 8am
   release:
@@ -14,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/init
       - uses: ./.github/actions/lint
 
@@ -22,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/init
       - uses: ./.github/actions/test
         with:

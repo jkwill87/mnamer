@@ -3,10 +3,11 @@
 import datetime as dt
 import json
 import re
+from collections.abc import Callable, Iterator
 from os import walk
 from os.path import exists, expanduser, expandvars, getsize, splitdrive, splitext
 from pathlib import Path, PurePath
-from typing import Any, Callable, Iterator
+from typing import Any
 from unicodedata import normalize
 
 import requests_cache
@@ -43,7 +44,7 @@ def crawl_in(file_paths: list[Path], recurse: bool = False) -> list[Path]:
                 found_files.add(Path(root, file).absolute())
             if not recurse:
                 break
-    return sorted(list(found_files))
+    return sorted(found_files)
 
 
 def crawl_out(filename: str | Path | PurePath) -> Path | None:
@@ -157,23 +158,22 @@ def get_session() -> requests_cache.CachedSession:
         return session
 
     if hasattr(get_session, "session"):
-        session: requests_cache.CachedSession = getattr(get_session, "session")
+        session: requests_cache.CachedSession = get_session.session  # type: ignore[attr-defined]
         return session
     session = make_session()
-    setattr(get_session, "session", session)
+    get_session.session = session  # type: ignore[attr-defined]
     return session
 
 
 def get_filesize(path: Path) -> str:
     """Returns the human-readable filesize for a given path."""
     size = float(getsize(path))
-    for unit in ["B", "KB", "MB", "GB", "TB"]:
-        if size < 1024.0:
-            break
+    units = ["B", "KB", "MB", "GB", "TB"]
+    for i, unit in enumerate(units):
+        if size < 1024.0 or i == len(units) - 1:
+            return f"{size:.{2}f}{unit}"
         size /= 1024.0
-    else:
-        return "undetermined size"
-    return f"{size:.{2}f}{unit}"
+    return "undetermined size"
 
 
 def json_dumps(d: dict[str, Any]) -> str:
@@ -194,7 +194,7 @@ def json_loads(path: str) -> dict[str, Any]:
     path = expanduser(path)
     path = expandvars(path)
     if exists(path):
-        with open(path, mode="r") as fp:
+        with open(path) as fp:
             json_data = fp.read()
     return json.loads(json_data) if json_data else {}
 
@@ -242,7 +242,7 @@ def request_json(
     if isinstance(headers, dict):
         headers = clean_dict(headers)
     else:
-        headers = dict()
+        headers = {}
     if isinstance(parameters, dict):
         parameters = [(k, v) for k, v in clean_dict(parameters).items()]
     if body:
@@ -269,7 +269,7 @@ def request_json(
         )
         status = response.status_code
         content = response.json() if status // 100 == 2 else None
-    except:
+    except Exception:
         content = None
         status = 500
     finally:

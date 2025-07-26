@@ -3,8 +3,9 @@ from __future__ import annotations
 import dataclasses
 import datetime as dt
 import re
+from collections.abc import Callable, Mapping, Sequence
 from string import Formatter
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any
 
 from mnamer.language import Language
 from mnamer.types import MediaType

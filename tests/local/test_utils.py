@@ -302,7 +302,7 @@ def test_str_scenify__utf8_to_ascii():
     assert actual == expected
 
 
-@pytest.mark.parametrize("sequence", (list(), set(), tuple()))
+@pytest.mark.parametrize("sequence", ([], set(), ()))
 def test_filter_blacklist__filter_none(sequence):
     expected = FILTER_FILENAMES
     actual = filter_blacklist(FILTER_FILENAMES, sequence)

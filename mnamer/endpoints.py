@@ -35,7 +35,7 @@ def omdb_title(
     if (not title and not id_imdb) or (title and id_imdb):
         raise MnamerException("either id_imdb or title must be specified")
     elif plot and plot not in OMDB_PLOT_TYPES:
-        raise MnamerException("plot must be one of %s" % ",".join(OMDB_PLOT_TYPES))
+        raise MnamerException(f"plot must be one of {','.join(OMDB_PLOT_TYPES)}")
     url = "http://www.omdbapi.com"
     parameters = {
         "apikey": api_key,
