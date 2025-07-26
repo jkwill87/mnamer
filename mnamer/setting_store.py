@@ -178,7 +178,7 @@ class SettingStore:
         ).as_dict(),
     )
     movie_format: str = dataclasses.field(
-        default="{name} ({year}).{extension}",
+        default="{name} ({date.year}).{extension}",
         metadata=SettingSpec(
             dest="movie_format",
             flags=["--movie_format", "--movie-format", "--movieformat"],
