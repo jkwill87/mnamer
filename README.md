@@ -20,7 +20,7 @@ Check out the [wiki page](https://github.com/jkwill87/mnamer/wiki) for more deta
 
 💾 [**Installation**](https://github.com/jkwill87/mnamer/wiki/Installation)
 
-`$ uv add mnamer` or `$ pip3 install --user mnamer`
+`$ uv tool install mnamer` or `$ pip3 install --user mnamer`
 
 🤖 [**Automation**](https://github.com/jkwill87/mnamer/wiki/Automation)
 
