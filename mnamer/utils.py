@@ -70,7 +70,7 @@ def filename_replace(filename: str, replacements: dict[str, str]) -> str:
 
 
 def filter_blacklist(paths: list[Path], blacklist: list[str]) -> list[Path]:
-    """Filters (set difference) paths by a collection of regex pattens."""
+    """Filters (set difference) paths by a collection of regex patterns."""
     return [
         path.absolute()
         for path in paths
