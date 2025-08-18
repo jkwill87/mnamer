@@ -323,7 +323,7 @@ class SettingStore:
         default=False,
         metadata=SettingSpec(
             action="store_true",
-            flags=["--test"],
+            flags=["--test", "--dry-run", "--dryrun"],
             group=SettingType.DIRECTIVE,
             help="--test: mocks the renaming and moving of files",
         ).as_dict(),
