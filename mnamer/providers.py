@@ -255,7 +255,7 @@ class Tvdb(Provider):
         series_data = tvdb_series_id(
             self.token, id_tvdb, language=language, cache=self.cache
         )
-        page = 1
+        page = 0
         while True:
             episode_data = tvdb_series_id_episodes_query(
                 self.token,
@@ -266,25 +266,25 @@ class Tvdb(Provider):
                 page=page,
                 cache=self.cache,
             )
-            for entry in episode_data["data"]:
+            for entry in episode_data.get("data", {}).get("episodes", []):
                 try:
                     yield MetadataEpisode(
-                        date=entry["firstAired"],
-                        episode=entry["airedEpisodeNumber"],
+                        date=entry["aired"],
+                        episode=entry["number"],
                         id_tvdb=id_tvdb,
-                        season=entry["airedSeason"],
-                        series=series_data["data"]["seriesName"],
+                        season=entry["seasonNumber"],
+                        series=series_data["data"]["name"],
                         language=language,
                         synopsis=(entry["overview"] or "")
                         .replace("\r\n", "")
                         .replace("  ", "")
                         .strip(),
-                        title=entry["episodeName"].split(";", 1)[0],
+                        title=entry["name"].split(";", 1)[0],
                     )
                     found = True
                 except (AttributeError, KeyError, ValueError):
                     continue
-            if page == episode_data["links"]["last"]:
+            if episode_data["links"]["next"] is None:
                 break
             page += 1
         if not found:
@@ -302,7 +302,7 @@ class Tvdb(Provider):
             self.token, series, language=language, cache=self.cache
         )
 
-        for series_id in [entry["id"] for entry in series_data["data"][:5]]:
+        for series_id in [entry["tvdb_id"] for entry in series_data["data"][:5]]:
             try:
                 for data in self._search_id(series_id, season, episode, language):
                     if not data.series or not data.season:
