@@ -343,7 +343,7 @@ def tvdb_series_id_episodes_query(
     headers = {"Authorization": f"Bearer {token}"}
     if language:
         headers["Accept-Language"] = language.a2
-    parameters = {"airedSeason": season, "airedEpisode": episode, "page": page}
+    parameters = {"absoluteNumber": episode} if season is None else {"airedSeason": season, "airedEpisode": episode, "page": page}
     status, content = request_json(
         url,
         parameters,
