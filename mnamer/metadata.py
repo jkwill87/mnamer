@@ -67,7 +67,10 @@ class Metadata:
         }
         converter: Callable | None = converter_map.get(key)
         if value is not None and converter:
-            value = converter(value)
+            try:
+                value = converter(value)
+            except:
+                value = None
         super().__setattr__(key, value)
 
     def __format__(self, format_spec: str | None):
