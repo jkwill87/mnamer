@@ -406,7 +406,7 @@ def tvdb_search_series(
 
     if series is not None:
         url = "https://api4.thetvdb.com/v4/search"
-        parameters = {"q": series, "type": "series"}
+        parameters = {"query": series, "type": "series"}
     else:
         remote_id = id_imdb or id_zap2it
         url = f"https://api4.thetvdb.com/v4/search/remoteid/{remote_id}"

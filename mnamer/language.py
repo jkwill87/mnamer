@@ -58,7 +58,7 @@ class Language:
         value = value.lower()
         for row in KNOWN_LANGUAGES:
             for item in row:
-                if value == item:
+                if value == item or (isinstance(value, str) and value[-2:] == item):
                     return cls(row[0].capitalize(), row[1], row[2])
         raise MnamerException("Could not determine language")
 

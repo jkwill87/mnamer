@@ -14,6 +14,7 @@ from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
 from mnamer.providers import Provider
 from mnamer.setting_store import SettingStore
 from mnamer.types import MediaType, ProviderType
+from mnamer import tty
 from mnamer.utils import (
     crawl_in,
     filename_replace,
@@ -50,6 +51,7 @@ class Target:
         self._replace_before()
         self._override_metadata_ids()
         self._register_provider()
+        tty.msg("Parsed filename: " + str(file_path) + " as:\n" + str(self.metadata.as_dict()), debug=True)
 
     def __str__(self) -> str:
         if isinstance(self.source, Path):
@@ -118,7 +120,7 @@ class Target:
         path_data: dict[str, Any] = {"language": self._settings.language}
         if is_subtitle(self.source):
             try:
-                path_data["language"] = Language.parse(self.source.stem[-2:])
+                path_data["language"] = Language.parse(self.source.stem[-3:])
                 file_path = Path(self.source.parent, self.source.stem[:-2])
             except MnamerException:
                 pass
