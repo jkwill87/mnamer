@@ -378,7 +378,7 @@ def tvdb_series_id_episodes_query(
             ep_ok = True if episode is None else item.get("number") == episode
         if sn_ok and ep_ok:
             matches.append(item)
-    if "data" in content and "episodes" and content["data"]:
+    if "data" in content and "episodes" in content["data"]:
         content["data"]["episodes"] = matches
     return content
 
