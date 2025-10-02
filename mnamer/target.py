@@ -120,8 +120,8 @@ class Target:
         path_data: dict[str, Any] = {"language": self._settings.language}
         if is_subtitle(self.source):
             try:
-                path_data["language"] = Language.parse(self.source.stem[-3:])
-                file_path = Path(self.source.parent, self.source.stem[:-2])
+                path_data["language"] = Language.parse(self.source)
+                #file_path = Path(self.source.parent, self.source.stem[:-2])
             except MnamerException:
                 pass
         options = {"type": self._settings.media, "language": path_data["language"]}
@@ -221,8 +221,7 @@ class Target:
                 continue
             if attr.startswith("_"):
                 continue
-            value = str_replace(value, self._settings.replace_before)
-            setattr(self.metadata, attr, value)
+            setattr(self.metadata, attr, str_replace(value, self._settings.replace_before))
 
     def query(self) -> list[Metadata]:
         """Queries the target's respective media provider for metadata."""
