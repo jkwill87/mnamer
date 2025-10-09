@@ -5,7 +5,7 @@ from typing import Any
 
 from mnamer.exceptions import MnamerException
 
-from pathlib import WindowsPath, Path
+from pathlib import PurePath
 import re
 
 KNOWN_LANGUAGES = (
@@ -34,32 +34,34 @@ KNOWN_LANGUAGES = (
     ("ukrainian", "uk", "ukr"),
 )
 
-def _coerce_lang_from_windows_path(p: WindowsPath) -> Any | None:
-    if p.suffix.lower() != ".srt":
-        return None
+def _guess_lang_from_windows_path(filePath: PurePath) -> str | None:
     try:
         from guessit import guessit
-        g = guessit(p.name, {"type": "subtitle"})
+        g = guessit(filePath.name, {"type": "subtitle"})
         lang = g.get("subtitle_language") or g.get("language")
         if isinstance(lang, list) and lang:
-            lang = lang[0]
+            lang = str(lang[0])
         if isinstance(lang, str) and lang:
             return lang.lower()
     except Exception:
         pass
 
-    _LANG_BASE = r"[a-z]{2,3}"
-    _LANG_VARIANT = r"(?:[-_][a-z0-9]{2,4})?"
-    _BOUNDARY_LEFT = r"(?:^|[.\-_ \[(])"
-    _BOUNDARY_RIGHT = r"(?=\.srt$)"
-    _LANG_NEAR_END = re.compile(
-        _BOUNDARY_LEFT + r"(" + _LANG_BASE + _LANG_VARIANT + r")" + _BOUNDARY_RIGHT,
-        re.IGNORECASE,
-    )
-    m = _LANG_NEAR_END.search(p.name)
-    if m:
-        return m.group(1).lower()
-    return p.stem[-3:].lower()
+    def force_guess_directly_from_path(p):
+        _LANG_BASE = r"[a-z]{2,3}"
+        _LANG_VARIANT = r"(?:[-_][a-z0-9]{2,4})?"
+        _BOUNDARY_LEFT = r"(?:^|[.\-_ \[(])"
+        _BOUNDARY_RIGHT = r"(?=\.srt$)"
+        _LANG_NEAR_END = re.compile(
+            _BOUNDARY_LEFT + r"(" + _LANG_BASE + _LANG_VARIANT + r")" + _BOUNDARY_RIGHT,
+            re.IGNORECASE,
+        )
+        m = _LANG_NEAR_END.search(p.name)
+        if m:
+            return m.group(1).lower()
+        return p.stem[-3:].lower()
+
+    return force_guess_directly_from_path(filePath)
+
 
 @dataclasses.dataclass
 class Language:
@@ -73,8 +75,8 @@ class Language:
     def parse(cls, value: Any) -> Language | None:
         if not value:
             return None
-        if isinstance(value, WindowsPath):
-            value = _coerce_lang_from_windows_path(value)
+        if isinstance(value, PurePath):
+            return cls.parse(_guess_lang_from_windows_path(value))
         if isinstance(value, cls):
             return value
         if isinstance(value, dict):
