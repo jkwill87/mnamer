@@ -214,22 +214,6 @@ def tvdb_login(api_key: str | None) -> str:
     return content.get("data").get("token")
 
 
-#Nao é usado mais
-def tvdb_refresh_token(token: str) -> str:
-    url = "https://api.thetvdb.com/refresh_token"
-    headers = {"Authorization": f"Bearer {token}"}
-    status, content = request_json(url, headers=headers, cache=False)
-    if status == 401:
-        raise MnamerException("invalid token")
-    elif status == 405:
-        raise MnamerException(
-            "series, id_imdb, id_zap2it parameters are mutually exclusive"
-        )
-    elif status != 200 or not content.get("token"):  # pragma: no cover
-        raise MnamerNetworkException("TVDb down or unavailable?")
-    return content["token"]
-
-
 def tvdb_episodes_id(
     token: str,
     id_tvdb: str,
@@ -257,6 +241,16 @@ def tvdb_episodes_id(
         raise MnamerNetworkException("TVDb down or unavailable?")
     elif content["data"]["id"] == 0:
         raise MnamerNotFoundException
+
+    if language:
+        url_trans = f"https://api4.thetvdb.com/v4/episodes/{id_tvdb}/translations/{language.a3}"
+        trans_status, trans_content = request_json(url_trans, headers=headers, cache=cache)
+
+        if trans_status == 200 and trans_content.get("data"):
+            trans_data = trans_content["data"]
+            for key, value in trans_data.items():
+                if value:
+                    content["data"][key] = value
     return content
 
 
@@ -304,7 +298,7 @@ def tvdb_series_id(
 def tvdb_series_id_episodes(
     token: str,
     id_tvdb: str,
-    page: int = 1,
+    page: int = 0,
     language: Language | None = None,
     cache: bool = True,
 ) -> dict:
@@ -329,6 +323,18 @@ def tvdb_series_id_episodes(
         raise MnamerNotFoundException
     elif status != 200:  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
+
+
+    if language:
+        url_trans = f"https://api4.thetvdb.com/v4/series/{id_tvdb}/episodes/default/{language.a3}"
+        trans_status, trans_content = request_json(url_trans, headers=headers, cache=cache)
+
+        if trans_status == 200 and trans_content.get("data"):
+            trans_data = trans_content["data"]
+            for key, value in trans_data.items():
+                if value:
+                    content["data"][key] = value
+    content.get("data", {}).get("episodes", []).sort(key=lambda e: e['id'])
     return content
 
 def tvdb_series_id_episodes_query(
@@ -346,8 +352,6 @@ def tvdb_series_id_episodes_query(
     Online docs: https://thetvdb.github.io/v4-api/
     """
     Language.ensure_valid_for_tvdb(language)
-    if episode is None and season is None:
-        raise MnamerException("at least one of season or episode must be provided")
     headers = {"Authorization": f"Bearer {token}"}
 
     url = f"https://api4.thetvdb.com/v4/series/{id_tvdb}/episodes/default"
@@ -368,17 +372,20 @@ def tvdb_series_id_episodes_query(
         raise MnamerNotFoundException
     elif status != 200:
         raise MnamerNetworkException("TVDb down or unavailable?")
-
     items = content.get('data', {}).get('episodes', [])
+    hasValidAbsoluteNumbers = (len(items) >= 1 and items[0].get("absoluteNumber") != 0) or (len(items) > 2 and items[0].get("absoluteNumber") != 0)
+    if not len(items):
+        raise MnamerNotFoundException
     for item in items:
         sn_ok = True if season is None else item.get("seasonNumber") == season
-        if season is None and episode is not None:
+        if season is None and episode is not None and hasValidAbsoluteNumbers:
             ep_ok = item.get("absoluteNumber") == episode
         else:
             ep_ok = True if episode is None else item.get("number") == episode
         if sn_ok and ep_ok:
             matches.append(item)
     if "data" in content and "episodes" in content["data"]:
+        matches.sort(key=lambda e: e["id"])
         content["data"]["episodes"] = matches
     return content
 
@@ -407,6 +414,8 @@ def tvdb_search_series(
     if series is not None:
         url = "https://api4.thetvdb.com/v4/search"
         parameters = {"query": series, "type": "series"}
+        if language:
+            parameters["language"] = language.a3
     else:
         remote_id = id_imdb or id_zap2it
         url = f"https://api4.thetvdb.com/v4/search/remoteid/{remote_id}"

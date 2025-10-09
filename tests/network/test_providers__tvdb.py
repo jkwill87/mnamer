@@ -80,7 +80,7 @@ def test_tvdb_provider__search__series(meta: dict, provider: Tvdb):
 def test_tvdb_provider__search__series_deep(provider: Tvdb):
     query = MetadataEpisode(series="House Rules (au)", season=6, episode=6)
     results = provider.search(query)
-    assert any(result.id_tvdb == 269795 for result in results)
+    assert any(result.id_tvdb == "269795" for result in results)
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))

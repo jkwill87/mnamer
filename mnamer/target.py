@@ -171,12 +171,12 @@ class Target:
     @staticmethod
     def _detect_subtitle_language(file_path: str):
         # Detect and decode using best guess for encoding
-        result = from_path(file_path).best()
-        if not result:
-            return None
-
-        text = str(result)
         try:
+            result = from_path(file_path).best()
+            if not result:
+                return None
+
+            text = str(result)
             return Language.parse(detect(text))
         except:
             return None

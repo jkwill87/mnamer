@@ -212,7 +212,7 @@ class Tmdb(Provider):
 class Tvdb(Provider):
     """Queries the TVDb API."""
 
-    api_key: str = environ.get("API_KEY_TVDB", "E69C7A2CEF2F3152")
+    api_key: str = environ.get("API_KEY_TVDB", "7eef8b26-3af2-4431-9c4e-8547e98efff4")
 
     def __init__(self, api_key: str | None = None, cache: bool = True):
         super().__init__(api_key, cache)
@@ -402,7 +402,7 @@ class Tvdb(Provider):
         series_data = tvdb_search_series(
             self.token, series, language=language, cache=self.cache
         )
-        tvdb_ids = [entry["id"] for entry in series_data["data"]][:5]
+        tvdb_ids = [entry["tvdb_id"] for entry in series_data["data"]][:5]
         found = False
         for tvdb_id in tvdb_ids:
             try:
