@@ -28,8 +28,7 @@ from mnamer.language import Language
 from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
 from mnamer.setting_store import SettingStore
 from mnamer.types import MediaType, ProviderType
-from mnamer.utils import parse_date, year_range_parse
-
+from mnamer.utils import parse_date, year_range_parse, request_json
 
 class Provider(ABC):
     """ABC for Providers, high-level interfaces for metadata media providers."""
@@ -228,15 +227,24 @@ class Tvdb(Provider):
         assert query
         if not self.token:
             self.token = self._login()
-        if query.id_tvdb and query.date:
+        if query.id_tvdb is not None and query.date is not None:
             results = self._search_tvdb_date(query.id_tvdb, query.date, query.language)
-        elif query.id_tvdb:
+        elif query.id_tvdb is not None:
             results = self._search_id(
                 query.id_tvdb, query.season, query.episode, query.language
             )
-        elif query.series and query.date:
+        elif query.series is not None and query.date is not None:
             results = self._search_series_date(query.series, query.date, query.language)
-        elif query.series:
+        elif query.series is not None and query.year is not None and query.episode is not None:
+            episode = self._get_episode_by_serie_episode_year(
+                f"{query.series} ({query.year})", query.year, query.episode, query.language
+            )
+            results = self._search_id(
+                episode.get('seriesId'), episode.get('seasonNumber'), episode.get('number'), query.language
+            ) if episode else self._search_series(
+                query.series, query.season, query.episode, query.language
+            )
+        elif query.series is not None:
             results = self._search_series(
                 query.series, query.season, query.episode, query.language
             )
@@ -290,6 +298,67 @@ class Tvdb(Provider):
         if not found:
             raise MnamerNotFoundException
 
+    def _get_episode_by_serie_episode_year(
+            self,
+            series: str,
+            year: int,
+            episode: int | None = None,
+            language: Language | None = None,
+            cache: bool = False
+    ) -> int | None:
+        """
+        Search a series on TVDB and return the season number aired in the given year.
+        If `episode` is provided, tries to match that episode number.
+        """
+
+        # 1️⃣ Search for the series
+        url = "https://api4.thetvdb.com/v4/search"
+        parameters = {"query": series, "type": "series"}
+
+        headers = {"Authorization": f"Bearer {self.token}"}
+        if language:
+            headers["Accept-Language"] = language.a2
+
+        status, content = request_json(
+            url, parameters, headers=headers, cache=cache is True and language is None
+        )
+        if status != 200 or "data" not in content or not content["data"]:
+            return None
+
+        series_id = content["data"][0]["tvdb_id"]
+
+        # 2️⃣ Get all episodes of this series
+        url = f"https://api4.thetvdb.com/v4/series/{series_id}/episodes/default"
+        status, content = request_json(
+            url, None, headers=headers, cache=cache is True and language is None
+        )
+        if status != 200 or "data" not in content:
+            return None
+
+        episodes = content.get("data", {}).get("episodes", [])
+
+        # 3️⃣ Filter by year and optionally episode
+        matched = [
+            ep
+            for ep in episodes
+            if ep.get("aired", "").startswith(str(year))
+               and (episode is None or ep.get("number") == episode)
+        ]
+
+        if not matched:
+            matched = [
+                ep
+                for ep in episodes
+                if ep.get("aired", "").startswith(str(year))
+                   and (episode is None or ep.get("absoluteNumber") == episode)
+            ]
+
+        if not matched:
+            return None
+
+        # 4️⃣ Return the first matching season number
+        return matched[0]
+
     def _search_series(
         self,
         series: str,
@@ -305,7 +374,7 @@ class Tvdb(Provider):
         for series_id in [entry["tvdb_id"] for entry in series_data["data"][:5]]:
             try:
                 for data in self._search_id(series_id, season, episode, language):
-                    if not data.series or not data.season:
+                    if data.series is None or data.season is None:
                         continue
                     found = True
                     yield data

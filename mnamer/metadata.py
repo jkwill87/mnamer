@@ -179,3 +179,12 @@ class MetadataEpisode(Metadata):
         if value is not None and converter:
             value = converter(value)
         super().__setattr__(key, value)
+
+    def is_invalid_season(self):
+        return not isinstance(self.season, int) or self.season > 1500
+
+    @property
+    def year(self) -> int | None:
+        if self.is_invalid_season():
+            return self.season
+        return None
