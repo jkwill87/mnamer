@@ -69,7 +69,7 @@ class Metadata:
         if value is not None and converter:
             try:
                 value = converter(value)
-            except:
+            except Exception:
                 value = None
         super().__setattr__(key, value)
 

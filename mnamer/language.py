@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 import dataclasses
+import re
+from pathlib import PurePath
 from typing import Any
 
 from mnamer.exceptions import MnamerException
-
-from pathlib import PurePath
-import re
 
 KNOWN_LANGUAGES = (
     ("arabic", "ar", "ara"),
@@ -34,9 +33,11 @@ KNOWN_LANGUAGES = (
     ("ukrainian", "uk", "ukr"),
 )
 
+
 def _guess_lang_from_windows_path(filePath: PurePath) -> str | None:
     try:
         from guessit import guessit
+
         g = guessit(filePath.name, {"type": "subtitle"})
         lang = g.get("subtitle_language") or g.get("language")
         if isinstance(lang, list) and lang:

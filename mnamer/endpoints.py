@@ -209,7 +209,9 @@ def tvdb_login(api_key: str | None) -> str:
     status, content = request_json(url, body=body, cache=False)
     if status == 401:
         raise MnamerException("invalid api key")
-    elif status != 200 or not content.get("data") or not content.get("data").get("token"):  # pragma: no cover
+    elif (
+        status != 200 or not content.get("data") or not content.get("data").get("token")
+    ):  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
     return content.get("data").get("token")
 
@@ -243,8 +245,12 @@ def tvdb_episodes_id(
         raise MnamerNotFoundException
 
     if language:
-        url_trans = f"https://api4.thetvdb.com/v4/episodes/{id_tvdb}/translations/{language.a3}"
-        trans_status, trans_content = request_json(url_trans, headers=headers, cache=cache)
+        url_trans = (
+            f"https://api4.thetvdb.com/v4/episodes/{id_tvdb}/translations/{language.a3}"
+        )
+        trans_status, trans_content = request_json(
+            url_trans, headers=headers, cache=cache
+        )
 
         if trans_status == 200 and trans_content.get("data"):
             trans_data = trans_content["data"]
@@ -275,7 +281,9 @@ def tvdb_series_id(
         url, headers=headers, cache=cache is True and language is None
     )
     if language:
-        urlTranslated = f"https://api4.thetvdb.com/v4/series/{id_tvdb}/translations/{language.a3}"
+        urlTranslated = (
+            f"https://api4.thetvdb.com/v4/series/{id_tvdb}/translations/{language.a3}"
+        )
         statusTranslated, contentTranslated = request_json(
             urlTranslated, headers=headers, cache=cache is True and language is None
         )
@@ -324,18 +332,20 @@ def tvdb_series_id_episodes(
     elif status != 200:  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
 
-
     if language:
         url_trans = f"https://api4.thetvdb.com/v4/series/{id_tvdb}/episodes/default/{language.a3}"
-        trans_status, trans_content = request_json(url_trans, headers=headers, cache=cache)
+        trans_status, trans_content = request_json(
+            url_trans, headers=headers, cache=cache
+        )
 
         if trans_status == 200 and trans_content.get("data"):
             trans_data = trans_content["data"]
             for key, value in trans_data.items():
                 if value:
                     content["data"][key] = value
-    content.get("data", {}).get("episodes", []).sort(key=lambda e: e['id'])
+    content.get("data", {}).get("episodes", []).sort(key=lambda e: e["id"])
     return content
+
 
 def tvdb_series_id_episodes_query(
     token: str,
@@ -361,7 +371,6 @@ def tvdb_series_id_episodes_query(
     current_page = max(page or 0, 0)
     matches: list[dict] = []
 
-
     parameters = {"page": current_page}
     status, content = request_json(
         url, parameters, headers=headers, cache=cache is True and language is None
@@ -372,8 +381,10 @@ def tvdb_series_id_episodes_query(
         raise MnamerNotFoundException
     elif status != 200:
         raise MnamerNetworkException("TVDb down or unavailable?")
-    items = content.get('data', {}).get('episodes', [])
-    hasValidAbsoluteNumbers = (len(items) >= 1 and items[0].get("absoluteNumber") != 0) or (len(items) > 2 and items[0].get("absoluteNumber") != 0)
+    items = content.get("data", {}).get("episodes", [])
+    hasValidAbsoluteNumbers = (
+        len(items) >= 1 and items[0].get("absoluteNumber") != 0
+    ) or (len(items) > 2 and items[0].get("absoluteNumber") != 0)
     if not len(items):
         raise MnamerNotFoundException
     for item in items:
@@ -388,6 +399,7 @@ def tvdb_series_id_episodes_query(
         matches.sort(key=lambda e: e["id"])
         content["data"]["episodes"] = matches
     return content
+
 
 def tvdb_search_series(
     token: str,
@@ -409,7 +421,9 @@ def tvdb_search_series(
 
     provided = [p is not None for p in (series, id_imdb, id_zap2it)]
     if sum(provided) != 1:
-        raise MnamerException("series, id_imdb, id_zap2it parameters are mutually exclusive")
+        raise MnamerException(
+            "series, id_imdb, id_zap2it parameters are mutually exclusive"
+        )
 
     if series is not None:
         url = "https://api4.thetvdb.com/v4/search"

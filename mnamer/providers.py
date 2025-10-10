@@ -28,7 +28,8 @@ from mnamer.language import Language
 from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
 from mnamer.setting_store import SettingStore
 from mnamer.types import MediaType, ProviderType
-from mnamer.utils import parse_date, year_range_parse, request_json
+from mnamer.utils import parse_date, request_json, year_range_parse
+
 
 class Provider(ABC):
     """ABC for Providers, high-level interfaces for metadata media providers."""
@@ -235,14 +236,28 @@ class Tvdb(Provider):
             )
         elif query.series is not None and query.date is not None:
             results = self._search_series_date(query.series, query.date, query.language)
-        elif query.series is not None and query.year is not None and query.episode is not None:
+        elif (
+            query.series is not None
+            and query.year is not None
+            and query.episode is not None
+        ):
             episode = self._get_episode_by_serie_episode_year(
-                f"{query.series} ({query.year})", query.year, query.episode, query.language
+                f"{query.series} ({query.year})",
+                query.year,
+                query.episode,
+                query.language,
             )
-            results = self._search_id(
-                episode.get('seriesId'), episode.get('seasonNumber'), episode.get('number'), query.language
-            ) if episode else self._search_series(
-                query.series, query.season, query.episode, query.language
+            results = (
+                self._search_id(
+                    episode.get("seriesId"),
+                    episode.get("seasonNumber"),
+                    episode.get("number"),
+                    query.language,
+                )
+                if episode
+                else self._search_series(
+                    query.series, query.season, query.episode, query.language
+                )
             )
         elif query.series is not None:
             results = self._search_series(
@@ -299,12 +314,12 @@ class Tvdb(Provider):
             raise MnamerNotFoundException
 
     def _get_episode_by_serie_episode_year(
-            self,
-            series: str,
-            year: int,
-            episode: int | None = None,
-            language: Language | None = None,
-            cache: bool = False
+        self,
+        series: str,
+        year: int,
+        episode: int | None = None,
+        language: Language | None = None,
+        cache: bool = False,
     ) -> int | None:
         """
         Search a series on TVDB and return the season number aired in the given year.
@@ -342,7 +357,7 @@ class Tvdb(Provider):
             ep
             for ep in episodes
             if ep.get("aired", "").startswith(str(year))
-               and (episode is None or ep.get("number") == episode)
+            and (episode is None or ep.get("number") == episode)
         ]
 
         if not matched:
@@ -350,7 +365,7 @@ class Tvdb(Provider):
                 ep
                 for ep in episodes
                 if ep.get("aired", "").startswith(str(year))
-                   and (episode is None or ep.get("absoluteNumber") == episode)
+                and (episode is None or ep.get("absoluteNumber") == episode)
             ]
 
         if not matched:

@@ -20,24 +20,24 @@ pytestmark = [
 ]
 
 EXPECTED_TOP_LEVEL_SHOW_KEYS = {
-    'absoluteNumber',
-    'aired',
-    'finaleType',
-    'id',
-    'image',
-    'imageType',
-    'isMovie',
-    'lastUpdated',
-    'name',
-    'nameTranslations',
-    'number',
-    'overview',
-    'overviewTranslations',
-    'runtime',
-    'seasonNumber',
-    'seasons',
-    'seriesId',
-    'year'
+    "absoluteNumber",
+    "aired",
+    "finaleType",
+    "id",
+    "image",
+    "imageType",
+    "isMovie",
+    "lastUpdated",
+    "name",
+    "nameTranslations",
+    "number",
+    "overview",
+    "overviewTranslations",
+    "runtime",
+    "seasonNumber",
+    "seasons",
+    "seriesId",
+    "year",
 }
 
 LOST_TVDB_ID_EPISODE = "127131"
@@ -138,27 +138,27 @@ def test_tvdb_series_id__no_hits(tvdb_token):
 
 def test_tvdb_series_id__success(tvdb_token):
     expected_top_level_keys = {
-        'aliases',
-        'averageRuntime',
-        'defaultSeasonType',
-        'episodes',
-        'firstAired',
-        'id',
-        'image',
-        'isOrderRandomized',
-        'lastAired',
-        'lastUpdated',
-        'name',
-        'nameTranslations',
-        'nextAired',
-        'originalCountry',
-        'originalLanguage',
-        'overview',
-        'overviewTranslations',
-        'score',
-        'slug',
-        'status',
-        'year'
+        "aliases",
+        "averageRuntime",
+        "defaultSeasonType",
+        "episodes",
+        "firstAired",
+        "id",
+        "image",
+        "isOrderRandomized",
+        "lastAired",
+        "lastUpdated",
+        "name",
+        "nameTranslations",
+        "nextAired",
+        "originalCountry",
+        "originalLanguage",
+        "overview",
+        "overviewTranslations",
+        "score",
+        "slug",
+        "status",
+        "year",
     }
 
     result = tvdb_series_id(tvdb_token, LOST_TVDB_ID_SERIES)
@@ -346,7 +346,7 @@ def test_tvdb_search_series__success(tvdb_token):
     assert isinstance(result, dict)
     assert "data" in result
     data = result["data"]
-    assert len(data) ==  result["links"]["page_size"]
+    assert len(data) == result["links"]["page_size"]
     assert set(data[0].keys()) >= expected_top_level_keys
 
 
