@@ -3,6 +3,7 @@
 import datetime
 from re import match
 from time import sleep
+
 import Levenshtein
 
 from mnamer.exceptions import (
@@ -383,7 +384,11 @@ def tvdb_series_id_episodes_query(
     elif status != 200:
         raise MnamerNetworkException("TVDb down or unavailable?")
     items = content.get("data", {}).get("episodes", [])
-    hasValidAbsoluteEpisode = episode != 0 and len(items) > 0 and max([i.get("absoluteNumber", 0) for i in items]) > 0
+    hasValidAbsoluteEpisode = (
+        episode != 0
+        and len(items) > 0
+        and max([i.get("absoluteNumber", 0) for i in items]) > 0
+    )
     if not len(items):
         raise MnamerNotFoundException
     for item in items:
@@ -467,10 +472,10 @@ def tvdb_search_series(
                 Levenshtein.distance(title, target_name.lower().strip())
                 for title in get_titles(s)
                 if title
-            )
+            ),
         )
 
-    #content["data"] = sort_by_similarity(content["data"], series)
+    # content["data"] = sort_by_similarity(content["data"], series)
     return content
 
 

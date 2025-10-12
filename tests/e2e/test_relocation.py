@@ -1,7 +1,7 @@
+import platform
 from pathlib import Path
 
 import pytest
-import platform
 
 from mnamer.const import SUBTITLE_CONTAINERS
 
@@ -9,6 +9,7 @@ pytestmark = [
     pytest.mark.e2e,
     pytest.mark.flaky(reruns=2, reruns_delay=5),
 ]
+
 
 def files_in_cwd():
     return [f for f in Path.cwd().iterdir() if f.is_file()]
@@ -242,7 +243,9 @@ def test_relocation_operation_copy(e2e_run, setup_test_files):
 def test_relocation_operation_copy2(e2e_run, setup_test_files):
     setup_test_files("aladdin.2019.avi")
     files_before = files_in_cwd()
-    result = e2e_run("--relocation-operation=copy-with-metadata", "--batch", "--lower", ".")
+    result = e2e_run(
+        "--relocation-operation=copy-with-metadata", "--batch", "--lower", "."
+    )
     assert result.code == 0
     assert "aladdin (2019).avi" in result.out
     files_after = [f for f in files_in_cwd() if f not in files_before]
@@ -287,10 +290,16 @@ def test_relocation_operation_hardlink(e2e_run, setup_test_files):
     txt_example = "Test content for hardlink"
     files_before[0].write_text(txt_example, encoding="utf-8")
     assert files_after[0].read_text(encoding="utf-8") == txt_example
-    assert (files_before[0].stat().st_ino == files_after[0].stat().st_ino) and (files_before[0].stat().st_dev == files_after[0].stat().st_dev)
+    assert (files_before[0].stat().st_ino == files_after[0].stat().st_ino) and (
+        files_before[0].stat().st_dev == files_after[0].stat().st_dev
+    )
     assert files_before[0].stat().st_nlink == 2 and files_after[0].stat().st_nlink == 2
     files_before[0].unlink()
-    assert files_after[0].stat().st_nlink == 1 and files_after[0].exists() and not files_before[0].exists()
+    assert (
+        files_after[0].stat().st_nlink == 1
+        and files_after[0].exists()
+        and not files_before[0].exists()
+    )
     assert files_after[0].read_text(encoding="utf-8") == txt_example
 
 

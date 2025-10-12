@@ -10,7 +10,7 @@ from mnamer.exceptions import MnamerException
 from mnamer.language import Language
 from mnamer.metadata import Metadata
 from mnamer.setting_spec import SettingSpec
-from mnamer.types import MediaType, ProviderType, SettingType, RelocateType
+from mnamer.types import MediaType, ProviderType, RelocateType, SettingType
 from mnamer.utils import crawl_out, json_loads, normalize_containers
 
 

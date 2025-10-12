@@ -275,9 +275,11 @@ class Target:
 
     def relocate(self) -> None:
         """Performs the action of renaming and/or moving a file."""
+
         def get_method(relocation_strategy: RelocateType):
-            from shutil import move, copy, copy2
             from os import link, symlink
+            from shutil import copy, copy2, move
+
             strategies = {
                 RelocateType.MOVE: move,
                 RelocateType.HARDLINK: link,
@@ -286,9 +288,12 @@ class Target:
                 RelocateType.COPY2: copy2,
             }
             return strategies[RelocateType(relocation_strategy)]
+
         destination_path = Path(self.destination).resolve()
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            get_method(self._settings.relocation_strategy)(str(self.source), destination_path)
+            get_method(self._settings.relocation_strategy)(
+                str(self.source), destination_path
+            )
         except OSError as e:  # pragma: no cover
             raise MnamerException from e
