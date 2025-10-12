@@ -13,6 +13,18 @@ pytestmark = [
 def files_in_cwd():
     return [f for f in Path.cwd().iterdir() if f.is_file()]
 
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_complex_metadata(e2e_run, setup_test_files):
+    setup_test_files(
+        "Quien a hierro mata [MicroHD 1080p][DTS 5.1-Castellano-AC3 5.1-Castellano+Subs][ES-EN].mkv"
+    )
+    result = e2e_run("--batch", "--media=movie", ".")
+    assert result.code == 0
+    assert "Quien a Hierro Mata (2019).mkv" in result.out
+    assert "1 out of 1 files processed successfully" in result.out
+
+
 @pytest.mark.usefixtures("setup_test_dir")
 def test_absolute_path(e2e_run, setup_test_files):
     setup_test_files("kill.bill.vol.1.mkv")
@@ -175,7 +187,6 @@ def test_format_id__tvdb(e2e_run, setup_test_files):
 
 
 @pytest.mark.tvmaze
-@pytest.mark.xfail(strict=False)
 @pytest.mark.usefixtures("setup_test_dir")
 def test_format_season0(e2e_run, setup_test_files):
     setup_test_files("south.park.s00e01.mp4")
@@ -293,3 +304,15 @@ def test_relocation_operation_move(e2e_run, setup_test_files):
     files_after = [f for f in files_in_cwd() if f not in files_before]
     assert len(files_after) == len(files_before) and len(files_after) == 1
     assert not files_before[0].exists() and files_after[0].exists()
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_original_filename(e2e_run, setup_test_files):
+    setup_test_files("archer.2009.s10e07.webrip.x264-lucidtv.mp4")
+    result = e2e_run(
+        "--batch",
+        "--episode-format='{original}'",
+        ".",
+    )
+    assert result.code == 0
+    assert "archer.2009.s10e07.webrip.x264-lucidtv.mp4" in result.out
