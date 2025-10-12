@@ -15,11 +15,11 @@ def files_in_cwd():
 
 
 @pytest.mark.usefixtures("setup_test_dir")
-def test_complex_metadata(e2e_run, setup_test_files):
+def test_matching_different_language(e2e_run, setup_test_files):
     setup_test_files(
         "Quien a hierro mata [MicroHD 1080p][DTS 5.1-Castellano-AC3 5.1-Castellano+Subs][ES-EN].mkv"
     )
-    result = e2e_run("--batch", "--media=movie", ".")
+    result = e2e_run("--batch", "--language=spa", "--media=movie", ".")
     assert result.code == 0
     assert "Quien a Hierro Mata (2019).mkv" in result.out
     assert "1 out of 1 files processed successfully" in result.out
