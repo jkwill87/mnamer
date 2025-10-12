@@ -19,6 +19,7 @@ def main():  # pragma: no cover
         tty.error(e)
         raise SystemExit(2) from None
     try:
+        tty.configure(settings)
         frontend = Cli(settings)
         frontend.launch()
     except SystemExit:

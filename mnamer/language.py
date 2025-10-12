@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import dataclasses
+import re
+from pathlib import PurePath
 from typing import Any
 
 from mnamer.exceptions import MnamerException
@@ -32,6 +34,36 @@ KNOWN_LANGUAGES = (
 )
 
 
+def _guess_lang_from_windows_path(filePath: PurePath) -> str | None:
+    try:
+        from guessit import guessit
+
+        g = guessit(filePath.name, {"type": "subtitle"})
+        lang = g.get("subtitle_language") or g.get("language")
+        if isinstance(lang, list) and lang:
+            lang = str(lang[0])
+        if isinstance(lang, str) and lang:
+            return lang.lower()
+    except Exception:
+        pass
+
+    def force_guess_directly_from_path(p):
+        _LANG_BASE = r"[a-z]{2,3}"
+        _LANG_VARIANT = r"(?:[-_][a-z0-9]{2,4})?"
+        _BOUNDARY_LEFT = r"(?:^|[.\-_ \[(])"
+        _BOUNDARY_RIGHT = r"(?=\.srt$)"
+        _LANG_NEAR_END = re.compile(
+            _BOUNDARY_LEFT + r"(" + _LANG_BASE + _LANG_VARIANT + r")" + _BOUNDARY_RIGHT,
+            re.IGNORECASE,
+        )
+        m = _LANG_NEAR_END.search(p.name)
+        if m:
+            return m.group(1).lower()
+        return p.stem[-3:].lower()
+
+    return force_guess_directly_from_path(filePath)
+
+
 @dataclasses.dataclass
 class Language:
     """dataclass including the name, ISO 639-2, and ISO 639-1 language codes"""
@@ -44,6 +76,8 @@ class Language:
     def parse(cls, value: Any) -> Language | None:
         if not value:
             return None
+        if isinstance(value, PurePath):
+            return cls.parse(_guess_lang_from_windows_path(value))
         if isinstance(value, cls):
             return value
         if isinstance(value, dict):
@@ -58,7 +92,7 @@ class Language:
         value = value.lower()
         for row in KNOWN_LANGUAGES:
             for item in row:
-                if value == item:
+                if value == item or (isinstance(value, str) and value[-2:] == item):
                     return cls(row[0].capitalize(), row[1], row[2])
         raise MnamerException("Could not determine language")
 

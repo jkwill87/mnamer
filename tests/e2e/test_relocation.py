@@ -1,3 +1,4 @@
+import platform
 from pathlib import Path
 
 import pytest
@@ -8,6 +9,21 @@ pytestmark = [
     pytest.mark.e2e,
     pytest.mark.flaky(reruns=2, reruns_delay=5),
 ]
+
+
+def files_in_cwd():
+    return [f for f in Path.cwd().iterdir() if f.is_file()]
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_matching_different_language(e2e_run, setup_test_files):
+    setup_test_files(
+        "Quien a hierro mata [MicroHD 1080p][DTS 5.1-Castellano-AC3 5.1-Castellano+Subs][ES-EN].mkv"
+    )
+    result = e2e_run("--batch", "--language=spa", "--media=movie", ".")
+    assert result.code == 0
+    assert "Quien a Hierro Mata (2019).mkv" in result.out
+    assert "1 out of 1 files processed successfully" in result.out
 
 
 @pytest.mark.usefixtures("setup_test_dir")
@@ -158,7 +174,6 @@ def test_format_id(e2e_run, setup_test_files):
 
 
 @pytest.mark.tvdb
-@pytest.mark.xfail(strict=False)
 @pytest.mark.usefixtures("setup_test_dir")
 def test_format_id__tvdb(e2e_run, setup_test_files):
     setup_test_files("archer.2009.s10e07.webrip.x264-lucidtv.mp4")
@@ -173,7 +188,6 @@ def test_format_id__tvdb(e2e_run, setup_test_files):
 
 
 @pytest.mark.tvmaze
-@pytest.mark.xfail(strict=False)
 @pytest.mark.usefixtures("setup_test_dir")
 def test_format_season0(e2e_run, setup_test_files):
     setup_test_files("south.park.s00e01.mp4")
@@ -211,3 +225,103 @@ def test_ambiguous_language_deletction(e2e_run, setup_test_files):
     )
     result = e2e_run("--batch", ".")
     assert result.code == 0
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_copy(e2e_run, setup_test_files):
+    setup_test_files("aladdin.2019.avi")
+    files_before = files_in_cwd()
+    result = e2e_run("--relocation-operation=copy", "--batch", "--lower", ".")
+    assert result.code == 0
+    assert "aladdin (2019).avi" in result.out
+    files_after = [f for f in files_in_cwd() if f not in files_before]
+    assert len(files_after) == len(files_before) and len(files_after) == 1
+    assert files_before[0].exists() and files_after[0].exists()
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_copy2(e2e_run, setup_test_files):
+    setup_test_files("aladdin.2019.avi")
+    files_before = files_in_cwd()
+    result = e2e_run(
+        "--relocation-operation=copy-with-metadata", "--batch", "--lower", "."
+    )
+    assert result.code == 0
+    assert "aladdin (2019).avi" in result.out
+    files_after = [f for f in files_in_cwd() if f not in files_before]
+    assert len(files_after) == len(files_before) and len(files_after) == 1
+    assert files_before[0].stat().st_size == files_after[0].stat().st_size
+    assert files_before[0].stat().st_mode == files_after[0].stat().st_mode
+    assert int(files_before[0].stat().st_mtime) == int(files_after[0].stat().st_mtime)
+    assert files_before[0].stat().st_uid == files_after[0].stat().st_uid
+    assert files_before[0].stat().st_gid == files_after[0].stat().st_gid
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_symlink(e2e_run, setup_test_files):
+    if platform.system() == "Windows":
+        return
+    setup_test_files("aladdin.2019.avi")
+    files_before = files_in_cwd()
+    result = e2e_run("--relocation-operation=symlink", "--batch", "--lower", ".")
+    assert result.code == 0
+    assert "aladdin (2019).avi" in result.out
+    files_after = [f for f in files_in_cwd() if f not in files_before]
+    assert len(files_after) == len(files_before) and len(files_after) == 1
+    assert files_after[0].is_symlink() and not files_before[0].is_symlink()
+    assert files_after[0].resolve() == files_before[0].resolve()
+    txt_example = "Test content for hardlink"
+    files_before[0].write_text(txt_example, encoding="utf-8")
+    assert files_after[0].read_text(encoding="utf-8") == txt_example
+    files_before[0].unlink()
+    assert not files_before[0].exists()
+    assert files_before[0].read_text(encoding="utf-8") != txt_example
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_hardlink(e2e_run, setup_test_files):
+    setup_test_files("aladdin.2019.avi")
+    files_before = files_in_cwd()
+    result = e2e_run("--relocation-operation=hardlink", "--batch", "--lower", ".")
+    assert result.code == 0
+    assert "aladdin (2019).avi" in result.out
+    files_after = [f for f in files_in_cwd() if f not in files_before]
+    assert len(files_after) == len(files_before) and len(files_after) == 1
+    txt_example = "Test content for hardlink"
+    files_before[0].write_text(txt_example, encoding="utf-8")
+    assert files_after[0].read_text(encoding="utf-8") == txt_example
+    assert (files_before[0].stat().st_ino == files_after[0].stat().st_ino) and (
+        files_before[0].stat().st_dev == files_after[0].stat().st_dev
+    )
+    assert files_before[0].stat().st_nlink == 2 and files_after[0].stat().st_nlink == 2
+    files_before[0].unlink()
+    assert (
+        files_after[0].stat().st_nlink == 1
+        and files_after[0].exists()
+        and not files_before[0].exists()
+    )
+    assert files_after[0].read_text(encoding="utf-8") == txt_example
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_relocation_operation_move(e2e_run, setup_test_files):
+    setup_test_files("aladdin.2019.avi")
+    files_before = files_in_cwd()
+    result = e2e_run("--relocation-operation=move", "--batch", "--lower", ".")
+    assert result.code == 0
+    assert "aladdin (2019).avi" in result.out
+    files_after = [f for f in files_in_cwd() if f not in files_before]
+    assert len(files_after) == len(files_before) and len(files_after) == 1
+    assert not files_before[0].exists() and files_after[0].exists()
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_original_filename(e2e_run, setup_test_files):
+    setup_test_files("archer.2009.s10e07.webrip.x264-lucidtv.mp4")
+    result = e2e_run(
+        "--batch",
+        "--episode-format='{original}'",
+        ".",
+    )
+    assert result.code == 0
+    assert "archer.2009.s10e07.webrip.x264-lucidtv.mp4" in result.out

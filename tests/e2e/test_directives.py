@@ -84,3 +84,26 @@ def test_test(e2e_run):
     result = e2e_run("--batch", "--test", ".")
     assert result.code == 0
     assert "testing mode" in result.out
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_series_jp_absolute_numbering(e2e_run, setup_test_files):
+    setup_test_files(
+        "Attack on Titan - Episode 80 - 1080p BDRip x265 FLAC 2.0 Kira [SEV].mkv"
+    )
+    result = e2e_run("--batch", "--lower", "--episode-api=tvdb", ".")
+    assert result.code == 0
+    assert (
+        "\u9032\u6483\u306e\u5de8\u4eba - s04e21 - \u4e8c\u5343\u5e74\u524d\u306e\u541b\u304b\u3089.mkv"
+        in result.out
+    )  # Attack on titan in jp escaped name
+
+
+@pytest.mark.usefixtures("setup_test_dir")
+def test_series_absolute_numbering(e2e_run, setup_test_files):
+    setup_test_files(
+        "Attack on Titan - Episode 80 - 1080p BDRip x265 FLAC 2.0 Kira [SEV].mkv"
+    )
+    result = e2e_run("--batch", "--lower", "--episode-api=tvdb", "--language=eng", ".")
+    assert result.code == 0
+    assert "attack on titan - s04e21 - from you, 2,000 years ago.mkv" in result.out

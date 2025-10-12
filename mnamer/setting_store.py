@@ -10,7 +10,7 @@ from mnamer.exceptions import MnamerException
 from mnamer.language import Language
 from mnamer.metadata import Metadata
 from mnamer.setting_spec import SettingSpec
-from mnamer.types import MediaType, ProviderType, SettingType
+from mnamer.types import MediaType, ProviderType, RelocateType, SettingType
 from mnamer.utils import crawl_out, json_loads, normalize_containers
 
 
@@ -217,6 +217,16 @@ class SettingStore:
             group=SettingType.PARAMETER,
             help="--episode-format: set episode renaming format specification",
         ).as_dict(),
+    )
+    relocation_strategy: str = dataclasses.field(
+        default=RelocateType.MOVE.value,
+        metadata=SettingSpec(
+            dest="relocation_strategy",
+            choices=[ix.value for ix in RelocateType],
+            flags=["--relocation-operation"],
+            group=SettingType.PARAMETER,
+            help=f"--relocation-operation={'|'.join([ix.value for ix in RelocateType])}: when given, link, copy or move files. Default move. (PS1: Symlink doesnt works on windows) (PS2: Hardlinks can only be created between folders on the same drive.)",
+        )(),
     )
 
     # directive attributes -----------------------------------------------------

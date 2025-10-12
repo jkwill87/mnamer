@@ -4,6 +4,8 @@ import datetime
 from re import match
 from time import sleep
 
+import Levenshtein
+
 from mnamer.exceptions import (
     MnamerException,
     MnamerNetworkException,
@@ -204,30 +206,16 @@ def tvdb_login(api_key: str | None) -> str:
     Note: You can register for a free TVDb key at thetvdb.com/?tab=apiregister
     Online docs: api.thetvdb.com/swagger#!/Authentication/post_login.
     """
-    url = "https://api.thetvdb.com/login"
+    url = "https://api4.thetvdb.com/v4/login"
     body = {"apikey": api_key}
     status, content = request_json(url, body=body, cache=False)
     if status == 401:
         raise MnamerException("invalid api key")
-    elif status != 200 or not content.get("token"):  # pragma: no cover
+    elif (
+        status != 200 or not content.get("data") or not content.get("data").get("token")
+    ):  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
-    return content["token"]
-
-
-def tvdb_refresh_token(token: str) -> str:
-    """
-    Refreshes JWT token.
-
-    Online docs: api.thetvdb.com/swagger#!/Authentication/get_refresh_token.
-    """
-    url = "https://api.thetvdb.com/refresh_token"
-    headers = {"Authorization": f"Bearer {token}"}
-    status, content = request_json(url, headers=headers, cache=False)
-    if status == 401:
-        raise MnamerException("invalid token")
-    elif status != 200 or not content.get("token"):  # pragma: no cover
-        raise MnamerNetworkException("TVDb down or unavailable?")
-    return content["token"]
+    return content.get("data").get("token")
 
 
 def tvdb_episodes_id(
@@ -242,7 +230,7 @@ def tvdb_episodes_id(
     Online docs: https://api.thetvdb.com/swagger#!/Episodes.
     """
     Language.ensure_valid_for_tvdb(language)
-    url = f"https://api.thetvdb.com/episodes/{id_tvdb}"
+    url = f"https://api4.thetvdb.com/v4/episodes/{id_tvdb}"
     headers = {"Authorization": f"Bearer {token}"}
     if language:
         headers["Accept-Language"] = language.a2
@@ -257,6 +245,20 @@ def tvdb_episodes_id(
         raise MnamerNetworkException("TVDb down or unavailable?")
     elif content["data"]["id"] == 0:
         raise MnamerNotFoundException
+
+    if language:
+        url_trans = (
+            f"https://api4.thetvdb.com/v4/episodes/{id_tvdb}/translations/{language.a3}"
+        )
+        trans_status, trans_content = request_json(
+            url_trans, headers=headers, cache=cache
+        )
+
+        if trans_status == 200 and trans_content.get("data"):
+            trans_data = trans_content["data"]
+            for key, value in trans_data.items():
+                if value:
+                    content["data"][key] = value
     return content
 
 
@@ -273,13 +275,25 @@ def tvdb_series_id(
     Online docs: api.thetvdb.com/swagger#!/Series/get_series_id.
     """
     Language.ensure_valid_for_tvdb(language)
-    url = f"https://api.thetvdb.com/series/{id_tvdb}"
+    url = f"https://api4.thetvdb.com/v4/series/{id_tvdb}"
     headers = {"Authorization": f"Bearer {token}"}
     if language:
         headers["Accept-Language"] = language.a2
     status, content = request_json(
         url, headers=headers, cache=cache is True and language is None
     )
+    if language:
+        urlTranslated = (
+            f"https://api4.thetvdb.com/v4/series/{id_tvdb}/translations/{language.a3}"
+        )
+        statusTranslated, contentTranslated = request_json(
+            urlTranslated, headers=headers, cache=cache is True and language is None
+        )
+        if statusTranslated == 200 and contentTranslated.get("data"):
+            for key in contentTranslated.get("data").keys():
+                content["data"][key] = contentTranslated["data"][key]
+        else:
+            raise MnamerNotFoundException
     if status == 401:
         raise MnamerException("invalid token")
     elif status == 404 or not content.get("data"):
@@ -294,7 +308,7 @@ def tvdb_series_id(
 def tvdb_series_id_episodes(
     token: str,
     id_tvdb: str,
-    page: int = 1,
+    page: int = 0,
     language: Language | None = None,
     cache: bool = True,
 ) -> dict:
@@ -305,7 +319,7 @@ def tvdb_series_id_episodes(
     Online docs: api.thetvdb.com/swagger#!/Series/get_series_id_episodes.
     """
     Language.ensure_valid_for_tvdb(language)
-    url = f"https://api.thetvdb.com/series/{id_tvdb}/episodes"
+    url = f"https://api4.thetvdb.com/v4/series/{id_tvdb}/episodes/default"
     headers = {"Authorization": f"Bearer {token}"}
     if language:
         headers["Accept-Language"] = language.a2
@@ -319,6 +333,19 @@ def tvdb_series_id_episodes(
         raise MnamerNotFoundException
     elif status != 200:  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
+
+    if language:
+        url_trans = f"https://api4.thetvdb.com/v4/series/{id_tvdb}/episodes/default/{language.a3}"
+        trans_status, trans_content = request_json(
+            url_trans, headers=headers, cache=cache
+        )
+
+        if trans_status == 200 and trans_content.get("data"):
+            trans_data = trans_content["data"]
+            for key, value in trans_data.items():
+                if value:
+                    content["data"][key] = value
+    content.get("data", {}).get("episodes", []).sort(key=lambda e: e["id"])
     return content
 
 
@@ -327,35 +354,54 @@ def tvdb_series_id_episodes_query(
     id_tvdb: str,
     episode: int | None = None,
     season: int | None = None,
-    page: int = 1,
+    page: int = 0,
     language: Language | None = None,
     cache: bool = True,
 ) -> dict:
     """
-    Allows the user to query against episodes for the given series.
+    Query episodes for a given series in TVDB v4 by filtering client-side.
 
-    Note: Paginated with 100 results per page; omitted imdbId-- when would you
-    ever need to query against both tvdb and imdb series ids?
-    Online docs: api.thetvdb.com/swagger#!/Series/get_series_id_episodes_query.
+    Online docs: https://thetvdb.github.io/v4-api/
     """
     Language.ensure_valid_for_tvdb(language)
-    url = f"https://api.thetvdb.com/series/{id_tvdb}/episodes/query"
     headers = {"Authorization": f"Bearer {token}"}
+
+    url = f"https://api4.thetvdb.com/v4/series/{id_tvdb}/episodes/default"
     if language:
         headers["Accept-Language"] = language.a2
-    parameters = {"airedSeason": season, "airedEpisode": episode, "page": page}
+        url = f"{url}/{language.a3}"
+    current_page = max(page or 0, 0)
+    matches: list[dict] = []
+
+    parameters = {"page": current_page}
     status, content = request_json(
-        url,
-        parameters,
-        headers=headers,
-        cache=cache is True and language is None,
+        url, parameters, headers=headers, cache=cache is True and language is None
     )
     if status == 401:
         raise MnamerException("invalid token")
-    elif status == 404 or not content.get("data"):
+    elif status == 404 or not content or not content.get("data"):
         raise MnamerNotFoundException
-    elif status != 200:  # pragma: no cover
+    elif status != 200:
         raise MnamerNetworkException("TVDb down or unavailable?")
+    items = content.get("data", {}).get("episodes", [])
+    hasValidAbsoluteEpisode = (
+        episode != 0
+        and len(items) > 0
+        and max([i.get("absoluteNumber", 0) for i in items]) > 0
+    )
+    if not len(items):
+        raise MnamerNotFoundException
+    for item in items:
+        sn_ok = True if season is None else item.get("seasonNumber") == season
+        if season is None and episode is not None and hasValidAbsoluteEpisode:
+            ep_ok = item.get("absoluteNumber") == episode
+        else:
+            ep_ok = True if episode is None else item.get("number") == episode
+        if sn_ok and ep_ok:
+            matches.append(item)
+    if "data" in content and "episodes" in content["data"]:
+        matches.sort(key=lambda e: e["id"])
+        content["data"]["episodes"] = matches
     return content
 
 
@@ -370,15 +416,29 @@ def tvdb_search_series(
     """
     Allows the user to search for a series based on the following parameters.
 
-    Online docs: https://api.thetvdb.com/swagger#!/Search/get_search_series
-    Note: results a maximum of 100 entries per page, no option for pagination.
+    Online swagger docs: https://thetvdb.github.io/v4-api/
     """
     Language.ensure_valid_for_tvdb(language)
-    url = "https://api.thetvdb.com/search/series"
-    parameters = {"name": series, "imdbId": id_imdb, "zap2itId": id_zap2it}
     headers = {"Authorization": f"Bearer {token}"}
     if language:
         headers["Accept-Language"] = language.a2
+
+    provided = [p is not None for p in (series, id_imdb, id_zap2it)]
+    if sum(provided) != 1:
+        raise MnamerException(
+            "series, id_imdb, id_zap2it parameters are mutually exclusive"
+        )
+
+    if series is not None:
+        url = "https://api4.thetvdb.com/v4/search"
+        parameters = {"query": series, "type": "series"}
+        if language:
+            parameters["language"] = language.a3
+    else:
+        remote_id = id_imdb or id_zap2it
+        url = f"https://api4.thetvdb.com/v4/search/remoteid/{remote_id}"
+        parameters = None
+
     status, content = request_json(
         url, parameters, headers=headers, cache=cache is True and language is None
     )
@@ -388,10 +448,34 @@ def tvdb_search_series(
         raise MnamerException(
             "series, id_imdb, id_zap2it parameters are mutually exclusive"
         )
-    elif status == 404 or not content.get("data"):
+    elif status == 404 or not content or not content.get("data"):
         raise MnamerNotFoundException
     elif status != 200:  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
+
+    def get_titles(serie_entry):
+        """Return all possible title variations (name, aliases, translations)."""
+        titles = []
+        if name := serie_entry.get("name"):
+            titles.append(name)
+        titles += serie_entry.get("aliases", [])
+        titles += list(serie_entry.get("translations", {}).values())
+        return [t.lower().strip() for t in titles if t]
+
+    def sort_by_similarity(matched_series, target_name):
+        if target_name is None:
+            return
+        target_name = target_name.lower().strip()
+        return sorted(
+            matched_series,
+            key=lambda s: min(
+                Levenshtein.distance(title, target_name.lower().strip())
+                for title in get_titles(s)
+                if title
+            ),
+        )
+
+    # content["data"] = sort_by_similarity(content["data"], series)
     return content
 
 

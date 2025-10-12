@@ -45,6 +45,7 @@ class Metadata:
     language_sub: Language | None = None
     quality: str | None = None
     synopsis: str | None = None
+    original: str | None = None
 
     @classmethod
     def to_media_type(cls) -> MediaType:
@@ -67,7 +68,10 @@ class Metadata:
         }
         converter: Callable | None = converter_map.get(key)
         if value is not None and converter:
-            value = converter(value)
+            try:
+                value = converter(value)
+            except Exception:
+                value = None
         super().__setattr__(key, value)
 
     def __format__(self, format_spec: str | None):
@@ -176,3 +180,12 @@ class MetadataEpisode(Metadata):
         if value is not None and converter:
             value = converter(value)
         super().__setattr__(key, value)
+
+    def is_invalid_season(self):
+        return not isinstance(self.season, int) or self.season > 1500
+
+    @property
+    def year(self) -> int | None:
+        if self.is_invalid_season():
+            return self.season
+        return None
