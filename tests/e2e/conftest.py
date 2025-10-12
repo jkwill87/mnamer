@@ -51,7 +51,7 @@ def e2e_run(capsys, request):
             code = e.code
         out += strip_format(capsys.readouterr().out.strip())
         out += strip_format(capsys.readouterr().err.strip())
-        with open(E2E_LOG, "a+") as fp:
+        with open(E2E_LOG, "a+", encoding="utf-8") as fp:
             fp.write("=" * 10 + "\n")
             fp.write(request.node.name + "\n")
             fp.write("-" * 10 + "\n")

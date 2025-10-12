@@ -3,7 +3,6 @@ from __future__ import annotations
 import datetime as dt
 from os import path
 from pathlib import Path
-from shutil import move
 from typing import Any, ClassVar
 
 from charset_normalizer import from_path
@@ -16,7 +15,7 @@ from mnamer.language import Language
 from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
 from mnamer.providers import Provider
 from mnamer.setting_store import SettingStore
-from mnamer.types import MediaType, ProviderType
+from mnamer.types import MediaType, ProviderType, RelocateType
 from mnamer.utils import (
     crawl_in,
     filename_replace,
@@ -220,9 +219,10 @@ class Target:
             except MnamerException:
                 pass
         try:
+            path_data["language"] = Language.parse(path_data["language"])
             Language.ensure_valid_for_tvdb(path_data["language"])
         except MnamerException:
-            path_data["language"] = self._settings.language
+            path_data["language"] = self._settings.language or Language.parse("eng")
         return path_data
 
     def _override_metadata_ids(self):
@@ -274,9 +274,20 @@ class Target:
 
     def relocate(self) -> None:
         """Performs the action of renaming and/or moving a file."""
+        def get_method(relocation_strategy: RelocateType):
+            from shutil import move, copy, copy2
+            from os import link, symlink
+            strategies = {
+                RelocateType.MOVE: move,
+                RelocateType.HARDLINK: link,
+                RelocateType.SYMBOLICLINK: symlink,
+                RelocateType.COPY: copy,
+                RelocateType.COPY2: copy2,
+            }
+            return strategies[RelocateType(relocation_strategy)]
         destination_path = Path(self.destination).resolve()
         destination_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            move(str(self.source), destination_path)
+            get_method(self._settings.relocation_strategy)(str(self.source), destination_path)
         except OSError as e:  # pragma: no cover
             raise MnamerException from e

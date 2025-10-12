@@ -3,6 +3,7 @@
 import datetime
 from re import match
 from time import sleep
+import Levenshtein
 
 from mnamer.exceptions import (
     MnamerException,
@@ -382,14 +383,12 @@ def tvdb_series_id_episodes_query(
     elif status != 200:
         raise MnamerNetworkException("TVDb down or unavailable?")
     items = content.get("data", {}).get("episodes", [])
-    hasValidAbsoluteNumbers = (
-        len(items) >= 1 and items[0].get("absoluteNumber") != 0
-    ) or (len(items) > 2 and items[0].get("absoluteNumber") != 0)
+    hasValidAbsoluteEpisode = episode != 0 and len(items) > 0 and max([i.get("absoluteNumber", 0) for i in items]) > 0
     if not len(items):
         raise MnamerNotFoundException
     for item in items:
         sn_ok = True if season is None else item.get("seasonNumber") == season
-        if season is None and episode is not None and hasValidAbsoluteNumbers:
+        if season is None and episode is not None and hasValidAbsoluteEpisode:
             ep_ok = item.get("absoluteNumber") == episode
         else:
             ep_ok = True if episode is None else item.get("number") == episode
@@ -448,6 +447,30 @@ def tvdb_search_series(
         raise MnamerNotFoundException
     elif status != 200:  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
+
+    def get_titles(serie_entry):
+        """Return all possible title variations (name, aliases, translations)."""
+        titles = []
+        if name := serie_entry.get("name"):
+            titles.append(name)
+        titles += serie_entry.get("aliases", [])
+        titles += list(serie_entry.get("translations", {}).values())
+        return [t.lower().strip() for t in titles if t]
+
+    def sort_by_similarity(matched_series, target_name):
+        if target_name is None:
+            return
+        target_name = target_name.lower().strip()
+        return sorted(
+            matched_series,
+            key=lambda s: min(
+                Levenshtein.distance(title, target_name.lower().strip())
+                for title in get_titles(s)
+                if title
+            )
+        )
+
+    #content["data"] = sort_by_similarity(content["data"], series)
     return content
 
 
