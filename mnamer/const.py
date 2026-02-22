@@ -4,6 +4,7 @@ import datetime as dt
 from pathlib import Path
 from platform import platform, python_version
 from sys import argv, gettrace, version_info
+from importlib.metadata import version as pkg_version, PackageNotFoundError
 
 VERSION: str
 
@@ -37,8 +38,8 @@ except ModuleNotFoundError:
     requests_version = "N/A"
 
 try:
-    from requests_cache import __version__ as requests_cache_version
-except ModuleNotFoundError:
+    requests_cache_version = pkg_version('requests_cache')
+except PackageNotFoundError:
     requests_cache_version = "N/A"
 
 try:
