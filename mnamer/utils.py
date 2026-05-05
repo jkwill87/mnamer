@@ -476,30 +476,3 @@ def str_title_case(s: str) -> str:
                 s = s[:pos] + exception.upper() + s[pos + word_length :]
 
     return s
-
-
-def year_parse(s: str) -> int | None:
-    """Parses a year from a string."""
-    regex = r"((?:19|20)\d{2})(?:$|[-/]\d{2}[-/]\d{2})"
-    try:
-        return int(re.findall(regex, str(s))[0])
-    except IndexError:
-        return None
-
-
-def year_range_parse(years: str | int | None, tolerance: int = 1) -> tuple[int, int]:
-    """Parses a year or dash-delimited year range."""
-    regex = r"^((?:19|20)\d{2})?([-,: ]*)?((?:19|20)\d{2})?$"
-    default_start = 1900
-    default_end = CURRENT_YEAR
-    try:
-        start, dash, end = re.match(regex, str(years).strip()).groups()  # type: ignore
-    except AttributeError:
-        start, end, dash = None, None, True
-    if not start and not end:
-        start, end, dash = None, None, True
-    start = int(start or default_start)
-    end = int(end or default_end)
-    if not dash:
-        end = start
-    return start - tolerance, end + tolerance
