@@ -4,9 +4,10 @@ from pathlib import Path
 import pytest
 
 from mnamer.metadata import MetadataEpisode, MetadataMovie
+from mnamer.providers import Omdb, Provider, Tmdb, TmdbEpisodes, Tvdb, TvMaze
 from mnamer.setting_store import SettingStore
 from mnamer.target import Target
-from mnamer.types import MediaType
+from mnamer.types import MediaType, ProviderType
 
 pytestmark = pytest.mark.local
 
@@ -121,3 +122,48 @@ def test_query():
 
 def test_relocate():
     pass  # TODO
+
+
+@pytest.mark.parametrize(
+    "provider_type, media_type, expected_cls",
+    [
+        (ProviderType.OMDB, MediaType.MOVIE, Omdb),
+        (ProviderType.TMDB, MediaType.MOVIE, Tmdb),
+        (ProviderType.TMDB, MediaType.EPISODE, TmdbEpisodes),
+        (ProviderType.TVDB, MediaType.EPISODE, Tvdb),
+        (ProviderType.TVMAZE, MediaType.EPISODE, TvMaze),
+    ],
+)
+def test_provider_factory__dispatch(
+    provider_type: ProviderType, media_type: MediaType, expected_cls: type
+):
+    settings = SettingStore()
+    settings.api_key_tmdb = "dummy"
+    settings.api_key_tvdb = "dummy"
+    settings.api_key_omdb = "dummy"
+    settings.api_key_tvmaze = "dummy"
+    settings.no_cache = True
+    provider = Provider.provider_factory(provider_type, media_type, settings)
+    assert isinstance(provider, expected_cls)
+
+
+def test_provider_factory__tmdb_episodes_shares_tmdb_key():
+    settings = SettingStore()
+    settings.api_key_tmdb = "abc123"
+    settings.no_cache = True
+    provider = Provider.provider_factory(ProviderType.TMDB, MediaType.EPISODE, settings)
+    assert isinstance(provider, TmdbEpisodes)
+    assert provider.api_key == "abc123"
+
+
+def test_register_provider__cache_key_per_media_type():
+    Target._providers.clear()
+    settings = SettingStore(movie_api=ProviderType.TMDB, episode_api=ProviderType.TMDB)
+    settings.api_key_tmdb = "dummy"
+    settings.no_cache = True
+    movie_target = Target(Path("the.goonies.1985.mkv"), settings)
+    episode_target = Target(Path("the.goonies.s01e01.mkv"), settings)
+    assert isinstance(movie_target._provider, Tmdb)
+    assert isinstance(episode_target._provider, TmdbEpisodes)
+    assert (ProviderType.TMDB, MediaType.MOVIE) in Target._providers
+    assert (ProviderType.TMDB, MediaType.EPISODE) in Target._providers

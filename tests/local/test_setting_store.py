@@ -24,6 +24,22 @@ def test_api_for__movie(api: ProviderType):
     assert settings.api_for(MediaType.MOVIE) is api
 
 
+@pytest.mark.parametrize(
+    "api",
+    (ProviderType.TVMAZE, ProviderType.TVDB, ProviderType.TMDB),
+    ids=("TVMAZE", "TVDB", "TMDB"),
+)
+def test_api_for__episode(api: ProviderType):
+    settings = SettingStore(episode_api=api)
+    assert settings.api_for(MediaType.EPISODE) is api
+
+
+def test_episode_api__accepts_tmdb_string():
+    settings = SettingStore()
+    settings.episode_api = "tmdb"
+    assert settings.episode_api is ProviderType.TMDB
+
+
 @pytest.mark.parametrize("api", ProviderType)
 def test_api_key_for(api: ProviderType):
     settings = SettingStore()

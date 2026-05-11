@@ -191,11 +191,15 @@ class SettingStore:
     episode_api: ProviderType | str = dataclasses.field(
         default=ProviderType.TVMAZE,
         metadata=SettingSpec(
-            choices=[ProviderType.TVDB.value, ProviderType.TVMAZE.value],
+            choices=[
+                ProviderType.TMDB.value,
+                ProviderType.TVDB.value,
+                ProviderType.TVMAZE.value,
+            ],
             dest="episode_api",
             flags=["--episode_api", "--episode-api", "--episodeapi"],
             group=SettingType.PARAMETER,
-            help="--episode-api={tvdb,*tvmaze}: set episode api provider",
+            help="--episode-api={tmdb,tvdb,*tvmaze}: set episode api provider",
         ).as_dict(),
     )
     episode_directory: Path | None = dataclasses.field(
