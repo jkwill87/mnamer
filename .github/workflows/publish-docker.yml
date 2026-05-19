@@ -1,0 +1,247 @@
+name: publish docker
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        required: true
+        type: string
+      release_tag:
+        required: false
+        type: string
+        default: ""
+      is_prerelease:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+
+  workflow_dispatch:
+    inputs:
+      target:
+        description: What Docker image set to publish
+        required: true
+        type: choice
+        options:
+          - latest sha
+          - latest release
+
+env:
+  DOCKERHUB_IMAGE: jkwill87/mnamer
+  GHCR_IMAGE: ghcr.io/jkwill87/mnamer/mnamer
+
+jobs:
+  publish-docker:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Resolving Source
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RAW_TARGET: ${{ inputs.target || github.event.inputs.target }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          IS_PRERELEASE: ${{ inputs.is_prerelease }}
+        run: |
+          set -euo pipefail
+
+          target="$(printf '%s' "$RAW_TARGET" | tr ' ' '-')"
+          main_sha="$(git ls-remote "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY.git" refs/heads/main | awk '{print $1}')"
+
+          case "$target" in
+            latest-sha)
+              checkout_ref="$main_sha"
+              release_tag=""
+              is_prerelease="false"
+              ;;
+            latest-release)
+              release_json="$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName,isPrerelease)"
+              release_tag="$(jq -r '.tagName' <<<"$release_json")"
+              is_prerelease="$(jq -r '.isPrerelease' <<<"$release_json")"
+              checkout_ref="$release_tag"
+              ;;
+            event-release)
+              release_tag="$RELEASE_TAG"
+              is_prerelease="$IS_PRERELEASE"
+              checkout_ref="$release_tag"
+              ;;
+            *)
+              echo "Unsupported Docker publish target: $RAW_TARGET" >&2
+              exit 1
+              ;;
+          esac
+
+          if [ -z "$checkout_ref" ]; then
+            echo "Could not resolve a checkout ref for target: $RAW_TARGET" >&2
+            exit 1
+          fi
+
+          {
+            echo "target=$target"
+            echo "checkout_ref=$checkout_ref"
+            echo "main_sha=$main_sha"
+            echo "release_tag=$release_tag"
+            echo "is_prerelease=$is_prerelease"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.resolve.outputs.checkout_ref }}
+          fetch-depth: 0
+
+      - name: Finalizing Tags
+        id: tags
+        env:
+          TARGET: ${{ steps.resolve.outputs.target }}
+          MAIN_SHA: ${{ steps.resolve.outputs.main_sha }}
+          RELEASE_TAG: ${{ steps.resolve.outputs.release_tag }}
+          IS_PRERELEASE: ${{ steps.resolve.outputs.is_prerelease }}
+        run: |
+          set -euo pipefail
+
+          source_sha="$(git rev-parse HEAD)"
+          aliases=()
+
+          if [ "$TARGET" = "latest-sha" ]; then
+            python -m pip install --quiet setuptools-scm[toml]
+            version="$(python -m setuptools_scm)"
+            aliases+=("dev")
+          else
+            version="${RELEASE_TAG#v}"
+            aliases+=("$version")
+
+            if [ "$IS_PRERELEASE" != "true" ]; then
+              aliases+=("latest")
+            fi
+
+            if [ "$TARGET" = "latest-release" ] && [ "$source_sha" = "$MAIN_SHA" ]; then
+              aliases+=("dev")
+            fi
+          fi
+
+          {
+            echo "source_sha=$source_sha"
+            echo "version=$version"
+            echo "aliases<<EOF"
+            printf '%s\n' "${aliases[@]}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Logging In To GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Logging In To Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          scope: jkwill87/mnamer@push
+
+      - name: Setting Up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Planning Docker Push
+        id: plan
+        env:
+          SOURCE_SHA: ${{ steps.tags.outputs.source_sha }}
+          ALIASES: ${{ steps.tags.outputs.aliases }}
+        run: |
+          set -euo pipefail
+
+          tag_is_current() {
+            local ref="$1"
+            local output
+            local error_file
+            error_file="$(mktemp)"
+
+            if ! output="$(docker buildx imagetools inspect "$ref" --raw 2>"$error_file")"; then
+              if grep -Eiq 'not found|manifest unknown|name unknown' "$error_file"; then
+                rm -f "$error_file"
+                return 1
+              fi
+
+              cat "$error_file" >&2
+              rm -f "$error_file"
+              return 2
+            fi
+
+            rm -f "$error_file"
+            revision="$(
+              jq -r '
+                .annotations["org.opencontainers.image.revision"]
+                // (.manifests[]?.annotations["org.opencontainers.image.revision"] // empty)
+              ' <<<"$output" | head -n 1
+            )"
+            [ "$revision" = "$SOURCE_SHA" ]
+          }
+
+          tags=()
+          while IFS= read -r alias; do
+            [ -n "$alias" ] || continue
+
+            tags+=("$GHCR_IMAGE:$alias")
+            tags+=("$DOCKERHUB_IMAGE:$alias")
+          done <<<"$ALIASES"
+
+          publish_tags=()
+          for tag in "${tags[@]}"; do
+            if tag_is_current "$tag"; then
+              echo "$tag is already current"
+            else
+              echo "$tag needs publishing"
+              publish_tags+=("$tag")
+            fi
+          done
+
+          if [ "${#publish_tags[@]}" -eq 0 ]; then
+            echo "All requested Docker tags are already current."
+            echo "should_push=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_push=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "tags<<EOF"
+              printf '%s\n' "${publish_tags[@]}"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extracting Docker Metadata
+        if: steps.plan.outputs.should_push == 'true'
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: |
+            ${{ env.GHCR_IMAGE }}
+            ${{ env.DOCKERHUB_IMAGE }}
+          labels: |
+            org.opencontainers.image.title=mnamer
+            org.opencontainers.image.description=A command-line utility for organizing media files.
+            org.opencontainers.image.revision=${{ steps.tags.outputs.source_sha }}
+            org.opencontainers.image.version=${{ steps.tags.outputs.version }}
+
+      - name: Building And Publishing Docker Image
+        if: steps.plan.outputs.should_push == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.plan.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          annotations: |
+            org.opencontainers.image.revision=${{ steps.tags.outputs.source_sha }}
+            org.opencontainers.image.version=${{ steps.tags.outputs.version }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
