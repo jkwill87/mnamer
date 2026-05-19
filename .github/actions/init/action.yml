@@ -7,7 +7,7 @@ runs:
     - uses: actions/setup-python@v5
       with:
         python-version: '3.12'
-        
+
     - name: Install uv
       uses: astral-sh/setup-uv@v4
       with:
@@ -16,4 +16,4 @@ runs:
 
     - name: Install dependencies
       shell: sh
-      run: uv sync --dev
+      run: uv sync --locked --dev

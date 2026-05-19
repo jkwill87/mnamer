@@ -93,3 +93,11 @@ Parameters can either by entered as command line arguments or from a config file
 Community contributions are a welcome addition to the project. In order to be merged upstream any additions will need to be formatted with [ruff](https://docs.astral.sh/ruff/) for consistency with the rest of the project and pass the continuous integration tests run against each PR. Before introducing any major features or changes to the configuration api please consider opening [an issue](https://github.com/jkwill87/mnamer/issues) to outline your proposal.
 
 Bug reports are also welcome on the [issue page](https://github.com/jkwill87/mnamer/issues). Please include any generated crash reports if applicable. Feature requests are welcome but consider checking out [if it is in the works](https://github.com/jkwill87/mnamer/issues?q=label%3Arequest) first to avoid duplication.
+
+## Star History
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=jkwill87/mnamer&type=date&theme=dark&legend=top-left" />
+  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=jkwill87/mnamer&type=date&legend=top-left" />
+  <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=jkwill87/mnamer&type=date&legend=top-left" />
+</picture>

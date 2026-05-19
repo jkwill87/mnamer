@@ -49,3 +49,42 @@ jobs:
       inherit
 
     uses: ./.github/workflows/publish.yml
+
+  publish-docker-main:
+    if: >-
+      success()
+      && github.event_name == 'push'
+      && github.ref == 'refs/heads/main'
+
+    needs:
+      - lint
+      - test
+
+    secrets:
+      inherit
+
+    uses: ./.github/workflows/publish-docker.yml
+    with:
+      target: latest-sha
+
+  publish-docker-release:
+    if: >-
+      success()
+      && github.event_name == 'release'
+      && (
+        github.event.action == 'published'
+        || github.event.action == 'prereleased'
+      )
+
+    needs:
+      - lint
+      - test
+
+    secrets:
+      inherit
+
+    uses: ./.github/workflows/publish-docker.yml
+    with:
+      target: event-release
+      release_tag: ${{ github.event.release.tag_name }}
+      is_prerelease: ${{ github.event.release.prerelease }}
