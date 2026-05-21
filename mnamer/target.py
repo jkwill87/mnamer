@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import datetime as dt
-from os import path
 from pathlib import Path
 from shutil import move
 from typing import Any, ClassVar, Self, override
@@ -94,21 +93,88 @@ class Target:
         preferences.
         """
         if self.directory:
-            dir_head_ = format(self.metadata, str(self.directory))
-            dir_head_ = str_sanitize(dir_head_)
-            dir_head = Path(dir_head_)
+            dir_head = self._format_directory(self.directory)
         else:
             dir_head = self.source.parent
+
         file_path = format(self.metadata, self._settings.formatting_for(self.metadata))
-        dir_tail, filename = path.split(Path(file_path))
-        filename = filename_replace(filename, self._settings.replace_after)
-        if self._settings.scene:
-            filename = str_scenify(filename)
-        if self._settings.lower:
-            filename = filename.lower()
-        filename = str_sanitize(filename)
-        directory = Path(dir_head, dir_tail)
+        dir_tail, filename = self._split_formatted_path(file_path)
+        directory = Path(dir_head, self._process_directory(dir_tail))
+        filename = self._process_filename(filename)
         return Path(directory, filename)
+
+    def _format_directory(self, directory: Path) -> Path:
+        """Format and post-process a configured directory template."""
+        formatted = Path(format(self.metadata, str(directory)))
+        process_start = self._directory_process_start(directory)
+        if process_start is None:
+            return formatted
+
+        processed_parts: list[str] = []
+        for idx, formatted_part in enumerate(formatted.parts):
+            if idx >= process_start:
+                formatted_part = self._process_path_text(formatted_part)
+            processed_parts.append(formatted_part)
+        return Path(*processed_parts)
+
+    def _directory_process_start(self, directory: Path) -> int | None:
+        """
+        Return the first configured directory component that can be transformed.
+
+        ``SettingStore`` resolves relative configured directories against the
+        current working directory. In that case, only the original relative
+        portion should receive filename-style transforms. For absolute paths
+        outside cwd, keep literal parent directories intact unless the path
+        contains a template field; this prevents ``--lower`` or ``--scene`` from
+        rewriting stable filesystem prefixes such as ``/Users`` or a mountpoint.
+        """
+        cwd_parts = Path.cwd().parts
+        if directory.parts[: len(cwd_parts)] == cwd_parts:
+            return len(cwd_parts)
+
+        template_index = self._first_template_part(directory)
+        if template_index is not None:
+            return template_index
+
+        if not directory.is_absolute():
+            return 0
+
+        return None
+
+    @staticmethod
+    def _first_template_part(directory: Path) -> int | None:
+        """Return the first component containing a format field, if one exists."""
+        for idx, part in enumerate(directory.parts):
+            if "{" in part:
+                return idx
+        return None
+
+    def _split_formatted_path(self, file_path: str) -> tuple[Path, str]:
+        """Split a formatted file template into optional directories and filename."""
+        formatted_path = Path(file_path)
+        dir_tail = formatted_path.parent
+        if str(dir_tail) == ".":
+            dir_tail = Path()
+        return dir_tail, formatted_path.name
+
+    def _process_directory(self, directory: Path) -> Path:
+        """Apply filename post-processing rules to each generated directory path."""
+        if not str(directory):
+            return Path()
+        return Path(*(self._process_path_text(part) for part in directory.parts))
+
+    def _process_filename(self, filename: str) -> str:
+        """Apply configured post-processing rules to a generated filename."""
+        return self._process_path_text(filename)
+
+    def _process_path_text(self, value: str) -> str:
+        """Apply replacement, scene, lower, and sanitize transforms in one place."""
+        value = filename_replace(value, self._settings.replace_after)
+        if self._settings.scene:
+            value = str_scenify(value)
+        if self._settings.lower:
+            value = value.lower()
+        return str_sanitize(value)
 
     def _parse(self, file_path: Path):
         path_data: dict[str, Any] = {"language": self._settings.language}
