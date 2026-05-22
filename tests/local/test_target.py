@@ -115,6 +115,94 @@ def test_destination__simple():
     pass  # TODO
 
 
+def test_destination__relative_directory_lowered():
+    """Every part of a relative configured directory receives --lower."""
+    settings = SettingStore(
+        batch=True,
+        media=MediaType.MOVIE,
+        lower=True,
+        movie_directory=Path("Movies/{name[0]}"),
+    )
+    target = Target(Path("ninja turtles (1990).mkv"), settings)
+    assert target.destination == Path("movies/n/ninja turtles (1990).mkv")
+
+
+def test_destination__absolute_directory_preserves_literal_parts():
+    """Literal parts of an absolute configured directory survive --lower."""
+    settings = SettingStore(
+        batch=True,
+        media=MediaType.MOVIE,
+        lower=True,
+        movie_directory=Path("/Media Library/Movies"),
+    )
+    target = Target(Path("ninja turtles (1990).mkv"), settings)
+    assert target.destination == Path("/Media Library/Movies/ninja turtles (1990).mkv")
+
+
+def test_destination__absolute_directory_transforms_template_parts():
+    """Template parts within an absolute configured directory are transformed."""
+    settings = SettingStore(
+        batch=True,
+        media=MediaType.MOVIE,
+        lower=True,
+        movie_directory=Path("/Media Library/{name[0]}"),
+    )
+    target = Target(Path("ninja turtles (1990).mkv"), settings)
+    assert target.destination == Path("/Media Library/n/ninja turtles (1990).mkv")
+
+
+def test_destination__format_template_directory_components_transformed():
+    """Directory components emitted by the format template are post-processed."""
+    settings = SettingStore(
+        batch=True,
+        media=MediaType.MOVIE,
+        lower=True,
+        movie_format="{name}/{name} ({year}).{extension}",
+    )
+    target = Target(Path("ninja turtles (1990).mkv"), settings)
+    assert target.destination == Path("ninja turtles/ninja turtles (1990).mkv")
+
+
+def test_destination__relative_directory_scene():
+    """--scene applies to literal and templated parts of a relative directory."""
+    settings = SettingStore(
+        batch=True,
+        media=MediaType.MOVIE,
+        scene=True,
+        movie_directory=Path("Movie Library/{name}"),
+    )
+    target = Target(Path("ninja turtles (1990).mkv"), settings)
+    assert target.destination == Path(
+        "movie.library/ninja.turtles/ninja.turtles.1990.mkv"
+    )
+
+
+def test_destination__absolute_directory_scene_preserves_literal_parts():
+    """Literal parts of an absolute configured directory survive --scene."""
+    settings = SettingStore(
+        batch=True,
+        media=MediaType.MOVIE,
+        scene=True,
+        movie_directory=Path("/Media Library/Movies"),
+    )
+    target = Target(Path("ninja turtles (1990).mkv"), settings)
+    assert target.destination == Path("/Media Library/Movies/ninja.turtles.1990.mkv")
+
+
+def test_destination__absolute_directory_scene_transforms_template_parts():
+    """Template parts within an absolute configured directory survive --scene."""
+    settings = SettingStore(
+        batch=True,
+        media=MediaType.MOVIE,
+        scene=True,
+        movie_directory=Path("/Media Library/{name}"),
+    )
+    target = Target(Path("ninja turtles (1990).mkv"), settings)
+    assert target.destination == Path(
+        "/Media Library/ninja.turtles/ninja.turtles.1990.mkv"
+    )
+
+
 def test_query():
     pass  # TODO
 
