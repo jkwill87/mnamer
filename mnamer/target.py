@@ -101,7 +101,7 @@ class Target:
         dir_tail, filename = self._split_formatted_path(file_path)
         directory = Path(dir_head, self._process_directory(dir_tail))
         filename = self._process_filename(filename)
-        return Path(directory, filename)
+        return Path(directory, filename).resolve()
 
     def _format_directory(self, directory: Path) -> Path:
         """Format and post-process a configured directory template.

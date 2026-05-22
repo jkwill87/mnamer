@@ -124,7 +124,7 @@ def test_destination__relative_directory_lowered():
         movie_directory=Path("Movies/{name[0]}"),
     )
     target = Target(Path("ninja turtles (1990).mkv"), settings)
-    assert target.destination == Path("movies/n/ninja turtles (1990).mkv")
+    assert target.destination == Path("movies/n/ninja turtles (1990).mkv").resolve()
 
 
 def test_destination__absolute_directory_preserves_literal_parts():
@@ -160,7 +160,9 @@ def test_destination__format_template_directory_components_transformed():
         movie_format="{name}/{name} ({year}).{extension}",
     )
     target = Target(Path("ninja turtles (1990).mkv"), settings)
-    assert target.destination == Path("ninja turtles/ninja turtles (1990).mkv")
+    assert (
+        target.destination == Path("ninja turtles/ninja turtles (1990).mkv").resolve()
+    )
 
 
 def test_destination__relative_directory_scene():
@@ -172,8 +174,9 @@ def test_destination__relative_directory_scene():
         movie_directory=Path("Movie Library/{name}"),
     )
     target = Target(Path("ninja turtles (1990).mkv"), settings)
-    assert target.destination == Path(
-        "movie.library/ninja.turtles/ninja.turtles.1990.mkv"
+    assert (
+        target.destination
+        == Path("movie.library/ninja.turtles/ninja.turtles.1990.mkv").resolve()
     )
 
 
@@ -201,6 +204,21 @@ def test_destination__absolute_directory_scene_transforms_template_parts():
     assert target.destination == Path(
         "/Media Library/ninja.turtles/ninja.turtles.1990.mkv"
     )
+
+
+def test_destination__same_directory_matches_source(tmp_path, monkeypatch):
+    """`--movie_directory=.` resolves to the source path so the no-op is skippable."""
+    tmp = tmp_path.resolve()
+    monkeypatch.chdir(tmp)
+    source = tmp / "Ninja Turtles (1990).mkv"
+    source.touch()
+    settings = SettingStore(
+        batch=True,
+        media=MediaType.MOVIE,
+        movie_directory=Path("."),
+    )
+    target = Target(source, settings)
+    assert target.destination == target.source
 
 
 def test_query():
