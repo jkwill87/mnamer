@@ -103,7 +103,7 @@ class Provider[M: Metadata](ABC):
 class Omdb(Provider[MetadataMovie]):
     """Queries the OMDb API."""
 
-    api_key: str = environ.get("API_KEY_OMDB") or "477a7ebc"
+    api_key: str = environ.get("API_KEY_OMDB", "477a7ebc")
 
     def __init__(self, api_key: str = "", cache: bool = True):
         super().__init__(api_key, cache)
