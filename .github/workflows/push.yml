@@ -32,8 +32,8 @@ jobs:
           API_KEY_OMDB: ${{ secrets.API_KEY_OMDB }}
         with:
           local: true
-          network: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-          e2e: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          network: ${{ github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+          e2e: ${{ github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
           coverage: true
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
