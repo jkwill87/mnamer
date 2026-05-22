@@ -22,6 +22,11 @@ inputs:
     required: false
     default: "false"
 
+  codecov-token:
+    description: Token for uploading coverage to Codecov
+    required: false
+    default: ""
+
 runs:
   using: composite
   steps:
@@ -29,7 +34,7 @@ runs:
       if: inputs.local == 'true'
       run: >-
         uv run pytest
-        -m local
+        -m "local"
         --durations=10
         --cov=./
         --cov-append
@@ -63,17 +68,12 @@ runs:
         --cov-report=xml
       shell: sh
 
-    - name: Printing E2E Logs
-      run: cat e2e.log
-      shell: sh
-      if: >-
-        inputs.e2e == 'true'
-        && failure()
-
     - name: Reporting Coverage Statistics
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6.0.1
       if: >-
         success()
         && inputs.coverage == 'true'
         && github.event_name == 'push'
         && github.ref == 'refs/heads/main'
+      with:
+        token: ${{ inputs.codecov-token }}

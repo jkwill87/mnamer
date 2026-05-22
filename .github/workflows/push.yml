@@ -26,14 +26,16 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/init
-      - uses: ./.github/actions/test
+      - name: Testing
+        uses: ./.github/actions/test
         env:
           API_KEY_OMDB: ${{ secrets.API_KEY_OMDB }}
         with:
           local: true
-          network: true
-          e2e: true
+          network: ${{ github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+          e2e: ${{ github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
           coverage: true
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
   publish-pypi:
     if: >-
