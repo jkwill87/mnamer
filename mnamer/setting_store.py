@@ -366,20 +366,16 @@ class SettingStore:
             if f.metadata
         ]
 
-    @staticmethod
-    def _resolve_path(path: str | Path) -> Path:
-        return Path(path).resolve()
-
     @override
     def __setattr__(self, key: str, value: Any):
         converter_map: dict[str, Callable[[Any], Any]] = {
             "episode_api": ProviderType,
-            "episode_directory": self._resolve_path,
+            "episode_directory": Path,
             "language": Language.parse,
             "mask": normalize_containers,
             "media": MediaType,
             "movie_api": ProviderType,
-            "movie_directory": self._resolve_path,
+            "movie_directory": Path,
             "targets": lambda targets: [Path(target) for target in targets],
         }
         converter: Callable[[Any], Any] | None = converter_map.get(key)

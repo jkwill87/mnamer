@@ -104,52 +104,25 @@ class Target:
         return Path(directory, filename)
 
     def _format_directory(self, directory: Path) -> Path:
-        """Format and post-process a configured directory template."""
-        formatted = Path(format(self.metadata, str(directory)))
-        process_start = self._directory_process_start(directory)
-        if process_start is None:
-            return formatted
+        """Format and post-process a configured directory template.
 
+        Each part of the original (un-resolved) directory is formatted
+        independently so we can tell template substitutions apart from literal
+        user-typed parts. For relative paths every part is transformed; for
+        absolute paths only template parts are, keeping literal filesystem
+        prefixes like ``/Volumes/Media`` intact.
+        """
+        is_absolute = directory.is_absolute()
         processed_parts: list[str] = []
-        for idx, formatted_part in enumerate(formatted.parts):
-            if idx >= process_start:
+        for original_part in directory.parts:
+            formatted_part = format(self.metadata, original_part)
+            if not is_absolute or "{" in original_part:
                 formatted_part = self._process_path_text(formatted_part)
             processed_parts.append(formatted_part)
-        return Path(*processed_parts)
-
-    def _directory_process_start(self, directory: Path) -> int | None:
-        """
-        Return the first configured directory component that can be transformed.
-
-        ``SettingStore`` resolves relative configured directories against the
-        current working directory. In that case, only the original relative
-        portion should receive filename-style transforms. For absolute paths
-        outside cwd, keep literal parent directories intact unless the path
-        contains a template field; this prevents ``--lower`` or ``--scene`` from
-        rewriting stable filesystem prefixes such as ``/Users`` or a mountpoint.
-        """
-        cwd_parts = Path.cwd().parts
-        if directory.parts[: len(cwd_parts)] == cwd_parts:
-            return len(cwd_parts)
-
-        template_index = self._first_template_part(directory)
-        if template_index is not None:
-            return template_index
-
-        if not directory.is_absolute():
-            return 0
-
-        return None
+        return Path(*processed_parts) if processed_parts else Path()
 
     @staticmethod
-    def _first_template_part(directory: Path) -> int | None:
-        """Return the first component containing a format field, if one exists."""
-        for idx, part in enumerate(directory.parts):
-            if "{" in part:
-                return idx
-        return None
-
-    def _split_formatted_path(self, file_path: str) -> tuple[Path, str]:
+    def _split_formatted_path(file_path: str) -> tuple[Path, str]:
         """Split a formatted file template into optional directories and filename."""
         formatted_path = Path(file_path)
         dir_tail = formatted_path.parent
@@ -159,9 +132,8 @@ class Target:
 
     def _process_directory(self, directory: Path) -> Path:
         """Apply filename post-processing rules to each generated directory path."""
-        if not str(directory):
-            return Path()
-        return Path(*(self._process_path_text(part) for part in directory.parts))
+        parts = tuple(self._process_path_text(part) for part in directory.parts)
+        return Path(*parts) if parts else Path()
 
     def _process_filename(self, filename: str) -> str:
         """Apply configured post-processing rules to a generated filename."""
