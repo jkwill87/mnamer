@@ -206,6 +206,18 @@ def test_destination__absolute_directory_scene_transforms_template_parts():
     )
 
 
+def test_destination__parent_directory_navigation_preserved():
+    """A `..` segment in a relative directory survives sanitization."""
+    settings = SettingStore(
+        batch=True,
+        media=MediaType.MOVIE,
+        lower=True,
+        movie_directory=Path("../Movies"),
+    )
+    target = Target(Path("ninja turtles (1990).mkv"), settings)
+    assert target.destination == Path("../movies/ninja turtles (1990).mkv").resolve()
+
+
 def test_destination__same_directory_matches_source(tmp_path, monkeypatch):
     """`--movie_directory=.` resolves to the source path so the no-op is skippable."""
     tmp = tmp_path.resolve()

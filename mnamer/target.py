@@ -141,6 +141,8 @@ class Target:
 
     def _process_path_text(self, value: str) -> str:
         """Apply replacement, scene, lower, and sanitize transforms in one place."""
+        if value in (".", ".."):
+            return value
         value = filename_replace(value, self._settings.replace_after)
         if self._settings.scene:
             value = str_scenify(value)
