@@ -9,6 +9,8 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/init
+        with:
+          save-cache: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
 
       - name: Linting
         uses: ./.github/actions/lint
@@ -22,21 +24,11 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/init
-
-      - name: Testing (contributor)
-        uses: ./.github/actions/test
-        if: github.actor != 'dependabot[bot]'
-        env:
-          API_KEY_OMDB: ${{ secrets.API_KEY_OMDB }}
         with:
-          local: true
-          network: true
-          e2e: true
-          coverage: false
+          save-cache: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
 
-      - name: Testing (dependabot)
+      - name: Testing (PR)
         uses: ./.github/actions/test
-        if: github.actor == 'dependabot[bot]'
         with:
           local: true
           network: false

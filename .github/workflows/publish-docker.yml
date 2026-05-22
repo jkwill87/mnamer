@@ -150,10 +150,10 @@ jobs:
           scope: jkwill87/mnamer@push
 
       - name: Setting Up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Setting Up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Planning Docker Push
         id: plan

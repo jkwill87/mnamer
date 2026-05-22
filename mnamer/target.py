@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import datetime as dt
-from os import path
 from pathlib import Path
 from shutil import move
 from typing import Any, ClassVar, Self, override
@@ -94,21 +93,62 @@ class Target:
         preferences.
         """
         if self.directory:
-            dir_head_ = format(self.metadata, str(self.directory))
-            dir_head_ = str_sanitize(dir_head_)
-            dir_head = Path(dir_head_)
+            dir_head = self._format_directory(self.directory)
         else:
             dir_head = self.source.parent
+
         file_path = format(self.metadata, self._settings.formatting_for(self.metadata))
-        dir_tail, filename = path.split(Path(file_path))
-        filename = filename_replace(filename, self._settings.replace_after)
+        dir_tail, filename = self._split_formatted_path(file_path)
+        directory = Path(dir_head, self._process_directory(dir_tail))
+        filename = self._process_filename(filename)
+        return Path(directory, filename).resolve()
+
+    def _format_directory(self, directory: Path) -> Path:
+        """Format and post-process a configured directory template.
+
+        Each part of the original (un-resolved) directory is formatted
+        independently so we can tell template substitutions apart from literal
+        user-typed parts. For relative paths every part is transformed; for
+        absolute paths only template parts are, keeping literal filesystem
+        prefixes like ``/Volumes/Media`` intact.
+        """
+        is_absolute = directory.is_absolute()
+        processed_parts: list[str] = []
+        for original_part in directory.parts:
+            formatted_part = format(self.metadata, original_part)
+            if not is_absolute or "{" in original_part:
+                formatted_part = self._process_path_text(formatted_part)
+            processed_parts.append(formatted_part)
+        return Path(*processed_parts) if processed_parts else Path()
+
+    @staticmethod
+    def _split_formatted_path(file_path: str) -> tuple[Path, str]:
+        """Split a formatted file template into optional directories and filename."""
+        formatted_path = Path(file_path)
+        dir_tail = formatted_path.parent
+        if str(dir_tail) == ".":
+            dir_tail = Path()
+        return dir_tail, formatted_path.name
+
+    def _process_directory(self, directory: Path) -> Path:
+        """Apply filename post-processing rules to each generated directory path."""
+        parts = tuple(self._process_path_text(part) for part in directory.parts)
+        return Path(*parts) if parts else Path()
+
+    def _process_filename(self, filename: str) -> str:
+        """Apply configured post-processing rules to a generated filename."""
+        return self._process_path_text(filename)
+
+    def _process_path_text(self, value: str) -> str:
+        """Apply replacement, scene, lower, and sanitize transforms in one place."""
+        if value in (".", ".."):
+            return value
+        value = filename_replace(value, self._settings.replace_after)
         if self._settings.scene:
-            filename = str_scenify(filename)
+            value = str_scenify(value)
         if self._settings.lower:
-            filename = filename.lower()
-        filename = str_sanitize(filename)
-        directory = Path(dir_head, dir_tail)
-        return Path(directory, filename)
+            value = value.lower()
+        return str_sanitize(value)
 
     def _parse(self, file_path: Path):
         path_data: dict[str, Any] = {"language": self._settings.language}
