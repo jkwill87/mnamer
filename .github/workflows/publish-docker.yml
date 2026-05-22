@@ -153,7 +153,7 @@ jobs:
         uses: docker/setup-qemu-action@v3
 
       - name: Setting Up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Planning Docker Push
         id: plan
