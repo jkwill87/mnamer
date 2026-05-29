@@ -31,7 +31,7 @@ from mnamer.language import Language
 from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
 from mnamer.setting_store import SettingStore
 from mnamer.types import MediaType, ProviderType
-from mnamer.utils import parse_date, year_range_parse
+from mnamer.utils import parse_date, year_parse, year_range_parse
 
 
 class Provider[M: Metadata](ABC):
@@ -212,6 +212,7 @@ class Tmdb(Provider[MetadataMovie]):
         self, name: str, year: str | None, language: Language | None
     ) -> Iterator[MetadataMovie]:
         assert self.api_key
+        requested_year = year_parse(year) if year else None
         page = 1
         page_max = 5  # each page yields a maximum of 20 results
         found = False
@@ -226,17 +227,19 @@ class Tmdb(Provider[MetadataMovie]):
             )
             for entry in response["results"]:
                 try:
-                    meta = MetadataMovie(
+                    result_year = year_parse(entry.get("release_date", ""))
+                    if result_year is None:
+                        continue
+                    if requested_year and result_year != requested_year:
+                        continue
+                    found = True
+                    yield MetadataMovie(
                         id_tmdb=str(entry["id"]),
                         name=entry["title"],
                         language=language,
                         synopsis=entry.get("overview"),
                         year=entry.get("release_date"),
                     )
-                    if not meta.year:
-                        continue
-                    yield meta
-                    found = True
                 except (AttributeError, KeyError, TypeError, ValueError):
                     continue
             if page == response["total_pages"]:
