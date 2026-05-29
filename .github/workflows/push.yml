@@ -11,6 +11,9 @@ on:
       - published
       - prereleased
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -50,6 +53,9 @@ jobs:
     secrets:
       inherit
 
+    permissions:
+      contents: read
+
     uses: ./.github/workflows/publish.yml
 
   publish-docker-main:
@@ -64,6 +70,10 @@ jobs:
 
     secrets:
       inherit
+
+    permissions:
+      contents: read
+      packages: write
 
     uses: ./.github/workflows/publish-docker.yml
     with:
@@ -84,6 +94,10 @@ jobs:
 
     secrets:
       inherit
+
+    permissions:
+      contents: read
+      packages: write
 
     uses: ./.github/workflows/publish-docker.yml
     with:
