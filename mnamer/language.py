@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import dataclasses
 from typing import Any, Self, override
 
@@ -73,7 +71,7 @@ class Language:
         return self.a2
 
     @staticmethod
-    def ensure_valid_for_tvdb(language: Language | None):
+    def ensure_valid_for_tvdb(language: "Language | None"):
         valid = {
             "cs",
             "da",

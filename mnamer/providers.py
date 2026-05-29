@@ -1,7 +1,5 @@
 """Provides a high-level interface for metadata media providers."""
 
-from __future__ import annotations
-
 import datetime as dt
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
@@ -62,31 +60,31 @@ class Provider[M: Metadata](ABC):
     @staticmethod
     def provider_factory(
         provider: Literal[ProviderType.OMDB], settings: SettingStore
-    ) -> Omdb: ...
+    ) -> "Omdb": ...
     @overload
     @staticmethod
     def provider_factory(
         provider: Literal[ProviderType.TMDB], settings: SettingStore
-    ) -> Tmdb: ...
+    ) -> "Tmdb": ...
     @overload
     @staticmethod
     def provider_factory(
         provider: Literal[ProviderType.TVDB], settings: SettingStore
-    ) -> Tvdb: ...
+    ) -> "Tvdb": ...
     @overload
     @staticmethod
     def provider_factory(
         provider: Literal[ProviderType.TVMAZE], settings: SettingStore
-    ) -> TvMaze: ...
+    ) -> "TvMaze": ...
     @overload
     @staticmethod
     def provider_factory(
         provider: ProviderType, settings: SettingStore
-    ) -> Omdb | Tmdb | Tvdb | TvMaze: ...
+    ) -> "Omdb | Tmdb | Tvdb | TvMaze": ...
     @staticmethod
     def provider_factory(
         provider: ProviderType, settings: SettingStore
-    ) -> Omdb | Tmdb | Tvdb | TvMaze:
+    ) -> "Omdb | Tmdb | Tvdb | TvMaze":
         """Factory function for DB Provider concrete classes."""
         provider_classes: dict[
             ProviderType, type[Omdb] | type[Tmdb] | type[Tvdb] | type[TvMaze]

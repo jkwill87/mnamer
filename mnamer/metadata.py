@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import dataclasses
 import datetime as dt
 import re
@@ -100,7 +98,7 @@ class Metadata:
             value = str_title_case(value)
         return value
 
-    def update(self, metadata: Metadata):
+    def update(self, metadata: "Metadata"):
         """Overlays all none value from another Metadata instance."""
         for field in dataclasses.asdict(self).keys():
             value = getattr(metadata, field)

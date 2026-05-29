@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import datetime as dt
 from pathlib import Path
 from shutil import move
@@ -68,7 +66,7 @@ class Target:
         cls._providers.clear()
 
     @staticmethod
-    def _matches_media(target: Target) -> bool:
+    def _matches_media(target: "Target") -> bool:
         if not target._settings.media:
             return True
         else:
