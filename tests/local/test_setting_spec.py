@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from mnamer.setting_spec import SettingSpec
@@ -22,7 +24,7 @@ def test_setting_spec__serialize__default():
 
 
 def test_setting_spec__serialize__override():
-    spec = {
+    spec: dict[str, Any] = {
         "action": "count",
         "choices": ["a", "b", "c"],
         "dest": "foo",
@@ -37,7 +39,7 @@ def test_setting_spec__serialize__override():
 
 
 def test_setting_spec__registration():
-    spec = {
+    spec: dict[str, Any] = {
         "dest": "foo",
         "flags": ["-f", "--f"],
         "group": SettingType.DIRECTIVE,
@@ -50,7 +52,7 @@ def test_setting_spec__registration():
 
 
 def test_setting_spec__name__flags():
-    spec = {
+    spec: dict[str, Any] = {
         "dest": "foo",
         "flags": ["-f", "--foo"],
         "group": SettingType.DIRECTIVE,
@@ -61,7 +63,7 @@ def test_setting_spec__name__flags():
 
 
 def test_setting_spec__name__no_flags():
-    spec = {
+    spec: dict[str, Any] = {
         "dest": "foo",
         "group": SettingType.CONFIGURATION,
         "help": "foos your bars",

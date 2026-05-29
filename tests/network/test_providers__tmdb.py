@@ -3,7 +3,7 @@ import pytest
 from mnamer.exceptions import MnamerNotFoundException
 from mnamer.metadata import MetadataMovie
 from mnamer.providers import Tmdb
-from tests import JUNK_TEXT, MOVIE_META
+from tests import JUNK_TEXT, MOVIE_META, MovieMeta
 
 pytestmark = [
     pytest.mark.network,
@@ -18,8 +18,8 @@ def provider():
 
 
 @pytest.mark.parametrize("meta", MOVIE_META.values(), ids=list(MOVIE_META))
-def test_search_id(meta: dict, provider: Tmdb):
-    query = MetadataMovie(id_tmdb=meta["id_tmdb"])
+def test_search_id(meta: MovieMeta, provider: Tmdb):
+    query = MetadataMovie(id_tmdb=str(meta["id_tmdb"]))
     results = list(provider.search(query))
     assert len(results) == 1
     result = results[0]
@@ -33,7 +33,7 @@ def test_search_id__no_hits(provider: Tmdb):
 
 
 @pytest.mark.parametrize("meta", MOVIE_META.values(), ids=list(MOVIE_META))
-def test_search__name(meta: dict, provider: Tmdb):
+def test_search__name(meta: MovieMeta, provider: Tmdb):
     query = MetadataMovie(name=meta["name"])
     assert any(
         result.id_tmdb == str(meta["id_tmdb"]) for result in provider.search(query)

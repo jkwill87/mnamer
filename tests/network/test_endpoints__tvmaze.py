@@ -61,7 +61,7 @@ EXPECTED_EPISODE_KEYS = [
 
 
 def test_tvmaze_show():
-    result = tvmaze_show(id_tvmaze=META["id_tvmaze"])
+    result = tvmaze_show(id_tvmaze=str(META["id_tvmaze"]))
     assert result
     for expected_show_key in EXPECTED_SHOW_KEYS:
         assert expected_show_key in result
@@ -93,7 +93,7 @@ def test_tvmaze_show__embed_episodes():
         "web_channel",
         "weight",
     ]
-    result = tvmaze_show(id_tvmaze=META["id_tvmaze"], embed_episodes=True)
+    result = tvmaze_show(id_tvmaze=str(META["id_tvmaze"]), embed_episodes=True)
     assert result
     for expected_show_key in expected_show_keys:
         assert expected_show_key in result
@@ -102,7 +102,7 @@ def test_tvmaze_show__embed_episodes():
 
 
 def test_tvmaze_show_search__success():
-    results = tvmaze_show_search(META["series"])
+    results = tvmaze_show_search(str(META["series"]))
     expected_top_level_keys = {"score", "show"}
     assert results
     result = results[0]
@@ -119,7 +119,7 @@ def test_tvmaze_show_search__no_hits():
 
 
 def test_tvmaze_show_single_search__success():
-    result = tvmaze_show_single_search(META["series"])
+    result = tvmaze_show_single_search(str(META["series"]))
     assert result
     for expected_show_key in EXPECTED_SHOW_KEYS:
         assert expected_show_key in result
@@ -133,7 +133,7 @@ def test_tvmaze_show_single_search__no_hits():
 
 
 def test_tvmaze_show_lookup__idmb__success():
-    result = tvmaze_show_lookup(id_imdb=META["id_imdb"])
+    result = tvmaze_show_lookup(id_imdb=str(META["id_imdb"]))
     assert result
     for expected_show_key in EXPECTED_SHOW_KEYS:
         assert expected_show_key in result
@@ -147,7 +147,7 @@ def test_tvmaze_show_lookup__idmb__no_hits():
 
 
 def test_tvmaze_show_lookup__tvdb__success():
-    result = tvmaze_show_lookup(id_tvdb=META["id_tvdb"])
+    result = tvmaze_show_lookup(id_tvdb=str(META["id_tvdb"]))
     assert result
     for expected_show_key in EXPECTED_SHOW_KEYS:
         assert expected_show_key in result
@@ -167,11 +167,11 @@ def test_tvmaze_show_lookup__missing_id():
 
 def test_tvmaze_show_lookup__both_ids():
     with pytest.raises(MnamerException):
-        tvmaze_show_lookup(id_imdb=META["id_imdb"], id_tvdb=META["id_tvdb"])
+        tvmaze_show_lookup(id_imdb=str(META["id_imdb"]), id_tvdb=str(META["id_tvdb"]))
 
 
 def test_tvmaze_show_episodes_list__success():
-    results = tvmaze_show_episodes_list(META["id_tvmaze"])
+    results = tvmaze_show_episodes_list(str(META["id_tvmaze"]))
     assert results
     result = results[0]
     for expected_episode_key in EXPECTED_EPISODE_KEYS:
@@ -197,11 +197,11 @@ def test_tvmaze_episodes_by_date__no_hits__bad_id():
 
 def test_tvmaze_episodes_by_date__no_hits__bad_date():
     with pytest.raises(MnamerNotFoundException):
-        tvmaze_episodes_by_date(META["id_tvmaze"], TEST_DATE)
+        tvmaze_episodes_by_date(str(META["id_tvmaze"]), TEST_DATE)
 
 
 def test_tvmaze_episode_by_number__success():
-    target_id = EPISODE_META["The Walking Dead"]["id_tvmaze"]
+    target_id = str(EPISODE_META["The Walking Dead"]["id_tvmaze"])
     result = tvmaze_episode_by_number(target_id, 3, 3)
     assert result
     assert result["id"] == 4116

@@ -579,7 +579,8 @@ def test_request_json__html_data(mock_request):
 @patch("mnamer.utils.requests_cache.CachedSession.request")
 def test_request_json__get_headers(mock_request):
     mock_request.side_effect = Session().request
-    request_json(url="http://google.com", headers={"apple": "pie", "orange": None})
+    headers: dict[str, object] = {"apple": "pie", "orange": None}
+    request_json(url="http://google.com", headers=headers)
     _, kwargs = mock_request.call_args
     assert kwargs["method"] == "GET"
     assert len(kwargs["headers"]) == 2
@@ -626,7 +627,7 @@ def test_request_json__post_parameters(mock_request):
 @patch("mnamer.utils.requests_cache.CachedSession.request")
 def test_request_json__post_headers(mock_request):
     mock_request.side_effect = Session().request
-    data = {"apple": "pie", "orange": None}
+    data: dict[str, object] = {"apple": "pie", "orange": None}
     request_json(url="http://google.com", body=data, headers=data)
     _, kwargs = mock_request.call_args
     assert kwargs["method"] == "POST"

@@ -3,7 +3,7 @@ import pytest
 from mnamer.exceptions import MnamerNotFoundException
 from mnamer.metadata import MetadataMovie
 from mnamer.providers import Omdb
-from tests import JUNK_TEXT, MOVIE_META
+from tests import JUNK_TEXT, MOVIE_META, MovieMeta
 
 pytestmark = [
     pytest.mark.network,
@@ -18,7 +18,7 @@ def provider():
 
 
 @pytest.mark.parametrize("meta", MOVIE_META.values(), ids=list(MOVIE_META))
-def test_search__id(meta: dict[str, str], provider: Omdb):
+def test_search__id(meta: MovieMeta, provider: Omdb):
     query = MetadataMovie(id_imdb=meta["id_imdb"])
     results = list(provider.search(query))
     assert len(results) == 1

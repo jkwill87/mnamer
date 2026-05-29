@@ -3,7 +3,7 @@
 import datetime as dt
 import json
 import re
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from contextlib import nullcontext
 from os import walk
 from os.path import exists, expanduser, expandvars, getsize, splitdrive, splitext
@@ -18,7 +18,7 @@ from mnamer.const import CACHE_PATH, CURRENT_YEAR, SUBTITLE_CONTAINERS
 
 
 def clean_dict(
-    target_dict: dict[str, Any], whitelist: Iterable[str] | None = None
+    target_dict: Mapping[Any, Any], whitelist: Iterable[Any] | None = None
 ) -> dict[str, str]:
     """Convenience function that removes a dicts keys that have falsy values."""
     return {
@@ -121,7 +121,7 @@ def fn_pipe[T](*fn_list: Callable[[T], T]) -> Callable[[T], T]:
     return resolver
 
 
-def format_dict(body: dict[str, Any]) -> str:
+def format_dict(body: Mapping[Any, Any]) -> str:
     """
     Formats a dictionary into a multi-line bulleted string of key-value pairs.
     """
@@ -248,7 +248,7 @@ def request_json(
     url: str,
     parameters: dict[str, Any] | list[tuple[str, Any]] | None = None,
     body: dict[str, Any] | None = None,
-    headers: dict[str, str] | None = None,
+    headers: dict[str, Any] | None = None,
     cache: bool = True,
 ) -> tuple[int, Any]:
     """

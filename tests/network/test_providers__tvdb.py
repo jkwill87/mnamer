@@ -5,7 +5,7 @@ import pytest
 from mnamer.exceptions import MnamerNotFoundException
 from mnamer.metadata import MetadataEpisode
 from mnamer.providers import Tvdb
-from tests import EPISODE_META, JUNK_TEXT
+from tests import EPISODE_META, JUNK_TEXT, EpisodeMeta
 
 pytestmark = [
     pytest.mark.network,
@@ -20,8 +20,8 @@ def provider():
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search_id(meta: dict, provider: Tvdb):
-    query = MetadataEpisode(id_tvdb=meta["id_tvdb"])
+def test_search_id(meta: EpisodeMeta, provider: Tvdb):
+    query = MetadataEpisode(id_tvdb=str(meta["id_tvdb"]))
     results = list(provider.search(query))
     assert results
     for result in results:
@@ -35,7 +35,7 @@ def test_search_id__no_hits(provider: Tvdb):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search__series(meta: dict, provider: Tvdb):
+def test_search__series(meta: EpisodeMeta, provider: Tvdb):
     query = MetadataEpisode(series=meta["series"])
     assert any(
         result.id_tvdb == str(meta["id_tvdb"]) for result in provider.search(query)
@@ -43,24 +43,26 @@ def test_search__series(meta: dict, provider: Tvdb):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search__id_tvdb_season(meta: dict, provider: Tvdb):
-    query = MetadataEpisode(season=1, id_tvdb=meta["id_tvdb"])
+def test_search__id_tvdb_season(meta: EpisodeMeta, provider: Tvdb):
+    query = MetadataEpisode(season=1, id_tvdb=str(meta["id_tvdb"]))
     results = provider.search(query)
     all_season_1 = all(entry.season == 1 for entry in results)
     assert all_season_1 is True
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search__id_tvdb_episode(meta: dict, provider: Tvdb):
-    query = MetadataEpisode(episode=2, id_tvdb=meta["id_tvdb"])
+def test_search__id_tvdb_episode(meta: EpisodeMeta, provider: Tvdb):
+    query = MetadataEpisode(episode=2, id_tvdb=str(meta["id_tvdb"]))
     results = provider.search(query)
     all_episode_2 = all(entry.episode == 2 for entry in results)
     assert all_episode_2 is True
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_tvdb_provider__search__id_tvdb_season_episode(meta: dict, provider: Tvdb):
-    query = MetadataEpisode(season=1, episode=3, id_tvdb=meta["id_tvdb"])
+def test_tvdb_provider__search__id_tvdb_season_episode(
+    meta: EpisodeMeta, provider: Tvdb
+):
+    query = MetadataEpisode(season=1, episode=3, id_tvdb=str(meta["id_tvdb"]))
     results = list(provider.search(query))
     assert len(results) == 1
     assert results[0].season == 1
@@ -68,7 +70,7 @@ def test_tvdb_provider__search__id_tvdb_season_episode(meta: dict, provider: Tvd
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_tvdb_provider__search__series(meta: dict, provider: Tvdb):
+def test_tvdb_provider__search__series(meta: EpisodeMeta, provider: Tvdb):
     query = MetadataEpisode(series=meta["series"])
     found = False
     results = provider.search(query)
@@ -86,7 +88,7 @@ def test_tvdb_provider__search__series_deep(provider: Tvdb):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_tvdb_provider__search__title_season(meta: dict, provider: Tvdb):
+def test_tvdb_provider__search__title_season(meta: EpisodeMeta, provider: Tvdb):
     query = MetadataEpisode(series=meta["series"], season=1)
     results = provider.search(query)
     all_season_1 = all(entry.season == 1 for entry in results)
@@ -94,7 +96,7 @@ def test_tvdb_provider__search__title_season(meta: dict, provider: Tvdb):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_tvdb_provider__search__title_season_episode(meta: dict, provider: Tvdb):
+def test_tvdb_provider__search__title_season_episode(meta: EpisodeMeta, provider: Tvdb):
     query = MetadataEpisode(series=meta["series"], season=1, episode=3)
     results = list(provider.search(query))
     assert results[0].season == 1

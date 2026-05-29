@@ -3,7 +3,7 @@ import pytest
 from mnamer.exceptions import MnamerNotFoundException
 from mnamer.metadata import MetadataEpisode
 from mnamer.providers import TvMaze
-from tests import EPISODE_META, JUNK_TEXT, TEST_DATE
+from tests import EPISODE_META, JUNK_TEXT, TEST_DATE, EpisodeMeta
 
 pytestmark = [
     pytest.mark.network,
@@ -18,9 +18,11 @@ def provider():
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search_id_tvmaze_and_season_and_episode(meta: dict, provider: TvMaze):
+def test_search_id_tvmaze_and_season_and_episode(meta: EpisodeMeta, provider: TvMaze):
     query = MetadataEpisode(
-        id_tvmaze=meta["id_tvmaze"], season=meta["season"], episode=meta["episode"]
+        id_tvmaze=str(meta["id_tvmaze"]),
+        season=meta["season"],
+        episode=meta["episode"],
     )
     results = list(provider.search(query))
     assert results
@@ -35,8 +37,8 @@ def test_search_id_tvmaze_and_season_and_episode__no_hits(provider: TvMaze):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search_id_tvmaze_and_date(meta: dict, provider: TvMaze):
-    query = MetadataEpisode(id_tvmaze=meta["id_tvmaze"], date=meta["date"])
+def test_search_id_tvmaze_and_date(meta: EpisodeMeta, provider: TvMaze):
+    query = MetadataEpisode(id_tvmaze=str(meta["id_tvmaze"]), date=meta["date"])
     results = list(provider.search(query))
     assert results
     for result in results:
@@ -65,8 +67,8 @@ def test_search_id_tvdb_and_date__no_hits(provider: TvMaze):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search_id_tvmaze_and_season(meta: dict, provider: TvMaze):
-    query = MetadataEpisode(id_tvmaze=meta["id_tvmaze"], season=meta["season"])
+def test_search_id_tvmaze_and_season(meta: EpisodeMeta, provider: TvMaze):
+    query = MetadataEpisode(id_tvmaze=str(meta["id_tvmaze"]), season=meta["season"])
     results = list(provider.search(query))
     assert results
     assert any(result.title == meta["title"] for result in results)
@@ -74,8 +76,8 @@ def test_search_id_tvmaze_and_season(meta: dict, provider: TvMaze):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search_id_tvmaze_and_episode(meta: dict, provider: TvMaze):
-    query = MetadataEpisode(id_tvmaze=meta["id_tvmaze"], episode=meta["episode"])
+def test_search_id_tvmaze_and_episode(meta: EpisodeMeta, provider: TvMaze):
+    query = MetadataEpisode(id_tvmaze=str(meta["id_tvmaze"]), episode=meta["episode"])
     results = list(provider.search(query))
     assert results
     assert any(result.title == meta["title"] for result in results)
@@ -83,8 +85,8 @@ def test_search_id_tvmaze_and_episode(meta: dict, provider: TvMaze):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search_id_tvmaze(meta: dict, provider: TvMaze):
-    query = MetadataEpisode(id_tvmaze=meta["id_tvmaze"])
+def test_search_id_tvmaze(meta: EpisodeMeta, provider: TvMaze):
+    query = MetadataEpisode(id_tvmaze=str(meta["id_tvmaze"]))
     results = list(provider.search(query))
     assert results
     assert any(result.title == meta["title"] for result in results)
@@ -97,8 +99,8 @@ def test_search_id_tvmaze__no_hits(provider: TvMaze):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search_id_tvdb(meta: dict, provider: TvMaze):
-    query = MetadataEpisode(id_tvdb=meta["id_tvdb"])
+def test_search_id_tvdb(meta: EpisodeMeta, provider: TvMaze):
+    query = MetadataEpisode(id_tvdb=str(meta["id_tvdb"]))
     results = list(provider.search(query))
     assert results
     assert any(result.title == meta["title"] for result in results)
@@ -111,7 +113,7 @@ def test_search_id_tvdb__no_hits(provider: TvMaze):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search_series_and_season_and_episode(meta: dict, provider: TvMaze):
+def test_search_series_and_season_and_episode(meta: EpisodeMeta, provider: TvMaze):
     query = MetadataEpisode(
         series=meta["series"], season=meta["season"], episode=meta["episode"]
     )
@@ -127,7 +129,7 @@ def test_search_series_and_season_and_episode__no_hits(provider: TvMaze):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search_series_and_season(meta: dict, provider: TvMaze):
+def test_search_series_and_season(meta: EpisodeMeta, provider: TvMaze):
     query = MetadataEpisode(series=meta["series"], season=meta["season"])
     results = list(provider.search(query))
     assert results
@@ -141,7 +143,7 @@ def test_search_series_and_season__no_hits(provider):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search_series_and_episode(meta: dict, provider: TvMaze):
+def test_search_series_and_episode(meta: EpisodeMeta, provider: TvMaze):
     query = MetadataEpisode(series=meta["series"], episode=meta["episode"])
     results = list(provider.search(query))
     assert results
@@ -155,7 +157,7 @@ def test_search_series_and_episode__no_hits(provider: TvMaze):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search_series(meta: dict, provider: TvMaze):
+def test_search_series(meta: EpisodeMeta, provider: TvMaze):
     query = MetadataEpisode(series=meta["series"])
     results = list(provider.search(query))
     assert results
