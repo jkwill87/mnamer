@@ -32,5 +32,5 @@ jobs:
         with:
           local: true
           network: false
-          e2e: false
+          e2e: true
           coverage: false

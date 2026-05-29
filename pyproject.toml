@@ -14,7 +14,7 @@ dependencies = [
     "babelfish~=0.6.1",
     "guessit~=3.8.0",
     "requests>=2.33.1,<2.35.0",
-    "requests-cache~=1.3.1",
+    "requests-cache~=1.3.2",
     "setuptools-scm>=10.0.0",
     "teletype~=1.3.4",
 ]
@@ -38,6 +38,7 @@ dev = [
     "mypy>=2.0",
     "pylint>=4.0",
     "pytest-cov>=7.0",
+    "pytest-mock>=3.15.1",
     "pytest-rerunfailures>=16.0",
     "pytest>=9.0",
     "ruff~=0.15.12",
@@ -75,13 +76,25 @@ line-ending = "auto"
 [tool.pyright]
 pythonVersion = "3.12"
 include = ["mnamer"]
-exclude = ["playground.py", ".venv", "venv", "build", "dist", "tests"]
-venv = "venv"
+exclude = ["playground.py", ".venv", "venv", "build", "dist"]
+venvPath = "."
+venv = ".venv"
 reportAny = false
 reportExplicitAny = false
 reportGeneralTypeIssues = "information"
 reportIgnoreCommentWithoutRule = false
+reportImplicitStringConcatenation = false
+reportMissingParameterType = false
 reportMissingTypeStubs = false
+reportPrivateLocalImportUsage = false
+reportPrivateUsage = false
+reportUnannotatedClassAttribute = false
+reportUnknownArgumentType = false
+reportUnknownMemberType = false
+reportUnknownParameterType = false
+reportUnknownVariableType = false
+reportUnusedCallResult = false
+reportUnusedParameter = false
 
 [tool.ruff.lint.isort]
 known-first-party = ["mnamer"]

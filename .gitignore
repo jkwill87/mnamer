@@ -14,6 +14,7 @@ __pycache__/
 *.log
 *.py[cod]
 *$py.class
+.venv/
 build
 coverage.xml
 demo/
@@ -22,4 +23,4 @@ MANIFEST
 mnamer/__version__.py
 playground.py
 testing/test_files_*
-venv*
+venv/

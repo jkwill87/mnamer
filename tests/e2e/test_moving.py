@@ -106,9 +106,6 @@ def test_mask(e2e_run, setup_test_files):
 
 
 @pytest.mark.usefixtures("setup_test_dir")
-@pytest.mark.skip(
-    reason="Multi-part integration broken with latest guessit 3.8, but needed for python 3.13 compatibility"
-)
 def test_multi_part_episode(e2e_run, setup_test_files):
     setup_test_files("lost s01e01-02.mp4")
     result = e2e_run("--batch", ".")
@@ -195,7 +192,6 @@ def test_format_id(e2e_run, setup_test_files):
 
 
 @pytest.mark.tvdb
-@pytest.mark.xfail(strict=False)
 @pytest.mark.usefixtures("setup_test_dir")
 def test_format_id__tvdb(e2e_run, setup_test_files):
     setup_test_files("archer.2009.s10e07.webrip.x264-lucidtv.mp4")
@@ -210,7 +206,6 @@ def test_format_id__tvdb(e2e_run, setup_test_files):
 
 
 @pytest.mark.tvmaze
-@pytest.mark.xfail(strict=False)
 @pytest.mark.usefixtures("setup_test_dir")
 def test_format_season0(e2e_run, setup_test_files):
     setup_test_files("south.park.s00e01.mp4")
