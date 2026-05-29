@@ -61,16 +61,16 @@ EXPECTED_TOP_LEVEL_SHOW_KEYS = {
 LOST_TVDB_ID_EPISODE = "127131"
 LOST_TVDB_ID_SERIES = "73739"
 THE_WITCHER_ID_SERIES = "362696"
+_tvdb_token: str | None = None
 
 
 @pytest.fixture(scope="session")
-def tvdb_token():
+def tvdb_token() -> str:
     """Calls mnamer.endpoints.tvdb_login then returns cached token."""
-    if not hasattr(tvdb_token, "token"):
-        from mnamer.endpoints import tvdb_login
-
-        tvdb_token.token = tvdb_login(Tvdb.api_key)
-    return tvdb_token.token
+    global _tvdb_token
+    if _tvdb_token is None:
+        _tvdb_token = tvdb_login(Tvdb.api_key)
+    return _tvdb_token
 
 
 def test_tvdb_login__login_success():
@@ -92,7 +92,6 @@ def test_tvdb_refresh_token__refresh_fail():
         tvdb_refresh_token(JUNK_TEXT)
 
 
-@pytest.mark.xfail(strict=False)
 def test_tvdb_episodes_id__invalid_token():
     with pytest.raises(MnamerException):
         tvdb_episodes_id(JUNK_TEXT, LOST_TVDB_ID_EPISODE, cache=False)
@@ -138,7 +137,6 @@ def test_tvdb_episodes_id__language__invalid(tvdb_token):
         tvdb_episodes_id(tvdb_token, LOST_TVDB_ID_EPISODE, invalid_language)
 
 
-@pytest.mark.xfail(strict=False)
 def test_tvdb_series_id__invalid_token():
     with pytest.raises(MnamerException):
         tvdb_series_id(JUNK_TEXT, LOST_TVDB_ID_SERIES, cache=False)
@@ -208,7 +206,6 @@ def test_tvdb_series_id__language(tvdb_token):
     assert result["data"]["series_name"] == "Ведьмак"
 
 
-@pytest.mark.xfail(strict=False)
 def test_tvdb_series_id_episodes__invalid_token():
     with pytest.raises(MnamerException):
         tvdb_series_id_episodes(JUNK_TEXT, LOST_TVDB_ID_SERIES, cache=False)
@@ -250,7 +247,6 @@ def test_tvdb_series_id_episodes__language(tvdb_token):
     assert result["data"][0]["episode_name"] == "Начало конца"
 
 
-@pytest.mark.xfail(strict=False)
 def test_tvdb_series_id_episodes_query__invalid_token():
     with pytest.raises(MnamerException):
         tvdb_series_id_episodes_query(JUNK_TEXT, LOST_TVDB_ID_SERIES, cache=False)

@@ -44,8 +44,7 @@ class Provider[M: Metadata](ABC):
         """Initializes the provider."""
         if api_key:
             self.api_key = api_key
-        if cache:
-            self.cache = cache
+        self.cache = cache
 
     @classmethod
     def from_settings(cls, settings: SettingStore) -> Self:
@@ -141,7 +140,7 @@ class Omdb(Provider[MetadataMovie]):
             synopsis=response.get("plot"),
             id_imdb=response["imdb_id"],
         )
-        if meta.synopsis == "N/A":
+        if meta.synopsis and meta.synopsis.upper() == "N/A":
             meta.synopsis = None
         yield meta
 

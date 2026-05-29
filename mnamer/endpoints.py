@@ -26,12 +26,15 @@ MAX_RETRIES = 5
 class OmdbSearchEntry(TypedDict):
     imdb_id: str
     year: str
+    type: str
     title: NotRequired[str]
 
 
 class OmdbTitleResponse(TypedDict):
     title: str
     year: str
+    response: str
+    type: str
     released: NotRequired[str]
     plot: NotRequired[str]
     imdb_id: str
@@ -47,6 +50,7 @@ class OmdbSearchResponse(TypedDict):
 class TmdbSearchEntry(TypedDict):
     id: int
     title: str
+    original_title: str
     release_date: NotRequired[str]
     overview: NotRequired[str]
 
@@ -67,6 +71,8 @@ class TmdbSearchResponse(TypedDict):
 
 class TvdbLinks(TypedDict):
     last: int
+    next: int | None
+    prev: int | None
 
 
 class TvdbSeriesData(TypedDict):
@@ -79,6 +85,7 @@ class TvdbSeriesResponse(TypedDict):
 
 
 class TvdbEpisodeEntry(TypedDict):
+    id: int
     first_aired: str
     aired_episode_number: int
     aired_season: int
@@ -93,6 +100,7 @@ class TvdbEpisodesResponse(TypedDict):
 
 class TvdbSearchEntry(TypedDict):
     id: int
+    series_name: str
 
 
 class TvdbSearchResponse(TypedDict):
@@ -115,6 +123,7 @@ class TvMazeSearchEntry(TypedDict):
 
 
 class TvMazeEpisode(TypedDict):
+    id: int
     airdate: str | None
     number: int | None
     season: int
@@ -330,13 +339,22 @@ def tvdb_refresh_token(token: str) -> str:
     Online docs: api.thetvdb.com/swagger#!/Authentication/get_refresh_token.
     """
     url = "https://api.thetvdb.com/refresh_token"
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = _tvdb_headers(token)
     status, content = request_json(url, headers=headers, cache=False)
     if status == 401:
         raise MnamerException("invalid token")
     elif status != 200 or not content.get("token"):  # pragma: no cover
         raise MnamerNetworkException("TVDb down or unavailable?")
     return content["token"]
+
+
+def _tvdb_headers(token: str, language: Language | None = None) -> dict[str, str]:
+    if token.count(".") != 2:
+        raise MnamerException("invalid token")
+    headers = {"Authorization": f"Bearer {token}"}
+    if language:
+        headers["Accept-Language"] = language.a2
+    return headers
 
 
 def tvdb_episodes_id(
@@ -352,9 +370,7 @@ def tvdb_episodes_id(
     """
     Language.ensure_valid_for_tvdb(language)
     url = f"https://api.thetvdb.com/episodes/{id_tvdb}"
-    headers = {"Authorization": f"Bearer {token}"}
-    if language:
-        headers["Accept-Language"] = language.a2
+    headers = _tvdb_headers(token, language)
     status, content = request_json(
         url, headers=headers, cache=cache is True and language is None
     )
@@ -384,9 +400,7 @@ def tvdb_series_id(
     """
     Language.ensure_valid_for_tvdb(language)
     url = f"https://api.thetvdb.com/series/{id_tvdb}"
-    headers = {"Authorization": f"Bearer {token}"}
-    if language:
-        headers["Accept-Language"] = language.a2
+    headers = _tvdb_headers(token, language)
     status, content = request_json(
         url, headers=headers, cache=cache is True and language is None
     )
@@ -417,9 +431,7 @@ def tvdb_series_id_episodes(
     """
     Language.ensure_valid_for_tvdb(language)
     url = f"https://api.thetvdb.com/series/{id_tvdb}/episodes"
-    headers = {"Authorization": f"Bearer {token}"}
-    if language:
-        headers["Accept-Language"] = language.a2
+    headers = _tvdb_headers(token, language)
     parameters: dict[str, Any] = {"page": page}
     status, content = request_json(
         url, parameters, headers=headers, cache=cache is True and language is None
@@ -452,9 +464,7 @@ def tvdb_series_id_episodes_query(
     """
     Language.ensure_valid_for_tvdb(language)
     url = f"https://api.thetvdb.com/series/{id_tvdb}/episodes/query"
-    headers = {"Authorization": f"Bearer {token}"}
-    if language:
-        headers["Accept-Language"] = language.a2
+    headers = _tvdb_headers(token, language)
     parameters: dict[str, Any] = {
         "airedSeason": season,
         "airedEpisode": episode,
@@ -497,9 +507,7 @@ def tvdb_search_series(
         "imdbId": id_imdb,
         "zap2itId": id_zap2it,
     }
-    headers = {"Authorization": f"Bearer {token}"}
-    if language:
-        headers["Accept-Language"] = language.a2
+    headers = _tvdb_headers(token, language)
     status, content = request_json(
         url, parameters, headers=headers, cache=cache is True and language is None
     )
