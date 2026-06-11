@@ -698,6 +698,21 @@ def test_str_title_case__lower__ends_with(s: str):
     assert actual == expected
 
 
+@pytest.mark.parametrize(
+    ("s", "expected"),
+    (
+        ("the cat in the hat", "The Cat in the Hat"),
+        ("THE CAT IN THE HAT", "The Cat in the Hat"),
+        ("a man and a plan", "A Man and a Plan"),
+    ),
+)
+def test_str_title_case__lower__repeated_after_start(s: str, expected: str):
+    # The leading exception word stays capitalized, but a later occurrence of
+    # the same word must still be lowercased.
+    actual = str_title_case(s)
+    assert actual == expected
+
+
 @pytest.mark.parametrize("s", ("at the theatre", "AT THE THEATRE"))
 def test_str_title_case__lower__only_whole_words(s: str):
     expected = "At the Theatre"  # theatre prefixed with 'the'
