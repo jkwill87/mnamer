@@ -78,6 +78,7 @@ class TvdbLinks(TypedDict):
 class TvdbSeriesData(TypedDict):
     id: int
     series_name: str
+    first_aired: NotRequired[str]
 
 
 class TvdbSeriesResponse(TypedDict):
@@ -116,6 +117,7 @@ class TvMazeShow(TypedDict):
     id: int
     name: str
     externals: TvMazeExternals
+    premiered: NotRequired[str | None]
 
 
 class TvMazeSearchEntry(TypedDict):

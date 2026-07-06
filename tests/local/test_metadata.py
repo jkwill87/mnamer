@@ -60,6 +60,12 @@ def test_metadata_episode__convert_episode():
     assert metadata.episode == 1
 
 
+@pytest.mark.parametrize("value", ["1987", "1987-10-01"])
+def test_metadata_episode__convert_series_year(value):
+    metadata = MetadataEpisode(series_year=value)
+    assert metadata.series_year == 1987
+
+
 def test_metadata_episode__format_default():
     metadata = MetadataEpisode(series="Spongebob Squarepants", season=4, episode=4)
     actual = format(metadata)

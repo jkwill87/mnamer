@@ -149,6 +149,7 @@ class MetadataEpisode(Metadata):
     """
 
     series: str | None = None
+    series_year: str | None = None
     season: int | None = None
     episode: int | None = None
     date: dt.date | None = None
@@ -179,6 +180,7 @@ class MetadataEpisode(Metadata):
             "episode": int,
             "season": int,
             "series": fn_pipe(str_replace_slashes, str_title_case),
+            "series_year": year_parse,
             "title": fn_pipe(str_replace_slashes, str_title_case),
         }
         converter: Callable[[Any], Any] | None = converter_map.get(key)

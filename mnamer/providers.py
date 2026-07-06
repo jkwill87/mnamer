@@ -316,6 +316,7 @@ class Tvdb(Provider[MetadataEpisode]):
                         id_tvdb=id_tvdb,
                         season=entry["aired_season"],
                         series=series_data["data"]["series_name"],
+                        series_year=series_data["data"].get("first_aired"),
                         language=language,
                         synopsis=(entry["overview"] or "")
                         .replace("\r\n", "")
@@ -532,4 +533,5 @@ class TvMaze(Provider[MetadataEpisode]):
             series=series_entry["name"],
             synopsis=episode_entry["summary"] or None,
             title=episode_entry["name"] or None,
+            series_year=series_entry.get("premiered"),
         )
