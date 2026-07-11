@@ -467,7 +467,7 @@ def str_title_case(s: str) -> str:
         for pos in findall(string_lower, exception):
             is_start = pos < 2
             if is_start:
-                break
+                continue
             prev_char = string_lower[pos - 1]
             is_left_partitioned = prev_char in padding_chars
             word_length = len(exception)
