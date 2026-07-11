@@ -92,7 +92,7 @@ jobs:
             echo "is_prerelease=$is_prerelease"
           } >> "$GITHUB_OUTPUT"
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           ref: ${{ steps.resolve.outputs.checkout_ref }}
           fetch-depth: 0
