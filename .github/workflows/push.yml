@@ -4,12 +4,16 @@ on:
   push:
     branches:
       - main
+      - v3
   schedule:
-    - cron: "0 8 * * 1" # mondays at 8am
-  release:
-    types:
-      - published
-      - prereleased
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+    inputs:
+      network:
+        description: Run live provider tests
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -25,82 +29,14 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    env:
+      API_KEY_OMDB: ${{ secrets.API_KEY_OMDB }}
+      API_KEY_TMDB: ${{ secrets.API_KEY_TMDB }}
+      API_KEY_TVDB: ${{ secrets.API_KEY_TVDB }}
 
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/init
-      - name: Testing
-        uses: ./.github/actions/test
-        env:
-          API_KEY_OMDB: ${{ secrets.API_KEY_OMDB }}
+      - uses: ./.github/actions/test
         with:
-          local: true
-          network: ${{ github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
-          e2e: true
-          coverage: true
-          codecov-token: ${{ secrets.CODECOV_TOKEN }}
-
-  publish-pypi:
-    if: >-
-      success()
-      && github.event_name == 'push'
-      && github.ref == 'refs/heads/main'
-
-    needs:
-      - lint
-      - test
-
-    secrets:
-      inherit
-
-    permissions:
-      contents: read
-
-    uses: ./.github/workflows/publish.yml
-
-  publish-docker-main:
-    if: >-
-      success()
-      && github.event_name == 'push'
-      && github.ref == 'refs/heads/main'
-
-    needs:
-      - lint
-      - test
-
-    secrets:
-      inherit
-
-    permissions:
-      contents: read
-      packages: write
-
-    uses: ./.github/workflows/publish-docker.yml
-    with:
-      target: latest-sha
-
-  publish-docker-release:
-    if: >-
-      success()
-      && github.event_name == 'release'
-      && (
-        github.event.action == 'published'
-        || github.event.action == 'prereleased'
-      )
-
-    needs:
-      - lint
-      - test
-
-    secrets:
-      inherit
-
-    permissions:
-      contents: read
-      packages: write
-
-    uses: ./.github/workflows/publish-docker.yml
-    with:
-      target: event-release
-      release_tag: ${{ github.event.release.tag_name }}
-      is_prerelease: ${{ github.event.release.prerelease }}
+          network: ${{ github.event_name == 'schedule' || inputs.network }}

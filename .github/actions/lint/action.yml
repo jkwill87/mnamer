@@ -1,31 +1,17 @@
 name: Lint
-description: Lints the codebase with ruff and mypy
-
-inputs:
-  ruff:
-    description: Whether to run ruff
-    required: false
-    default: "true"
-
-  mypy:
-    description: Whether to run mypy
-    required: false
-    default: "true"
+description: Checks Rust formatting, compilation warnings, and Clippy lints
 
 runs:
   using: composite
   steps:
-    - name: Linting with ruff
-      if: inputs.ruff == 'true'
-      run: uv run ruff check mnamer tests
+    - name: Checking Formatting
+      run: mise run rust:fmt
       shell: sh
 
-    - name: Formatting with ruff
-      if: inputs.ruff == 'true'
-      run: uv run ruff format --check mnamer tests
+    - name: Checking Rust Targets
+      run: mise run rust:check
       shell: sh
 
-    - name: Type checking with mypy
-      if: inputs.mypy == 'true'
-      run: uv run mypy mnamer tests
+    - name: Linting with Clippy
+      run: mise run rust:clippy
       shell: sh

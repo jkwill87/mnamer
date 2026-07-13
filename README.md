@@ -1,103 +1,127 @@
-[![PyPI](https://img.shields.io/pypi/v/mnamer.svg?style=for-the-badge)](https://pypi.python.org/pypi/mnamer)
-[![Tests](https://img.shields.io/github/actions/workflow/status/jkwill87/mnamer/.github/workflows/push.yml?branch=main&style=for-the-badge&label=Tests)](https://github.com/jkwill87/mnamer/actions/workflows/push.yml?query=branch:main)
-[![Coverage](https://img.shields.io/codecov/c/github/jkwill87/mnamer/main.svg?style=for-the-badge)](https://codecov.io/gh/jkwill87/mnamer)
-[![Licence](https://img.shields.io/github/license/jkwill87/mnamer.svg?style=for-the-badge)](https://en.wikipedia.org/wiki/MIT_License)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=for-the-badge)](https://github.com/astral-sh/ruff)
-
-<img src="https://github.com/jkwill87/mnamer/raw/main/assets/logo.png" width="450"/>
-
 # mnamer
 
-mnamer (**m**edia re**namer**) is an intelligent and highly configurable media organization utility. It parses media filenames for metadata, searches the web to fill in the blanks, and then renames and moves them.
+<img src="assets/logo.png" alt="mnamer" width="450">
 
-Currently it has integration support with [TVDb](https://thetvdb.com) and [TvMaze](https://www.tvmaze.com) for television episodes and [TMDb](https://www.themoviedb.org/) and [OMDb](https://www.omdbapi.com) for movies.
+`mnamer` (**m**edia re**namer**) is a configurable Rust media organization utility. It parses media
+filenames, looks up missing metadata, and moves, copies, or links files into consistent library
+layouts.
 
-<img src="https://github.com/jkwill87/mnamer/raw/main/assets/screenshot.png" width="750"/>
+Movie metadata comes from [TMDb](https://www.themoviedb.org/) or
+[OMDb](https://www.omdbapi.com/). Episode metadata comes from
+[TVmaze](https://www.tvmaze.com/) or [TVDb](https://thetvdb.com/).
 
 ## Documentation
 
-Check out the [wiki page](https://github.com/jkwill87/mnamer/wiki) for more details.
+💾 **Installation**
 
-💾 [**Installation**](https://github.com/jkwill87/mnamer/wiki/Installation)
+Install [mise](https://mise.jdx.dev/), then build the CLI with the pinned Rust toolchain:
 
-`$ uv tool install mnamer` or `$ pip3 install --user mnamer`
-
-🤖 [**Automation**](https://github.com/jkwill87/mnamer/wiki/Automation)
-
-`$ docker pull jkwill87/mnamer`
-
-✍️ [**Formatting**](https://github.com/jkwill87/mnamer/wiki/Formatting)
-
-Using the **episode-directory**, **episode-format**, **movie-directory**, or **movie-format** settings you customize how your files are renamed. Variables wrapped in braces `{}` get substituted with of parsed values of template field variables.
-
-🌐 [**Internationalization**](https://github.com/jkwill87/mnamer/wiki/Internationalization)
-
-Language is supported by the default TMDb and TVDb providers. You can use the `--language` setting to set the language used for templating.
-
-mnamer also supports subtitle files (.srt, .idx, .sub). It will use the format pattern used for movie or episode media files with its extension prefixed by its 2-letter language code.
-
-🧰 [**Settings**](https://github.com/jkwill87/mnamer/wiki/Settings)
-
-```
-USAGE: mnamer [preferences] [directives] target [targets ...]
-
-POSITIONAL:
-  [TARGET,...]: media file file path(s) to process
-
-PARAMETERS:
-  The following flags can be used to customize mnamer's behaviour. Their long
-  forms may also be set in a '.mnamer-v2.json' config file, in which case cli
-  arguments will take precedence.
-
-  -b, --batch: process automatically without interactive prompts
-  -l, --lower: rename files using lowercase characters
-  -r, --recurse: search for files within nested directories
-  -s, --scene: use dots in place of alphanumeric chars
-  -v, --verbose: increase output verbosity
-  --hits=<NUMBER>: limit the maximum number of hits for each query
-  --ignore=<PATTERN,...>: ignore files matching these regular expressions
-  --language=<LANG>: specify the search language
-  --mask=<EXTENSION,...>: only process given file types
-  --no-guess: disable best guess; e.g. when no matches or network down
-  --no-overwrite: prevent relocation if it would overwrite a file
-  --no-style: print to stdout without using colour or unicode chars
-  --movie-api={*tmdb,omdb}: set movie api provider
-  --movie-directory: set movie relocation directory
-  --movie-format: set movie renaming format specification
-  --episode-api={tvdb,*tvmaze}: set episode api provider
-  --episode-directory: set episode relocation directory
-  --episode-format: set episode renaming format specification
-
-DIRECTIVES:
-  Directives are one-off arguments that are used to perform secondary tasks
-  like overriding media detection. They can't be used in '.mnamer-v2.json'.
-
-  -V, --version: display the running mnamer version number
-  --clear-cache: clear request cache
-  --config-dump: prints current config JSON to stdout then exits
-  --config-ignore: skips loading config file for session
-  --config-path=<PATH>: specifies configuration path to load
-  --id-imdb=<ID>: specify an IMDb movie id override
-  --id-tmdb=<ID>: specify a TMDb movie id override
-  --id-tvdb=<ID>: specify a TVDb series id override
-  --id-tvmaze=<ID>: specify a TvMaze series id override
-  --no-cache: disable request cache
-  --media={movie,episode}: override media detection
-  --test: mocks the renaming and moving of files
+```bash
+git clone https://github.com/jkwill87/mnamer.git
+cd mnamer
+mise install
+mise x -- cargo install --locked --path .
 ```
 
-Parameters can either by entered as command line arguments or from a config file named `.mnamer-v2.json`.
+For development, run `mise x -- cargo run -- help`.
+
+🤖 **Automation**
+
+Use `--test` to resolve metadata and validate destinations without changing files. Use `--batch`
+to select the highest-ranked match without prompting; `--json` implies batch mode.
+
+```bash
+mnamer move Downloads/ --recursive --test
+mnamer copy Downloads/ --recursive --batch
+mnamer hardlink Downloads/ --recursive --batch
+mnamer symlink Downloads/ --recursive --batch
+```
+
+| Action     | Result                                                    |
+| ---------- | --------------------------------------------------------- |
+| `move`     | Moves each source; supports `--overwrite`                 |
+| `copy`     | Copies each source; supports `--overwrite`                |
+| `hardlink` | Creates a same-volume hard link and retains the source     |
+| `symlink`  | Creates a symbolic link and retains the source             |
+
+On Windows, `hardlink` and `symlink` are unavailable and omitted from CLI help; use `move` or
+`copy` instead.
+
+Every action checks all destinations before writing. Link actions never overwrite. Batch provider
+misses remain unmatched unless `--allow-guess` is set.
+
+Exit codes are `0` for success or no media, `1` for partial or failed processing, `2` for CLI or
+configuration errors, and `130` when interrupted.
+
+✍️ **Formatting**
+
+Set filename and directory templates in `mnamer.toml` or with `--movie-format`,
+`--episode-format`, `--movie-directory`, and `--episode-directory`.
+
+```toml
+[movie]
+format = "{{ name }} ({{ year }}).{{ extension }}"
+directory = "/media/movies/{{ name | first }}"
+
+[episode]
+format = "{{ series }} - S{{ season | pad: 2 }}E{{ episode | pad: 2 }} - {{ title }}.{{ extension }}"
+directory = "/media/tv/{{ series }}"
+```
+
+Templates use [Upon](https://docs.rs/upon). Common values include `name`, `series`, `title`,
+`year`, `season`, `episode`, `episodes`, `date`, `quality`, `language`, `extension`, and
+provider IDs. `pad` zero-pads numbers and `first` returns the first character.
+
+Use `--lowercase` for lowercase paths or `--scene` for scene-style names.
+
+🌐 **Internationalization**
+
+Use `--language <LANG>` or `matching.language` to select the provider and template language.
+Language names and ISO 639 codes are accepted. TMDb and TVDb support localized responses.
+
+Subtitle files in SRT, IDX/SUB, ASS, SSA, and VTT formats are grouped with their video. Language
+markers are normalized to two-letter codes, and numeric tracks plus `forced`, `sdh`, and
+`commentary` are retained, for example `.en.2.forced.srt`. Text subtitles without a language
+marker can be detected from their contents; unresolved subtitles are prompted for interactively
+or skipped in batch mode.
+
+🧰 **Settings**
+
+```text
+A media file renaming and organization utility.
+
+Usage: mnamer [OPTIONS] <COMMAND>
+
+Commands:
+  move      Rename media files, moving them to their target locations
+  copy      Rename media files, copying them to their target locations
+  hardlink  Create hard links at target locations, keeping source files in place
+  symlink   Create symbolic links at target locations, keeping source files in place
+  config    Inspect, validate, or initialize `mnamer.toml`
+  cache     Inspect or clear the provider-response cache
+  provider  List or verify metadata providers
+  help      Print this message or the help of the given subcommand(s)
+  version   Display the running mnamer version
+
+Options:
+      --config <PATH>  Use one explicit `mnamer.toml` file
+      --json           Emit one structured JSON document
+  -v, --verbose...     Increase diagnostic verbosity; may be repeated
+```
+
+Run `mnamer help <command>` for the complete options.
+
+Configuration is loaded from the first match: an explicit `--config` path, the nearest
+`mnamer.toml`, the OS-native configuration directory, or built-in defaults. Files are not
+layered, and unknown settings are errors.
+
+Use `mnamer config init` to create a documented starter file. `config show`, `config validate`,
+and `config path` inspect the active configuration. Provider keys can be set under `[api_keys]`
+or with `API_KEY_TMDB`, `API_KEY_OMDB`, and `API_KEY_TVDB`; TVmaze requires no key. Successful
+responses are cached for six days by default.
 
 ## Contributions
 
-Community contributions are a welcome addition to the project. In order to be merged upstream any additions will need to be formatted with [ruff](https://docs.astral.sh/ruff/) for consistency with the rest of the project and pass the continuous integration tests run against each PR. Before introducing any major features or changes to the configuration api please consider opening [an issue](https://github.com/jkwill87/mnamer/issues) to outline your proposal.
-
-Bug reports are also welcome on the [issue page](https://github.com/jkwill87/mnamer/issues). Please include any generated crash reports if applicable. Feature requests are welcome but consider checking out [if it is in the works](https://github.com/jkwill87/mnamer/issues?q=label%3Arequest) first to avoid duplication.
-
-## Star History
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=jkwill87/mnamer&type=date&theme=dark&legend=top-left" />
-  <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=jkwill87/mnamer&type=date&legend=top-left" />
-  <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=jkwill87/mnamer&type=date&legend=top-left" />
-</picture>
+Contributions and bug reports are welcome. Please
+[open an issue](https://github.com/jkwill87/mnamer/issues) before making major CLI or
+configuration changes.

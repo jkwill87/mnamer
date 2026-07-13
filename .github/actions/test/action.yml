@@ -1,79 +1,20 @@
 name: Test
-description: Tests the codebase with pytest
+description: Runs deterministic tests and optional live provider tests
 
 inputs:
-  local:
-    description: Whether to run local tests
-    required: false
-    default: "true"
-
   network:
-    description: Whether to run network tests
-    required: false
-    default: "true"
-
-  e2e:
-    description: Whether to run end to end tests
-    required: false
-    default: "true"
-
-  coverage:
-    description: Whether to report coverage statistics
+    description: Whether to run the live provider test target
     required: false
     default: "false"
-
-  codecov-token:
-    description: Token for uploading coverage to Codecov
-    required: false
-    default: ""
 
 runs:
   using: composite
   steps:
-    - name: Running Local Unit Tests
-      if: inputs.local == 'true'
-      run: >-
-        uv run pytest
-        -m "local"
-        --durations=10
-        --cov=./
-        --cov-append
-        --cov-report=term-missing
-        --cov-report=xml
+    - name: Running Deterministic Tests
+      run: mise test
       shell: sh
 
-    - name: Running Network Unit Tests
+    - name: Running Live Provider Tests
       if: inputs.network == 'true'
-      run: >-
-        uv run pytest
-        -m network
-        --reruns 3
-        --durations=10
-        --cov=./
-        --cov-append
-        --cov-report=term-missing
-        --cov-report=xml
+      run: mise run rust:test:net
       shell: sh
-
-    - name: Running End to End Tests
-      if: inputs.e2e == 'true'
-      run: >-
-        uv run pytest
-        -m e2e
-        --reruns 3
-        --durations=10
-        --cov=./
-        --cov-append
-        --cov-report=term-missing
-        --cov-report=xml
-      shell: sh
-
-    - name: Reporting Coverage Statistics
-      uses: codecov/codecov-action@v6.0.1
-      if: >-
-        success()
-        && inputs.coverage == 'true'
-        && github.event_name == 'push'
-        && github.ref == 'refs/heads/main'
-      with:
-        token: ${{ inputs.codecov-token }}

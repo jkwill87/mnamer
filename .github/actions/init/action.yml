@@ -1,28 +1,27 @@
 name: Init
-description: Sets up the environment for build, lint, and test jobs
+description: Sets up the pinned mise toolchain and Rust build cache
 
 inputs:
   save-cache:
-    description: Whether to save the uv cache after the job
+    description: Whether to save tool and Rust build caches after the job
     required: false
     default: "true"
 
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v6.2.0
+    - name: Installing Toolchain
+      uses: jdx/mise-action@v4
       with:
-        python-version: "3.12"
+        install_args: rust
+        cache: true
+        cache_save: ${{ inputs.save-cache }}
 
-    - name: Install uv
-      uses: astral-sh/setup-uv@v8.1.0
-      with:
-        enable-cache: true
-        save-cache: ${{ inputs.save-cache }}
-        cache-dependency-glob: |
-          **/pyproject.toml
-          **/uv.lock
-
-    - name: Install dependencies
+    - name: Installing Rust Components
+      run: rustup component add clippy rustfmt
       shell: sh
-      run: uv sync --python 3.12 --locked --dev
+
+    - name: Restoring Rust Build Cache
+      uses: Swatinem/rust-cache@v2
+      with:
+        save-if: ${{ inputs.save-cache }}

@@ -1,0 +1,65 @@
+[package]
+name = "mnamer"
+version = "3.0.0"
+description = "Rename and organize media files with provider-enriched metadata"
+license = "MIT"
+edition = "2024"
+rust-version = "1.97"
+repository = "https://github.com/jkwill87/mnamer"
+readme = "README.md"
+
+[features]
+net = []
+
+[dependencies.mediakit]
+version = "0.1.0"
+features = ["with_serde", "with_whatlang"]
+
+[dependencies]
+async-trait = "0.1"
+cacache = { version = "13", default-features = false, features = ["tokio-runtime"] }
+clap = { version = "4.6", features = ["derive"] }
+cliclack = "0.5.5"
+console = "0.16"
+directories = "6"
+futures-util = "0.3"
+globset = "0.4"
+http = "1"
+httpdate = "1"
+reqwest = { version = "0.13", default-features = false, features = ["http2", "json", "rustls"] }
+reqwest-middleware = { version = "0.5", features = ["json", "query"] }
+reqwest-retry = "0.9"
+same-file = "1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tempfile = "3"
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal", "sync", "time"] }
+toml = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+unicode-normalization = "0.1"
+upon = "0.10"
+walkdir = "2"
+
+[dev-dependencies]
+wiremock = "0.6"
+
+[[test]]
+name = "network"
+path = "tests/network.rs"
+required-features = ["net"]
+
+[lints.rust]
+unsafe_code = "forbid"
+unused = { level = "warn", priority = -1 }
+
+[lints.clippy]
+nursery = { level = "warn", priority = -1 }
+allow_attributes = "warn"
+allow_attributes_without_reason = "warn"
+
+[profile.release]
+opt-level = "z"
+lto = true
+panic = "abort"
