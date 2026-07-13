@@ -1,0 +1,40 @@
+# mnamer configuration
+
+[discovery]
+recursive = false
+extensions = ["avi", "m4v", "mp4", "mkv", "ts", "wmv", "ass", "idx", "srt", "ssa", "sub", "vtt"]
+ignore = ["**/*sample*"]
+
+[inspection]
+file_content = true
+
+[matching]
+language = "en"
+max_results = 5
+allow_guess = false
+
+[execution]
+jobs = 4
+
+[formatting]
+lowercase = false
+scene = false
+
+[movie]
+provider = "tmdb"
+format = "{{ name }} ({{ year }}).{{ extension }}"
+# directory = "/media/movies/{{ name | first }}"
+
+[episode]
+provider = "tvmaze"
+format = "{{ series }} - S{{ season | pad: 2 }}E{{ episode | pad: 2 }} - {{ title }}.{{ extension }}"
+# directory = "/media/tv/{{ series }}"
+
+[cache]
+enabled = true
+ttl_days = 6
+
+[api_keys]
+# tmdb = "..."
+# omdb = "..."
+# tvdb = "..."

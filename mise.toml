@@ -1,0 +1,28 @@
+[tools]
+rust = "1.97.0"
+
+[tasks."rust:fmt"]
+run = "cargo fmt --all -- --check"
+description = "Check Rust formatting"
+
+[tasks."rust:check"]
+run = "CARGO_BUILD_WARNINGS=deny cargo check --all-targets --all-features --keep-going"
+description = "Check every mnamer target and feature with warnings denied"
+
+[tasks."rust:clippy"]
+run = "cargo clippy --all-targets --all-features -- -Wclippy::nursery"
+
+[tasks."rust:test"]
+run = "cargo test"
+description = "Run deterministic mnamer tests"
+
+[tasks."rust:test:net"]
+run = "cargo test --features net --test network"
+description = "Run live provider integration tests"
+
+[tasks.lint]
+depends = ["rust:fmt", "rust:check", "rust:clippy"]
+
+[tasks.test]
+run = "cargo test"
+description = "Run deterministic tests; pass --all-features to include live provider tests"

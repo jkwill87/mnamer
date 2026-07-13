@@ -14,31 +14,14 @@ jobs:
       - uses: ./.github/actions/init
         with:
           save-cache: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
-
-      - name: Linting
-        uses: ./.github/actions/lint
-        with:
-          ruff: true
-          mypy: true
+      - uses: ./.github/actions/lint
 
   test:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.13", "3.14", "3.15"]
 
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/init
         with:
-          python-version: ${{ matrix.python-version }}
           save-cache: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
-
-      - name: Testing (PR)
-        uses: ./.github/actions/test
-        with:
-          local: true
-          network: false
-          e2e: true
-          coverage: false
+      - uses: ./.github/actions/test
