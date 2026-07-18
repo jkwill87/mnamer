@@ -38,13 +38,11 @@ impl SubtitleFilename {
 
     /// Builds subtitle filename metadata from a completed inspection.
     pub(crate) fn from_inspector(inspector: &FilenameInspector) -> Option<Self> {
-        let format = inspector
-            .metadata
-            .format
-            .filter(|format| format.is_subtitle())?;
-        let track = inspector.metadata.track.clone()?;
-        let identity_stem = inspector.metadata.identity_stem().map(str::to_owned);
-        let generic = inspector.metadata.has_generic_identity();
+        let metadata = inspector.metadata();
+        let format = metadata.format.filter(|format| format.is_subtitle())?;
+        let track = metadata.track.clone()?;
+        let identity_stem = metadata.identity_stem().map(str::to_owned);
+        let generic = metadata.has_generic_identity();
         let association_key = (!generic)
             .then(|| identity_stem.as_deref().map(normalize_association_text))
             .flatten()

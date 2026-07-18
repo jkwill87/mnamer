@@ -31,7 +31,7 @@ impl Metadata {
             .analyze();
         for tag in file_inspector.tags() {
             match tag {
-                Tag::Container(value) => metadata.container = Some(value.to_ascii_lowercase()),
+                Tag::Container(value) => metadata.container = Some(value.extension().to_owned()),
                 Tag::MimeType(value) => metadata.mime_type = Some(value.clone()),
                 Tag::FileSize(value) => metadata.file_size = Some(*value),
                 _ => merge_file_quality(&mut quality, tag),
@@ -133,14 +133,14 @@ fn metadata_from_filename_inspector(
     media_override: Option<MediaKind>,
 ) -> (Metadata, Vec<QualityPart>) {
     let mut metadata = Metadata {
-        media_type: media_override.unwrap_or(match inspector.media_type {
+        media_type: media_override.unwrap_or_else(|| match inspector.media_type() {
             MediaType::Movie => MediaKind::Movie,
             MediaType::Television => MediaKind::Episode,
             MediaType::Unknown => MediaKind::Unknown,
             _ => MediaKind::Unknown,
         }),
         extension: inspector
-            .metadata
+            .metadata()
             .format
             .map(|format| format.extension().to_owned()),
         ..Metadata::default()
@@ -149,7 +149,7 @@ fn metadata_from_filename_inspector(
     let mut alternative_titles = Vec::new();
     for tag in inspector.tags() {
         match tag {
-            Tag::Container(value) => metadata.container = Some(value.to_ascii_lowercase()),
+            Tag::Container(value) => metadata.container = Some(value.extension().to_owned()),
             Tag::Title(value) => match metadata.media_type {
                 MediaKind::Episode => metadata.series = Some(value.clone()),
                 MediaKind::Movie | MediaKind::Unknown => metadata.name = Some(value.clone()),
