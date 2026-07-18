@@ -1113,7 +1113,7 @@ dependencies = [
 [[package]]
 name = "mediakit"
 version = "0.1.0"
-source = "git+https://github.com/jkwill87/mediakit#a23837833a8b2b63903409404ae12f0154abdd7a"
+source = "git+https://github.com/jkwill87/mediakit?rev=e75c97f79e4250ec0794d189a5602796aef2d7c7#e75c97f79e4250ec0794d189a5602796aef2d7c7"
 dependencies = [
  "const_format",
  "regex-automata",
