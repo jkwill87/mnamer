@@ -3,6 +3,18 @@
 use super::*;
 
 #[test]
+fn parses_flat_language_disposition_and_numeric_track_metadata() {
+    let subtitle = SubtitleFilename::parse(Path::new("Rango.2011.multi.2.forced.srt")).unwrap();
+
+    assert_eq!(subtitle.format, MediaFormat::Srt);
+    assert_eq!(subtitle.language, Some(LanguageTag::Multi));
+    assert_eq!(subtitle.track, Some(2));
+    assert_eq!(subtitle.dispositions, [SubtitleDisposition::Forced]);
+    assert_eq!(subtitle.association_key(), Some("rango2011"));
+    assert!(!subtitle.is_generic());
+}
+
+#[test]
 fn resolves_only_qualified_subtitle_directory_chains() {
     let nested = subtitle_directory_context(Path::new(
         "The Woman King (2022)/Subs/English/Forced/track.srt",

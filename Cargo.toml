@@ -12,8 +12,7 @@ readme = "README.md"
 net = []
 
 [dependencies.mediakit]
-git = "https://github.com/jkwill87/mediakit"
-rev = "e75c97f79e4250ec0794d189a5602796aef2d7c7"
+version = "0.1.1-dev16"
 features = ["with_serde", "with_whatlang"]
 
 [dependencies]

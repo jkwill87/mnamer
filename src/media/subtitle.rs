@@ -1,8 +1,9 @@
 //! Parses subtitle filenames and directory naming conventions.
 
 use mediakit::inspect::{FilenameInspector, Inspector};
-pub use mediakit::meta::fields::TrackDisposition as SubtitleDisposition;
-use mediakit::meta::fields::{Language, MediaFormat};
+use mediakit::meta::Tag;
+pub use mediakit::meta::fields::SubtitleDisposition;
+use mediakit::meta::fields::{Language, LanguageTag, MediaFormat};
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
@@ -15,8 +16,8 @@ const LANGUAGE_SAMPLE_LIMIT: usize = 64 * 1024;
 pub struct SubtitleFilename {
     /// Subtitle file format.
     pub format: MediaFormat,
-    /// Typed subtitle language; output uses its canonical two-letter code.
-    pub language: Option<Language>,
+    /// Subtitle language summary; output uses a canonical two-letter code or `multi`.
+    pub language: Option<LanguageTag>,
     /// Numeric track discriminator retained from the source name.
     pub track: Option<u16>,
     /// Retained subtitle dispositions in source order.
@@ -38,20 +39,28 @@ impl SubtitleFilename {
 
     /// Builds subtitle filename metadata from a completed inspection.
     pub(crate) fn from_inspector(inspector: &FilenameInspector) -> Option<Self> {
-        let metadata = inspector.metadata();
-        let format = metadata.format.filter(|format| format.is_subtitle())?;
-        let track = metadata.track.clone()?;
-        let identity_stem = metadata.identity_stem().map(str::to_owned);
-        let generic = metadata.has_generic_identity();
+        let mut format = None;
+        let mut language = None;
+        for tag in inspector.tags() {
+            match tag {
+                Tag::FileFormat(value) if value.is_subtitle() => format = Some(*value),
+                Tag::SubtitleLanguage(value) => language = Some(*value),
+                _ => {}
+            }
+        }
+        let format = format?;
+        let identity_stem = inspector.identity_stem().map(str::to_owned);
+        let (track, dispositions) = filename_suffix_metadata(inspector, identity_stem.as_deref());
+        let generic = identity_stem.is_none();
         let association_key = (!generic)
             .then(|| identity_stem.as_deref().map(normalize_association_text))
             .flatten()
             .filter(|key| !key.is_empty());
         Some(Self {
             format,
-            language: track.language,
-            track: track.number,
-            dispositions: track.dispositions,
+            language,
+            track,
+            dispositions,
             identity_stem,
             association_key,
             generic,
@@ -66,6 +75,53 @@ impl SubtitleFilename {
     /// Returns whether the filename carries no useful media identity.
     pub const fn is_generic(&self) -> bool {
         self.generic
+    }
+}
+
+/// Recovers Mnamer's retained metadata from the subtitle suffix Mediakit identified.
+fn filename_suffix_metadata(
+    inspector: &FilenameInspector,
+    identity_stem: Option<&str>,
+) -> (Option<u16>, Vec<SubtitleDisposition>) {
+    let Some(stem) = Path::new(inspector.filename())
+        .file_stem()
+        .and_then(|stem| stem.to_str())
+    else {
+        return (None, Vec::new());
+    };
+    let suffix_start = identity_stem
+        .and_then(|identity| stem.find(identity).map(|start| start + identity.len()))
+        .unwrap_or_default();
+    let mut track = None;
+    let mut dispositions = Vec::new();
+    for token in inspector
+        .tokens()
+        .iter()
+        .filter(|token| token.start >= suffix_start && token.end <= stem.len())
+    {
+        if let Some(Tag::SubtitleDisposition(disposition)) = token.tag.as_ref() {
+            push_unique(&mut dispositions, *disposition);
+            continue;
+        }
+        let Some(value) = inspector.filename().get(token.start..token.end) else {
+            continue;
+        };
+        if is_track_index(value) {
+            track = value.parse().ok();
+        } else if let Some((marker, number)) = numbered_qualifier(value) {
+            track = Some(number);
+            if let Marker::Disposition(disposition) = marker {
+                push_unique(&mut dispositions, disposition);
+            }
+        }
+    }
+    (track, dispositions)
+}
+
+/// Appends a disposition once while retaining source order.
+fn push_unique(dispositions: &mut Vec<SubtitleDisposition>, disposition: SubtitleDisposition) {
+    if !dispositions.contains(&disposition) {
+        dispositions.push(disposition);
     }
 }
 

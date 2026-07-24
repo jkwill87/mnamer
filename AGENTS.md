@@ -50,4 +50,8 @@ Run commands through mise so the pinned Rust 1.97.0 toolchain is used:
   then embedded application fallbacks. TVmaze requires no key.
 - Personal local keys belong in gitignored `mise.local.toml`; never print or commit them.
 - GitHub Actions injects live-test credentials from repository secrets.
+- Successful `v3` pushes publish a next-patch `-dev<RUN_NUMBER>` prerelease to crates.io; reruns
+  reuse that version, and `vMAJOR.MINOR.PATCH` tags publish the corresponding stable release.
+- The crates.io credential belongs only in the `CARGO_REGISTRY_TOKEN` GitHub Actions secret or a
+  gitignored local mise override.
 - Generated build output under `target/` is ignored.

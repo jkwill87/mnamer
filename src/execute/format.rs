@@ -118,8 +118,8 @@ impl DestinationFormatter {
             let mut suffix = metadata
                 .language_sub
                 .as_deref()
-                .and_then(Language::from_identifier)
-                .map(|language| vec![language.iso_639_1.to_owned()])
+                .and_then(canonical_subtitle_language)
+                .map(|language| vec![language])
                 .unwrap_or_default();
             if let Some(track) = metadata.subtitle_track {
                 suffix.push(track.to_string());
@@ -305,6 +305,15 @@ impl DestinationFormatter {
             }
         }
         Ok(())
+    }
+}
+
+/// Normalizes a subtitle language or preserves Mediakit's aggregate `multi` marker.
+fn canonical_subtitle_language(value: &str) -> Option<String> {
+    if value.eq_ignore_ascii_case("multi") {
+        Some("multi".to_owned())
+    } else {
+        Language::from_identifier(value).map(|language| language.iso_639_1.to_owned())
     }
 }
 

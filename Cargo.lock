@@ -1112,8 +1112,9 @@ dependencies = [
 
 [[package]]
 name = "mediakit"
-version = "0.1.0"
-source = "git+https://github.com/jkwill87/mediakit?rev=e75c97f79e4250ec0794d189a5602796aef2d7c7#e75c97f79e4250ec0794d189a5602796aef2d7c7"
+version = "0.1.1-dev16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e4b1c0fb8889e830d8865f97577bcb79fcf45175b4904302fe32f623ccadea81"
 dependencies = [
  "const_format",
  "regex-automata",
