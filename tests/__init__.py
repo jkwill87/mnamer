@@ -15,6 +15,7 @@ DEFAULT_SETTINGS = {
     "episode_directory": None,
     "episode_format": "{series} - S{season:02}E{episode:02} - {title}.{extension}",
     "hits": 5,
+    "id_from_path": False,
     "id_imdb": None,
     "id_tmdb": None,
     "id_tvdb": None,

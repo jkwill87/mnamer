@@ -3,6 +3,7 @@
 import datetime as dt
 import json
 import re
+import re as _re
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from contextlib import nullcontext
 from os import walk
@@ -15,6 +16,13 @@ import requests_cache
 from requests.adapters import HTTPAdapter
 
 from mnamer.const import CACHE_PATH, CURRENT_YEAR, SUBTITLE_CONTAINERS
+
+_PATH_ID_PATTERNS: list[tuple[str, _re.Pattern[str]]] = [
+    ("id_tmdb", _re.compile(r"(?i)tmdb-(\d+)")),
+    ("id_tvdb", _re.compile(r"(?i)tvdb-(\d+)")),
+    ("id_imdb", _re.compile(r"(?i)imdb-(tt\d+|\d+)")),
+    ("id_tvmaze", _re.compile(r"(?i)tvmaze-(\d+)")),
+]
 
 
 def clean_dict(
@@ -63,6 +71,23 @@ def crawl_out(filename: str | Path | PurePath) -> Path | None:
         working_dir = parent_dir
     target = Path.home() / filename
     return target if target.exists() else None
+
+
+def extract_ids_from_path(file_path: Path) -> dict[str, str]:
+    """
+    Scans all parts of a file path for embedded provider IDs.
+    Returns a dict of only the fields that matched, e.g. {"id_tmdb": "122781"}.
+    """
+    corpus = " ".join(file_path.parts)
+    result: dict[str, str] = {}
+    for field, pattern in _PATH_ID_PATTERNS:
+        m = pattern.search(corpus)
+        if m:
+            value = m.group(1)
+            if field == "id_imdb" and not value.startswith("tt"):
+                value = f"tt{value}"
+            result[field] = value
+    return result
 
 
 def filename_replace(filename: str, replacements: dict[str, str]) -> str:
@@ -491,6 +516,24 @@ def str_title_case(s: str) -> str:
                 s = s[:pos] + exception.upper() + s[pos + word_length :]
 
     return s
+
+
+def tmdb_to_external_ids(tmdb_id: str, api_key: str) -> dict[str, str]:
+    """Fetch external IDs for a TMDb TV series ID."""
+    import json
+    import urllib.request
+
+    url = f"https://api.themoviedb.org/3/tv/{tmdb_id}/external_ids?api_key={api_key}"
+    with urllib.request.urlopen(url) as r:
+        data = json.loads(r.read())
+    result = {}
+    if data.get("tvdb_id"):
+        result["id_tvdb"] = str(data["tvdb_id"])
+    if data.get("imdb_id"):
+        result["id_imdb"] = data["imdb_id"]
+    if data.get("tvrage_id"):
+        result["id_tvmaze"] = str(data["tvrage_id"])
+    return result
 
 
 def year_parse(s: str) -> int | None:

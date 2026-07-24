@@ -11,7 +11,12 @@ from mnamer.language import Language
 from mnamer.metadata import Metadata
 from mnamer.setting_spec import SettingSpec
 from mnamer.types import MediaType, ProviderType, SettingType
-from mnamer.utils import crawl_out, json_loads, normalize_containers
+from mnamer.utils import (
+    crawl_out,
+    json_loads,
+    normalize_containers,
+    tmdb_to_external_ids,
+)
 
 
 @dataclasses.dataclass
@@ -330,6 +335,16 @@ class SettingStore:
             help="--test: mocks the renaming and moving of files",
         ).as_dict(),
     )
+    id_from_path: bool = dataclasses.field(
+        default=False,
+        metadata=SettingSpec(
+            action="store_true",
+            dest="id_from_path",
+            flags=["--id_from_path", "--id-from-path", "--idfrompath"],
+            group=SettingType.PARAMETER,
+            help="--id-from-path: parse provider IDs (tmdb/tvdb/imdb/tvmaze) from target path",
+        ).as_dict(),
+    )
 
     # config-only attributes ---------------------------------------------------
 
@@ -431,6 +446,21 @@ class SettingStore:
             self.bulk_apply(config)
         if arguments:
             self.bulk_apply(arguments)
+        # Cross-reference tmdb -> tvdb/tvmaze if only tmdb set and api key available
+        # Handles both --id-tmdb and --id-from-path cases for episode providers
+        if (
+            self.id_tmdb
+            and not self.id_tvdb
+            and not self.id_tvmaze
+            and self.api_key_tmdb
+        ):
+            try:
+                external = tmdb_to_external_ids(self.id_tmdb, self.api_key_tmdb)
+                for field, value in external.items():
+                    if not getattr(self, field, None):
+                        setattr(self, field, value)
+            except Exception:
+                pass  # non-fatal
         return None
 
     def api_for(self, media_type: MediaType | None) -> ProviderType | None:
