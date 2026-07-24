@@ -45,13 +45,18 @@ impl Metadata {
             let directory = subtitle_directory_context(path);
             metadata.language_sub = subtitle
                 .language
-                .or(directory.language)
+                .map(|language| language.to_string())
+                .or_else(|| {
+                    directory
+                        .language
+                        .map(|language| language.iso_639_1.to_owned())
+                })
                 .or_else(|| {
                     inspect_file_content
                         .then(|| detect_language_from_content(path, subtitle.format))
                         .flatten()
-                })
-                .map(|language| language.iso_639_1.to_owned());
+                        .map(|language| language.iso_639_1.to_owned())
+                });
             metadata.subtitle_track = subtitle.track.or(directory.track);
             metadata.subtitle_dispositions = directory.dispositions;
             for disposition in &subtitle.dispositions {
@@ -139,16 +144,13 @@ fn metadata_from_filename_inspector(
             MediaType::Unknown => MediaKind::Unknown,
             _ => MediaKind::Unknown,
         }),
-        extension: inspector
-            .metadata()
-            .format
-            .map(|format| format.extension().to_owned()),
         ..Metadata::default()
     };
     let mut quality = Vec::new();
     let mut alternative_titles = Vec::new();
     for tag in inspector.tags() {
         match tag {
+            Tag::FileFormat(value) => metadata.extension = Some(value.extension().to_owned()),
             Tag::Container(value) => metadata.container = Some(value.extension().to_owned()),
             Tag::Title(value) => match metadata.media_type {
                 MediaKind::Episode => metadata.series = Some(value.clone()),
@@ -166,9 +168,9 @@ fn metadata_from_filename_inspector(
             }
             Tag::AirDate(value) => metadata.date = Some(value.to_string()),
             Tag::ReleaseGroup(value) => metadata.group = Some(value.to_ascii_uppercase()),
-            Tag::AudioLanguage(value) => metadata.language = Some(value.iso_639_1.to_owned()),
+            Tag::AudioLanguage(value) => metadata.language = Some(value.to_string()),
             Tag::SubtitleLanguage(value) => {
-                metadata.language_sub = Some(value.iso_639_1.to_owned());
+                metadata.language_sub = Some(value.to_string());
             }
             Tag::AudioCodec(_) => quality.push(quality_part(QualityKind::AudioCodec, tag)),
             Tag::AudioLayout(_) => quality.push(quality_part(QualityKind::AudioLayout, tag)),

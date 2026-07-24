@@ -117,6 +117,21 @@ fn maps_three_letter_subtitle_language_to_two_letters() {
 }
 
 #[test]
+fn preserves_multi_subtitle_language_marker() {
+    let formatter = DestinationFormatter::new(FormatOptions::default()).unwrap();
+    let metadata = Metadata::inspect(
+        Path::new("Kneecap.2024.multi.srt"),
+        Some(MediaKind::Movie),
+    );
+
+    let actual = formatter
+        .destination(Path::new("/tmp/Kneecap.2024.multi.srt"), &metadata)
+        .unwrap();
+
+    assert_eq!(actual, PathBuf::from("/tmp/Kneecap (2024).multi.srt"));
+}
+
+#[test]
 fn regional_subtitle_tags_collapse_to_two_letter_destinations() {
     let formatter = DestinationFormatter::new(FormatOptions::default()).unwrap();
     let metadata = Metadata::inspect(

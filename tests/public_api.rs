@@ -1,11 +1,11 @@
 //! Verifies the intentional pre-1.0 public module layout.
 
-use mediakit::meta::fields::Language;
+use mediakit::meta::fields::LanguageTag;
 use mnamer::cli::output::{CommandResult, CommandStatus};
 use mnamer::config::ApiKeys;
 use mnamer::execute::output::{ExecutionData, ExecutionSummary};
 use mnamer::execute::{Action, MatchOrigin, Operation, OperationOutcome};
-use mnamer::media::{Metadata, SubtitleFilename};
+use mnamer::media::{Metadata, SubtitleDisposition, SubtitleFilename};
 use mnamer::net::endpoint::ApiClient;
 use mnamer::net::provider::{CandidateSource, ProviderKind, ProviderRegistry};
 use std::path::Path;
@@ -47,7 +47,11 @@ fn cohesive_public_paths_are_reachable() {
     assert_eq!(json["data"]["action"], "copy");
     assert_eq!(json["data"]["test"], true);
 
-    let subtitle = SubtitleFilename::parse(Path::new("Rango.pt-BR.srt")).unwrap();
-    let language: Option<Language> = subtitle.language;
-    assert_eq!(language.unwrap().iso_639_1, "pt");
+    let subtitle = SubtitleFilename::parse(Path::new("Rango.pt-BR.forced.srt")).unwrap();
+    assert!(matches!(
+        subtitle.language,
+        Some(LanguageTag::Language(language)) if language.iso_639_1 == "pt"
+    ));
+    let disposition: Option<SubtitleDisposition> = subtitle.dispositions.first().copied();
+    assert_eq!(disposition, Some(SubtitleDisposition::Forced));
 }

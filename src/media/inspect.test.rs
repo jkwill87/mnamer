@@ -65,7 +65,7 @@ fn file_content_replaces_conflicting_filename_quality_by_category() {
     assert_eq!(inspected.container.as_deref(), Some("avi"));
     assert!(quality.contains("1080p"), "{quality}");
     assert!(quality.contains("h265"), "{quality}");
-    assert!(quality.contains("dolby_digital_plus"), "{quality}");
+    assert!(quality.contains("wma"), "{quality}");
     assert!(quality.contains("5.1"), "{quality}");
     assert!(!quality.contains("720p"), "{quality}");
     assert!(!quality.contains("h264"), "{quality}");
@@ -73,6 +73,7 @@ fn file_content_replaces_conflicting_filename_quality_by_category() {
         !quality.split_whitespace().any(|value| value == "aac"),
         "{quality}"
     );
+    assert!(!quality.contains("dolby_digital_plus"), "{quality}");
 
     let filename_only = Metadata::inspect_with_file_content(&path, Some(MediaKind::Movie), false);
     let quality = filename_only.quality.as_deref().unwrap();
@@ -226,6 +227,21 @@ fn detects_language_and_retains_dispositions_without_polluting_title() {
         serde_json::to_value(&metadata).unwrap()["subtitle_dispositions"],
         serde_json::json!(["forced"])
     );
+}
+
+#[test]
+fn retains_multi_language_summaries_from_flat_tags() {
+    let video = Metadata::inspect(
+        Path::new("Kneecap.2024.ita.eng.1080p.mkv"),
+        Some(MediaKind::Movie),
+    );
+    assert_eq!(video.language.as_deref(), Some("multi"));
+
+    let subtitle = Metadata::inspect(
+        Path::new("Kneecap.2024.multi.srt"),
+        Some(MediaKind::Movie),
+    );
+    assert_eq!(subtitle.language_sub.as_deref(), Some("multi"));
 }
 
 #[test]

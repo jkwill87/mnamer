@@ -25,6 +25,12 @@ mise x -- cargo install --locked --path .
 
 For development, run `mise x -- cargo run -- help`.
 
+Successful pushes to `v3` publish the next patch as a development prerelease on
+[crates.io](https://crates.io/crates/mnamer), such as `3.0.1-dev42`. Reruns reuse the same version.
+Pushing a stable `vMAJOR.MINOR.PATCH` tag publishes that exact release version. Publishing runs only
+after lint and tests pass; the registry credential is stored in the `CARGO_REGISTRY_TOKEN` GitHub
+Actions secret.
+
 🤖 **Automation**
 
 Use `--test` to resolve metadata and validate destinations without changing files. Use `--batch`
