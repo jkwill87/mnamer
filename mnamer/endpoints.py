@@ -112,10 +112,21 @@ class TvMazeExternals(TypedDict):
     imdb: NotRequired[str | None]
 
 
+class TvMazeAka(TypedDict):
+    name: str
+    country: dict[str, str] | None
+
+
+class TvMazeEmbedded(TypedDict, total=False):
+    akas: list[TvMazeAka]
+
+
 class TvMazeShow(TypedDict):
     id: int
     name: str
     externals: TvMazeExternals
+    language: NotRequired[str | None]
+    _embedded: NotRequired[TvMazeEmbedded]
 
 
 class TvMazeSearchEntry(TypedDict):
@@ -538,6 +549,7 @@ def tvmaze_show(
     """
     url = f"http://api.tvmaze.com/shows/{id_tvmaze}"
     parameters: dict[str, Any] = {}
+    parameters["embed"] = "akas"
     if embed_episodes:
         parameters["embed"] = "episodes"
     status, content = request_json(url, parameters, cache=cache)
@@ -614,7 +626,7 @@ def tvmaze_show_lookup(
     if not [id_imdb, id_tvdb].count(None) == 1:
         raise MnamerException("id_imdb and id_tvdb are mutually exclusive")
     url = "http://api.tvmaze.com/lookup/shows"
-    parameters: dict[str, Any] = {"imdb": id_imdb, "thetvdb": id_tvdb}
+    parameters: dict[str, Any] = {"imdb": id_imdb, "thetvdb": id_tvdb, "embed": "akas"}
     status, content = request_json(url, parameters, cache=cache)
     if status == 443 and attempt <= MAX_RETRIES:  # pragma: no cover
         sleep(attempt * 2)
