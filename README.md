@@ -6,6 +6,9 @@
 
 <img src="https://github.com/jkwill87/mnamer/raw/main/assets/logo.png" width="450"/>
 
+> [!NOTE]  
+> mnamer is currently under an early development rust rewrite, available under the [v3](https://github.com/jkwill87/mnamer/tree/v3) branch. While a WIP and extremely subject to change, it currently has feature parity with v2, as well as new features like file metadata introspection and hard linking. v2 will continue to be maintained for the forseeable fututure, but if you're feeling adventerous feel free to check it out and leave feedback under a discussion thread!
+
 # mnamer
 
 mnamer (**m**edia re**namer**) is an intelligent and highly configurable media organization utility. It parses media filenames for metadata, searches the web to fill in the blanks, and then renames and moves them.
