@@ -20,8 +20,12 @@ description = "Run deterministic mnamer tests"
 run = "cargo test --features net --test network"
 description = "Run live provider integration tests"
 
+[tasks."release:test"]
+run = "bash .github/scripts/package-version.test.sh"
+description = "Test commit-derived package versioning"
+
 [tasks.lint]
-depends = ["rust:fmt", "rust:check", "rust:clippy"]
+depends = ["release:test", "rust:fmt", "rust:check", "rust:clippy"]
 
 [tasks.test]
 run = "cargo test"

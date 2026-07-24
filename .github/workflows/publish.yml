@@ -23,7 +23,17 @@ jobs:
         id: package
         run: bash .github/scripts/package-version.sh
 
+      - name: Checking Existing Publication
+        if: steps.package.outputs.publish == 'true'
+        id: registry
+        env:
+          PACKAGE_VERSION: ${{ steps.package.outputs.version }}
+        run: bash .github/scripts/package-published.sh "$PACKAGE_VERSION"
+
       - name: Applying Package Version
+        if: >-
+          steps.package.outputs.publish == 'true'
+          && steps.registry.outputs.published == 'false'
         env:
           PACKAGE_VERSION: ${{ steps.package.outputs.version }}
         run: |
@@ -52,9 +62,15 @@ jobs:
           mise x -- cargo check
 
       - name: Packaging
+        if: >-
+          steps.package.outputs.publish == 'true'
+          && steps.registry.outputs.published == 'false'
         run: mise x -- cargo package --locked --allow-dirty
 
       - name: Publishing to crates.io
+        if: >-
+          steps.package.outputs.publish == 'true'
+          && steps.registry.outputs.published == 'false'
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         run: mise x -- cargo publish --registry crates-io --locked --allow-dirty
