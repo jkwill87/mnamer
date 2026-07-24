@@ -48,6 +48,8 @@ jobs:
       success()
       && github.event_name == 'push'
       && (
+        github.ref == 'refs/heads/main'
+        ||
         github.ref == 'refs/heads/v3'
         || startsWith(github.ref, 'refs/tags/v')
       )

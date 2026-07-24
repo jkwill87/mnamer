@@ -14,10 +14,17 @@ Movie metadata comes from [TMDb](https://www.themoviedb.org/) or
 
 💾 **Installation**
 
-Install [mise](https://mise.jdx.dev/), then build the CLI with the pinned Rust toolchain:
+Install the latest v3 development build from crates.io with Rust 1.97 or newer:
 
 ```bash
-git clone https://github.com/jkwill87/mnamer.git
+cargo install mnamer --version '>=3.0.0-dev1, <3.0.0' --locked
+```
+
+To build the development branch from source with its pinned toolchain, install
+[mise](https://mise.jdx.dev/) and run:
+
+```bash
+git clone --branch v3 https://github.com/jkwill87/mnamer.git
 cd mnamer
 mise install
 mise x -- cargo install --locked --path .
@@ -25,8 +32,12 @@ mise x -- cargo install --locked --path .
 
 For development, run `mise x -- cargo run -- help`.
 
-Successful pushes to `v3` publish the next patch as a development prerelease on
-[crates.io](https://crates.io/crates/mnamer), such as `3.0.1-dev42`. Reruns reuse the same version.
+Successful pushes to `v3` publish `3.0.0-devN` development prereleases on
+[crates.io](https://crates.io/crates/mnamer), where `N` is the number of first-parent commits since
+the first Rust v3 commit. After the `v3.0.0` release, pushes to `main` publish `3.0.1-devN`, counting
+first-parent commits since the latest stable tag. A commit at the stable tag does not publish a
+`dev0` build, and reruns skip versions that already exist.
+
 Pushing a stable `vMAJOR.MINOR.PATCH` tag publishes that exact release version. Publishing runs only
 after lint and tests pass; the registry credential is stored in the `CARGO_REGISTRY_TOKEN` GitHub
 Actions secret.

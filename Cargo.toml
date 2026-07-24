@@ -1,6 +1,6 @@
 [package]
 name = "mnamer"
-version = "3.0.0"
+version = "3.0.0-dev"
 description = "Rename and organize media files with provider-enriched metadata"
 license = "MIT"
 edition = "2024"

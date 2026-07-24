@@ -16,6 +16,7 @@ Run commands through mise so the pinned Rust 1.97.0 toolchain is used:
 | Run deterministic tests| `mise test`                                                |
 | Run full test suite    | `mise test --all-features`                                 |
 | Run live network tests | `mise run rust:test:net`                                   |
+| Test release versions  | `mise run release:test`                                    |
 | Lint Rust              | `mise lint`                                                |
 | Format Rust            | `mise x -- cargo fmt`                                      |
 | Run one test           | `mise x -- cargo test test_name`                           |
@@ -50,8 +51,10 @@ Run commands through mise so the pinned Rust 1.97.0 toolchain is used:
   then embedded application fallbacks. TVmaze requires no key.
 - Personal local keys belong in gitignored `mise.local.toml`; never print or commit them.
 - GitHub Actions injects live-test credentials from repository secrets.
-- Successful `v3` pushes publish a next-patch `-dev<RUN_NUMBER>` prerelease to crates.io; reruns
-  reuse that version, and `vMAJOR.MINOR.PATCH` tags publish the corresponding stable release.
+- Successful `v3` pushes publish `3.0.0-devN`, where `N` counts first-parent commits from the first
+  Rust v3 commit. After `v3.0.0`, `main` publishes next-patch `-devN` versions counted from the
+  latest stable tag. Reruns skip existing versions, and `vMAJOR.MINOR.PATCH` tags publish the
+  corresponding stable release.
 - The crates.io credential belongs only in the `CARGO_REGISTRY_TOKEN` GitHub Actions secret or a
   gitignored local mise override.
 - Generated build output under `target/` is ignored.
