@@ -28,7 +28,9 @@ TMDB_MOVIE = {
     "imdb_id": "tt1234567",
 }
 
-TVDB_SERIES = {"data": {"id": 100, "series_name": "Example Series"}}
+TVDB_SERIES = {
+    "data": {"id": 100, "series_name": "Example Series", "first_aired": "2019-01-01"}
+}
 
 TVDB_EPISODE = {
     "first_aired": "2020-01-02",
@@ -42,6 +44,7 @@ TVMAZE_SHOW = {
     "id": 200,
     "name": "Example Series",
     "externals": {"thetvdb": 100, "imdb": "tt7654321"},
+    "premiered": "2019-01-01",
 }
 
 TVMAZE_EPISODE = {
@@ -227,6 +230,7 @@ def test_tvdb_search__lazy_login_and_id_search(mocker):
     assert result.series == "Example Series"
     assert result.title == "Episode Two"
     assert result.id_tvdb == "100"
+    assert result.series_year == 2019
     mock_login.assert_called_once_with("key")
     mock_series.assert_called_once_with("token", "100", language=None, cache=True)
     mock_episodes.assert_called_once_with(
@@ -324,6 +328,7 @@ def test_tvmaze_search__tvmaze_id_season_episode(mocker):
     assert result.title == "Episode Two"
     assert result.id_tvmaze == "200"
     assert result.id_tvdb == "100"
+    assert result.series_year == 2019
 
 
 def test_tvmaze_search__tvdb_id_date_lookup(mocker):
