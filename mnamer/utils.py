@@ -474,7 +474,12 @@ def str_title_case(s: str) -> str:
             ends = pos + word_length == string_length
             next_char = "" if ends else string_lower[pos + word_length]
             is_right_partitioned = not ends and next_char in padding_chars
-            if is_left_partitioned and is_right_partitioned:
+            # a single letter flanked by dots is an acronym component, e.g. the
+            # 'a' in "S.W.A.T.", not a standalone word to lowercase
+            is_acronym_letter = (
+                word_length == 1 and prev_char == "." and next_char == "."
+            )
+            if is_left_partitioned and is_right_partitioned and not is_acronym_letter:
                 s = s[:pos] + exception.lower() + s[pos + word_length :]
 
     # process uppercase transformations
