@@ -112,6 +112,22 @@ def test_ambiguous_subtitle_language():
     assert target.metadata.language is None
 
 
+def test_parse__language_suffixed_subtitle_keeps_container():
+    """A `name.<lang>.srt` subtitle keeps its language tag and extension."""
+    target = Target(Path("Subs/ninja.turtles.s01e04.en.srt"), SettingStore())
+    assert target.metadata.container == ".srt"
+    assert target.metadata.language_sub is not None
+    assert target.metadata.language_sub.a2 == "en"
+    assert target.metadata.extension == ".en.srt"
+
+
+def test_destination__language_suffixed_subtitle_keeps_extension():
+    """A language-suffixed subtitle is not renamed to a bare, extension-less name."""
+    settings = SettingStore(batch=True, media=MediaType.EPISODE)
+    target = Target(Path("Subs/ninja.turtles.s01e04.en.srt"), settings)
+    assert target.destination.name.endswith(".en.srt")
+
+
 def test_destination__simple():
     pass  # TODO
 
