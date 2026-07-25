@@ -152,12 +152,20 @@ class Target:
 
     def _parse(self, file_path: Path):
         path_data: dict[str, Any] = {"language": self._settings.language}
-        if is_subtitle(self.source):
+        suffixed_sub_language: Language | None = None
+        if is_subtitle(self.source) and self.source.stem[-3:-2] == ".":
             try:
-                path_data["language"] = Language.parse(self.source.stem[-2:])
-                file_path = Path(self.source.parent, self.source.stem[:-2])
+                suffixed_sub_language = Language.parse(self.source.stem[-2:])
             except MnamerException:
                 pass
+            else:
+                path_data["language"] = suffixed_sub_language
+                # strip the language tag but keep the container suffix so the
+                # renamed file does not lose its extension
+                file_path = Path(
+                    self.source.parent,
+                    f"{self.source.stem[:-3]}{self.source.suffix}",
+                )
         options = {"type": self._settings.media, "language": path_data["language"]}
         raw_data = dict(guessit(str(file_path), options))
         if isinstance(raw_data.get("season"), list):
@@ -211,7 +219,9 @@ class Target:
             except MnamerException:
                 pass
         try:
-            self.metadata.language_sub = path_data.get("subtitle_language")
+            self.metadata.language_sub = suffixed_sub_language or path_data.get(
+                "subtitle_language"
+            )
         except MnamerException:
             pass
         if isinstance(self.metadata, MetadataMovie):
