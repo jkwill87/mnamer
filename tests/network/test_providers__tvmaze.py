@@ -1,6 +1,7 @@
 import pytest
 
 from mnamer.exceptions import MnamerNotFoundException
+from mnamer.language import Language
 from mnamer.metadata import MetadataEpisode
 from mnamer.providers import TvMaze
 from tests import EPISODE_META, JUNK_TEXT, TEST_DATE, EpisodeMeta
@@ -174,3 +175,128 @@ def test_search__no_hits(provider: TvMaze):
     query = MetadataEpisode()
     with pytest.raises(MnamerNotFoundException):
         next(provider.search(query))
+
+
+def test_search__foreign_show_returns_primary_name_when_no_english_aka():
+    """Show with only a country=null AKA returns primary name for --language=en."""
+    provider = TvMaze(cache=False)
+    query = MetadataEpisode(
+        id_tvmaze="59772",
+        season=1,
+        episode=1,
+        language=Language.parse("en"),
+    )
+    results = list(provider.search(query))
+    assert results
+    assert results[0].series == "Schneller Als Die Angst"
+
+
+def test_search__foreign_show_primary_name_without_language():
+    """Foreign show returns primary name when no language set."""
+    provider = TvMaze(cache=False)
+    query = MetadataEpisode(
+        id_tvmaze="59772",
+        season=1,
+        episode=1,
+    )
+    results = list(provider.search(query))
+    assert results
+    assert results[0].series == "Schneller Als Die Angst"
+
+
+def test_search__show_with_ambiguous_akas_returns_primary():
+    """Show with only country=null AKAs returns primary name even with language=en."""
+    provider = TvMaze(cache=False)
+    query = MetadataEpisode(
+        id_tvmaze="92273",  # Morfeusz — AKAs have no country codes
+        season=1,
+        episode=1,
+        language=Language.parse("en"),
+    )
+    results = list(provider.search(query))
+    assert results
+    assert results[0].series == "Morfeusz"  # should NOT return "Morfeus"
+
+
+def test_search__korean_show_returns_korean_aka():
+    """Korean show returns Korean-script AKA when language=ko."""
+    provider = TvMaze(cache=False)
+    query = MetadataEpisode(
+        id_tvmaze="92451",
+        season=1,
+        episode=1,
+        language=Language.parse("ko"),
+    )
+    results = list(provider.search(query))
+    assert results
+    assert results[0].series == "검사실의 제안"
+
+
+def test_search__korean_show_returns_primary_without_language():
+    """Korean show returns primary English name when no language set."""
+    provider = TvMaze(cache=False)
+    query = MetadataEpisode(
+        id_tvmaze="92451",
+        season=1,
+        episode=1,
+    )
+    results = list(provider.search(query))
+    assert results
+    assert results[0].series == "The Prosecutor's Office's Proposal"
+
+
+def test_search__show_with_no_akas_returns_primary_name():
+    """Show with no AKAs returns primary name regardless of requested language."""
+    provider = TvMaze(cache=False)
+    query = MetadataEpisode(
+        id_tvmaze="50",  # The Lottery — no AKAs, language: English
+        season=1,
+        episode=1,
+        language=Language.parse("en"),
+    )
+    results = list(provider.search(query))
+    assert results
+    assert results[0].series == "The Lottery"
+
+
+def test_search__unsupported_language_warns_and_returns_primary():
+    """Requesting a language with no _LANGUAGE_COUNTRIES mapping warns and returns primary name."""
+    provider = TvMaze(cache=False)
+    query = MetadataEpisode(
+        id_tvmaze="50",  # The Lottery — simple English show, no AKAs
+        season=1,
+        episode=1,
+        language=Language.parse("ar"),  # Arabic — not in _LANGUAGE_COUNTRIES
+    )
+    with pytest.warns(UserWarning, match="No TVMaze country mapping for language 'ar'"):
+        results = list(provider.search(query))
+    assert results
+    assert results[0].series == "The Lottery"
+
+
+def test_search__no_matching_language_aka_returns_primary():
+    """Show with AKAs but none matching the requested language returns primary name."""
+    provider = TvMaze(cache=False)
+    query = MetadataEpisode(
+        id_tvmaze="92451",  # The Prosecutor's Office's Proposal — has KR AKA only
+        season=1,
+        episode=1,
+        language=Language.parse("de"),  # German — no DE AKA exists
+    )
+    results = list(provider.search(query))
+    assert results
+    assert results[0].series == "The Prosecutor's Office's Proposal"
+
+
+def test_search__multiple_akas_same_country_returns_first():
+    """When multiple AKAs exist for the same country, the first one is returned."""
+    provider = TvMaze(cache=False)
+    query = MetadataEpisode(
+        id_tvmaze="2",  # Person of Interest — two RU AKAs: 'В поле зрения' and 'Подозреваемые'
+        season=1,
+        episode=1,
+        language=Language.parse("ru"),
+    )
+    results = list(provider.search(query))
+    assert results
+    assert results[0].series == "В Поле Зрения"  # first RU AKA wins
