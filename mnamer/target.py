@@ -230,7 +230,14 @@ class Target:
         if is_subtitle(self.source):
             container = self.source.suffix
             guess_path = self._subtitle_guess_path(path_data)
-        options = {"type": self._settings.media, "language": path_data["language"]}
+        # guessit expects type as a string ('movie'/'episode'); passing the
+        # MediaType enum makes it ignore the hint and mis-parse titles like
+        # "The 400 Blows" (400 → season/episode, title → "The").
+        media_hint = self._settings.media
+        options = {
+            "type": media_hint.value if media_hint else None,
+            "language": path_data["language"],
+        }
         raw_data = dict(guessit(str(guess_path), options))
         if isinstance(raw_data.get("season"), list):
             raw_data = dict(guessit(str(guess_path.parts[-1]), options))

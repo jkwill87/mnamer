@@ -18,6 +18,15 @@ def test_parse__media__movie():
     assert target.metadata.to_media_type() is MediaType.MOVIE
 
 
+def test_parse__movie_keeps_number_in_title():
+    """MediaType enum must be passed to guessit as its string value."""
+    target = Target(
+        Path("The 400 Blows.mkv"), SettingStore(media=MediaType.MOVIE)
+    )
+    assert isinstance(target.metadata, MetadataMovie)
+    assert target.metadata.name == "The 400 Blows"
+
+
 def test_parse__media__episode():
     target = Target(Path("ninja turtles s01e01.mkv"), SettingStore())
     assert target.metadata.to_media_type() is MediaType.EPISODE
