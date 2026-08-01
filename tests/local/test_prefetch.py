@@ -112,3 +112,47 @@ def test_process_prepared__uses_prefetched_matches(tmp_path):
     assert cli._process_prepared(prepared) is True
     assert cli.success_count == 1
     assert target.metadata.name == "Example Movie"
+
+
+def test_process_prepared__skip_correct_when_filename_matches_top_hit(
+    tmp_path, mocker
+):
+    media = tmp_path / "Example Movie (1999).mkv"
+    media.write_bytes(b"x")
+    settings = SettingStore(
+        targets=[media],
+        media=MediaType.MOVIE,
+        skip_correct=True,
+        movie_format="{name} ({year}).{extension}",
+    )
+    target = Target(media, settings)
+    match = MetadataMovie(name="Example Movie", year="1999")
+    prepared = PreparedTarget(target=target, matches=[match])
+    prompt = mocker.patch("mnamer.tty.metadata_prompt")
+
+    cli = Cli(settings)
+    assert cli._process_prepared(prepared) is True
+    assert cli.success_count == 0
+    prompt.assert_not_called()
+
+
+def test_process_prepared__skip_correct_does_not_skip_when_names_differ(
+    tmp_path, mocker
+):
+    media = tmp_path / "wrong name.mkv"
+    media.write_bytes(b"x")
+    settings = SettingStore(
+        targets=[media],
+        media=MediaType.MOVIE,
+        skip_correct=True,
+        batch=True,
+        test=True,
+        movie_format="{name} ({year}).{extension}",
+    )
+    target = Target(media, settings)
+    match = MetadataMovie(name="Example Movie", year="1999")
+    prepared = PreparedTarget(target=target, matches=[match])
+
+    cli = Cli(settings)
+    assert cli._process_prepared(prepared) is True
+    assert cli.success_count == 1

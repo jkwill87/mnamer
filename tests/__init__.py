@@ -30,6 +30,7 @@ DEFAULT_SETTINGS = {
     "no_guess": False,
     "no_overwrite": False,
     "no_style": False,
+    "skip_correct": False,
     "recurse": False,
     "replace_after": {"&": "and", ";": ",", "@": "at"},
     "replace_before": {},

@@ -103,6 +103,16 @@ class Cli(Frontend):
         if not matches and self.settings.no_guess:
             tty.msg("skipping (--no-guess)", MessageType.ALERT)
             return True
+        if (
+            self.settings.skip_correct
+            and matches
+            and target.preview_filename(matches[0]) == target.source.name
+        ):
+            tty.msg(
+                "skipping (--skip-correct, already matches top hit)",
+                MessageType.ALERT,
+            )
+            return True
         try:
             if self.settings.batch:
                 match = matches[0] if matches else target.metadata
