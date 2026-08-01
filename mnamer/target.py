@@ -10,6 +10,7 @@ from guessit import guessit  # type: ignore
 
 from mnamer.exceptions import MnamerException
 from mnamer.language import Language
+from mnamer.media_info import normalize_resolution_token, probe_resolution
 from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
 from mnamer.providers import Provider
 from mnamer.setting_store import SettingStore
@@ -201,6 +202,9 @@ class Target:
                 )
             )
             or None
+        )
+        self.metadata.resolution = probe_resolution(file_path) or (
+            normalize_resolution_token(path_data.get("screen_size"))
         )
         if self._settings.language:
             path_data["language"] = self._settings.language

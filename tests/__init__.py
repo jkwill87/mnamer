@@ -25,7 +25,7 @@ DEFAULT_SETTINGS = {
     "media": None,
     "movie_api": ProviderType.TMDB,
     "movie_directory": None,
-    "movie_format": "{name} ({year}).{extension}",
+    "movie_format": "{name} ({year}) [{resolution}].{extension}",
     "no_cache": False,
     "no_guess": False,
     "no_overwrite": False,

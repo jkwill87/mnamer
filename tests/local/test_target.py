@@ -28,6 +28,28 @@ def test_parse__quality():
     assert target.metadata.quality == "1080p dolby digital"
 
 
+def test_parse__resolution__from_filename():
+    file_path = Path("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mkv")
+    target = Target(file_path, SettingStore())
+    assert target.metadata.resolution == "1080p"
+
+
+def test_parse__resolution__from_file_probe(mocker, tmp_path):
+    media = tmp_path / "2001 A Space Odyssey.mkv"
+    media.write_bytes(b"fake")
+    mocker.patch("mnamer.target.probe_resolution", return_value="1080p")
+    target = Target(media, SettingStore(media=MediaType.MOVIE))
+    assert target.metadata.resolution == "1080p"
+
+
+def test_destination__includes_resolution_from_probe(mocker, tmp_path):
+    media = tmp_path / "2001 A Space Odyssey (1968).mkv"
+    media.write_bytes(b"fake")
+    mocker.patch("mnamer.target.probe_resolution", return_value="1080p")
+    target = Target(media, SettingStore(media=MediaType.MOVIE, batch=True))
+    assert target.destination.name == "2001 a Space Odyssey (1968) [1080p].mkv"
+
+
 def test_parse__group():
     file_path = Path("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mkv")
     target = Target(file_path, SettingStore())
