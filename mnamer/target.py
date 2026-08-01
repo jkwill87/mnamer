@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 import re
+import threading
 from collections.abc import Iterator
 from pathlib import Path
 from shutil import move
@@ -33,6 +34,7 @@ class Target:
     """Manages metadata state for a media file and facilitates its relocation."""
 
     _providers: ClassVar[dict[ProviderType, Provider[Any]]] = {}
+    _provider_lock: ClassVar[threading.Lock] = threading.Lock()
 
     _settings: SettingStore
     _provider: Provider[Any]
@@ -338,11 +340,12 @@ class Target:
 
     def _register_provider(self) -> None:
         provider_type = self.provider_type
-        if provider_type and provider_type not in self._providers:
-            self._providers[provider_type] = Provider.provider_factory(
-                provider_type, self._settings
-            )
-        self._provider = self._providers[provider_type]
+        with self._provider_lock:
+            if provider_type and provider_type not in self._providers:
+                self._providers[provider_type] = Provider.provider_factory(
+                    provider_type, self._settings
+                )
+            self._provider = self._providers[provider_type]
 
     def _replace_before(self) -> None:
         if not self._settings.replace_before:

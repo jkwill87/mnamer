@@ -6,10 +6,9 @@ from mnamer.const import SYSTEM, USAGE, VERSION
 from mnamer.exceptions import (
     MnamerAbortException,
     MnamerException,
-    MnamerNetworkException,
-    MnamerNotFoundException,
     MnamerSkipException,
 )
+from mnamer.prefetch import PreparedTarget, TargetLookahead
 from mnamer.setting_store import SettingStore
 from mnamer.target import Target
 from mnamer.types import MessageType
@@ -76,30 +75,30 @@ class Cli(Frontend):
     @override
     def launch(self) -> None:
         tty.msg("Starting mnamer", MessageType.HEADING)
-        found_any = False
-        for target in Target.iter_paths(self.settings):
-            found_any = True
-            self.total_count += 1
-            self.targets.append(target)
-            if not self._process_target(target):
-                break
-        if not found_any:
-            tty.msg("", debug=True)
-            tty.msg("no media files found", MessageType.ALERT)
-            raise SystemExit(0)
+        with TargetLookahead(Target.iter_paths(self.settings)) as lookahead:
+            prepared = lookahead.prime()
+            if prepared is None:
+                tty.msg("", debug=True)
+                tty.msg("no media files found", MessageType.ALERT)
+                raise SystemExit(0)
+            while prepared is not None:
+                self.total_count += 1
+                self.targets.append(prepared.target)
+                if not self._process_prepared(prepared):
+                    break
+                prepared = lookahead.take()
         self._report_results()
 
-    def _process_target(self, target: Target) -> bool:
-        """Process a single target. Returns False when the user aborts."""
+    def _process_prepared(self, prepared: PreparedTarget) -> bool:
+        """Process a prepared target. Returns False when the user aborts."""
+        target = prepared.target
         self._announce_file(target)
         self._list_details(target)
 
-        matches = []
-        try:
-            matches = target.query()
-        except MnamerNotFoundException:
+        matches = prepared.matches
+        if prepared.not_found:
             tty.msg("no matches found", MessageType.ALERT)
-        except MnamerNetworkException:
+        elif prepared.network_error:
             tty.msg("network error", MessageType.ALERT)
         if not matches and self.settings.no_guess:
             tty.msg("skipping (--no-guess)", MessageType.ALERT)

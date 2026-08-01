@@ -3,6 +3,7 @@
 import datetime as dt
 import json
 import re
+import threading
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from contextlib import nullcontext
 from os import walk
@@ -15,6 +16,8 @@ import requests_cache
 from requests.adapters import HTTPAdapter
 
 from mnamer.const import CACHE_PATH, CURRENT_YEAR, SUBTITLE_CONTAINERS
+
+_request_lock = threading.Lock()
 
 
 def clean_dict(
@@ -286,7 +289,8 @@ def request_json(
 
     cache_ctx = session.cache_disabled() if not cache else nullcontext()
     try:
-        with cache_ctx:
+        # Serialize session use — requests-cache SQLite is not thread-safe.
+        with _request_lock, cache_ctx:
             response = session.request(
                 url=url,
                 params=parameters,
