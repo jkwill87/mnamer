@@ -69,14 +69,45 @@ def test_parse__series():
 
 
 def test_parse__year():
-    file_path = Path("the.goonies.1985")
+    file_path = Path("the.goonies.(1985).mkv")
     target = Target(file_path, SettingStore())
     assert isinstance(target.metadata, MetadataMovie)
     assert target.metadata.year == 1985
 
 
+def test_parse__year__square_brackets():
+    file_path = Path("the.goonies.[1985].mkv")
+    target = Target(file_path, SettingStore())
+    assert isinstance(target.metadata, MetadataMovie)
+    assert target.metadata.year == 1985
+
+
+def test_parse__year__bare_number_kept_in_title():
+    file_path = Path("2001 A Space Odyssey.mkv")
+    target = Target(file_path, SettingStore(media=MediaType.MOVIE))
+    assert isinstance(target.metadata, MetadataMovie)
+    assert target.metadata.name == "2001 a Space Odyssey"
+    assert target.metadata.year is None
+
+
+def test_parse__year__title_year_with_bracketed_release():
+    file_path = Path("2001 A Space Odyssey (1968).mkv")
+    target = Target(file_path, SettingStore(media=MediaType.MOVIE))
+    assert isinstance(target.metadata, MetadataMovie)
+    assert target.metadata.name == "2001 a Space Odyssey"
+    assert target.metadata.year == 1968
+
+
+def test_parse__year__bare_trailing_year_ignored():
+    file_path = Path("the.goonies.1985.mkv")
+    target = Target(file_path, SettingStore())
+    assert isinstance(target.metadata, MetadataMovie)
+    assert target.metadata.year is None
+    assert target.metadata.name == "The Goonies 1985"
+
+
 def testparse__name():
-    file_path = Path("the.goonies.1985")
+    file_path = Path("the.goonies.(1985).mkv")
     target = Target(file_path, SettingStore())
     assert isinstance(target.metadata, MetadataMovie)
     assert target.metadata.name == "The Goonies"
@@ -246,8 +277,31 @@ def test_destination__same_directory_matches_source(tmp_path, monkeypatch):
     assert target.destination == target.source
 
 
-def test_query():
-    pass  # TODO
+def test_query(mocker):
+    Target.reset_providers()
+    settings = SettingStore(hits=2)
+    target = Target(Path("ninja turtles (1990).mkv"), settings)
+    matches = [
+        MetadataMovie(name="Teenage Mutant Ninja Turtles", year="1990"),
+        MetadataMovie(name="Teenage Mutant Ninja Turtles", year="1990"),  # duplicate
+        MetadataMovie(name="Ninja Turtles", year="2007"),
+        MetadataMovie(name="TMNT", year="2014"),
+    ]
+    mocker.patch.object(target._provider, "search", return_value=iter(matches))
+
+    results = target.query()
+
+    assert len(results) == 2
+    assert results[0].name == "Teenage Mutant Ninja Turtles"
+    assert results[1].name == "Ninja Turtles"
+
+
+def test_query__empty(mocker):
+    Target.reset_providers()
+    target = Target(Path("ninja turtles (1990).mkv"), SettingStore(hits=5))
+    mocker.patch.object(target._provider, "search", return_value=iter([]))
+
+    assert target.query() == []
 
 
 def test_relocate():

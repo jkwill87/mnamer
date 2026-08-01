@@ -502,6 +502,12 @@ def year_parse(s: str) -> int | None:
         return None
 
 
+def year_from_brackets(s: str) -> int | None:
+    """Return a year only when wrapped in () or [], e.g. (1999) or [1999]."""
+    matches = re.findall(r"[\(\[]((?:19|20)\d{2})[\)\]]", str(s))
+    return int(matches[-1]) if matches else None
+
+
 def year_range_parse(years: str | int | None, tolerance: int = 1) -> tuple[int, int]:
     """Parses a year or dash-delimited year range."""
     regex = r"^((?:19|20)\d{2})?([-,: ]*)?((?:19|20)\d{2})?$"

@@ -63,12 +63,13 @@ def test_provider_factory__returns_configured_provider_types():
 
 
 def test_provider_from_settings__uses_api_key_and_cache_flag():
-    settings = SettingStore(api_key_omdb="configured-key", no_cache=True)
+    settings = SettingStore(api_key_omdb="configured-key", no_cache=True, hits=12)
 
     provider = Omdb.from_settings(settings)
 
     assert provider.api_key == "configured-key"
     assert provider.cache is False
+    assert provider.hits == 12
 
 
 def test_tvdb_from_settings__logs_in_when_cache_is_disabled(mocker):
@@ -79,6 +80,7 @@ def test_tvdb_from_settings__logs_in_when_cache_is_disabled(mocker):
 
     assert provider.cache is False
     assert provider.token == "token"
+    assert provider.hits == 5
     mock_login.assert_called_once_with("configured-key")
 
 
@@ -282,6 +284,30 @@ def test_tvdb_search__series_tries_candidate_ids(mocker):
     assert mock_search_id.call_count == 2
 
 
+def test_tvdb_search__series_respects_hits(mocker):
+    provider = Tvdb("key", hits=2)
+    provider.token = "token"
+    mocker.patch(
+        "mnamer.providers.tvdb_search_series",
+        return_value={"data": [{"id": 1}, {"id": 2}, {"id": 3}]},
+    )
+    mock_search_id = mocker.patch.object(
+        provider,
+        "_search_id",
+        side_effect=[
+            MnamerNotFoundException,
+            [MetadataEpisode(id_tvdb="2", series="Example Series", season=1)],
+        ],
+    )
+
+    results = list(provider.search(MetadataEpisode(series="Example Series")))
+
+    assert [result.id_tvdb for result in results] == ["2"]
+    assert mock_search_id.call_count == 2
+    mock_search_id.assert_any_call("1", None, None, None)
+    mock_search_id.assert_any_call("2", None, None, None)
+
+
 def test_tvdb_search__date_filters_id_results(mocker):
     provider = Tvdb("key")
     provider.token = "token"
@@ -357,7 +383,7 @@ def test_tvmaze_search__id_filters_episode_list(mocker):
     assert [result.title for result in results] == ["Episode Two"]
 
 
-def test_tvmaze_search__series_season_episode_tries_first_three(mocker):
+def test_tvmaze_search__series_season_episode_respects_hits(mocker):
     shows = [
         {"show": {**TVMAZE_SHOW, "id": 201}},
         {"show": TVMAZE_SHOW},
@@ -375,11 +401,41 @@ def test_tvmaze_search__series_season_episode_tries_first_three(mocker):
     )
 
     results = list(
-        TvMaze().search(MetadataEpisode(series="Example Series", season=1, episode=2))
+        TvMaze(hits=3).search(
+            MetadataEpisode(series="Example Series", season=1, episode=2)
+        )
     )
 
     assert [result.id_tvmaze for result in results] == ["200"]
     assert mock_episode.call_count == 3
+
+
+def test_tvmaze_search__series_season_episode_honours_higher_hits(mocker):
+    shows = [
+        {"show": {**TVMAZE_SHOW, "id": 201}},
+        {"show": {**TVMAZE_SHOW, "id": 202}},
+        {"show": {**TVMAZE_SHOW, "id": 203}},
+        {"show": TVMAZE_SHOW},
+    ]
+    mocker.patch("mnamer.providers.tvmaze_show_search", return_value=shows)
+    mock_episode = mocker.patch(
+        "mnamer.providers.tvmaze_episode_by_number",
+        side_effect=[
+            MnamerNotFoundException,
+            MnamerNotFoundException,
+            MnamerNotFoundException,
+            TVMAZE_EPISODE,
+        ],
+    )
+
+    results = list(
+        TvMaze(hits=4).search(
+            MetadataEpisode(series="Example Series", season=1, episode=2)
+        )
+    )
+
+    assert [result.id_tvmaze for result in results] == ["200"]
+    assert mock_episode.call_count == 4
 
 
 def test_tvmaze_search__series_filters_episode_list(mocker):

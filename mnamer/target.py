@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import re
 from pathlib import Path
 from shutil import move
 from typing import Any, ClassVar, Self, override
@@ -22,6 +23,7 @@ from mnamer.utils import (
     str_replace,
     str_sanitize,
     str_scenify,
+    year_from_brackets,
 )
 
 
@@ -215,8 +217,9 @@ class Target:
         except MnamerException:
             pass
         if isinstance(self.metadata, MetadataMovie):
-            self.metadata.name = path_data.get("title")
-            self.metadata.year = path_data.get("year")
+            self.metadata.name, self.metadata.year = self._movie_name_and_year(
+                file_path.name, path_data.get("title"), path_data.get("year")
+            )
         elif isinstance(self.metadata, MetadataEpisode):
             self.metadata.date = path_data.get("date")
             self.metadata.episode = path_data.get("episode")
@@ -229,6 +232,29 @@ class Target:
             # year = path_data.get("year")
             # if year:
             #     self.metadata.series = f"{self.metadata.series} {year}"
+
+    @staticmethod
+    def _movie_name_and_year(
+        filename: str, title: str | None, guessed_year: int | str | None
+    ) -> tuple[str | None, int | None]:
+        """
+        Only treat a number as the release year when it appears in () or [].
+        Bare years (e.g. leading 2001 in "2001 A Space Odyssey") stay in the title.
+        """
+        bracket_year = year_from_brackets(filename)
+        if bracket_year is not None:
+            return title, bracket_year
+        if guessed_year is None:
+            return title, None
+        year_str = str(guessed_year)
+        if title and year_str not in title:
+            # Prefer original token order from the filename stem.
+            stem = Path(filename).stem.replace(".", " ")
+            if re.search(rf"(?i)^\s*{year_str}\b", stem):
+                title = f"{year_str} {title}"
+            else:
+                title = f"{title} {year_str}"
+        return title, None
 
     def _override_metadata_ids(self):
         id_types = {"imdb", "tmdb", "tvdb", "tvmaze"}
@@ -267,12 +293,12 @@ class Target:
             return []
         seen = set()
         response = []
-        for idx, result in enumerate(results, start=1):
+        for result in results:
             if str(result) in seen:
                 continue
             response.append(result)
             seen.add(str(result))
-            if idx >= self._settings.hits:
+            if len(response) >= self._settings.hits:
                 break
         return response
 

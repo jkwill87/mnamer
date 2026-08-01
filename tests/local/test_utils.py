@@ -27,6 +27,7 @@ from mnamer.utils import (
     str_scenify,
     str_title_case,
     year_parse,
+    year_from_brackets,
     year_range_parse,
 )
 from tests import JUNK_TEXT, MockRequestResponse
@@ -830,6 +831,34 @@ def test_year_parse__valid():
 @pytest.mark.parametrize("s", ("1", "5000", "", " hello", "-", ","))
 def test_year_parse__unexpected(s: str):
     assert year_parse(s) is None
+
+
+@pytest.mark.parametrize(
+    ("s", "expected"),
+    (
+        ("The Matrix (1999).mkv", 1999),
+        ("The Matrix [1999].mkv", 1999),
+        ("2001 A Space Odyssey (1968).mkv", 1968),
+        ("Movie (USA) (2020).mkv", 2020),
+        ("Movie [Bluray] [2019].mkv", 2019),
+    ),
+)
+def test_year_from_brackets__valid(s: str, expected: int):
+    assert year_from_brackets(s) == expected
+
+
+@pytest.mark.parametrize(
+    "s",
+    (
+        "2001 A Space Odyssey.mkv",
+        "The Matrix 1999.mkv",
+        "The Matrix.1999.1080p.mkv",
+        "Movie (1080).mkv",
+        "",
+    ),
+)
+def test_year_from_brackets__absent(s: str):
+    assert year_from_brackets(s) is None
 
 
 @pytest.mark.parametrize("s", ("1950", " 1950", "  1950 "))
