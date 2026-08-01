@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import override
 
 from mnamer import tty
@@ -6,10 +7,9 @@ from mnamer.const import SYSTEM, USAGE, VERSION
 from mnamer.exceptions import (
     MnamerAbortException,
     MnamerException,
-    MnamerNetworkException,
-    MnamerNotFoundException,
     MnamerSkipException,
 )
+from mnamer.prefetch import PreparedTarget, TargetLookahead
 from mnamer.setting_store import SettingStore
 from mnamer.target import Target
 from mnamer.types import MessageType
@@ -22,7 +22,7 @@ class Frontend(ABC):
 
     def __init__(self, settings: SettingStore):
         self.settings = settings
-        self.targets = Target.populate_paths(self.settings)
+        self.targets = []
         tty.configure(self.settings)
         self._handle_directives()
         self._print_configuration()
@@ -54,10 +54,7 @@ class Frontend(ABC):
         tty.msg("\nsettings", debug=True)
         tty.msg(self.settings.as_dict(), debug=True)
         tty.msg("\ntargets", debug=True)
-        if self.targets:
-            tty.msg(self.targets, debug=True)
-        else:
-            tty.msg([None], debug=True)
+        tty.msg("(streaming)", debug=True)
 
     @abstractmethod
     def launch(self):
@@ -66,6 +63,8 @@ class Frontend(ABC):
 
 class Cli(Frontend):
     success_count: int
+    total_count: int
+    _exclude_paths: set[Path]
 
     def __init__(self, settings: SettingStore):
         super().__init__(settings)
@@ -73,86 +72,96 @@ class Cli(Frontend):
             tty.error(USAGE)
             raise SystemExit(2)
         self.success_count = 0
-
-    @property
-    def total_count(self):
-        return len(self.targets)
+        self.total_count = 0
+        self._exclude_paths = set()
 
     @override
     def launch(self) -> None:
         tty.msg("Starting mnamer", MessageType.HEADING)
-        self._ensure_targets()
-        self._process_targets()
+        # Mutable set consulted by the live crawl so relocated outputs are not
+        # rediscovered later in the same recursive walk.
+        self._exclude_paths = set()
+        with TargetLookahead(
+            Target.iter_paths(self.settings, self._exclude_paths)
+        ) as lookahead:
+            prepared = lookahead.prime()
+            if prepared is None:
+                tty.msg("", debug=True)
+                tty.msg("no media files found", MessageType.ALERT)
+                raise SystemExit(0)
+            while prepared is not None:
+                self.total_count += 1
+                self.targets.append(prepared.target)
+                if not self._process_prepared(prepared):
+                    break
+                prepared = lookahead.take()
         self._report_results()
 
-    def _ensure_targets(self) -> None:
-        if not self.targets:
-            tty.msg("", debug=True)
-            tty.msg("no media files found", MessageType.ALERT)
-            raise SystemExit(0)
+    def _process_prepared(self, prepared: PreparedTarget) -> bool:
+        """Process a prepared target. Returns False when the user aborts."""
+        target = prepared.target
+        self._announce_file(target)
+        self._list_details(target)
 
-    def _process_targets(self) -> None:
-        for target in self.targets:
-            self._announce_file(target)
-            self._list_details(target)
+        matches = prepared.matches
+        if prepared.not_found:
+            tty.msg("no matches found", MessageType.ALERT)
+        elif prepared.network_error:
+            tty.msg("network error", MessageType.ALERT)
+        if not matches and self.settings.no_guess:
+            tty.msg("skipping (--no-guess)", MessageType.ALERT)
+            return True
+        if (
+            self.settings.skip_correct
+            and matches
+            and target.destination_for(matches[0]) == target.source.resolve()
+        ):
+            tty.msg(
+                "skipping (--skip-correct, already matches top hit)",
+                MessageType.ALERT,
+            )
+            return True
+        try:
+            if self.settings.batch:
+                match = matches[0] if matches else target.metadata
+            else:
+                match = tty.metadata_prompt(matches, target)
+        except MnamerSkipException:
+            tty.msg("skipping (user request)", MessageType.ALERT)
+            return True
+        except MnamerAbortException:
+            tty.msg("aborting (user request)", MessageType.ERROR)
+            return False
+        target.metadata.update(match)
 
-            # find match for target
-            matches = []
-            try:
-                matches = target.query()
-            except MnamerNotFoundException:
-                tty.msg("no matches found", MessageType.ALERT)
-            except MnamerNetworkException:
-                tty.msg("network error", MessageType.ALERT)
-            if not matches and self.settings.no_guess:
-                tty.msg("skipping (--no-guess)", MessageType.ALERT)
-                continue
-            try:
-                if self.settings.batch:
-                    match = matches[0] if matches else target.metadata
-                elif not matches:
-                    match = tty.metadata_guess(target.metadata)
-                else:
-                    match = tty.metadata_prompt(matches)
-            except MnamerSkipException:
-                tty.msg("skipping (user request)", MessageType.ALERT)
-                continue
-            except MnamerAbortException:
-                tty.msg("aborting (user request)", MessageType.ERROR)
-                break
-            target.metadata.update(match)
-
-            if (
-                is_subtitle(target.metadata.container)
-                and not target.metadata.language_sub
-            ):
-                if self.settings.batch:
-                    tty.msg(
-                        "skipping (subtitle language can't be detected)",
-                        MessageType.ALERT,
-                    )
-                    continue
-                try:
-                    target.metadata.language_sub = tty.subtitle_prompt()
-                except MnamerSkipException:
-                    tty.msg("skipping (user request)", MessageType.ALERT)
-                    continue
-                except MnamerAbortException:
-                    tty.msg("aborting (user request)", MessageType.ERROR)
-                    break
-
-            # sanity check move
-            if target.destination == target.source:
+        if is_subtitle(target.metadata.container) and not target.metadata.language_sub:
+            if self.settings.batch:
                 tty.msg(
-                    "skipping (source and destination paths are the same)",
+                    "skipping (subtitle language can't be detected)",
                     MessageType.ALERT,
                 )
-                continue
-            if self.settings.no_overwrite and target.destination.exists():
-                tty.msg("skipping (--no-overwrite)", MessageType.ALERT)
-                continue
+                return True
+            try:
+                target.metadata.language_sub = tty.subtitle_prompt()
+            except MnamerSkipException:
+                tty.msg("skipping (user request)", MessageType.ALERT)
+                return True
+            except MnamerAbortException:
+                tty.msg("aborting (user request)", MessageType.ERROR)
+                return False
 
-            self._rename_and_move_file(target)
+        if target.destination == target.source:
+            tty.msg(
+                "skipping (source and destination paths are the same)",
+                MessageType.ALERT,
+            )
+            return True
+        if self.settings.no_overwrite and target.destination.exists():
+            tty.msg("skipping (--no-overwrite)", MessageType.ALERT)
+            return True
+
+        self._rename_and_move_file(target)
+        return True
 
     def _announce_file(self, target: Target):
         media_type = target.metadata.to_media_type().value.title()
@@ -180,6 +189,10 @@ class Cli(Frontend):
             f"moving to {target.destination.absolute()}",
             MessageType.SUCCESS,
         )
+        destination = target.destination.resolve()
+        # Exclude before/whether the move succeeds so a live recursive crawl
+        # cannot pick up outputs written into the scanned tree.
+        self._exclude_paths.add(destination)
         if self.settings.test:
             self.success_count += 1
             return

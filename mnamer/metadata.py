@@ -46,6 +46,7 @@ class Metadata:
     language: Language | None = None
     language_sub: Language | None = None
     quality: str | None = None
+    resolution: str | None = None
     synopsis: str | None = None
 
     @classmethod
@@ -66,6 +67,7 @@ class Metadata:
             "language_sub": Language.parse,
             "media": MediaType,
             "quality": str.lower,
+            "resolution": str.lower,
             "synopsis": str.capitalize,
         }
         converter: Callable[[Any], Any] | None = converter_map.get(key)

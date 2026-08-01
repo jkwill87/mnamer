@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import datetime as dt
+import re
+import threading
+from collections.abc import Iterator
 from pathlib import Path
 from shutil import move
 from typing import Any, ClassVar, Self, override
@@ -9,6 +12,7 @@ from guessit import guessit  # type: ignore
 
 from mnamer.exceptions import MnamerException
 from mnamer.language import Language
+from mnamer.media_info import normalize_resolution_token, probe_resolution
 from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
 from mnamer.providers import Provider
 from mnamer.setting_store import SettingStore
@@ -22,6 +26,7 @@ from mnamer.utils import (
     str_replace,
     str_sanitize,
     str_scenify,
+    year_from_brackets,
 )
 
 
@@ -29,11 +34,13 @@ class Target:
     """Manages metadata state for a media file and facilitates its relocation."""
 
     _providers: ClassVar[dict[ProviderType, Provider[Any]]] = {}
+    _provider_lock: ClassVar[threading.Lock] = threading.Lock()
 
     _settings: SettingStore
     _provider: Provider[Any]
     _has_moved: bool
     _has_renamed: bool
+    _resolution_probed: bool
 
     source: Path
     metadata: Metadata
@@ -43,6 +50,7 @@ class Target:
         self._settings = settings or SettingStore()
         self._has_moved = False
         self._has_renamed = False
+        self._resolution_probed = False
         self._parse(file_path)
         self._replace_before()
         self._override_metadata_ids()
@@ -53,15 +61,48 @@ class Target:
         return str(self.source.resolve())
 
     @classmethod
-    def populate_paths(cls, settings: SettingStore) -> list[Self]:
-        """Creates a list of Target objects for media files found in paths."""
-        file_paths = crawl_in(settings.targets, settings.recurse)
+    def destination_skip_dirs(cls, settings: SettingStore) -> list[Path]:
+        """Concrete relocation roots that should not be crawled for new inputs."""
+        skip_dirs: list[Path] = []
+        for attr in ("movie_directory", "episode_directory"):
+            directory = getattr(settings, attr)
+            if directory is None:
+                continue
+            # Templated destinations (e.g. Movies/{name}) can't be pruned upfront.
+            if "{" in str(directory):
+                continue
+            skip_dirs.append(Path(directory))
+        return skip_dirs
+
+    @classmethod
+    def iter_paths(
+        cls,
+        settings: SettingStore,
+        exclude_paths: set[Path] | None = None,
+    ) -> Iterator[Self]:
+        """Yields Target objects as matching media files are discovered."""
+        exclude_paths = exclude_paths if exclude_paths is not None else set()
+        file_paths = crawl_in(
+            settings.targets,
+            settings.recurse,
+            exclude_paths=exclude_paths,
+            skip_dirs=cls.destination_skip_dirs(settings),
+        )
         file_paths = filter_blacklist(file_paths, settings.ignore)
         file_paths = filter_containers(file_paths, settings.mask)
-        targets = [cls(file_path, settings) for file_path in file_paths]
-        targets = list(dict.fromkeys(targets))  # unique values
-        targets = list(filter(cls._matches_media, targets))
-        return targets
+        seen: set[Path] = set()
+        for file_path in file_paths:
+            if file_path in seen or file_path in exclude_paths:
+                continue
+            seen.add(file_path)
+            target = cls(file_path, settings)
+            if cls._matches_media(target):
+                yield target
+
+    @classmethod
+    def populate_paths(cls, settings: SettingStore) -> list[Self]:
+        """Creates a list of Target objects for media files found in paths."""
+        return list(cls.iter_paths(settings))
 
     @classmethod
     def reset_providers(cls):
@@ -86,12 +127,68 @@ class Target:
         directory = getattr(self._settings, settings_key)
         return Path(directory) if directory else None
 
+    def needs_resolution(self, metadata: Metadata | None = None) -> bool:
+        """True when a configured format/directory template uses {resolution}."""
+        metadata = metadata or self.metadata
+        format_spec = self._settings.formatting_for(metadata)
+        directory = getattr(
+            self._settings, f"{metadata.to_media_type().value}_directory", None
+        )
+        return "{resolution}" in format_spec or (
+            directory is not None and "{resolution}" in str(directory)
+        )
+
+    def ensure_resolution(self) -> None:
+        """
+        Resolve ``metadata.resolution`` when needed for formatting.
+
+        Prefers a filename-derived screen size. Only probes the file (ffprobe)
+        when resolution is still unknown and a template requires it.
+        """
+        if self.metadata.resolution is not None or self._resolution_probed:
+            return
+        if not self.needs_resolution():
+            return
+        self._resolution_probed = True
+        self.metadata.resolution = probe_resolution(self.source)
+
     @property
     def destination(self) -> Path:
         """
         The destination Path for the target based on its metadata and user
         preferences.
         """
+        self.ensure_resolution()
+        return self._build_destination()
+
+    def destination_for(self, match: Metadata) -> Path:
+        """Destination path as if ``match`` were applied on top of this target."""
+        if match is self.metadata:
+            return self.destination
+        changed: dict[str, Any] = {}
+        for field in vars(self.metadata):
+            if field.startswith("_"):
+                continue
+            new_value = getattr(match, field, None)
+            if new_value is None:
+                continue
+            old_value = getattr(self.metadata, field)
+            if old_value == new_value:
+                continue
+            changed[field] = old_value
+            setattr(self.metadata, field, new_value)
+        try:
+            self.ensure_resolution()
+            return self._build_destination()
+        finally:
+            for field, old_value in changed.items():
+                object.__setattr__(self.metadata, field, old_value)
+
+    def preview_filename(self, match: Metadata) -> str:
+        """Filename that would result from selecting ``match``."""
+        return self.destination_for(match).name
+
+    def _build_destination(self) -> Path:
         if self.directory:
             dir_head = self._format_directory(self.directory)
         else:
@@ -152,16 +249,22 @@ class Target:
 
     def _parse(self, file_path: Path):
         path_data: dict[str, Any] = {"language": self._settings.language}
+        container = file_path.suffix or None
+        guess_path = file_path
         if is_subtitle(self.source):
-            try:
-                path_data["language"] = Language.parse(self.source.stem[-2:])
-                file_path = Path(self.source.parent, self.source.stem[:-2])
-            except MnamerException:
-                pass
-        options = {"type": self._settings.media, "language": path_data["language"]}
-        raw_data = dict(guessit(str(file_path), options))
+            container = self.source.suffix
+            guess_path = self._subtitle_guess_path(path_data)
+        # guessit expects type as a string ('movie'/'episode'); passing the
+        # MediaType enum makes it ignore the hint and mis-parse titles like
+        # "The 400 Blows" (400 → season/episode, title → "The").
+        media_hint = self._settings.media
+        options = {
+            "type": media_hint.value if media_hint else None,
+            "language": path_data["language"],
+        }
+        raw_data = dict(guessit(str(guess_path), options))
         if isinstance(raw_data.get("season"), list):
-            raw_data = dict(guessit(str(file_path.parts[-1]), options))
+            raw_data = dict(guessit(str(guess_path.parts[-1]), options))
         for k, v in raw_data.items():
             if hasattr(v, "alpha3"):
                 try:
@@ -200,11 +303,15 @@ class Target:
             )
             or None
         )
+        # Filename-derived resolution only; file probing is deferred until needed.
+        self.metadata.resolution = normalize_resolution_token(
+            path_data.get("screen_size")
+        )
         if self._settings.language:
             path_data["language"] = self._settings.language
         self.metadata.language = path_data.get("language")
         self.metadata.group = path_data.get("release_group")
-        self.metadata.container = file_path.suffix or None
+        self.metadata.container = container
         if not self.metadata.language:
             try:
                 self.metadata.language = path_data.get("language")
@@ -215,8 +322,9 @@ class Target:
         except MnamerException:
             pass
         if isinstance(self.metadata, MetadataMovie):
-            self.metadata.name = path_data.get("title")
-            self.metadata.year = path_data.get("year")
+            self.metadata.name, self.metadata.year = self._movie_name_and_year(
+                guess_path.name, path_data.get("title"), path_data.get("year")
+            )
         elif isinstance(self.metadata, MetadataEpisode):
             self.metadata.date = path_data.get("date")
             self.metadata.episode = path_data.get("episode")
@@ -225,10 +333,54 @@ class Target:
             alternative_title = path_data.get("alternative_title")
             if alternative_title:
                 self.metadata.series = f"{self.metadata.series} {alternative_title}"
-            # adding year to title can reduce false positives
-            # year = path_data.get("year")
-            # if year:
-            #     self.metadata.series = f"{self.metadata.series} {year}"
+
+    def _subtitle_guess_path(self, path_data: dict[str, Any]) -> Path:
+        """
+        Strip subtitle container and optional language code for title guessing.
+
+        ``Movie.en.srt`` → guess against ``Movie`` and set ``subtitle_language``.
+        ``Eng.srt`` → language from the whole stem; guess against the parent folder.
+        """
+        stem = self.source.stem
+        if "." in stem:
+            base, maybe_lang = stem.rsplit(".", 1)
+            try:
+                path_data["subtitle_language"] = Language.parse(maybe_lang)
+                return Path(self.source.parent, base)
+            except MnamerException:
+                return Path(self.source.parent, stem)
+        try:
+            path_data["subtitle_language"] = Language.parse(stem)
+            # Common layout: ``Movie Name (2001)/Eng.srt``
+            parent = self.source.parent
+            if parent.name:
+                return parent
+        except MnamerException:
+            pass
+        return Path(self.source.parent, stem)
+
+    @staticmethod
+    def _movie_name_and_year(
+        filename: str, title: str | None, guessed_year: int | str | None
+    ) -> tuple[str | None, str | None]:
+        """
+        Only treat a number as the release year when it appears in () or [].
+        Bare years (e.g. leading 2001 in "2001 A Space Odyssey") stay in the title.
+        """
+        bracket_year = year_from_brackets(filename)
+        if bracket_year is not None:
+            return title, str(bracket_year)
+        if guessed_year is None:
+            return title, None
+        year_str = str(guessed_year)
+        if title and year_str not in title:
+            # Prefer original token order from the filename stem.
+            stem = Path(filename).stem.replace(".", " ")
+            if re.search(rf"(?i)^\s*{year_str}\b", stem):
+                title = f"{year_str} {title}"
+            else:
+                title = f"{title} {year_str}"
+        return title, None
 
     def _override_metadata_ids(self):
         id_types = {"imdb", "tmdb", "tvdb", "tvmaze"}
@@ -243,11 +395,12 @@ class Target:
 
     def _register_provider(self) -> None:
         provider_type = self.provider_type
-        if provider_type and provider_type not in self._providers:
-            self._providers[provider_type] = Provider.provider_factory(
-                provider_type, self._settings
-            )
-        self._provider = self._providers[provider_type]
+        with self._provider_lock:
+            if provider_type and provider_type not in self._providers:
+                self._providers[provider_type] = Provider.provider_factory(
+                    provider_type, self._settings
+                )
+            self._provider = self._providers[provider_type]
 
     def _replace_before(self) -> None:
         if not self._settings.replace_before:
@@ -267,12 +420,12 @@ class Target:
             return []
         seen = set()
         response = []
-        for idx, result in enumerate(results, start=1):
+        for result in results:
             if str(result) in seen:
                 continue
             response.append(result)
             seen.add(str(result))
-            if idx >= self._settings.hits:
+            if len(response) >= self._settings.hits:
                 break
         return response
 

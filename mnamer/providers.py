@@ -39,12 +39,14 @@ class Provider[M: Metadata](ABC):
 
     api_key: str
     cache: bool = True
+    hits: int = 5
 
-    def __init__(self, api_key: str = "", cache: bool = True):
+    def __init__(self, api_key: str = "", cache: bool = True, hits: int = 5):
         """Initializes the provider."""
         if api_key:
             self.api_key = api_key
         self.cache = cache
+        self.hits = hits
 
     @classmethod
     def from_settings(cls, settings: SettingStore) -> Self:
@@ -52,7 +54,7 @@ class Provider[M: Metadata](ABC):
         api_field = f"api_key_{cls.__name__.lower()}"
         api_key = getattr(settings, api_field)
         cache = not settings.no_cache
-        return cls(api_key, cache)
+        return cls(api_key, cache, settings.hits)
 
     @abstractmethod
     def search(self, query: M) -> Iterator[M]:
@@ -104,8 +106,8 @@ class Omdb(Provider[MetadataMovie]):
 
     api_key: str = environ.get("API_KEY_OMDB", "477a7ebc")
 
-    def __init__(self, api_key: str = "", cache: bool = True):
-        super().__init__(api_key, cache)
+    def __init__(self, api_key: str = "", cache: bool = True, hits: int = 5):
+        super().__init__(api_key, cache, hits)
         assert self.api_key
 
     @override
@@ -177,8 +179,8 @@ class Tmdb(Provider[MetadataMovie]):
 
     api_key: str = environ.get("API_KEY_TMDB", "db972a607f2760bb19ff8bb34074b4c7")
 
-    def __init__(self, api_key: str = "", cache: bool = True):
-        super().__init__(api_key, cache)
+    def __init__(self, api_key: str = "", cache: bool = True, hits: int = 5):
+        super().__init__(api_key, cache, hits)
         assert self.api_key
 
     @override
@@ -256,8 +258,8 @@ class Tvdb(Provider[MetadataEpisode]):
     api_key: str = environ.get("API_KEY_TVDB", "E69C7A2CEF2F3152")
     token: str
 
-    def __init__(self, api_key: str = "", cache: bool = True):
-        super().__init__(api_key, cache)
+    def __init__(self, api_key: str = "", cache: bool = True, hits: int = 5):
+        super().__init__(api_key, cache, hits)
         assert self.api_key
         self.token = "" if self.cache else self._login()
 
@@ -344,7 +346,9 @@ class Tvdb(Provider[MetadataEpisode]):
             self.token, series, language=language, cache=self.cache
         )
 
-        for series_id in [str(entry["id"]) for entry in series_data["data"][:5]]:
+        for series_id in [
+            str(entry["id"]) for entry in series_data["data"][: self.hits]
+        ]:
             try:
                 for data in self._search_id(series_id, season, episode, language):
                     if not data.series or not data.season:
@@ -375,7 +379,7 @@ class Tvdb(Provider[MetadataEpisode]):
         series_data = tvdb_search_series(
             self.token, series, language=language, cache=self.cache
         )
-        tvdb_ids = [str(entry["id"]) for entry in series_data["data"][:5]]
+        tvdb_ids = [str(entry["id"]) for entry in series_data["data"][: self.hits]]
         found = False
         for tvdb_id in tvdb_ids:
             try:
@@ -478,7 +482,7 @@ class TvMaze(Provider[MetadataEpisode]):
         assert season
         series_data = tvmaze_show_search(series)
         for idx, search_entry in enumerate(series_data):
-            if idx >= 3:
+            if idx >= self.hits:
                 break
             series_entry = search_entry["show"]
             id_tvmaze = str(series_entry["id"])
@@ -499,7 +503,7 @@ class TvMaze(Provider[MetadataEpisode]):
         assert series
         series_data = tvmaze_show_search(series)
         for idx, search_entry in enumerate(series_data):
-            if idx >= 3:
+            if idx >= self.hits:
                 break
             series_entry = search_entry["show"]
             id_tvmaze = str(series_entry["id"])

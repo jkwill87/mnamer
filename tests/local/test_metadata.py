@@ -33,6 +33,12 @@ def test_metadata__convert_quality(value):
     assert metadata.quality == "test"
 
 
+@pytest.mark.parametrize("value", TEXT_CASES)
+def test_metadata__convert_resolution(value):
+    metadata = Metadata(resolution=value)
+    assert metadata.resolution == "test"
+
+
 def test_metadata__format():
     with pytest.raises(NotImplementedError):
         format(Metadata())

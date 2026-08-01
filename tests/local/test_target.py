@@ -8,6 +8,7 @@ from mnamer.metadata import MetadataEpisode, MetadataMovie
 from mnamer.setting_store import SettingStore
 from mnamer.target import Target
 from mnamer.types import MediaType
+from mnamer.utils import is_subtitle
 
 pytestmark = pytest.mark.local
 
@@ -15,6 +16,13 @@ pytestmark = pytest.mark.local
 def test_parse__media__movie():
     target = Target(Path("ninja turtles (1990).mkv"), SettingStore())
     assert target.metadata.to_media_type() is MediaType.MOVIE
+
+
+def test_parse__movie_keeps_number_in_title():
+    """MediaType enum must be passed to guessit as its string value."""
+    target = Target(Path("The 400 Blows.mkv"), SettingStore(media=MediaType.MOVIE))
+    assert isinstance(target.metadata, MetadataMovie)
+    assert target.metadata.name == "The 400 Blows"
 
 
 def test_parse__media__episode():
@@ -26,6 +34,57 @@ def test_parse__quality():
     file_path = Path("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mkv")
     target = Target(file_path, SettingStore())
     assert target.metadata.quality == "1080p dolby digital"
+
+
+def test_parse__resolution__from_filename():
+    file_path = Path("ninja.turtles.s01e04.1080p.ac3.rargb.sample.mkv")
+    target = Target(file_path, SettingStore())
+    assert target.metadata.resolution == "1080p"
+
+
+def test_parse__resolution__does_not_probe_during_init(mocker):
+    mock_probe = mocker.patch("mnamer.target.probe_resolution", return_value="2160p")
+    target = Target(
+        Path("2001 A Space Odyssey.mkv"), SettingStore(media=MediaType.MOVIE)
+    )
+    assert target.metadata.resolution is None
+    mock_probe.assert_not_called()
+
+
+def test_ensure_resolution__probes_lazily_when_needed(mocker, tmp_path):
+    media = tmp_path / "2001 A Space Odyssey.mkv"
+    media.write_bytes(b"fake")
+    mock_probe = mocker.patch("mnamer.target.probe_resolution", return_value="1080p")
+    target = Target(media, SettingStore(media=MediaType.MOVIE))
+    assert target.metadata.resolution is None
+    mock_probe.assert_not_called()
+
+    _ = target.destination
+    assert target.metadata.resolution == "1080p"
+    mock_probe.assert_called_once_with(media)
+
+
+def test_ensure_resolution__skips_probe_when_filename_has_resolution(mocker):
+    mock_probe = mocker.patch("mnamer.target.probe_resolution", return_value="2160p")
+    target = Target(
+        Path("movie.1080p.mkv"),
+        SettingStore(media=MediaType.MOVIE),
+    )
+    _ = target.destination
+    assert target.metadata.resolution == "1080p"
+    mock_probe.assert_not_called()
+
+
+def test_preview_filename__uses_match_and_format(mocker, tmp_path):
+    media = tmp_path / "2001 A Space Odyssey.mkv"
+    media.write_bytes(b"fake")
+    mocker.patch("mnamer.target.probe_resolution", return_value="1080p")
+    target = Target(media, SettingStore(media=MediaType.MOVIE, batch=True))
+    match = MetadataMovie(name="2001: A Space Odyssey", year="1968")
+    assert target.preview_filename(match) == "2001 a Space Odyssey (1968) [1080p].mkv"
+    # Original parse metadata should be restored
+    assert target.metadata.name == "2001 a Space Odyssey"
+    assert target.metadata.year is None
 
 
 def test_parse__group():
@@ -69,14 +128,45 @@ def test_parse__series():
 
 
 def test_parse__year():
-    file_path = Path("the.goonies.1985")
+    file_path = Path("the.goonies.(1985).mkv")
     target = Target(file_path, SettingStore())
     assert isinstance(target.metadata, MetadataMovie)
     assert target.metadata.year == 1985
 
 
+def test_parse__year__square_brackets():
+    file_path = Path("the.goonies.[1985].mkv")
+    target = Target(file_path, SettingStore())
+    assert isinstance(target.metadata, MetadataMovie)
+    assert target.metadata.year == 1985
+
+
+def test_parse__year__bare_number_kept_in_title():
+    file_path = Path("2001 A Space Odyssey.mkv")
+    target = Target(file_path, SettingStore(media=MediaType.MOVIE))
+    assert isinstance(target.metadata, MetadataMovie)
+    assert target.metadata.name == "2001 a Space Odyssey"
+    assert target.metadata.year is None
+
+
+def test_parse__year__title_year_with_bracketed_release():
+    file_path = Path("2001 A Space Odyssey (1968).mkv")
+    target = Target(file_path, SettingStore(media=MediaType.MOVIE))
+    assert isinstance(target.metadata, MetadataMovie)
+    assert target.metadata.name == "2001 a Space Odyssey"
+    assert target.metadata.year == 1968
+
+
+def test_parse__year__bare_trailing_year_ignored():
+    file_path = Path("the.goonies.1985.mkv")
+    target = Target(file_path, SettingStore())
+    assert isinstance(target.metadata, MetadataMovie)
+    assert target.metadata.year is None
+    assert target.metadata.name == "The Goonies 1985"
+
+
 def testparse__name():
-    file_path = Path("the.goonies.1985")
+    file_path = Path("the.goonies.(1985).mkv")
     target = Target(file_path, SettingStore())
     assert isinstance(target.metadata, MetadataMovie)
     assert target.metadata.name == "The Goonies"
@@ -110,6 +200,30 @@ def test_ambiguous_subtitle_language():
         Path("Subs/Nancy.Drew.S01E01.WEBRip.x264-ION10.srt"), SettingStore()
     )
     assert target.metadata.language is None
+    assert target.metadata.language_sub is None
+    assert target.metadata.container == ".srt"
+
+
+def test_parse__subtitle_language_code_in_filename():
+    target = Target(Path("Spirited Away.en.srt"), SettingStore(media=MediaType.MOVIE))
+    assert target.metadata.container == ".srt"
+    assert target.metadata.language_sub is not None
+    assert target.metadata.language_sub.a2 == "en"
+    assert target.metadata.name == "Spirited Away"
+    assert target.metadata.extension == ".en.srt"
+    assert is_subtitle(target.metadata.container)
+
+
+def test_parse__subtitle_language_stem_uses_parent_title():
+    target = Target(
+        Path("Spirited Away (2001)/Eng.srt"), SettingStore(media=MediaType.MOVIE)
+    )
+    assert target.metadata.container == ".srt"
+    assert target.metadata.language_sub is not None
+    assert target.metadata.language_sub.a2 == "en"
+    assert target.metadata.name == "Spirited Away"
+    assert target.metadata.year == 2001
+    assert target.metadata.extension == ".en.srt"
 
 
 def test_destination__simple():
@@ -246,8 +360,31 @@ def test_destination__same_directory_matches_source(tmp_path, monkeypatch):
     assert target.destination == target.source
 
 
-def test_query():
-    pass  # TODO
+def test_query(mocker):
+    Target.reset_providers()
+    settings = SettingStore(hits=2)
+    target = Target(Path("ninja turtles (1990).mkv"), settings)
+    matches = [
+        MetadataMovie(name="Teenage Mutant Ninja Turtles", year="1990"),
+        MetadataMovie(name="Teenage Mutant Ninja Turtles", year="1990"),  # duplicate
+        MetadataMovie(name="Ninja Turtles", year="2007"),
+        MetadataMovie(name="TMNT", year="2014"),
+    ]
+    mocker.patch.object(target._provider, "search", return_value=iter(matches))
+
+    results = target.query()
+
+    assert len(results) == 2
+    assert results[0].name == "Teenage Mutant Ninja Turtles"
+    assert results[1].name == "Ninja Turtles"
+
+
+def test_query__empty(mocker):
+    Target.reset_providers()
+    target = Target(Path("ninja turtles (1990).mkv"), SettingStore(hits=5))
+    mocker.patch.object(target._provider, "search", return_value=iter([]))
+
+    assert target.query() == []
 
 
 def test_relocate():

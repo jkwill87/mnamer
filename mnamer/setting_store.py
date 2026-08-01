@@ -146,6 +146,19 @@ class SettingStore:
             help="--no-overwrite: prevent relocation if it would overwrite a file",
         ).as_dict(),
     )
+    skip_correct: bool = dataclasses.field(
+        default=False,
+        metadata=SettingSpec(
+            action="store_true",
+            dest="skip_correct",
+            flags=["--skip_correct", "--skip-correct", "--skipcorrect"],
+            group=SettingType.PARAMETER,
+            help=(
+                "--skip-correct: skip when the current filename already matches "
+                "the top hit"
+            ),
+        ).as_dict(),
+    )
     no_style: bool = dataclasses.field(
         default=False,
         metadata=SettingSpec(
@@ -180,7 +193,7 @@ class SettingStore:
         ).as_dict(),
     )
     movie_format: str = dataclasses.field(
-        default="{name} ({year}).{extension}",
+        default="{name} ({year}) [{resolution}].{extension}",
         metadata=SettingSpec(
             dest="movie_format",
             flags=["--movie_format", "--movie-format", "--movieformat"],
