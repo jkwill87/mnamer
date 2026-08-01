@@ -116,8 +116,6 @@ class Cli(Frontend):
         try:
             if self.settings.batch:
                 match = matches[0] if matches else target.metadata
-            elif not matches:
-                match = tty.metadata_guess(target.metadata, target)
             else:
                 match = tty.metadata_prompt(matches, target)
         except MnamerSkipException:

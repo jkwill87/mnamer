@@ -65,6 +65,75 @@ def test_abort_helpers__no_style():
     assert helpers[1]._bracketed is True
 
 
+def test_edit_search_helper():
+    tty.no_style = False
+    helper = tty._edit_search_helper()
+    assert helper.label == "edit search"
+    assert isinstance(helper.value, tty.EditSearchAction)
+    assert helper.mnemonic == "e"
+
+
+def test_search_string_for_movie_and_episode():
+    from mnamer.metadata import MetadataEpisode, MetadataMovie
+
+    assert tty.search_string_for(MetadataMovie(name="The Matrix")) == "The Matrix"
+    assert tty.search_string_for(MetadataEpisode(series="Dark")) == "Dark"
+    assert tty.search_string_for(MetadataMovie()) == ""
+
+
+def test_apply_search_string__movie_clears_ids_and_parses_year():
+    from mnamer.metadata import MetadataMovie
+
+    metadata = MetadataMovie(
+        name="Wrong",
+        year="2001",
+        id_tmdb="1",
+        id_imdb="tt1",
+    )
+    tty.apply_search_string(metadata, "2001 A Space Odyssey (1968)")
+    assert metadata.name == "2001 a Space Odyssey"
+    assert metadata.year == 1968
+    assert metadata.id_tmdb is None
+    assert metadata.id_imdb is None
+
+
+def test_apply_search_string__episode_clears_ids():
+    from mnamer.metadata import MetadataEpisode
+
+    metadata = MetadataEpisode(series="Wrong", id_tvdb="1", id_tvmaze="2")
+    tty.apply_search_string(metadata, "Better Call Saul")
+    assert metadata.series == "Better Call Saul"
+    assert metadata.id_tvdb is None
+    assert metadata.id_tvmaze is None
+
+
+def test_prompt_with_prefill__fallback_keeps_default_on_empty(mocker):
+    mocker.patch.dict("sys.modules", {"readline": None})
+    mocker.patch("builtins.input", return_value="")
+    assert tty.prompt_with_prefill("search: ", "The Matrix") == "The Matrix"
+
+
+def test_prompt_with_prefill__fallback_uses_typed_value(mocker):
+    mocker.patch.dict("sys.modules", {"readline": None})
+    mocker.patch("builtins.input", return_value="Inception")
+    assert tty.prompt_with_prefill("search: ", "The Matrix") == "Inception"
+
+
+def test_prompt_with_prefill__readline_inserts_default(mocker):
+    import sys
+    import types
+
+    readline = types.SimpleNamespace(
+        insert_text=mocker.Mock(),
+        redisplay=mocker.Mock(),
+        set_pre_input_hook=mocker.Mock(),
+    )
+    mocker.patch.dict(sys.modules, {"readline": readline})
+    mocker.patch("builtins.input", return_value="edited")
+    assert tty.prompt_with_prefill("search: ", "default") == "edited"
+    readline.set_pre_input_hook.assert_called()
+
+
 def test_match_choice_helpers_two_columns(tmp_path, mocker):
     from mnamer.metadata import MetadataMovie
     from mnamer.setting_store import SettingStore
