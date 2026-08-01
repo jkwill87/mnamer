@@ -160,7 +160,7 @@ def test_parse_date__dash():
 @pytest.mark.usefixtures("setup_test_dir")
 def test_dir_crawl_in__files__none():
     expected = []
-    actual = crawl_in([Path(".", JUNK_TEXT)])
+    actual = list(crawl_in([Path(".", JUNK_TEXT)]))
     assert actual == expected
 
 
@@ -187,7 +187,7 @@ def test_dir_crawl_in__files__flat(setup_test_files):
         "scan001.tiff",
         "temp.zip",
     )
-    actual = crawl_in([Path.cwd()])
+    actual = list(crawl_in([Path.cwd()]))
     assert set(actual) == set(expected)
 
 
@@ -195,7 +195,7 @@ def test_dir_crawl_in__files__flat(setup_test_files):
 def test_dir_crawl_in__dirs__multiple(setup_test_files):
     setup_test_files(*TEST_FILES.keys())
     file_paths = [Path(filename) for filename in ("Desktop", "Downloads", "Images")]
-    actual = crawl_in(file_paths)
+    actual = list(crawl_in(file_paths))
     expected = paths_for(
         "Downloads/Return of the Jedi 1080p.mkv",
         "Downloads/archer.2009.s10e07.webrip.x264-lucidtv.mkv",
@@ -208,7 +208,7 @@ def test_dir_crawl_in__dirs__multiple(setup_test_files):
 @pytest.mark.usefixtures("setup_test_dir")
 def test_dir_crawl_in__dirs__recurse(setup_test_files):
     setup_test_files(*TEST_FILES.keys())
-    actual = crawl_in([Path.cwd()], recurse=True)
+    actual = list(crawl_in([Path.cwd()], recurse=True))
     expected = paths_for(*TEST_FILES.keys())
     assert set(actual) == set(expected)
 
@@ -306,7 +306,7 @@ def test_str_scenify__utf8_to_ascii():
 @pytest.mark.parametrize("sequence", ([], set(), ()))
 def test_filter_blacklist__filter_none(sequence):
     expected = FILTER_FILENAMES
-    actual = filter_blacklist(FILTER_FILENAMES, sequence)
+    actual = list(filter_blacklist(FILTER_FILENAMES, sequence))
     assert actual == expected
 
 
@@ -314,7 +314,7 @@ def test_filter_blacklist__filter_multiple_paths_single_pattern():
     expected = paths_except_for(
         "Images/Photos/DCM0001.jpg", "Images/Photos/DCM0002.jpg"
     )
-    actual = filter_blacklist(FILTER_FILENAMES, ["dcm"])
+    actual = list(filter_blacklist(FILTER_FILENAMES, ["dcm"]))
     assert actual == expected
 
 
@@ -324,7 +324,7 @@ def test_filter_blacklist__filter_multiple_paths_multiple_patterns():
         "Downloads/the.goonies.1985.sample.mp4",
         "Sample/the mandalorian s01x02.mp4",
     )
-    actual = filter_blacklist(FILTER_FILENAMES, ["temp", "sample"])
+    actual = list(filter_blacklist(FILTER_FILENAMES, ["temp", "sample"]))
     assert actual == expected
 
 
@@ -332,7 +332,7 @@ def test_filter_blacklist__filter_single_path_single_pattern():
     expected = paths_except_for(
         "Images/sample.file.mp4", "Sample/the mandalorian s01x02.mp4"
     )
-    actual = filter_blacklist(expected, ["sample"])
+    actual = list(filter_blacklist(expected, ["sample"]))
     assert actual == expected
 
 
@@ -340,7 +340,7 @@ def test_filter_blacklist__filter_single_path_multiple_patterns():
     expected = paths_except_for(
         "Images/sample.file.mp4", "Sample/the mandalorian s01x02.mp4"
     )
-    actual = filter_blacklist(expected, ["files", "sample"])
+    actual = list(filter_blacklist(expected, ["files", "sample"]))
     assert expected == actual
 
 
@@ -361,13 +361,13 @@ def test_filter_blacklist__regex():
         "made up movie.mp4",
         "made up show s01e10.mkv",
     )
-    actual = filter_blacklist(FILTER_FILENAMES, [pattern])
+    actual = list(filter_blacklist(FILTER_FILENAMES, [pattern]))
     assert actual == expected
 
 
 def test_filter_containers__filter_none():
     expected = FILTER_FILENAMES
-    actual = filter_containers(FILTER_FILENAMES, [])
+    actual = list(filter_containers(FILTER_FILENAMES, []))
     assert expected == actual
 
 
@@ -376,7 +376,7 @@ def test_filter_containers__filter_multiple_paths_single_pattern(
     containers: list[str],
 ):
     expected = paths_for("Images/Photos/DCM0001.jpg", "Images/Photos/DCM0002.jpg")
-    actual = filter_containers(FILTER_FILENAMES, containers)
+    actual = list(filter_containers(FILTER_FILENAMES, containers))
     assert expected == actual
 
 
@@ -394,7 +394,7 @@ def test_filter_containers__filter_multiple_paths_multi_pattern(
         "s.w.a.t.2017.s02e01.mkv",
         "temp.zip",
     )
-    actual = filter_containers(FILTER_FILENAMES, containers)
+    actual = list(filter_containers(FILTER_FILENAMES, containers))
     assert expected == actual
 
 
@@ -404,7 +404,7 @@ def test_filter_containers__filter_single_path_multi_pattern(
 ):
     filepaths = paths_for("Images/Skiing Trip.mp4")
     expected = filepaths
-    actual = filter_containers(filepaths, containers)
+    actual = list(filter_containers(filepaths, containers))
     assert expected == actual
 
 

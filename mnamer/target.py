@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 import re
+from collections.abc import Iterator
 from pathlib import Path
 from shutil import move
 from typing import Any, ClassVar, Self, override
@@ -37,6 +38,7 @@ class Target:
     _provider: Provider[Any]
     _has_moved: bool
     _has_renamed: bool
+    _resolution_probed: bool
 
     source: Path
     metadata: Metadata
@@ -46,6 +48,7 @@ class Target:
         self._settings = settings or SettingStore()
         self._has_moved = False
         self._has_renamed = False
+        self._resolution_probed = False
         self._parse(file_path)
         self._replace_before()
         self._override_metadata_ids()
@@ -56,15 +59,24 @@ class Target:
         return str(self.source.resolve())
 
     @classmethod
-    def populate_paths(cls, settings: SettingStore) -> list[Self]:
-        """Creates a list of Target objects for media files found in paths."""
+    def iter_paths(cls, settings: SettingStore) -> Iterator[Self]:
+        """Yields Target objects as matching media files are discovered."""
         file_paths = crawl_in(settings.targets, settings.recurse)
         file_paths = filter_blacklist(file_paths, settings.ignore)
         file_paths = filter_containers(file_paths, settings.mask)
-        targets = [cls(file_path, settings) for file_path in file_paths]
-        targets = list(dict.fromkeys(targets))  # unique values
-        targets = list(filter(cls._matches_media, targets))
-        return targets
+        seen: set[Path] = set()
+        for file_path in file_paths:
+            if file_path in seen:
+                continue
+            seen.add(file_path)
+            target = cls(file_path, settings)
+            if cls._matches_media(target):
+                yield target
+
+    @classmethod
+    def populate_paths(cls, settings: SettingStore) -> list[Self]:
+        """Creates a list of Target objects for media files found in paths."""
+        return list(cls.iter_paths(settings))
 
     @classmethod
     def reset_providers(cls):
@@ -89,12 +101,68 @@ class Target:
         directory = getattr(self._settings, settings_key)
         return Path(directory) if directory else None
 
+    def needs_resolution(self, metadata: Metadata | None = None) -> bool:
+        """True when a configured format/directory template uses {resolution}."""
+        metadata = metadata or self.metadata
+        format_spec = self._settings.formatting_for(metadata)
+        directory = getattr(
+            self._settings, f"{metadata.to_media_type().value}_directory", None
+        )
+        return "{resolution}" in format_spec or (
+            directory is not None and "{resolution}" in str(directory)
+        )
+
+    def ensure_resolution(self) -> None:
+        """
+        Resolve ``metadata.resolution`` when needed for formatting.
+
+        Prefers a filename-derived screen size. Only probes the file (ffprobe)
+        when resolution is still unknown and a template requires it.
+        """
+        if self.metadata.resolution is not None or self._resolution_probed:
+            return
+        if not self.needs_resolution():
+            return
+        self._resolution_probed = True
+        self.metadata.resolution = probe_resolution(self.source)
+
     @property
     def destination(self) -> Path:
         """
         The destination Path for the target based on its metadata and user
         preferences.
         """
+        self.ensure_resolution()
+        return self._build_destination()
+
+    def destination_for(self, match: Metadata) -> Path:
+        """Destination path as if ``match`` were applied on top of this target."""
+        if match is self.metadata:
+            return self.destination
+        changed: dict[str, Any] = {}
+        for field in vars(self.metadata):
+            if field.startswith("_"):
+                continue
+            new_value = getattr(match, field, None)
+            if new_value is None:
+                continue
+            old_value = getattr(self.metadata, field)
+            if old_value == new_value:
+                continue
+            changed[field] = old_value
+            setattr(self.metadata, field, new_value)
+        try:
+            self.ensure_resolution()
+            return self._build_destination()
+        finally:
+            for field, old_value in changed.items():
+                object.__setattr__(self.metadata, field, old_value)
+
+    def preview_filename(self, match: Metadata) -> str:
+        """Filename that would result from selecting ``match``."""
+        return self.destination_for(match).name
+
+    def _build_destination(self) -> Path:
         if self.directory:
             dir_head = self._format_directory(self.directory)
         else:
@@ -203,8 +271,9 @@ class Target:
             )
             or None
         )
-        self.metadata.resolution = probe_resolution(file_path) or (
-            normalize_resolution_token(path_data.get("screen_size"))
+        # Filename-derived resolution only; file probing is deferred until needed.
+        self.metadata.resolution = normalize_resolution_token(
+            path_data.get("screen_size")
         )
         if self._settings.language:
             path_data["language"] = self._settings.language
@@ -232,10 +301,6 @@ class Target:
             alternative_title = path_data.get("alternative_title")
             if alternative_title:
                 self.metadata.series = f"{self.metadata.series} {alternative_title}"
-            # adding year to title can reduce false positives
-            # year = path_data.get("year")
-            # if year:
-            #     self.metadata.series = f"{self.metadata.series} {year}"
 
     @staticmethod
     def _movie_name_and_year(

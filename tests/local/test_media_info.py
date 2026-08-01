@@ -42,15 +42,11 @@ def test_normalize_resolution_token(value, expected):
     assert normalize_resolution_token(value) == expected
 
 
-def test_probe_resolution__missing_file():
-    assert probe_resolution(Path("definitely-missing-video.mkv")) is None
-
-
 def test_probe_resolution__uses_ffprobe(mocker, tmp_path):
     media = tmp_path / "movie.mkv"
     media.write_bytes(b"fake")
     mocker.patch("mnamer.media_info.shutil.which", return_value="ffprobe")
-    mocker.patch(
+    mock_run = mocker.patch(
         "mnamer.media_info.subprocess.run",
         return_value=mocker.Mock(
             returncode=0,
@@ -59,6 +55,22 @@ def test_probe_resolution__uses_ffprobe(mocker, tmp_path):
     )
 
     assert probe_resolution(media) == "1080p"
+    assert mock_run.call_args.kwargs["timeout"] == 5
+
+
+def test_probe_resolution__skips_isfile_check(mocker):
+    mocker.patch("mnamer.media_info.shutil.which", return_value="ffprobe")
+    mock_is_file = mocker.patch.object(Path, "is_file")
+    mocker.patch(
+        "mnamer.media_info.subprocess.run",
+        return_value=mocker.Mock(
+            returncode=0,
+            stdout='{"streams":[{"width":1920,"height":1080}]}',
+        ),
+    )
+
+    assert probe_resolution(Path("/mnt/media/Movies/movie.mkv")) == "1080p"
+    mock_is_file.assert_not_called()
 
 
 def test_probe_resolution__ffprobe_missing(mocker, tmp_path):

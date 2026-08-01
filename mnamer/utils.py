@@ -33,21 +33,31 @@ def clear_cache():
     get_session().cache.clear()
 
 
-def crawl_in(file_paths: list[Path], recurse: bool = False) -> list[Path]:
-    """Looks for files amongst or within paths provided."""
-    found_files = set()
+def crawl_in(file_paths: list[Path], recurse: bool = False) -> Iterator[Path]:
+    """Yields media file paths amongst or within the paths provided.
+
+    Paths are yielded as soon as they are discovered (depth-first via os.walk)
+    instead of collecting the full tree first.
+    """
+    seen: set[Path] = set()
     for file_path in file_paths:
         if not file_path.exists():
             continue
         if file_path.is_file():
-            found_files.add(Path(file_path).absolute())
+            absolute = Path(file_path).absolute()
+            if absolute not in seen:
+                seen.add(absolute)
+                yield absolute
             continue
         for root, _dirs, files in walk(file_path):
             for file in files:
-                found_files.add(Path(root, file).absolute())
+                absolute = Path(root, file).absolute()
+                if absolute in seen:
+                    continue
+                seen.add(absolute)
+                yield absolute
             if not recurse:
                 break
-    return sorted(found_files)
 
 
 def crawl_out(filename: str | Path | PurePath) -> Path | None:
@@ -72,29 +82,29 @@ def filename_replace(filename: str, replacements: dict[str, str]) -> str:
     return base + container
 
 
-def filter_blacklist(paths: list[Path], blacklist: list[str]) -> list[Path]:
-    """Filters (set difference) paths by a collection of regex patterns."""
-    return [
-        path.absolute()
-        for path in paths
-        if not any(
-            re.search(pattern, str(path), re.IGNORECASE)
+def filter_blacklist(
+    paths: Iterable[Path], blacklist: list[str]
+) -> Iterator[Path]:
+    """Filters out paths matching any blacklist regex pattern."""
+    for path in paths:
+        absolute = path.absolute()
+        if any(
+            re.search(pattern, str(absolute), re.IGNORECASE)
             for pattern in blacklist
             if pattern
-        )
-    ]
+        ):
+            continue
+        yield absolute
 
 
 def filter_containers(
-    file_paths: list[Path], valid_containers: list[str]
-) -> list[Path]:
-    """Filters (set intersection) a collection of containers."""
+    file_paths: Iterable[Path], valid_containers: list[str]
+) -> Iterator[Path]:
+    """Keeps paths whose suffix is in valid_containers (or all if empty)."""
     valid_containers = normalize_containers(valid_containers)
-    return [
-        file_path
-        for file_path in file_paths
-        if not valid_containers or file_path.suffix.lower() in valid_containers
-    ]
+    for file_path in file_paths:
+        if not valid_containers or file_path.suffix.lower() in valid_containers:
+            yield file_path
 
 
 def findall(s: str, ss: str) -> Iterator[int]:

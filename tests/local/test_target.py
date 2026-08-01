@@ -34,20 +34,47 @@ def test_parse__resolution__from_filename():
     assert target.metadata.resolution == "1080p"
 
 
-def test_parse__resolution__from_file_probe(mocker, tmp_path):
+def test_parse__resolution__does_not_probe_during_init(mocker):
+    mock_probe = mocker.patch("mnamer.target.probe_resolution", return_value="2160p")
+    target = Target(Path("2001 A Space Odyssey.mkv"), SettingStore(media=MediaType.MOVIE))
+    assert target.metadata.resolution is None
+    mock_probe.assert_not_called()
+
+
+def test_ensure_resolution__probes_lazily_when_needed(mocker, tmp_path):
+    media = tmp_path / "2001 A Space Odyssey.mkv"
+    media.write_bytes(b"fake")
+    mock_probe = mocker.patch("mnamer.target.probe_resolution", return_value="1080p")
+    target = Target(media, SettingStore(media=MediaType.MOVIE))
+    assert target.metadata.resolution is None
+    mock_probe.assert_not_called()
+
+    _ = target.destination
+    assert target.metadata.resolution == "1080p"
+    mock_probe.assert_called_once_with(media)
+
+
+def test_ensure_resolution__skips_probe_when_filename_has_resolution(mocker):
+    mock_probe = mocker.patch("mnamer.target.probe_resolution", return_value="2160p")
+    target = Target(
+        Path("movie.1080p.mkv"),
+        SettingStore(media=MediaType.MOVIE),
+    )
+    _ = target.destination
+    assert target.metadata.resolution == "1080p"
+    mock_probe.assert_not_called()
+
+
+def test_preview_filename__uses_match_and_format(mocker, tmp_path):
     media = tmp_path / "2001 A Space Odyssey.mkv"
     media.write_bytes(b"fake")
     mocker.patch("mnamer.target.probe_resolution", return_value="1080p")
-    target = Target(media, SettingStore(media=MediaType.MOVIE))
-    assert target.metadata.resolution == "1080p"
-
-
-def test_destination__includes_resolution_from_probe(mocker, tmp_path):
-    media = tmp_path / "2001 A Space Odyssey (1968).mkv"
-    media.write_bytes(b"fake")
-    mocker.patch("mnamer.target.probe_resolution", return_value="1080p")
     target = Target(media, SettingStore(media=MediaType.MOVIE, batch=True))
-    assert target.destination.name == "2001 a Space Odyssey (1968) [1080p].mkv"
+    match = MetadataMovie(name="2001: A Space Odyssey", year="1968")
+    assert target.preview_filename(match) == "2001 a Space Odyssey (1968) [1080p].mkv"
+    # Original parse metadata should be restored
+    assert target.metadata.name == "2001 a Space Odyssey"
+    assert target.metadata.year is None
 
 
 def test_parse__group():

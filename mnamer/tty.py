@@ -13,6 +13,7 @@ from mnamer.exceptions import MnamerAbortException, MnamerException, MnamerSkipE
 from mnamer.language import Language
 from mnamer.metadata import Metadata
 from mnamer.setting_store import SettingStore
+from mnamer.target import Target
 from mnamer.types import MessageType
 from mnamer.utils import format_dict, format_exception, format_iter
 
@@ -58,6 +59,20 @@ def _msg_format(body: Any) -> str:
     return converter(body)
 
 
+def _match_choice_helpers(
+    matches: list[Metadata], target: Target
+) -> list[ChoiceHelper[Metadata]]:
+    """Build two-column choice labels: match title and destination filename."""
+    titles = [str(match) for match in matches]
+    width = max((len(title) for title in titles), default=0)
+    choices: list[ChoiceHelper[Metadata]] = []
+    for match, title in zip(matches, titles, strict=True):
+        preview = target.preview_filename(match)
+        label = f"{title.ljust(width)}  {preview}"
+        choices.append(ChoiceHelper(match, label))
+    return choices
+
+
 def configure(settings: SettingStore):
     """Sets class variables using a settings instance."""
     global verbose, no_style
@@ -82,19 +97,21 @@ def error(body: Any):
     msg(body, message_type=MessageType.ERROR, debug=False)
 
 
-def metadata_prompt(matches: list[Metadata]) -> Metadata:  # pragma: no cover
+def metadata_prompt(matches: list[Metadata], target: Target) -> Metadata:  # pragma: no cover
     """Prompts user to choose a match from a list of matches."""
     msg("select match")
-    selector = SelectOne([*matches, *_abort_helpers()], **_chars())
+    choices = [*_match_choice_helpers(matches, target), *_abort_helpers()]
+    selector = SelectOne(choices, **_chars())
     choice = selector.prompt()
     if isinstance(choice, MnamerAbortException | MnamerSkipException):
         raise choice
     return choice
 
 
-def metadata_guess(metadata: Metadata) -> Metadata:  # pragma: no cover
+def metadata_guess(metadata: Metadata, target: Target) -> Metadata:  # pragma: no cover
     """Prompts user to confirm a single match."""
-    label = str(metadata)
+    preview = target.preview_filename(metadata)
+    label = f"{metadata}  {preview}"
     if no_style:
         label += " (best guess)"
     else:

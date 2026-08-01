@@ -8,6 +8,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
+PROBE_TIMEOUT_SECONDS = 5
+
 
 def resolution_label(width: int | None, height: int | None) -> str | None:
     """
@@ -41,11 +43,9 @@ def probe_resolution(path: Path | str) -> str | None:
     """
     Detect video resolution from the file via ffprobe.
 
-    Returns None when ffprobe is unavailable, the path is missing, or probing fails.
+    Assumes ``path`` already refers to a media file discovered by the crawler.
+    Returns None when ffprobe is unavailable or probing fails.
     """
-    file_path = Path(path)
-    if not file_path.is_file():
-        return None
     ffprobe = shutil.which("ffprobe")
     if not ffprobe:
         return None
@@ -61,11 +61,11 @@ def probe_resolution(path: Path | str) -> str | None:
                 "stream=width,height",
                 "-of",
                 "json",
-                str(file_path),
+                str(path),
             ],
             capture_output=True,
             text=True,
-            timeout=30,
+            timeout=PROBE_TIMEOUT_SECONDS,
             check=False,
         )
     except (OSError, subprocess.TimeoutExpired):
