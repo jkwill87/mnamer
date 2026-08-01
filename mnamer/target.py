@@ -225,16 +225,15 @@ class Target:
 
     def _parse(self, file_path: Path):
         path_data: dict[str, Any] = {"language": self._settings.language}
+        container = file_path.suffix or None
+        guess_path = file_path
         if is_subtitle(self.source):
-            try:
-                path_data["language"] = Language.parse(self.source.stem[-2:])
-                file_path = Path(self.source.parent, self.source.stem[:-2])
-            except MnamerException:
-                pass
+            container = self.source.suffix
+            guess_path = self._subtitle_guess_path(path_data)
         options = {"type": self._settings.media, "language": path_data["language"]}
-        raw_data = dict(guessit(str(file_path), options))
+        raw_data = dict(guessit(str(guess_path), options))
         if isinstance(raw_data.get("season"), list):
-            raw_data = dict(guessit(str(file_path.parts[-1]), options))
+            raw_data = dict(guessit(str(guess_path.parts[-1]), options))
         for k, v in raw_data.items():
             if hasattr(v, "alpha3"):
                 try:
@@ -281,7 +280,7 @@ class Target:
             path_data["language"] = self._settings.language
         self.metadata.language = path_data.get("language")
         self.metadata.group = path_data.get("release_group")
-        self.metadata.container = file_path.suffix or None
+        self.metadata.container = container
         if not self.metadata.language:
             try:
                 self.metadata.language = path_data.get("language")
@@ -293,7 +292,7 @@ class Target:
             pass
         if isinstance(self.metadata, MetadataMovie):
             self.metadata.name, self.metadata.year = self._movie_name_and_year(
-                file_path.name, path_data.get("title"), path_data.get("year")
+                guess_path.name, path_data.get("title"), path_data.get("year")
             )
         elif isinstance(self.metadata, MetadataEpisode):
             self.metadata.date = path_data.get("date")
@@ -304,6 +303,30 @@ class Target:
             if alternative_title:
                 self.metadata.series = f"{self.metadata.series} {alternative_title}"
 
+    def _subtitle_guess_path(self, path_data: dict[str, Any]) -> Path:
+        """
+        Strip subtitle container and optional language code for title guessing.
+
+        ``Movie.en.srt`` → guess against ``Movie`` and set ``subtitle_language``.
+        ``Eng.srt`` → language from the whole stem; guess against the parent folder.
+        """
+        stem = self.source.stem
+        if "." in stem:
+            base, maybe_lang = stem.rsplit(".", 1)
+            try:
+                path_data["subtitle_language"] = Language.parse(maybe_lang)
+                return Path(self.source.parent, base)
+            except MnamerException:
+                return Path(self.source.parent, stem)
+        try:
+            path_data["subtitle_language"] = Language.parse(stem)
+            # Common layout: ``Movie Name (2001)/Eng.srt``
+            parent = self.source.parent
+            if parent.name:
+                return parent
+        except MnamerException:
+            pass
+        return Path(self.source.parent, stem)
     @staticmethod
     def _movie_name_and_year(
         filename: str, title: str | None, guessed_year: int | str | None

@@ -8,6 +8,7 @@ from mnamer.metadata import MetadataEpisode, MetadataMovie
 from mnamer.setting_store import SettingStore
 from mnamer.target import Target
 from mnamer.types import MediaType
+from mnamer.utils import is_subtitle
 
 pytestmark = pytest.mark.local
 
@@ -190,6 +191,32 @@ def test_ambiguous_subtitle_language():
         Path("Subs/Nancy.Drew.S01E01.WEBRip.x264-ION10.srt"), SettingStore()
     )
     assert target.metadata.language is None
+    assert target.metadata.language_sub is None
+    assert target.metadata.container == ".srt"
+
+
+def test_parse__subtitle_language_code_in_filename():
+    target = Target(
+        Path("Spirited Away.en.srt"), SettingStore(media=MediaType.MOVIE)
+    )
+    assert target.metadata.container == ".srt"
+    assert target.metadata.language_sub is not None
+    assert target.metadata.language_sub.a2 == "en"
+    assert target.metadata.name == "Spirited Away"
+    assert target.metadata.extension == ".en.srt"
+    assert is_subtitle(target.metadata.container)
+
+
+def test_parse__subtitle_language_stem_uses_parent_title():
+    target = Target(
+        Path("Spirited Away (2001)/Eng.srt"), SettingStore(media=MediaType.MOVIE)
+    )
+    assert target.metadata.container == ".srt"
+    assert target.metadata.language_sub is not None
+    assert target.metadata.language_sub.a2 == "en"
+    assert target.metadata.name == "Spirited Away"
+    assert target.metadata.year == 2001
+    assert target.metadata.extension == ".en.srt"
 
 
 def test_destination__simple():
