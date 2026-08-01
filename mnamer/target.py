@@ -358,6 +358,7 @@ class Target:
         except MnamerException:
             pass
         return Path(self.source.parent, stem)
+
     @staticmethod
     def _movie_name_and_year(
         filename: str, title: str | None, guessed_year: int | str | None

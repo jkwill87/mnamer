@@ -20,9 +20,7 @@ def test_parse__media__movie():
 
 def test_parse__movie_keeps_number_in_title():
     """MediaType enum must be passed to guessit as its string value."""
-    target = Target(
-        Path("The 400 Blows.mkv"), SettingStore(media=MediaType.MOVIE)
-    )
+    target = Target(Path("The 400 Blows.mkv"), SettingStore(media=MediaType.MOVIE))
     assert isinstance(target.metadata, MetadataMovie)
     assert target.metadata.name == "The 400 Blows"
 
@@ -46,7 +44,9 @@ def test_parse__resolution__from_filename():
 
 def test_parse__resolution__does_not_probe_during_init(mocker):
     mock_probe = mocker.patch("mnamer.target.probe_resolution", return_value="2160p")
-    target = Target(Path("2001 A Space Odyssey.mkv"), SettingStore(media=MediaType.MOVIE))
+    target = Target(
+        Path("2001 A Space Odyssey.mkv"), SettingStore(media=MediaType.MOVIE)
+    )
     assert target.metadata.resolution is None
     mock_probe.assert_not_called()
 
@@ -205,9 +205,7 @@ def test_ambiguous_subtitle_language():
 
 
 def test_parse__subtitle_language_code_in_filename():
-    target = Target(
-        Path("Spirited Away.en.srt"), SettingStore(media=MediaType.MOVIE)
-    )
+    target = Target(Path("Spirited Away.en.srt"), SettingStore(media=MediaType.MOVIE))
     assert target.metadata.container == ".srt"
     assert target.metadata.language_sub is not None
     assert target.metadata.language_sub.a2 == "en"

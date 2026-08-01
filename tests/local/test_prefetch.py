@@ -114,9 +114,7 @@ def test_process_prepared__uses_prefetched_matches(tmp_path):
     assert target.metadata.name == "Example Movie"
 
 
-def test_process_prepared__skip_correct_when_full_destination_matches(
-    tmp_path, mocker
-):
+def test_process_prepared__skip_correct_when_full_destination_matches(tmp_path, mocker):
     media = tmp_path / "Example Movie (1999).mkv"
     media.write_bytes(b"x")
     settings = SettingStore(

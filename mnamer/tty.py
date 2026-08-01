@@ -229,9 +229,7 @@ def metadata_prompt(  # pragma: no cover
         return choice
 
 
-def metadata_guess(
-    metadata: Metadata, target: Target
-) -> Metadata:  # pragma: no cover
+def metadata_guess(metadata: Metadata, target: Target) -> Metadata:  # pragma: no cover
     """Prompts user to confirm a single match (or edit the search string)."""
     del metadata  # search context comes from target.metadata
     return metadata_prompt([], target)

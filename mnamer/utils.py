@@ -101,9 +101,7 @@ def filename_replace(filename: str, replacements: dict[str, str]) -> str:
     return base + container
 
 
-def filter_blacklist(
-    paths: Iterable[Path], blacklist: list[str]
-) -> Iterator[Path]:
+def filter_blacklist(paths: Iterable[Path], blacklist: list[str]) -> Iterator[Path]:
     """Filters out paths matching any blacklist regex pattern."""
     for path in paths:
         absolute = path.absolute()

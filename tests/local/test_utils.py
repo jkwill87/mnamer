@@ -26,8 +26,8 @@ from mnamer.utils import (
     str_sanitize,
     str_scenify,
     str_title_case,
-    year_parse,
     year_from_brackets,
+    year_parse,
     year_range_parse,
 )
 from tests import JUNK_TEXT, MockRequestResponse
@@ -223,9 +223,7 @@ def test_crawl_in__skips_configured_destination_dirs(tmp_path):
     keep.write_bytes(b"x")
     skip.write_bytes(b"x")
 
-    actual = list(
-        crawl_in([tmp_path], recurse=True, skip_dirs=[library])
-    )
+    actual = list(crawl_in([tmp_path], recurse=True, skip_dirs=[library]))
     assert keep.absolute() in actual
     assert skip.absolute() not in actual
 

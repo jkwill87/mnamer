@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Iterator
 
 from mnamer.exceptions import MnamerNetworkException, MnamerNotFoundException
 from mnamer.metadata import Metadata

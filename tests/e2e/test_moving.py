@@ -38,7 +38,8 @@ def test_batch(e2e_run, setup_test_files):
 
 @pytest.mark.usefixtures("setup_test_dir")
 def test_lower(e2e_run, setup_test_files):
-    setup_test_files("aladdin.2019.avi")
+    # Bare years are kept in the title; use parentheses for a real year field.
+    setup_test_files("aladdin.(2019).avi")
     result = e2e_run("--batch", "--lower", ".")
     assert result.code == 0
     assert "aladdin (2019).avi" in result.out
@@ -46,7 +47,7 @@ def test_lower(e2e_run, setup_test_files):
 
 @pytest.mark.usefixtures("setup_test_dir")
 def test_scene(e2e_run, setup_test_files):
-    setup_test_files("aladdin.2019.avi")
+    setup_test_files("aladdin.(2019).avi")
     result = e2e_run("--batch", "--scene", ".")
     assert result.code == 0
     assert "aladdin.2019.avi" in result.out
@@ -179,7 +180,7 @@ def test_scene_directory(e2e_run, setup_test_files):
 @pytest.mark.omdb
 @pytest.mark.usefixtures("setup_test_dir")
 def test_format_id(e2e_run, setup_test_files):
-    setup_test_files("aladdin.1992.avi")
+    setup_test_files("aladdin.(1992).avi")
     result = e2e_run(
         "--batch",
         "--media=movie",
@@ -221,7 +222,7 @@ def test_format_season0(e2e_run, setup_test_files):
 
 @pytest.mark.usefixtures("setup_test_dir")
 def test_replace_after(e2e_run, setup_test_files):
-    setup_test_files("Pride & Prejudice 2005.ts")
+    setup_test_files("Pride & Prejudice (2005).ts")
     result = e2e_run("--batch", ".")
     assert result.code == 0
     assert "Pride and Prejudice (2005).ts" in result.out
