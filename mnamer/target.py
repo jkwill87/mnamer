@@ -362,14 +362,14 @@ class Target:
     @staticmethod
     def _movie_name_and_year(
         filename: str, title: str | None, guessed_year: int | str | None
-    ) -> tuple[str | None, int | None]:
+    ) -> tuple[str | None, str | None]:
         """
         Only treat a number as the release year when it appears in () or [].
         Bare years (e.g. leading 2001 in "2001 A Space Odyssey") stay in the title.
         """
         bracket_year = year_from_brackets(filename)
         if bracket_year is not None:
-            return title, bracket_year
+            return title, str(bracket_year)
         if guessed_year is None:
             return title, None
         year_str = str(guessed_year)

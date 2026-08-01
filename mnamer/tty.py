@@ -111,7 +111,7 @@ def apply_search_string(metadata: Metadata, text: str) -> None:
         metadata.id_tmdb = None
         metadata.id_imdb = None
         metadata.name = text or None
-        metadata.year = year
+        metadata.year = str(year) if year is not None else None
     elif isinstance(metadata, MetadataEpisode):
         metadata.id_tvdb = None
         metadata.id_tvmaze = None
