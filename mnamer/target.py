@@ -61,14 +61,38 @@ class Target:
         return str(self.source.resolve())
 
     @classmethod
-    def iter_paths(cls, settings: SettingStore) -> Iterator[Self]:
+    def destination_skip_dirs(cls, settings: SettingStore) -> list[Path]:
+        """Concrete relocation roots that should not be crawled for new inputs."""
+        skip_dirs: list[Path] = []
+        for attr in ("movie_directory", "episode_directory"):
+            directory = getattr(settings, attr)
+            if directory is None:
+                continue
+            # Templated destinations (e.g. Movies/{name}) can't be pruned upfront.
+            if "{" in str(directory):
+                continue
+            skip_dirs.append(Path(directory))
+        return skip_dirs
+
+    @classmethod
+    def iter_paths(
+        cls,
+        settings: SettingStore,
+        exclude_paths: set[Path] | None = None,
+    ) -> Iterator[Self]:
         """Yields Target objects as matching media files are discovered."""
-        file_paths = crawl_in(settings.targets, settings.recurse)
+        exclude_paths = exclude_paths if exclude_paths is not None else set()
+        file_paths = crawl_in(
+            settings.targets,
+            settings.recurse,
+            exclude_paths=exclude_paths,
+            skip_dirs=cls.destination_skip_dirs(settings),
+        )
         file_paths = filter_blacklist(file_paths, settings.ignore)
         file_paths = filter_containers(file_paths, settings.mask)
         seen: set[Path] = set()
         for file_path in file_paths:
-            if file_path in seen:
+            if file_path in seen or file_path in exclude_paths:
                 continue
             seen.add(file_path)
             target = cls(file_path, settings)

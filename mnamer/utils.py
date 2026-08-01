@@ -36,26 +36,42 @@ def clear_cache():
     get_session().cache.clear()
 
 
-def crawl_in(file_paths: list[Path], recurse: bool = False) -> Iterator[Path]:
+def crawl_in(
+    file_paths: list[Path],
+    recurse: bool = False,
+    exclude_paths: set[Path] | None = None,
+    skip_dirs: Iterable[Path] | None = None,
+) -> Iterator[Path]:
     """Yields media file paths amongst or within the paths provided.
 
     Paths are yielded as soon as they are discovered (depth-first via os.walk)
     instead of collecting the full tree first.
+
+    ``exclude_paths`` is consulted live (so callers can add relocated outputs
+    mid-walk). ``skip_dirs`` prevents descending into known destination roots.
     """
     seen: set[Path] = set()
+    exclude_paths = exclude_paths if exclude_paths is not None else set()
+    skip_dirs_abs = {Path(path).absolute() for path in (skip_dirs or [])}
     for file_path in file_paths:
         if not file_path.exists():
             continue
         if file_path.is_file():
             absolute = Path(file_path).absolute()
-            if absolute not in seen:
+            if absolute not in seen and absolute not in exclude_paths:
                 seen.add(absolute)
                 yield absolute
             continue
-        for root, _dirs, files in walk(file_path):
+        for root, dirs, files in walk(file_path):
+            if skip_dirs_abs:
+                dirs[:] = [
+                    name
+                    for name in dirs
+                    if Path(root, name).absolute() not in skip_dirs_abs
+                ]
             for file in files:
                 absolute = Path(root, file).absolute()
-                if absolute in seen:
+                if absolute in seen or absolute in exclude_paths:
                     continue
                 seen.add(absolute)
                 yield absolute

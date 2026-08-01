@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import override
 
 from mnamer import tty
@@ -63,6 +64,7 @@ class Frontend(ABC):
 class Cli(Frontend):
     success_count: int
     total_count: int
+    _exclude_paths: set[Path]
 
     def __init__(self, settings: SettingStore):
         super().__init__(settings)
@@ -71,11 +73,17 @@ class Cli(Frontend):
             raise SystemExit(2)
         self.success_count = 0
         self.total_count = 0
+        self._exclude_paths = set()
 
     @override
     def launch(self) -> None:
         tty.msg("Starting mnamer", MessageType.HEADING)
-        with TargetLookahead(Target.iter_paths(self.settings)) as lookahead:
+        # Mutable set consulted by the live crawl so relocated outputs are not
+        # rediscovered later in the same recursive walk.
+        self._exclude_paths = set()
+        with TargetLookahead(
+            Target.iter_paths(self.settings, self._exclude_paths)
+        ) as lookahead:
             prepared = lookahead.prime()
             if prepared is None:
                 tty.msg("", debug=True)
@@ -106,7 +114,7 @@ class Cli(Frontend):
         if (
             self.settings.skip_correct
             and matches
-            and target.preview_filename(matches[0]) == target.source.name
+            and target.destination_for(matches[0]) == target.source.resolve()
         ):
             tty.msg(
                 "skipping (--skip-correct, already matches top hit)",
@@ -181,6 +189,10 @@ class Cli(Frontend):
             f"moving to {target.destination.absolute()}",
             MessageType.SUCCESS,
         )
+        destination = target.destination.resolve()
+        # Exclude before/whether the move succeeds so a live recursive crawl
+        # cannot pick up outputs written into the scanned tree.
+        self._exclude_paths.add(destination)
         if self.settings.test:
             self.success_count += 1
             return

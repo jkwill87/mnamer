@@ -213,6 +213,41 @@ def test_dir_crawl_in__dirs__recurse(setup_test_files):
     assert set(actual) == set(expected)
 
 
+def test_crawl_in__skips_configured_destination_dirs(tmp_path):
+    incoming = tmp_path / "incoming"
+    library = tmp_path / "Movies"
+    incoming.mkdir()
+    library.mkdir()
+    keep = incoming / "keep.mkv"
+    skip = library / "already.mkv"
+    keep.write_bytes(b"x")
+    skip.write_bytes(b"x")
+
+    actual = list(
+        crawl_in([tmp_path], recurse=True, skip_dirs=[library])
+    )
+    assert keep.absolute() in actual
+    assert skip.absolute() not in actual
+
+
+def test_crawl_in__exclude_paths_consulted_live(tmp_path):
+    first = tmp_path / "first.mkv"
+    second = tmp_path / "nested" / "second.mkv"
+    second.parent.mkdir()
+    first.write_bytes(b"x")
+    second.write_bytes(b"x")
+    exclude: set[Path] = set()
+
+    yielded: list[Path] = []
+    for path in crawl_in([tmp_path], recurse=True, exclude_paths=exclude):
+        yielded.append(path)
+        if path == first.absolute():
+            exclude.add(second.absolute())
+
+    assert first.absolute() in yielded
+    assert second.absolute() not in yielded
+
+
 @pytest.mark.usefixtures("setup_test_dir")
 def test_test_crawl_out__walking(setup_test_files):
     setup_test_files(*TEST_FILES.keys())

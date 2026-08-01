@@ -114,7 +114,7 @@ def test_process_prepared__uses_prefetched_matches(tmp_path):
     assert target.metadata.name == "Example Movie"
 
 
-def test_process_prepared__skip_correct_when_filename_matches_top_hit(
+def test_process_prepared__skip_correct_when_full_destination_matches(
     tmp_path, mocker
 ):
     media = tmp_path / "Example Movie (1999).mkv"
@@ -134,6 +134,33 @@ def test_process_prepared__skip_correct_when_filename_matches_top_hit(
     assert cli._process_prepared(prepared) is True
     assert cli.success_count == 0
     prompt.assert_not_called()
+
+
+def test_process_prepared__skip_correct_does_not_skip_when_directory_differs(
+    tmp_path, mocker
+):
+    """Same basename in the wrong folder should still be relocated."""
+    media = tmp_path / "incoming" / "Example Movie (1999).mkv"
+    media.parent.mkdir()
+    media.write_bytes(b"x")
+    library = tmp_path / "Movies"
+    settings = SettingStore(
+        targets=[media],
+        media=MediaType.MOVIE,
+        skip_correct=True,
+        batch=True,
+        test=True,
+        movie_directory=library,
+        movie_format="{name} ({year}).{extension}",
+    )
+    target = Target(media, settings)
+    match = MetadataMovie(name="Example Movie", year="1999")
+    prepared = PreparedTarget(target=target, matches=[match])
+
+    cli = Cli(settings)
+    assert cli._process_prepared(prepared) is True
+    assert cli.success_count == 1
+    assert target.destination_for(match) != media.resolve()
 
 
 def test_process_prepared__skip_correct_does_not_skip_when_names_differ(

@@ -185,3 +185,25 @@ def test_iter_paths_streams_as_discovered(tmp_path):
             # First file is available before the full tree is necessarily finished.
             assert yielded[0] in {"first.mkv", "second.mkv"}
     assert set(yielded) == {"first.mkv", "second.mkv"}
+
+
+def test_iter_paths__skips_concrete_movie_directory(tmp_path):
+    from mnamer.setting_store import SettingStore
+    from mnamer.target import Target
+    from mnamer.types import MediaType
+
+    library = tmp_path / "Movies"
+    library.mkdir()
+    keep = tmp_path / "keep.mkv"
+    skip = library / "skip.mkv"
+    keep.write_bytes(b"x")
+    skip.write_bytes(b"x")
+    settings = SettingStore(
+        targets=[tmp_path],
+        recurse=True,
+        media=MediaType.MOVIE,
+        mask=[".mkv"],
+        movie_directory=library,
+    )
+    yielded = [target.source.name for target in Target.iter_paths(settings)]
+    assert yielded == ["keep.mkv"]
