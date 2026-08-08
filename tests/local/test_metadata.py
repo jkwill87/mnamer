@@ -60,6 +60,18 @@ def test_metadata_episode__convert_episode():
     assert metadata.episode == 1
 
 
+def test_metadata_episode__id_tmdb():
+    metadata = MetadataEpisode(id_tmdb="1402")
+    assert metadata.id_tmdb == "1402"
+
+
+def test_metadata_episode__id_fields_default_none():
+    metadata = MetadataEpisode()
+    assert metadata.id_tmdb is None
+    assert metadata.id_tvdb is None
+    assert metadata.id_tvmaze is None
+
+
 def test_metadata_episode__format_default():
     metadata = MetadataEpisode(series="Spongebob Squarepants", season=4, episode=4)
     actual = format(metadata)

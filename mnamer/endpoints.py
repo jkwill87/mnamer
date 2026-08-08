@@ -69,6 +69,45 @@ class TmdbSearchResponse(TypedDict):
     total_results: int
 
 
+class TmdbTvSearchEntry(TypedDict):
+    id: int
+    name: str
+    original_name: NotRequired[str]
+    overview: NotRequired[str]
+    first_air_date: NotRequired[str]
+
+
+class TmdbTvSearchResponse(TypedDict):
+    results: list[TmdbTvSearchEntry]
+    total_pages: int
+    total_results: int
+
+
+class TmdbTvShowResponse(TypedDict):
+    id: int
+    name: str
+    original_name: NotRequired[str]
+    overview: NotRequired[str]
+    first_air_date: NotRequired[str]
+    number_of_seasons: NotRequired[int]
+    seasons: NotRequired[list[dict[str, Any]]]
+
+
+class TmdbTvEpisodeResponse(TypedDict):
+    id: int
+    episode_number: int
+    season_number: int
+    name: NotRequired[str]
+    overview: NotRequired[str]
+    air_date: NotRequired[str]
+
+
+class TmdbTvSeasonResponse(TypedDict):
+    id: int
+    season_number: int
+    episodes: list[TmdbTvEpisodeResponse]
+
+
 class TvdbLinks(TypedDict):
     last: int
     next: int | None
@@ -313,6 +352,113 @@ def tmdb_search_movies(
     elif not content.get("total_results"):
         raise MnamerNotFoundException
     return cast(TmdbSearchResponse, content)
+
+
+def tmdb_search_tv(
+    api_key: str,
+    query: str,
+    first_air_date_year: int | str | None = None,
+    language: Language | None = None,
+    page: int = 1,
+    cache: bool = True,
+) -> TmdbTvSearchResponse:
+    """
+    Search for TV shows using The Movie Database.
+
+    Online docs: developers.themoviedb.org/3/search/search-tv-shows.
+    """
+    url = "https://api.themoviedb.org/3/search/tv"
+    parameters: dict[str, Any] = {
+        "api_key": api_key,
+        "query": query,
+        "page": page,
+        "language": language,
+        "first_air_date_year": first_air_date_year,
+    }
+    status, content = request_json(url, parameters, cache=cache)
+    content = normalize_keys(content)
+    if status == 401:
+        raise MnamerException("invalid API key")
+    elif status != 200 or not any(content.keys()):  # pragma: no cover
+        raise MnamerNetworkException("TMDb down or unavailable?")
+    elif not content.get("total_results"):
+        raise MnamerNotFoundException
+    return cast(TmdbTvSearchResponse, content)
+
+
+def tmdb_tv(
+    api_key: str,
+    id_tmdb: str,
+    language: Language | None = None,
+    cache: bool = True,
+) -> TmdbTvShowResponse:
+    """
+    Lookup a TV show using The Movie Database.
+
+    Online docs: developers.themoviedb.org/3/tv/get-tv-details.
+    """
+    url = f"https://api.themoviedb.org/3/tv/{id_tmdb}"
+    parameters: dict[str, Any] = {"api_key": api_key, "language": language}
+    status, content = request_json(url, parameters, cache=cache)
+    content = normalize_keys(content)
+    if status == 401:
+        raise MnamerException("invalid API key")
+    elif status == 404:
+        raise MnamerNotFoundException
+    elif status != 200 or not any(content.keys()):  # pragma: no cover
+        raise MnamerNetworkException("TMDb down or unavailable?")
+    return cast(TmdbTvShowResponse, content)
+
+
+def tmdb_tv_season(
+    api_key: str,
+    id_tmdb: str,
+    season: int,
+    language: Language | None = None,
+    cache: bool = True,
+) -> TmdbTvSeasonResponse:
+    """
+    Lookup all episodes for a given season of a TV show.
+
+    Online docs: developers.themoviedb.org/3/tv-seasons/get-tv-season-details.
+    """
+    url = f"https://api.themoviedb.org/3/tv/{id_tmdb}/season/{season}"
+    parameters: dict[str, Any] = {"api_key": api_key, "language": language}
+    status, content = request_json(url, parameters, cache=cache)
+    content = normalize_keys(content)
+    if status == 401:
+        raise MnamerException("invalid API key")
+    elif status == 404:
+        raise MnamerNotFoundException
+    elif status != 200 or not any(content.keys()):  # pragma: no cover
+        raise MnamerNetworkException("TMDb down or unavailable?")
+    return cast(TmdbTvSeasonResponse, content)
+
+
+def tmdb_tv_episode(
+    api_key: str,
+    id_tmdb: str,
+    season: int,
+    episode: int,
+    language: Language | None = None,
+    cache: bool = True,
+) -> TmdbTvEpisodeResponse:
+    """
+    Lookup a single episode of a TV show.
+
+    Online docs: developers.themoviedb.org/3/tv-episodes/get-tv-episode-details.
+    """
+    url = f"https://api.themoviedb.org/3/tv/{id_tmdb}/season/{season}/episode/{episode}"
+    parameters: dict[str, Any] = {"api_key": api_key, "language": language}
+    status, content = request_json(url, parameters, cache=cache)
+    content = normalize_keys(content)
+    if status == 401:
+        raise MnamerException("invalid API key")
+    elif status == 404:
+        raise MnamerNotFoundException
+    elif status != 200 or not any(content.keys()):  # pragma: no cover
+        raise MnamerNetworkException("TMDb down or unavailable?")
+    return cast(TmdbTvEpisodeResponse, content)
 
 
 def tvdb_login(api_key: str) -> str:

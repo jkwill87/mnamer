@@ -28,7 +28,7 @@ from mnamer.utils import (
 class Target:
     """Manages metadata state for a media file and facilitates its relocation."""
 
-    _providers: ClassVar[dict[ProviderType, Provider[Any]]] = {}
+    _providers: ClassVar[dict[tuple[ProviderType, MediaType], Provider[Any]]] = {}
 
     _settings: SettingStore
     _provider: Provider[Any]
@@ -243,11 +243,13 @@ class Target:
 
     def _register_provider(self) -> None:
         provider_type = self.provider_type
-        if provider_type and provider_type not in self._providers:
-            self._providers[provider_type] = Provider.provider_factory(
-                provider_type, self._settings
+        media_type = self.metadata.to_media_type()
+        cache_key = (provider_type, media_type)
+        if cache_key not in self._providers:
+            self._providers[cache_key] = Provider.provider_factory(
+                provider_type, media_type, self._settings
             )
-        self._provider = self._providers[provider_type]
+        self._provider = self._providers[cache_key]
 
     def _replace_before(self) -> None:
         if not self._settings.replace_before:

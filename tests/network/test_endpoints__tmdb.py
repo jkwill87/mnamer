@@ -1,6 +1,14 @@
 import pytest
 
-from mnamer.endpoints import tmdb_find, tmdb_movies, tmdb_search_movies
+from mnamer.endpoints import (
+    tmdb_find,
+    tmdb_movies,
+    tmdb_search_movies,
+    tmdb_search_tv,
+    tmdb_tv,
+    tmdb_tv_episode,
+    tmdb_tv_season,
+)
 from mnamer.exceptions import MnamerException, MnamerNotFoundException
 from mnamer.providers import Tmdb
 from tests import JUNK_TEXT, RUSSIAN_LANG, assert_has_keys
@@ -14,6 +22,8 @@ pytestmark = [
 GOONIES_IMDB_ID = "tt0089218"
 GOONIES_TMDB_ID = "9340"
 JUNK_IMDB_ID = "tt1234567890"
+
+WALKING_DEAD_TMDB_ID = "1402"
 
 
 def test_tmdb_find__imdb_success():
@@ -175,3 +185,74 @@ def test_tmdb_search_movies__bad_title():
 def test_search_movies__language():
     results = tmdb_search_movies(Tmdb.api_key, "the goonies", language=RUSSIAN_LANG)
     assert any(result["title"] == "Балбесы" for result in results["results"])
+
+
+def test_tmdb_search_tv__success():
+    result = tmdb_search_tv(Tmdb.api_key, "the walking dead")
+    assert isinstance(result, dict)
+    assert_has_keys(result, {"page", "results", "total_pages", "total_results"})
+    assert isinstance(result["results"], list)
+    assert any(str(entry["id"]) == WALKING_DEAD_TMDB_ID for entry in result["results"])
+
+
+def test_tmdb_search_tv__bad_api_key():
+    with pytest.raises(MnamerException):
+        tmdb_search_tv(JUNK_TEXT, "the walking dead", cache=False)
+
+
+def test_tmdb_search_tv__not_found():
+    with pytest.raises(MnamerNotFoundException):
+        tmdb_search_tv(Tmdb.api_key, JUNK_TEXT, cache=False)
+
+
+def test_tmdb_tv__success():
+    result = tmdb_tv(Tmdb.api_key, WALKING_DEAD_TMDB_ID)
+    assert isinstance(result, dict)
+    assert_has_keys(result, {"id", "name", "number_of_seasons", "seasons"})
+    assert result["name"] == "The Walking Dead"
+
+
+def test_tmdb_tv__not_found():
+    with pytest.raises(MnamerNotFoundException):
+        tmdb_tv(Tmdb.api_key, "1" * 12)
+
+
+def test_tmdb_tv__bad_api_key():
+    with pytest.raises(MnamerException):
+        tmdb_tv(JUNK_TEXT, WALKING_DEAD_TMDB_ID, cache=False)
+
+
+def test_tmdb_tv_season__success():
+    result = tmdb_tv_season(Tmdb.api_key, WALKING_DEAD_TMDB_ID, 1)
+    assert isinstance(result, dict)
+    assert_has_keys(result, {"id", "season_number", "episodes"})
+    assert result["season_number"] == 1
+    assert isinstance(result["episodes"], list)
+    assert result["episodes"]
+    assert_has_keys(
+        result["episodes"][0],
+        {"id", "episode_number", "season_number", "name", "air_date"},
+    )
+
+
+def test_tmdb_tv_season__not_found():
+    with pytest.raises(MnamerNotFoundException):
+        tmdb_tv_season(Tmdb.api_key, WALKING_DEAD_TMDB_ID, 999)
+
+
+def test_tmdb_tv_episode__success():
+    result = tmdb_tv_episode(Tmdb.api_key, WALKING_DEAD_TMDB_ID, 1, 1)
+    assert isinstance(result, dict)
+    assert_has_keys(result, {"id", "name", "episode_number", "season_number"})
+    assert result["episode_number"] == 1
+    assert result["season_number"] == 1
+
+
+def test_tmdb_tv_episode__not_found():
+    with pytest.raises(MnamerNotFoundException):
+        tmdb_tv_episode(Tmdb.api_key, WALKING_DEAD_TMDB_ID, 999, 999)
+
+
+def test_tmdb_tv__language():
+    result = tmdb_tv(Tmdb.api_key, WALKING_DEAD_TMDB_ID, RUSSIAN_LANG)
+    assert result.get("name") == "Ходячие мертвецы"

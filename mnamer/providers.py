@@ -9,12 +9,18 @@ from os import environ
 from typing import Literal, Self, overload, override
 
 from mnamer.endpoints import (
+    TmdbTvEpisodeResponse,
+    TmdbTvShowResponse,
     TvMazeEpisode,
     TvMazeShow,
     omdb_search,
     omdb_title,
     tmdb_movies,
     tmdb_search_movies,
+    tmdb_search_tv,
+    tmdb_tv,
+    tmdb_tv_episode,
+    tmdb_tv_season,
     tvdb_login,
     tvdb_search_series,
     tvdb_series_id,
@@ -61,42 +67,63 @@ class Provider[M: Metadata](ABC):
     @overload
     @staticmethod
     def provider_factory(
-        provider: Literal[ProviderType.OMDB], settings: SettingStore
+        provider: Literal[ProviderType.OMDB],
+        media_type: Literal[MediaType.MOVIE],
+        settings: SettingStore,
     ) -> Omdb: ...
     @overload
     @staticmethod
     def provider_factory(
-        provider: Literal[ProviderType.TMDB], settings: SettingStore
+        provider: Literal[ProviderType.TMDB],
+        media_type: Literal[MediaType.MOVIE],
+        settings: SettingStore,
     ) -> Tmdb: ...
     @overload
     @staticmethod
     def provider_factory(
-        provider: Literal[ProviderType.TVDB], settings: SettingStore
+        provider: Literal[ProviderType.TMDB],
+        media_type: Literal[MediaType.EPISODE],
+        settings: SettingStore,
+    ) -> TmdbEpisodes: ...
+    @overload
+    @staticmethod
+    def provider_factory(
+        provider: Literal[ProviderType.TVDB],
+        media_type: Literal[MediaType.EPISODE],
+        settings: SettingStore,
     ) -> Tvdb: ...
     @overload
     @staticmethod
     def provider_factory(
-        provider: Literal[ProviderType.TVMAZE], settings: SettingStore
+        provider: Literal[ProviderType.TVMAZE],
+        media_type: Literal[MediaType.EPISODE],
+        settings: SettingStore,
     ) -> TvMaze: ...
     @overload
     @staticmethod
     def provider_factory(
-        provider: ProviderType, settings: SettingStore
-    ) -> Omdb | Tmdb | Tvdb | TvMaze: ...
+        provider: ProviderType, media_type: MediaType, settings: SettingStore
+    ) -> Omdb | Tmdb | TmdbEpisodes | Tvdb | TvMaze: ...
     @staticmethod
     def provider_factory(
-        provider: ProviderType, settings: SettingStore
-    ) -> Omdb | Tmdb | Tvdb | TvMaze:
-        """Factory function for DB Provider concrete classes."""
+        provider: ProviderType, media_type: MediaType, settings: SettingStore
+    ) -> Omdb | Tmdb | TmdbEpisodes | Tvdb | TvMaze:
+        """Factory function for DB Provider concrete classes.
+
+        Dispatched on (provider, media_type) so that the shared ProviderType.TMDB
+        resolves to Tmdb for movies and TmdbEpisodes for TV episodes.
+        """
         provider_classes: dict[
-            ProviderType, type[Omdb] | type[Tmdb] | type[Tvdb] | type[TvMaze]
+            tuple[ProviderType, MediaType],
+            type[Omdb] | type[Tmdb] | type[TmdbEpisodes] | type[Tvdb] | type[TvMaze],
         ] = {
-            ProviderType.TMDB: Tmdb,
-            ProviderType.TVDB: Tvdb,
-            ProviderType.TVMAZE: TvMaze,
-            ProviderType.OMDB: Omdb,
+            (ProviderType.OMDB, MediaType.MOVIE): Omdb,
+            (ProviderType.TMDB, MediaType.MOVIE): Tmdb,
+            (ProviderType.TMDB, MediaType.EPISODE): TmdbEpisodes,
+            (ProviderType.TVDB, MediaType.EPISODE): Tvdb,
+            (ProviderType.TVMAZE, MediaType.EPISODE): TvMaze,
         }
-        return provider_classes[provider].from_settings(settings)
+        return provider_classes[(provider, media_type)].from_settings(settings)
 
 
 class Omdb(Provider[MetadataMovie]):
@@ -248,6 +275,197 @@ class Tmdb(Provider[MetadataMovie]):
             page += 1
         if not found:
             raise MnamerNotFoundException
+
+
+class TmdbEpisodes(Provider[MetadataEpisode]):
+    """Queries the TMDb API for TV episode metadata."""
+
+    api_key: str = environ.get("API_KEY_TMDB", "db972a607f2760bb19ff8bb34074b4c7")
+
+    def __init__(self, api_key: str = "", cache: bool = True):
+        super().__init__(api_key, cache)
+        assert self.api_key
+
+    @classmethod
+    @override
+    def from_settings(cls, settings: SettingStore) -> Self:
+        # Share the TMDB API key with the movie Tmdb provider; the default
+        # api_key_{classname} lookup would otherwise resolve to api_key_tmdbepisodes.
+        assert settings
+        api_key = settings.api_key_tmdb or ""
+        cache = not settings.no_cache
+        return cls(api_key, cache)
+
+    @override
+    def search(self, query: MetadataEpisode) -> Iterator[MetadataEpisode]:
+        """Searches TMDb for TV episode metadata."""
+        assert query
+        if query.id_tmdb and query.season is not None and query.episode is not None:
+            results = self._lookup_episode(
+                query.id_tmdb, query.season, query.episode, query.language
+            )
+        elif query.id_tmdb and query.date:
+            results = self._search_by_id_and_date(
+                query.id_tmdb, query.date, query.language
+            )
+        elif query.id_tmdb:
+            results = self._search_by_id(
+                query.id_tmdb, query.season, query.episode, query.language
+            )
+        elif query.series and query.date:
+            results = self._search_by_series_and_date(
+                query.series, query.date, query.language
+            )
+        elif query.series:
+            results = self._search_by_series(
+                query.series, query.season, query.episode, query.language
+            )
+        else:
+            raise MnamerNotFoundException
+        yield from results
+
+    def _lookup_episode(
+        self,
+        id_tmdb: str,
+        season: int,
+        episode: int,
+        language: Language | None,
+    ) -> Iterator[MetadataEpisode]:
+        show_data = tmdb_tv(self.api_key, id_tmdb, language, self.cache)
+        episode_data = tmdb_tv_episode(
+            self.api_key, id_tmdb, season, episode, language, self.cache
+        )
+        yield self._transform_meta(show_data, episode_data, language)
+
+    def _search_by_id(
+        self,
+        id_tmdb: str,
+        season: int | None,
+        episode: int | None,
+        language: Language | None,
+    ) -> Iterator[MetadataEpisode]:
+        show_data = tmdb_tv(self.api_key, id_tmdb, language, self.cache)
+        season_numbers = self._season_numbers(show_data, season)
+        found = False
+        for season_number in season_numbers:
+            try:
+                season_data = tmdb_tv_season(
+                    self.api_key, id_tmdb, season_number, language, self.cache
+                )
+            except MnamerNotFoundException:
+                continue
+            for episode_entry in season_data.get("episodes", []):
+                if (
+                    episode is not None
+                    and episode_entry.get("episode_number") != episode
+                ):
+                    continue
+                try:
+                    yield self._transform_meta(show_data, episode_entry, language)
+                    found = True
+                except (AttributeError, KeyError, ValueError):
+                    continue
+        if not found:
+            raise MnamerNotFoundException
+
+    def _search_by_id_and_date(
+        self,
+        id_tmdb: str,
+        release_date: dt.date,
+        language: Language | None,
+    ) -> Iterator[MetadataEpisode]:
+        release_date = parse_date(release_date)
+        found = False
+        for meta in self._search_by_id(id_tmdb, None, None, language):
+            if meta.date and meta.date == release_date:
+                found = True
+                yield meta
+        if not found:
+            raise MnamerNotFoundException
+
+    def _search_by_series(
+        self,
+        series: str,
+        season: int | None,
+        episode: int | None,
+        language: Language | None,
+    ) -> Iterator[MetadataEpisode]:
+        candidate_ids = self._candidate_show_ids(series, language)
+        found = False
+        for id_tmdb in candidate_ids:
+            try:
+                for meta in self._search_by_id(id_tmdb, season, episode, language):
+                    if not meta.series or meta.season is None:
+                        continue
+                    found = True
+                    yield meta
+            except MnamerNotFoundException:
+                continue
+        if not found:
+            raise MnamerNotFoundException
+
+    def _search_by_series_and_date(
+        self,
+        series: str,
+        release_date: dt.date,
+        language: Language | None,
+    ) -> Iterator[MetadataEpisode]:
+        candidate_ids = self._candidate_show_ids(series, language)
+        found = False
+        for id_tmdb in candidate_ids:
+            try:
+                yield from self._search_by_id_and_date(id_tmdb, release_date, language)
+                found = True
+            except MnamerNotFoundException:
+                continue
+        if not found:
+            raise MnamerNotFoundException
+
+    def _candidate_show_ids(
+        self, series: str, language: Language | None, limit: int = 3
+    ) -> list[str]:
+        try:
+            response = tmdb_search_tv(
+                self.api_key, series, language=language, cache=self.cache
+            )
+        except MnamerNotFoundException:
+            return []
+        return [str(entry["id"]) for entry in response["results"][:limit]]
+
+    @staticmethod
+    def _season_numbers(show_data: TmdbTvShowResponse, season: int | None) -> list[int]:
+        if season is not None:
+            return [season]
+        numbers: list[int] = []
+        for entry in show_data.get("seasons") or []:
+            number = entry.get("season_number")
+            if isinstance(number, int) and number > 0:
+                numbers.append(number)
+        if numbers:
+            return numbers
+        count = show_data.get("number_of_seasons")
+        if isinstance(count, int) and count > 0:
+            return list(range(1, count + 1))
+        return []
+
+    @staticmethod
+    def _transform_meta(
+        show_data: TmdbTvShowResponse,
+        episode_entry: TmdbTvEpisodeResponse,
+        language: Language | None,
+    ) -> MetadataEpisode:
+        air_date = episode_entry.get("air_date")
+        synopsis = (episode_entry.get("overview") or "").strip() or None
+        return MetadataEpisode(
+            date=parse_date(air_date) if air_date else None,
+            episode=episode_entry["episode_number"],
+            season=episode_entry["season_number"],
+            series=show_data["name"],
+            title=episode_entry.get("name") or None,
+            synopsis=synopsis,
+            id_tmdb=str(show_data["id"]),
+            language=language,
+        )
 
 
 class Tvdb(Provider[MetadataEpisode]):
