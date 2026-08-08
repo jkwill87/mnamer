@@ -184,6 +184,7 @@ class Target:
             None: Metadata,
         }[media_type]
         self.metadata = meta_cls()
+        self.metadata.original_filename = self.source.name
         self.metadata.quality = (
             " ".join(
                 path_data[key]
