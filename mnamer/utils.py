@@ -474,11 +474,20 @@ def str_title_case(s: str) -> str:
             ends = pos + word_length == string_length
             next_char = "" if ends else string_lower[pos + word_length]
             is_right_partitioned = not ends and next_char in padding_chars
-            # a single letter flanked by dots is an acronym component, e.g. the
-            # 'a' in "S.W.A.T.", not a standalone word to lowercase
-            is_acronym_letter = (
-                word_length == 1 and prev_char == "." and next_char == "."
-            )
+            # A single letter between dots is an acronym component only when it
+            # belongs to a run of single-letter dot-separated components, e.g.
+            # the 'A' in "S.W.A.T.". When the neighboring components are whole
+            # words, as in "Once.Upon.a.Time", the letter is a standalone word
+            # (an article here) and must still be lowercased.
+            is_acronym_letter = False
+            if word_length == 1 and prev_char == "." and next_char == ".":
+                left_dot = string_lower.rfind(".", 0, pos - 1)
+                right_dot = string_lower.find(".", pos + word_length + 1)
+                left_component = string_lower[left_dot + 1 : pos - 1]
+                right_component = string_lower[
+                    pos + word_length + 1 : right_dot if right_dot != -1 else string_length
+                ]
+                is_acronym_letter = len(left_component) == 1 or len(right_component) == 1
             if is_left_partitioned and is_right_partitioned and not is_acronym_letter:
                 s = s[:pos] + exception.lower() + s[pos + word_length :]
 
