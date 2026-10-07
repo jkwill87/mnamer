@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import re
 from pathlib import Path
 from shutil import move
 from typing import Any, ClassVar, Self, override
@@ -94,6 +95,10 @@ class Target:
         """
         if self.directory:
             dir_head = self._format_directory(self.directory)
+        elif self._settings.series_folder and isinstance(
+            self.metadata, MetadataEpisode
+        ):
+            dir_head = self._series_folder()
         else:
             dir_head = self.source.parent
 
@@ -120,6 +125,25 @@ class Target:
                 formatted_part = self._process_path_text(formatted_part)
             processed_parts.append(formatted_part)
         return Path(*processed_parts) if processed_parts else Path()
+
+    def _series_folder(self) -> Path:
+        """Find the series folder a target is already in, or the one to create.
+
+        Season folders (e.g. "Season 2") and release folders (e.g.
+        "Show.S02E01.1080p-GRP") are stepped out of first. A folder matches the
+        series when their names are equal ignoring case, punctuation and a
+        trailing parenthetical like "(2015)".
+        """
+        assert isinstance(self.metadata, MetadataEpisode)
+        parent = self.source.resolve().parent
+        if re.fullmatch(r"season \d+|specials", parent.name, re.IGNORECASE) or (
+            re.search(r"s\d{1,2}e\d{1,3}", parent.name, re.IGNORECASE)
+        ):
+            parent = parent.parent
+        series = self.metadata.series or ""
+        if series and _normalize_title(parent.name) == _normalize_title(series):
+            return parent
+        return parent / self._process_path_text(series)
 
     @staticmethod
     def _split_formatted_path(file_path: str) -> tuple[Path, str]:
@@ -284,3 +308,8 @@ class Target:
             _dest = move(str(self.source), destination_path)
         except OSError as e:  # pragma: no cover
             raise MnamerException from e
+
+
+def _normalize_title(name: str) -> str:
+    name = re.sub(r"\s*\([^)]*\)$", "", name)
+    return re.sub(r"[^a-z0-9]", "", name.lower())

@@ -34,6 +34,7 @@ DEFAULT_SETTINGS = {
     "replace_after": {"&": "and", ";": ",", "@": "at"},
     "replace_before": {},
     "scene": False,
+    "series_folder": False,
     "targets": [],
     "test": False,
     "verbose": False,
