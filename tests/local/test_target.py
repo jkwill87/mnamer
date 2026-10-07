@@ -246,6 +246,63 @@ def test_destination__same_directory_matches_source(tmp_path, monkeypatch):
     assert target.destination == target.source
 
 
+@pytest.mark.parametrize(
+    ("source_dir", "series_dir"),
+    [
+        ("", "Ninja Turtles"),
+        ("Ninja Turtles", "Ninja Turtles"),
+        ("ninja turtles (1987)", "ninja turtles (1987)"),
+        ("Ninja Turtles (1987)/Season 1", "Ninja Turtles (1987)"),
+        ("Ninja Turtles (1987)/Season 3", "Ninja Turtles (1987)"),
+        ("Ninja Turtles (1987)/Specials", "Ninja Turtles (1987)"),
+        ("Season 1", "Ninja Turtles"),
+        ("Ninja.Turtles.S01E04.1080p-GRP", "Ninja Turtles"),
+        ("Cartoons", "Cartoons/Ninja Turtles"),
+    ],
+)
+def test_destination__series_folder(tmp_path, source_dir: str, series_dir: str):
+    tmp = tmp_path.resolve()
+    source = tmp / source_dir / "ninja.turtles.s01e04.mkv"
+    settings = SettingStore(
+        batch=True,
+        series_folder=True,
+        episode_format="Season {season}/{series} - S{season:02}E{episode:02}.{extension}",
+    )
+    target = Target(source, settings)
+    assert target.destination == (
+        tmp / series_dir / "Season 1" / "Ninja Turtles - S01E04.mkv"
+    )
+
+
+def test_destination__series_folder_transforms_created_folder(tmp_path):
+    tmp = tmp_path.resolve()
+    settings = SettingStore(batch=True, series_folder=True, lower=True)
+    target = Target(tmp / "ninja.turtles.s01e04.mkv", settings)
+    assert target.destination.parent == tmp / "ninja turtles"
+
+
+def test_destination__series_folder_disabled(tmp_path):
+    tmp = tmp_path.resolve()
+    target = Target(tmp / "ninja.turtles.s01e04.mkv", SettingStore(batch=True))
+    assert target.destination.parent == tmp
+
+
+def test_destination__series_folder_episode_directory_takes_precedence(tmp_path):
+    tmp = tmp_path.resolve()
+    settings = SettingStore(
+        batch=True, series_folder=True, episode_directory=tmp / "TV"
+    )
+    target = Target(tmp / "ninja.turtles.s01e04.mkv", settings)
+    assert target.destination.parent == tmp / "TV"
+
+
+def test_destination__series_folder_ignores_movies(tmp_path):
+    tmp = tmp_path.resolve()
+    settings = SettingStore(batch=True, series_folder=True)
+    target = Target(tmp / "ninja turtles (1990).mkv", settings)
+    assert target.destination.parent == tmp
+
+
 def test_query():
     pass  # TODO
 

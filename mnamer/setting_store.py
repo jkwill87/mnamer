@@ -220,6 +220,16 @@ class SettingStore:
             help="--episode-format: set episode renaming format specification",
         ).as_dict(),
     )
+    series_folder: bool = dataclasses.field(
+        default=False,
+        metadata=SettingSpec(
+            action="store_true",
+            dest="series_folder",
+            flags=["--series_folder", "--series-folder", "--seriesfolder"],
+            group=SettingType.PARAMETER,
+            help="--series-folder: move episodes into their series folder",
+        ).as_dict(),
+    )
 
     # directive attributes -----------------------------------------------------
 
