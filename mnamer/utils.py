@@ -485,9 +485,13 @@ def str_title_case(s: str) -> str:
                 right_dot = string_lower.find(".", pos + word_length + 1)
                 left_component = string_lower[left_dot + 1 : pos - 1]
                 right_component = string_lower[
-                    pos + word_length + 1 : right_dot if right_dot != -1 else string_length
+                    pos + word_length + 1 : right_dot
+                    if right_dot != -1
+                    else string_length
                 ]
-                is_acronym_letter = len(left_component) == 1 or len(right_component) == 1
+                is_acronym_letter = (
+                    len(left_component) == 1 or len(right_component) == 1
+                )
             if is_left_partitioned and is_right_partitioned and not is_acronym_letter:
                 s = s[:pos] + exception.lower() + s[pos + word_length :]
 
