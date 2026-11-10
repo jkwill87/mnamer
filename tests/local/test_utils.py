@@ -477,6 +477,15 @@ def test_is_subtitle__true(container):
     assert is_subtitle(container) is True
 
 
+@pytest.mark.parametrize("container", (".SRT", ".SUB", ".IDX"))
+def test_is_subtitle__true_uppercase(container):
+    assert is_subtitle(container) is True
+
+
+def test_srt_sanitize__subtitle_uppercase():
+    assert str_sanitize("xx..mkv.SRT") == "xx.mkv.SRT"
+
+
 @pytest.mark.parametrize("container", (None, "", ".abc123", "srt"))
 def test_is_subtitle__false(container):
     assert is_subtitle(container) is False

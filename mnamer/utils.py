@@ -143,7 +143,7 @@ def is_subtitle(container: str | Path | None) -> bool:
     """Returns True if container is a subtitle container."""
     if not container:
         return False
-    return str(container).endswith(tuple(SUBTITLE_CONTAINERS))
+    return str(container).lower().endswith(tuple(SUBTITLE_CONTAINERS))
 
 
 _session: requests_cache.CachedSession | None = None
