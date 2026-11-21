@@ -1,8 +1,14 @@
+import os
+import sys
+from io import BytesIO, TextIOWrapper
 from pathlib import Path
 
 import pytest
+from teletype.io import strip_format
 
+from mnamer.__main__ import main
 from mnamer.const import SUBTITLE_CONTAINERS
+from mnamer.target import Target
 
 pytestmark = [
     pytest.mark.e2e,
@@ -17,6 +23,33 @@ def test_absolute_path(e2e_run, setup_test_files):
     assert result.code == 0
     assert "Kill Bill Vol. 1 (2003).mkv" in result.out
     assert "1 out of 1 files processed successfully" in result.out
+
+
+@pytest.mark.skipif(
+    sys.getfilesystemencodeerrors() != "surrogateescape",
+    reason="requires a filesystem that supports undecodable filename bytes",
+)
+@pytest.mark.parametrize("style_args", [[], ["--no-style"]], ids=["styled", "plain"])
+def test_move_file_with_undecodable_name(tmp_path, monkeypatch, style_args):
+    source = tmp_path / os.fsdecode(b"aladdin.2019.\xff.avi")
+    source.write_bytes(b"test contents")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        sys, "argv", ["mnamer", "--batch", "--id-tmdb=420817", *style_args, "."]
+    )
+    Target.reset_providers()
+    buffer = BytesIO()
+    with TextIOWrapper(buffer, encoding="utf-8", errors="strict") as stdout:
+        with monkeypatch.context() as patch:
+            patch.setattr(sys, "stdout", stdout)
+            main()
+        stdout.flush()
+        output = strip_format(buffer.getvalue().decode("utf-8"))
+
+    assert r"aladdin.2019.\udcff.avi" in output
+    assert "1 out of 1 files processed successfully" in output
+    assert not source.exists()
+    assert (tmp_path / "Aladdin (2019).avi").read_bytes() == b"test contents"
 
 
 @pytest.mark.usefixtures("setup_test_dir")

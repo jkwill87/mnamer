@@ -1,12 +1,13 @@
 """Provides an interface for handling user input and printing output."""
 
+import sys
 import traceback
 from collections.abc import Callable
 from typing import Any
 
 from teletype import codes
 from teletype.components import ChoiceHelper, SelectOne
-from teletype.io import style_format, style_print
+from teletype.io import style_format
 
 from mnamer.const import SYSTEM
 from mnamer.exceptions import MnamerAbortException, MnamerException, MnamerSkipException
@@ -72,10 +73,18 @@ def msg(
 ):
     if debug and not verbose:
         return
-    if no_style:
-        print(_msg_format(body))
-    else:
-        style_print(_msg_format(body), style=message_type.value)
+
+    text = _msg_format(body)
+    if not no_style:
+        text = style_format(text, message_type.value)
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        encoding = sys.stdout.encoding
+        if encoding is None:
+            raise
+        # Filenames can contain undecodable bytes. Escape them only for display.
+        print(text.encode(encoding, errors="backslashreplace").decode(encoding))
 
 
 def error(body: Any):
