@@ -161,6 +161,13 @@ fi
 repository_root="$(git -C "$script_dir" rev-parse --show-toplevel)"
 output="$test_root/current-v3.output"
 run_version "$repository_root" branch v3 "$output"
-assert_output "$output" "version=3.0.0-dev4"
+assert_output "$output" "channel=development"
+assert_output "$output" "publish=true"
+# This checkout's commit count grows. The fixture above checks exact versions.
+if ! grep --extended-regexp --quiet '^version=3\.0\.0-dev[1-9][0-9]*$' "$output"; then
+  echo "Expected a v3 development version in $output:" >&2
+  sed 's/^/  /' "$output" >&2
+  exit 1
+fi
 
 echo "Package version tests passed."
