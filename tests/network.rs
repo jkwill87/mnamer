@@ -5,6 +5,5 @@ mod network {
 
     mod omdb;
     mod tmdb;
-    mod tvdb_v3;
     mod tvmaze;
 }

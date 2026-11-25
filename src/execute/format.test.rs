@@ -515,3 +515,32 @@ fn refuses_unknown_media() {
         Err(FormatError::UnknownMedia)
     ));
 }
+
+
+#[test]
+fn rejects_retired_fields_in_filename_and_directory_templates() {
+    for options in [
+        FormatOptions {
+            episode_format: "{{- id_tvdb | pad: 4 -}}.{{ extension }}".into(),
+            ..FormatOptions::default()
+        },
+        FormatOptions {
+            episode_directory: Some("/Media/{% if id_tvdb %}{{ series }}{% endif %}".into()),
+            ..FormatOptions::default()
+        },
+    ] {
+        assert!(matches!(
+            DestinationFormatter::new(options),
+            Err(FormatError::RemovedTemplateField)
+        ));
+    }
+}
+
+#[test]
+fn accepts_retired_field_name_in_literal_text_and_comments() {
+    DestinationFormatter::new(FormatOptions {
+        episode_format: r#"id_tvdb.{{ "id_tvdb" }}.{# id_tvdb #}{{ extension }}"#.into(),
+        ..FormatOptions::default()
+    })
+    .expect("literal text and comments are allowed");
+}

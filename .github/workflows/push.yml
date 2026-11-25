@@ -34,7 +34,6 @@ jobs:
     env:
       API_KEY_OMDB: ${{ secrets.API_KEY_OMDB }}
       API_KEY_TMDB: ${{ secrets.API_KEY_TMDB }}
-      API_KEY_TVDB: ${{ secrets.API_KEY_TVDB }}
 
     steps:
       - uses: actions/checkout@v7

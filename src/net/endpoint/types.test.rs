@@ -136,75 +136,6 @@ fn deserialize_tmdb_search_movies_response() {
 }
 
 #[test]
-fn deserialize_tvdb_v3_episode() {
-    let json = r#"{
-        "data": {
-            "id": 5765070,
-            "airedEpisodeNumber": 11,
-            "airedSeason": 5,
-            "airedSeasonID": 570070,
-            "episodeName": "The Distance",
-            "firstAired": "2015-02-22",
-            "overview": "Rick and the group are faced with a new challenge.",
-            "seriesId": 153021,
-            "imdbId": "tt3866840",
-            "absoluteNumber": 60,
-            "isMovie": 0
-        }
-    }"#;
-    let result: tvdb_v3::DataResponse<tvdb_v3::Episode> = serde_json::from_str(json).unwrap();
-    assert_eq!(result.data.id, 5765070);
-    assert_eq!(result.data.aired_episode_number, Some(11));
-    assert_eq!(result.data.aired_season, Some(5));
-    assert_eq!(result.data.episode_name.as_deref(), Some("The Distance"));
-    assert_eq!(result.data.first_aired.as_deref(), Some("2015-02-22"));
-    assert_eq!(result.data.imdb_id.as_deref(), Some("tt3866840"));
-}
-
-#[test]
-fn deserialize_tvdb_v3_series() {
-    let json = r#"{
-        "data": {
-            "id": 153021,
-            "seriesName": "The Walking Dead",
-            "overview": "Sheriff's Deputy Rick Grimes leads a group of survivors.",
-            "firstAired": "2010-10-31",
-            "status": "Ended",
-            "network": "AMC",
-            "genre": ["Action", "Drama", "Horror"],
-            "runtime": "60"
-        }
-    }"#;
-    let result: tvdb_v3::DataResponse<tvdb_v3::Series> = serde_json::from_str(json).unwrap();
-    assert_eq!(result.data.id, 153021);
-    assert_eq!(result.data.series_name.as_deref(), Some("The Walking Dead"));
-    assert_eq!(result.data.genre.as_ref().unwrap().len(), 3);
-}
-
-#[test]
-fn deserialize_tvdb_v3_paginated_episodes() {
-    let json = r#"{
-        "data": [
-            {"id": 1, "airedEpisodeNumber": 1, "airedSeason": 1, "episodeName": "Pilot"},
-            {"id": 2, "airedEpisodeNumber": 2, "airedSeason": 1, "episodeName": "Guts"}
-        ],
-        "links": {
-            "first": 1,
-            "last": 3,
-            "next": 2,
-            "prev": null
-        }
-    }"#;
-    let result: tvdb_v3::DataResponse<Vec<tvdb_v3::Episode>> = serde_json::from_str(json).unwrap();
-    assert_eq!(result.data.len(), 2);
-    let links = result.links.unwrap();
-    assert_eq!(links.first, Some(1));
-    assert_eq!(links.last, Some(3));
-    assert_eq!(links.next, Some(2));
-    assert!(links.prev.is_none());
-}
-
-#[test]
 fn deserialize_tvmaze_show() {
     let json = r#"{
         "id": 73,
@@ -221,7 +152,7 @@ fn deserialize_tvmaze_show() {
         "rating": {"average": 8.2},
         "weight": 99,
         "network": {"id": 20, "name": "AMC", "country": {"name": "United States", "code": "US", "timezone": "America/New_York"}},
-        "externals": {"tvrage": 25056, "thetvdb": 153021, "imdb": "tt1520211"},
+        "externals": {"tvrage": 25056, "imdb": "tt1520211"},
         "image": {"medium": "https://example.com/medium.jpg", "original": "https://example.com/original.jpg"},
         "summary": "<p>The Walking Dead is an American horror drama.</p>"
     }"#;
@@ -231,7 +162,6 @@ fn deserialize_tvmaze_show() {
     assert_eq!(result.show_type.as_deref(), Some("Scripted"));
     assert_eq!(result.genres, vec!["Drama", "Action", "Horror"]);
     let externals = result.externals.unwrap();
-    assert_eq!(externals.thetvdb, Some(153021));
     assert_eq!(externals.imdb.as_deref(), Some("tt1520211"));
     let network = result.network.unwrap();
     assert_eq!(network.name, "AMC");

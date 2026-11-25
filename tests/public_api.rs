@@ -55,3 +55,18 @@ fn cohesive_public_paths_are_reachable() {
     let disposition: Option<SubtitleDisposition> = subtitle.dispositions.first().copied();
     assert_eq!(disposition, Some(SubtitleDisposition::Forced));
 }
+
+#[tokio::test]
+async fn tmdb_external_lookup_rejects_retired_id_source() {
+    use mnamer::net::endpoint::{EndpointError, tmdb::tmdb_find};
+
+    let client = ApiClient::without_cache().unwrap();
+    let error = tmdb_find(&client, "", "1234", "tvdb_id", None)
+        .await
+        .unwrap_err();
+    assert!(matches!(
+        error,
+        EndpointError::InvalidRequest { status: 0, .. }
+    ));
+    assert!(error.to_string().contains("Use imdb_id"));
+}

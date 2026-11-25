@@ -28,8 +28,6 @@ pub enum ProviderIdSource {
     Imdb,
     /// TMDb movie ID.
     Tmdb,
-    /// TVDb series ID.
-    Tvdb,
     /// TVmaze show ID.
     Tvmaze,
 }
@@ -226,7 +224,6 @@ impl Planner {
                     MediaKind::Unknown => self.options.movie_provider,
                 },
                 ProviderIdSource::Tmdb => ProviderKind::Tmdb,
-                ProviderIdSource::Tvdb => ProviderKind::Tvdb,
                 ProviderIdSource::Tvmaze => ProviderKind::Tvmaze,
             };
             if query.media_type != MediaKind::Unknown && !provider.supports(query.media_type) {
@@ -532,7 +529,6 @@ fn apply_provider_id(query: &mut Metadata, provider_id: &ProviderId) {
     match provider_id.source {
         ProviderIdSource::Imdb => query.id_imdb = Some(provider_id.value.clone()),
         ProviderIdSource::Tmdb => query.id_tmdb = Some(provider_id.value.clone()),
-        ProviderIdSource::Tvdb => query.id_tvdb = Some(provider_id.value.clone()),
         ProviderIdSource::Tvmaze => query.id_tvmaze = Some(provider_id.value.clone()),
     }
 }

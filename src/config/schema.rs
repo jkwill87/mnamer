@@ -63,7 +63,7 @@ impl Config {
 
 /// Optional API keys for providers that require authentication.
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
-#[serde(default, deny_unknown_fields)]
+#[serde(try_from = "ApiKeysInput")]
 pub struct ApiKeys {
     /// The Movie Database API key.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -71,9 +71,35 @@ pub struct ApiKeys {
     /// The Open Movie Database API key.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub omdb: Option<String>,
-    /// TheTVDB API key.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tvdb: Option<String>,
+}
+
+/// Validates configured keys, including migration guidance for the removed provider.
+#[derive(Default, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+struct ApiKeysInput {
+    /// Configured TMDb API key.
+    tmdb: Option<String>,
+    /// Configured OMDb API key.
+    omdb: Option<String>,
+    /// Presence of the retired key, regardless of its value.
+    #[serde(rename = "tvdb")]
+    retired_key: Option<serde::de::IgnoredAny>,
+}
+
+impl TryFrom<ApiKeysInput> for ApiKeys {
+    type Error = &'static str;
+
+    fn try_from(input: ApiKeysInput) -> Result<Self, Self::Error> {
+        if input.retired_key.is_some() {
+            return Err(
+                "The TVDb provider was removed. Remove api_keys.tvdb from your config. TVmaze does not require an API key.",
+            );
+        }
+        Ok(Self {
+            tmdb: input.tmdb,
+            omdb: input.omdb,
+        })
+    }
 }
 
 impl ApiKeys {
@@ -82,7 +108,6 @@ impl ApiKeys {
         match provider {
             ProviderKind::Tmdb => self.tmdb.as_deref(),
             ProviderKind::Omdb => self.omdb.as_deref(),
-            ProviderKind::Tvdb => self.tvdb.as_deref(),
             ProviderKind::Tvmaze => None,
         }
     }
@@ -260,20 +285,37 @@ impl From<MovieProvider> for ProviderKind {
 
 /// Supported episode metadata providers.
 #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq, Serialize, ValueEnum)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "lowercase", try_from = "String")]
 pub enum EpisodeProvider {
     /// TVmaze.
     #[default]
     Tvmaze,
-    /// TheTVDB version 3 API.
-    Tvdb,
+}
+
+impl std::str::FromStr for EpisodeProvider {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "tvmaze" => Ok(Self::Tvmaze),
+            "tvdb" => Err("The TVDb provider was removed. Use --episode-provider tvmaze or set episode.provider to tvmaze in your config.".into()),
+            _ => Err(format!("unsupported episode provider {value:?}; expected tvmaze")),
+        }
+    }
+}
+
+impl TryFrom<String> for EpisodeProvider {
+    type Error = String;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        value.parse()
+    }
 }
 
 impl From<EpisodeProvider> for ProviderKind {
     fn from(provider: EpisodeProvider) -> Self {
         match provider {
             EpisodeProvider::Tvmaze => Self::Tvmaze,
-            EpisodeProvider::Tvdb => Self::Tvdb,
         }
     }
 }
@@ -347,7 +389,7 @@ pub(super) fn validate(config: &Config) -> Result<(), ValidationError> {
     })
     .map_err(|error| ValidationError::new("formatting", error.to_string()))?;
 
-    for provider in [ProviderKind::Tmdb, ProviderKind::Omdb, ProviderKind::Tvdb] {
+    for provider in [ProviderKind::Tmdb, ProviderKind::Omdb] {
         if config
             .api_keys
             .get(provider)

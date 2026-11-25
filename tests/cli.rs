@@ -220,7 +220,13 @@ fn maintenance_commands_honor_global_json_after_subcommands() {
     let value: Value = serde_json::from_slice(&output.stdout).unwrap();
     assert_eq!(value["command"], "provider");
     assert_eq!(value["status"], "ok");
-    assert_eq!(value["data"]["providers"].as_array().unwrap().len(), 4);
+    let providers: Vec<_> = value["data"]["providers"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|item| item["provider"].as_str().unwrap())
+        .collect();
+    assert_eq!(providers, ["tmdb", "omdb", "tvmaze"]);
 }
 
 #[test]

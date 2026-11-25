@@ -18,7 +18,6 @@ async fn tvmaze_show_success() {
     assert!(!show.genres.is_empty());
     assert!(show.externals.is_some());
     let ext = show.externals.unwrap();
-    assert_eq!(ext.thetvdb, Some(153021));
     assert_eq!(ext.imdb.as_deref(), Some("tt1520211"));
     assert!(show.image.is_some());
     assert!(show.embedded.is_none());
@@ -78,39 +77,14 @@ async fn tvmaze_show_single_search_no_hits() {
 
 #[tokio::test]
 async fn tvmaze_show_lookup_by_imdb() {
-    let show = tvmaze_show_lookup(&client(), Some("tt1520211"), None)
-        .await
-        .unwrap();
-    assert_eq!(show.name, "The Walking Dead");
-}
-
-#[tokio::test]
-async fn tvmaze_show_lookup_by_tvdb() {
-    let show = tvmaze_show_lookup(&client(), None, Some(153021))
-        .await
-        .unwrap();
+    let show = tvmaze_show_lookup(&client(), "tt1520211").await.unwrap();
     assert_eq!(show.name, "The Walking Dead");
 }
 
 #[tokio::test]
 async fn tvmaze_show_lookup_imdb_not_found() {
-    let result = tvmaze_show_lookup(&client(), Some("tt0000000"), None).await;
+    let result = tvmaze_show_lookup(&client(), "tt0000000").await;
     assert!(matches!(result, Err(EndpointError::NotFound { .. })));
-}
-
-#[tokio::test]
-async fn tvmaze_show_lookup_tvdb_not_found() {
-    let result = tvmaze_show_lookup(&client(), None, Some(999_999_999_999_999_999)).await;
-    assert!(matches!(result, Err(EndpointError::NotFound { .. })));
-}
-
-#[tokio::test]
-async fn tvmaze_show_lookup_tvdb_invalid() {
-    let result = tvmaze_show_lookup(&client(), None, Some(0)).await;
-    assert!(matches!(
-        result,
-        Err(EndpointError::InvalidRequest { status: 400, .. })
-    ));
 }
 
 // -- tvmaze_show_episodes_list --

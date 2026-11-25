@@ -4,7 +4,6 @@ mod client;
 mod error;
 pub mod omdb;
 pub mod tmdb;
-pub mod tvdb_v3;
 pub mod tvmaze;
 pub mod types;
 

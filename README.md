@@ -8,7 +8,7 @@ layouts.
 
 Movie metadata comes from [TMDb](https://www.themoviedb.org/) or
 [OMDb](https://www.omdbapi.com/). Episode metadata comes from
-[TVmaze](https://www.tvmaze.com/) or [TVDb](https://thetvdb.com/).
+[TVmaze](https://www.tvmaze.com/).
 
 ## Documentation
 
@@ -94,7 +94,7 @@ Use `--lowercase` for lowercase paths or `--scene` for scene-style names.
 🌐 **Internationalization**
 
 Use `--language <LANG>` or `matching.language` to select the provider and template language.
-Language names and ISO 639 codes are accepted. TMDb and TVDb support localized responses.
+Language names and ISO 639 codes are accepted. TMDb supports localized responses.
 
 Subtitle files in SRT, IDX/SUB, ASS, SSA, and VTT formats are grouped with their video. Language
 markers are normalized to two-letter codes, and numeric tracks plus `forced`, `sdh`, and
@@ -134,7 +134,7 @@ layered, and unknown settings are errors.
 
 Use `mnamer config init` to create a documented starter file. `config show`, `config validate`,
 and `config path` inspect the active configuration. Provider keys can be set under `[api_keys]`
-or with `API_KEY_TMDB`, `API_KEY_OMDB`, and `API_KEY_TVDB`; TVmaze requires no key. Successful
+or via `API_KEY_TMDB` and `API_KEY_OMDB`. TVmaze requires no key. Successful
 responses are cached for six days by default.
 
 ## Contributions

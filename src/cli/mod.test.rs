@@ -27,13 +27,13 @@ fn parses_complete_move_command() {
         "--movie-provider",
         "omdb",
         "--episode-provider",
-        "tvdb",
+        "tvmaze",
         "--language",
         "fr",
         "--max-results",
         "9",
         "--id",
-        "tvdb:1234",
+        "tvmaze:1234",
         "--allow-guess",
         "--movie-format",
         "movie-template",
@@ -66,13 +66,13 @@ fn parses_complete_move_command() {
     assert_eq!(args.ignore, ["**/sample/**"]);
     assert_eq!(args.media, MediaMode::Episode);
     assert_eq!(args.movie_provider, Some(MovieProvider::Omdb));
-    assert_eq!(args.episode_provider, Some(EpisodeProvider::Tvdb));
+    assert_eq!(args.episode_provider, Some(EpisodeProvider::Tvmaze));
     assert_eq!(args.language.as_deref(), Some("fr"));
     assert_eq!(args.max_results, Some(9));
     assert_eq!(
         args.external_id,
         Some(ExternalId {
-            source: ExternalIdSource::Tvdb,
+            source: ExternalIdSource::Tvmaze,
             value: "1234".to_owned(),
         })
     );
@@ -218,10 +218,10 @@ fn parses_maintenance_command_tree() {
     let cli = parse(&["mnamer", "cache", "clear"]);
     assert_eq!(cli.command.cache_command(), Some(&CacheCommand::Clear));
 
-    let cli = parse(&["mnamer", "provider", "check", "tvdb", "tmdb"]);
+    let cli = parse(&["mnamer", "provider", "check", "tvmaze", "tmdb"]);
     assert_eq!(
         cli.command.provider_command().unwrap().providers(),
-        [ProviderKind::Tvdb, ProviderKind::Tmdb]
+        [ProviderKind::Tvmaze, ProviderKind::Tmdb]
     );
 
     let cli = parse(&["mnamer", "provider", "check"]);
@@ -362,7 +362,6 @@ fn typed_external_ids_round_trip() {
     for source in [
         ExternalIdSource::Imdb,
         ExternalIdSource::Tmdb,
-        ExternalIdSource::Tvdb,
         ExternalIdSource::Tvmaze,
     ] {
         let id = if source == ExternalIdSource::Imdb {
@@ -408,7 +407,7 @@ fn resolves_cli_values_over_file_configuration() {
         "--movie-provider",
         "omdb",
         "--episode-provider",
-        "tvdb",
+        "tvmaze",
         "--movie-format",
         "cli movie",
         "--episode-directory",
@@ -428,7 +427,7 @@ fn resolves_cli_values_over_file_configuration() {
     assert_eq!(options.max_results, 2);
     assert!(options.allow_guess);
     assert_eq!(options.movie_provider, MovieProvider::Omdb);
-    assert_eq!(options.episode_provider, EpisodeProvider::Tvdb);
+    assert_eq!(options.episode_provider, EpisodeProvider::Tvmaze);
     assert_eq!(options.movie_format, "cli movie");
     assert_eq!(options.episode_directory.as_deref(), Some("cli episodes"));
     assert!(options.lowercase);
@@ -447,4 +446,26 @@ fn maintenance_commands_have_no_execution_options() {
     let cli = parse(&["mnamer", "config", "show"]);
     assert!(cli.execution_options(&Config::default()).is_none());
     assert_eq!(cli.command.name(), "config");
+}
+
+
+#[test]
+fn retired_provider_and_id_options_explain_migration() {
+    for (args, guide) in [
+        (
+            vec!["mnamer", "move", "show.mkv", "--episode-provider", "tvdb"],
+            "Use --episode-provider tvmaze",
+        ),
+        (
+            vec!["mnamer", "provider", "check", "tvdb"],
+            "Use tvmaze for episodes",
+        ),
+        (
+            vec!["mnamer", "move", "show.mkv", "--id", "tvdb:1234"],
+            "Use --id tvmaze:ID",
+        ),
+    ] {
+        let error = Cli::try_parse_validated_from(args).unwrap_err();
+        assert!(error.to_string().contains(guide), "{error}");
+    }
 }

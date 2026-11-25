@@ -44,8 +44,8 @@ pub struct ExecutionArgs {
     #[arg(long, value_enum)]
     pub movie_provider: Option<MovieProvider>,
 
-    /// Select the episode metadata provider.
-    #[arg(long, value_enum)]
+    /// Select the episode metadata provider (tvmaze).
+    #[arg(long, value_parser = str::parse::<EpisodeProvider>)]
     pub episode_provider: Option<EpisodeProvider>,
 
     /// Select the provider result language.

@@ -218,7 +218,6 @@ fn planning_options(options: &ExecutionOptions) -> PlanningOptions {
             source: match id.source {
                 ExternalIdSource::Imdb => ProviderIdSource::Imdb,
                 ExternalIdSource::Tmdb => ProviderIdSource::Tmdb,
-                ExternalIdSource::Tvdb => ProviderIdSource::Tvdb,
                 ExternalIdSource::Tvmaze => ProviderIdSource::Tvmaze,
             },
             value: id.value.clone(),
