@@ -231,7 +231,7 @@ class Target:
             #     self.metadata.series = f"{self.metadata.series} {year}"
 
     def _override_metadata_ids(self):
-        id_types = {"imdb", "tmdb", "tvdb", "tvmaze"}
+        id_types = {"imdb", "tmdb", "tvmaze"}
         for id_type in id_types:
             attr = f"id_{id_type}"
             if not hasattr(self.metadata, attr):

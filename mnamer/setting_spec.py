@@ -1,4 +1,5 @@
 import dataclasses
+from collections.abc import Callable
 from typing import Any
 
 from mnamer.types import SettingType
@@ -18,7 +19,7 @@ class SettingSpec:
     flags: list[str] | None = None
     help: str | None = None
     nargs: str | None = None
-    typevar: type | None = None
+    typevar: Callable[[str], object] | None = None
 
     def as_dict(self) -> dict[str, Any]:
         """Converts ArgSpec instance into a Python dictionary."""

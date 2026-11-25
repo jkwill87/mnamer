@@ -5,7 +5,7 @@ import pytest
 from mnamer.exceptions import MnamerNotFoundException
 from mnamer.language import Language
 from mnamer.metadata import MetadataEpisode, MetadataMovie
-from mnamer.providers import Omdb, Provider, Tmdb, Tvdb, TvMaze
+from mnamer.providers import Omdb, Provider, Tmdb, TvMaze
 from mnamer.setting_store import SettingStore
 from mnamer.types import ProviderType
 
@@ -28,20 +28,10 @@ TMDB_MOVIE = {
     "imdb_id": "tt1234567",
 }
 
-TVDB_SERIES = {"data": {"id": 100, "series_name": "Example Series"}}
-
-TVDB_EPISODE = {
-    "first_aired": "2020-01-02",
-    "aired_episode_number": 2,
-    "aired_season": 1,
-    "overview": "Example overview.",
-    "episode_name": "Episode Two",
-}
-
 TVMAZE_SHOW = {
     "id": 200,
     "name": "Example Series",
-    "externals": {"thetvdb": 100, "imdb": "tt7654321"},
+    "externals": {"imdb": "tt7654321"},
 }
 
 TVMAZE_EPISODE = {
@@ -58,7 +48,6 @@ def test_provider_factory__returns_configured_provider_types():
 
     assert isinstance(Provider.provider_factory(ProviderType.OMDB, settings), Omdb)
     assert isinstance(Provider.provider_factory(ProviderType.TMDB, settings), Tmdb)
-    assert isinstance(Provider.provider_factory(ProviderType.TVDB, settings), Tvdb)
     assert isinstance(Provider.provider_factory(ProviderType.TVMAZE, settings), TvMaze)
 
 
@@ -69,17 +58,6 @@ def test_provider_from_settings__uses_api_key_and_cache_flag():
 
     assert provider.api_key == "configured-key"
     assert provider.cache is False
-
-
-def test_tvdb_from_settings__logs_in_when_cache_is_disabled(mocker):
-    mock_login = mocker.patch("mnamer.providers.tvdb_login", return_value="token")
-    settings = SettingStore(api_key_tvdb="configured-key", no_cache=True)
-
-    provider = Tvdb.from_settings(settings)
-
-    assert provider.cache is False
-    assert provider.token == "token"
-    mock_login.assert_called_once_with("configured-key")
 
 
 def test_omdb_search__id_lookup(mocker):
@@ -211,104 +189,6 @@ def test_tmdb_search__no_hits(mocker):
         next(Tmdb("key").search(MetadataMovie(name="Missing")))
 
 
-def test_tvdb_search__lazy_login_and_id_search(mocker):
-    mock_login = mocker.patch("mnamer.providers.tvdb_login", return_value="token")
-    mock_series = mocker.patch(
-        "mnamer.providers.tvdb_series_id", return_value=TVDB_SERIES
-    )
-    mock_episodes = mocker.patch(
-        "mnamer.providers.tvdb_series_id_episodes_query",
-        return_value={"data": [TVDB_EPISODE], "links": {"last": 1}},
-    )
-    provider = Tvdb("key")
-
-    result = next(provider.search(MetadataEpisode(id_tvdb="100", season=1, episode=2)))
-
-    assert result.series == "Example Series"
-    assert result.title == "Episode Two"
-    assert result.id_tvdb == "100"
-    mock_login.assert_called_once_with("key")
-    mock_series.assert_called_once_with("token", "100", language=None, cache=True)
-    mock_episodes.assert_called_once_with(
-        "token",
-        "100",
-        2,
-        1,
-        language=None,
-        page=1,
-        cache=True,
-    )
-
-
-def test_tvdb_search__paginates_and_skips_bad_episode_rows(mocker):
-    mocker.patch("mnamer.providers.tvdb_login", return_value="token")
-    mocker.patch("mnamer.providers.tvdb_series_id", return_value=TVDB_SERIES)
-    mock_episodes = mocker.patch(
-        "mnamer.providers.tvdb_series_id_episodes_query",
-        side_effect=[
-            {
-                "data": [{"first_aired": "2020-01-01"}],
-                "links": {"last": 2},
-            },
-            {"data": [TVDB_EPISODE], "links": {"last": 2}},
-        ],
-    )
-
-    results = list(Tvdb("key").search(MetadataEpisode(id_tvdb="100")))
-
-    assert [result.title for result in results] == ["Episode Two"]
-    assert mock_episodes.call_count == 2
-
-
-def test_tvdb_search__series_tries_candidate_ids(mocker):
-    provider = Tvdb("key")
-    provider.token = "token"
-    mocker.patch(
-        "mnamer.providers.tvdb_search_series",
-        return_value={"data": [{"id": 1}, {"id": 100}]},
-    )
-    mock_search_id = mocker.patch.object(
-        provider,
-        "_search_id",
-        side_effect=[
-            MnamerNotFoundException,
-            [MetadataEpisode(id_tvdb="100", series="Example Series", season=1)],
-        ],
-    )
-
-    results = list(provider.search(MetadataEpisode(series="Example Series")))
-
-    assert [result.id_tvdb for result in results] == ["100"]
-    assert mock_search_id.call_count == 2
-
-
-def test_tvdb_search__date_filters_id_results(mocker):
-    provider = Tvdb("key")
-    provider.token = "token"
-    mocker.patch.object(
-        provider,
-        "_search_id",
-        return_value=[
-            MetadataEpisode(id_tvdb="100", date=dt.date(2020, 1, 1)),
-            MetadataEpisode(id_tvdb="100", date=dt.date(2020, 1, 2)),
-        ],
-    )
-
-    results = list(
-        provider.search(MetadataEpisode(id_tvdb="100", date=dt.date(2020, 1, 2)))
-    )
-
-    assert [result.date for result in results] == [dt.date(2020, 1, 2)]
-
-
-def test_tvdb_search__missing_query():
-    provider = Tvdb("key")
-    provider.token = "token"
-
-    with pytest.raises(MnamerNotFoundException):
-        next(provider.search(MetadataEpisode()))
-
-
 def test_tvmaze_search__tvmaze_id_season_episode(mocker):
     mocker.patch("mnamer.providers.tvmaze_show", return_value=TVMAZE_SHOW)
     mocker.patch(
@@ -323,22 +203,20 @@ def test_tvmaze_search__tvmaze_id_season_episode(mocker):
     assert result.series == "Example Series"
     assert result.title == "Episode Two"
     assert result.id_tvmaze == "200"
-    assert result.id_tvdb == "100"
 
 
-def test_tvmaze_search__tvdb_id_date_lookup(mocker):
-    mocker.patch("mnamer.providers.tvmaze_show_lookup", return_value=TVMAZE_SHOW)
+def test_tvmaze_search__tvmaze_id_date_lookup(mocker):
+    mocker.patch("mnamer.providers.tvmaze_show", return_value=TVMAZE_SHOW)
     mocker.patch(
         "mnamer.providers.tvmaze_episodes_by_date",
         return_value=[TVMAZE_EPISODE],
     )
 
     result = next(
-        TvMaze().search(MetadataEpisode(id_tvdb="100", date=dt.date(2020, 1, 2)))
+        TvMaze().search(MetadataEpisode(id_tvmaze="200", date=dt.date(2020, 1, 2)))
     )
 
     assert result.id_tvmaze == "200"
-    assert result.id_tvdb == "100"
     assert result.date == dt.date(2020, 1, 2)
 
 

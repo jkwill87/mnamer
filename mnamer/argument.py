@@ -2,6 +2,7 @@ import argparse
 from typing import Any, final, override
 
 from mnamer.const import USAGE
+from mnamer.exceptions import MnamerException
 from mnamer.setting_spec import SettingSpec
 from mnamer.types import SettingType
 
@@ -72,6 +73,14 @@ class ArgLoader(argparse.ArgumentParser):
 
     def load(self) -> dict[str, Any]:
         load_arguments, unknowns = self.parse_known_args()
+        if any(
+            arg.partition("=")[0] in {"--id-tvdb", "--id_tvdb", "--idtvdb"}
+            for arg in unknowns
+        ):
+            raise MnamerException(
+                "TVDb IDs are no longer supported. "
+                "Use --id-tvmaze with a TVmaze series ID."
+            )
         if unknowns:
             raise RuntimeError(f"invalid arguments: {','.join(unknowns)}")
         return vars(load_arguments)
