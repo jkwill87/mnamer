@@ -179,6 +179,159 @@ def test_tmdb_search__missing_query():
         next(Tmdb("key").search(MetadataMovie()))
 
 
+@pytest.mark.parametrize(
+    ("query_name", "query_year", "results", "want_id"),
+    [
+        (
+            "Wall-E",
+            "2008",
+            [
+                {
+                    "id": 877268,
+                    "title": "Wall-E's Treasures and Trinkets",
+                    "original_title": "Wall-E's Treasures and Trinkets",
+                    "release_date": "2008-11-18",
+                },
+                {
+                    "id": 10681,
+                    "title": "WALL-E",
+                    "original_title": "WALL-E",
+                    "release_date": "2008-06-22",
+                },
+            ],
+            "10681",
+        ),
+        (
+            "Leave",
+            "2022",
+            [
+                {
+                    "id": 705996,
+                    "title": "Decision to Leave",
+                    "original_title": "헤어질 결심",
+                    "release_date": "2022-06-29",
+                },
+                {
+                    "id": 999999,
+                    "title": "Leave",
+                    "original_title": "Leave",
+                    "release_date": "2022-10-28",
+                },
+            ],
+            "999999",
+        ),
+        (
+            "Harry Potter and the Deathly Hallows Part 2",
+            None,
+            [
+                {
+                    "id": 12444,
+                    "title": "Harry Potter and the Deathly Hallows: Part 1",
+                    "original_title": "Harry Potter and the Deathly Hallows: Part 1",
+                    "release_date": "2010-10-17",
+                },
+                {
+                    "id": 12445,
+                    "title": "Harry Potter and the Deathly Hallows: Part 2",
+                    "original_title": "Harry Potter and the Deathly Hallows: Part 2",
+                    "release_date": "2011-07-07",
+                },
+            ],
+            "12445",
+        ),
+    ],
+)
+def test_tmdb_search__name_ranks_exact_and_closest_title_first(
+    mocker, query_name, query_year, results, want_id
+):
+    mocker.patch(
+        "mnamer.providers.tmdb_search_movies",
+        return_value={
+            "results": results,
+            "total_pages": 1,
+            "total_results": len(results),
+        },
+    )
+
+    ranked = list(Tmdb("key").search(MetadataMovie(name=query_name, year=query_year)))
+
+    assert ranked[0].id_tmdb == want_id
+
+
+def test_tmdb_search__name_fetches_later_page_until_exact_match_found(mocker):
+    mock_search = mocker.patch(
+        "mnamer.providers.tmdb_search_movies",
+        side_effect=[
+            {
+                "results": [
+                    {
+                        "id": 705996,
+                        "title": "Decision to Leave",
+                        "original_title": "헤어질 결심",
+                        "release_date": "2022-06-29",
+                    }
+                ],
+                "total_pages": 3,
+                "total_results": 3,
+            },
+            {
+                "results": [
+                    {
+                        "id": 999999,
+                        "title": "Leave",
+                        "original_title": "Leave",
+                        "release_date": "2022-10-28",
+                    }
+                ],
+                "total_pages": 3,
+                "total_results": 3,
+            },
+        ],
+    )
+
+    ranked = list(Tmdb("key").search(MetadataMovie(name="Leave", year="2022")))
+
+    assert [movie.id_tmdb for movie in ranked] == ["999999", "705996"]
+    assert mock_search.call_count == 2
+
+
+def test_tmdb_search__name_continues_paging_past_original_title_only_match(mocker):
+    mock_search = mocker.patch(
+        "mnamer.providers.tmdb_search_movies",
+        side_effect=[
+            {
+                "results": [
+                    {
+                        "id": 1001,
+                        "title": "Translated Title",
+                        "original_title": "Leave",
+                        "release_date": "2022-05-01",
+                    }
+                ],
+                "total_pages": 2,
+                "total_results": 2,
+            },
+            {
+                "results": [
+                    {
+                        "id": 1002,
+                        "title": "Leave",
+                        "original_title": "Leave",
+                        "release_date": "2022-10-28",
+                    }
+                ],
+                "total_pages": 2,
+                "total_results": 2,
+            },
+        ],
+    )
+
+    ranked = list(Tmdb("key").search(MetadataMovie(name="Leave", year="2022")))
+
+    assert [movie.id_tmdb for movie in ranked] == ["1002", "1001"]
+    assert mock_search.call_count == 2
+
+
 def test_tmdb_search__no_hits(mocker):
     mocker.patch(
         "mnamer.providers.tmdb_search_movies",

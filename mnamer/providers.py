@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import datetime as dt
+import re
+import unicodedata
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
+from difflib import SequenceMatcher
 from os import environ
 from typing import Literal, Self, overload, override
 
@@ -27,6 +30,64 @@ from mnamer.metadata import Metadata, MetadataEpisode, MetadataMovie
 from mnamer.setting_store import SettingStore
 from mnamer.types import MediaType, ProviderType
 from mnamer.utils import parse_date, year_parse, year_range_parse
+
+_NON_WORD_RE = re.compile(r"[^\w]+")
+
+
+def _title_variants(title: str) -> tuple[str, str]:
+    stripped = "".join(
+        ch
+        for ch in unicodedata.normalize("NFKD", title)
+        if not unicodedata.combining(ch)
+    )
+    normalized = _NON_WORD_RE.sub(
+        " ", unicodedata.normalize("NFKC", stripped).casefold()
+    ).strip()
+    return normalized, normalized.replace(" ", "")
+
+
+def _tmdb_match_rank(
+    norm_query: str,
+    compact_query: str,
+    requested_year: int | None,
+    title: str,
+    original_title: str,
+    candidate_year: int | None,
+    index: int,
+) -> tuple[int, int, int, int, float, int]:
+    norm_title, compact_title = _title_variants(title)
+    norm_orig, compact_orig = (
+        _title_variants(original_title) if original_title else ("", "")
+    )
+    year_mismatch = (
+        0 if (requested_year is None or candidate_year == requested_year) else 1
+    )
+    exact_title = 0 if (norm_query and norm_title == norm_query) else 1
+    exact_any = (
+        0
+        if (norm_query and (norm_title == norm_query or norm_orig == norm_query))
+        else 1
+    )
+    compact_exact = (
+        0
+        if (
+            compact_query
+            and (compact_title == compact_query or compact_orig == compact_query)
+        )
+        else 1
+    )
+    title_similarity = SequenceMatcher(None, norm_query, norm_title).ratio()
+    orig_similarity = (
+        SequenceMatcher(None, norm_query, norm_orig).ratio() if norm_orig else 0.0
+    )
+    return (
+        year_mismatch,
+        exact_title,
+        exact_any,
+        compact_exact,
+        -max(title_similarity, orig_similarity),
+        index,
+    )
 
 
 class Provider[M: Metadata](ABC):
@@ -199,9 +260,14 @@ class Tmdb(Provider[MetadataMovie]):
     ) -> Iterator[MetadataMovie]:
         assert self.api_key
         requested_year = year_parse(year) if year else None
+        norm_query, compact_query = _title_variants(name)
+        candidates: list[
+            tuple[tuple[int, int, int, int, float, int], MetadataMovie]
+        ] = []
+        seen_ids: set[str] = set()
         page = 1
         page_max = 5  # each page yields a maximum of 20 results
-        found = False
+        has_exact_match = False
         while True:
             response = tmdb_search_movies(
                 self.api_key,
@@ -218,23 +284,39 @@ class Tmdb(Provider[MetadataMovie]):
                         continue
                     if requested_year and result_year != requested_year:
                         continue
-                    found = True
-                    yield MetadataMovie(
-                        id_tmdb=str(entry["id"]),
+                    movie_id = str(entry["id"])
+                    if movie_id in seen_ids:
+                        continue
+                    seen_ids.add(movie_id)
+                    movie = MetadataMovie(
+                        id_tmdb=movie_id,
                         name=entry["title"],
                         language=language,
                         synopsis=entry.get("overview"),
                         year=entry.get("release_date"),
                     )
+                    rank = _tmdb_match_rank(
+                        norm_query,
+                        compact_query,
+                        requested_year,
+                        entry["title"],
+                        entry.get("original_title", ""),
+                        result_year,
+                        len(candidates),
+                    )
+                    if rank[0] == 0 and rank[1] == 0:
+                        has_exact_match = True
+                    candidates.append((rank, movie))
                 except (AttributeError, KeyError, TypeError, ValueError):
                     continue
-            if page == response["total_pages"]:
-                break
-            elif page >= page_max:
+            if has_exact_match or page >= response["total_pages"] or page >= page_max:
                 break
             page += 1
-        if not found:
+        if not candidates:
             raise MnamerNotFoundException
+        candidates.sort(key=lambda item: item[0])
+        for _, movie in candidates:
+            yield movie
 
 
 class TvMaze(Provider[MetadataEpisode]):
