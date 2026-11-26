@@ -52,21 +52,6 @@ def test_search_id_tvmaze_and_date__no_hits(provider: TvMaze):
 
 
 @pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search_id_tvdb_and_date(meta, provider: TvMaze):
-    query = MetadataEpisode(id_tvdb=meta["id_tvdb"], date=meta["date"])
-    results = list(provider.search(query))
-    assert results
-    for result in results:
-        assert result.title == meta["title"]
-
-
-def test_search_id_tvdb_and_date__no_hits(provider: TvMaze):
-    query = MetadataEpisode(id_tvdb=JUNK_TEXT, date=TEST_DATE)
-    with pytest.raises(MnamerNotFoundException):
-        next(provider.search(query))
-
-
-@pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
 def test_search_id_tvmaze_and_season(meta: EpisodeMeta, provider: TvMaze):
     query = MetadataEpisode(id_tvmaze=str(meta["id_tvmaze"]), season=meta["season"])
     results = list(provider.search(query))
@@ -94,20 +79,6 @@ def test_search_id_tvmaze(meta: EpisodeMeta, provider: TvMaze):
 
 def test_search_id_tvmaze__no_hits(provider: TvMaze):
     query = MetadataEpisode(id_tvmaze=JUNK_TEXT)
-    with pytest.raises(MnamerNotFoundException):
-        next(provider.search(query))
-
-
-@pytest.mark.parametrize("meta", EPISODE_META.values(), ids=list(EPISODE_META))
-def test_search_id_tvdb(meta: EpisodeMeta, provider: TvMaze):
-    query = MetadataEpisode(id_tvdb=str(meta["id_tvdb"]))
-    results = list(provider.search(query))
-    assert results
-    assert any(result.title == meta["title"] for result in results)
-
-
-def test_search_id_tvdb__no_hits(provider: TvMaze):
-    query = MetadataEpisode(id_tvdb=JUNK_TEXT)
     with pytest.raises(MnamerNotFoundException):
         next(provider.search(query))
 

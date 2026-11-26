@@ -71,33 +71,3 @@ class Language:
     @override
     def __str__(self) -> str:
         return self.a2
-
-    @staticmethod
-    def ensure_valid_for_tvdb(language: Language | None):
-        valid = {
-            "cs",
-            "da",
-            "de",
-            "el",
-            "en",
-            "es",
-            "fi",
-            "fr",
-            "he",
-            "hr",
-            "hu",
-            "it",
-            "ja",
-            "ko",
-            "nl",
-            "no",
-            "pl",
-            "pt",
-            "ru",
-            "sl",
-            "sv",
-            "tr",
-            "zh",
-        }
-        if language is not None and language.a2 not in valid:
-            raise MnamerException(f"'lang' must be one of {','.join(valid)}")

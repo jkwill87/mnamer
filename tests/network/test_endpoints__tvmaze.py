@@ -146,28 +146,9 @@ def test_tvmaze_show_lookup__idmb__no_hits():
         tvmaze_show_lookup(id_imdb=JUNK_TEXT)
 
 
-def test_tvmaze_show_lookup__tvdb__success():
-    result = tvmaze_show_lookup(id_tvdb=str(META["id_tvdb"]))
-    assert result
-    for expected_show_key in EXPECTED_SHOW_KEYS:
-        assert expected_show_key in result
-    assert result["id"] == META["id_tvmaze"]
-    assert result["name"] == META["series"]
-
-
-def test_tvmaze_show_lookup__tvdb__no_hits():
-    with pytest.raises(MnamerNotFoundException):
-        tvmaze_show_lookup(id_tvdb=JUNK_TEXT)
-
-
 def test_tvmaze_show_lookup__missing_id():
     with pytest.raises(MnamerException):
         tvmaze_show_lookup()
-
-
-def test_tvmaze_show_lookup__both_ids():
-    with pytest.raises(MnamerException):
-        tvmaze_show_lookup(id_imdb=str(META["id_imdb"]), id_tvdb=str(META["id_tvdb"]))
 
 
 def test_tvmaze_show_episodes_list__success():

@@ -69,46 +69,7 @@ class TmdbSearchResponse(TypedDict):
     total_results: int
 
 
-class TvdbLinks(TypedDict):
-    last: int
-    next: int | None
-    prev: int | None
-
-
-class TvdbSeriesData(TypedDict):
-    id: int
-    series_name: str
-
-
-class TvdbSeriesResponse(TypedDict):
-    data: TvdbSeriesData
-
-
-class TvdbEpisodeEntry(TypedDict):
-    id: int
-    first_aired: str
-    aired_episode_number: int
-    aired_season: int
-    overview: str | None
-    episode_name: str
-
-
-class TvdbEpisodesResponse(TypedDict):
-    data: list[TvdbEpisodeEntry]
-    links: TvdbLinks
-
-
-class TvdbSearchEntry(TypedDict):
-    id: int
-    series_name: str
-
-
-class TvdbSearchResponse(TypedDict):
-    data: list[TvdbSearchEntry]
-
-
 class TvMazeExternals(TypedDict):
-    thetvdb: int | str | None
     imdb: NotRequired[str | None]
 
 
@@ -226,7 +187,11 @@ def tmdb_find(
 
     Online docs: developers.themoviedb.org/3/find.
     """
-    sources = ["imdb_id", "freebase_mid", "freebase_id", "tvdb_id", "tvrage_id"]
+    if external_source == "tvdb_id":
+        raise MnamerException(
+            "TVDb IDs are no longer supported. Use imdb_id with an IMDb ID."
+        )
+    sources = ["imdb_id", "freebase_mid", "freebase_id", "tvrage_id"]
     if external_source not in sources:
         raise MnamerException(f"external_source must be in {sources}")
     if external_source == "imdb_id" and not match(r"tt\d+", external_id):
@@ -315,216 +280,6 @@ def tmdb_search_movies(
     return cast(TmdbSearchResponse, content)
 
 
-def tvdb_login(api_key: str) -> str:
-    """
-    Logs into TVDb using the provided api key.
-
-    Note: You can register for a free TVDb key at thetvdb.com/?tab=apiregister
-    Online docs: api.thetvdb.com/swagger#!/Authentication/post_login.
-    """
-    url = "https://api.thetvdb.com/login"
-    body = {"apikey": api_key}
-    status, content = request_json(url, body=body, cache=False)
-    if status == 401:
-        raise MnamerException("invalid api key")
-    elif status != 200 or not content.get("token"):  # pragma: no cover
-        raise MnamerNetworkException("TVDb down or unavailable?")
-    return content["token"]
-
-
-def tvdb_refresh_token(token: str) -> str:
-    """
-    Refreshes JWT token.
-
-    Online docs: api.thetvdb.com/swagger#!/Authentication/get_refresh_token.
-    """
-    url = "https://api.thetvdb.com/refresh_token"
-    headers = _tvdb_headers(token)
-    status, content = request_json(url, headers=headers, cache=False)
-    if status == 401:
-        raise MnamerException("invalid token")
-    elif status != 200 or not content.get("token"):  # pragma: no cover
-        raise MnamerNetworkException("TVDb down or unavailable?")
-    return content["token"]
-
-
-def _tvdb_headers(token: str, language: Language | None = None) -> dict[str, str]:
-    if token.count(".") != 2:
-        raise MnamerException("invalid token")
-    headers = {"Authorization": f"Bearer {token}"}
-    if language:
-        headers["Accept-Language"] = language.a2
-    return headers
-
-
-def tvdb_episodes_id(
-    token: str,
-    id_tvdb: str,
-    language: Language | None = None,
-    cache: bool = True,
-) -> dict[str, Any]:
-    """
-    Returns the full information for a given episode id.
-
-    Online docs: https://api.thetvdb.com/swagger#!/Episodes.
-    """
-    Language.ensure_valid_for_tvdb(language)
-    url = f"https://api.thetvdb.com/episodes/{id_tvdb}"
-    headers = _tvdb_headers(token, language)
-    status, content = request_json(
-        url, headers=headers, cache=cache is True and language is None
-    )
-    content = normalize_keys(content)
-    if status == 401:
-        raise MnamerException("invalid token")
-    elif status == 404 or not content.get("data"):
-        raise MnamerNotFoundException
-    elif status != 200:  # pragma: no cover
-        raise MnamerNetworkException("TVDb down or unavailable?")
-    elif content["data"]["id"] == 0:
-        raise MnamerNotFoundException
-    return content
-
-
-def tvdb_series_id(
-    token: str,
-    id_tvdb: str,
-    language: Language | None = None,
-    cache: bool = True,
-) -> TvdbSeriesResponse:
-    """
-    Returns a series records that contains all information known about a
-    particular series id.
-
-    Online docs: api.thetvdb.com/swagger#!/Series/get_series_id.
-    """
-    Language.ensure_valid_for_tvdb(language)
-    url = f"https://api.thetvdb.com/series/{id_tvdb}"
-    headers = _tvdb_headers(token, language)
-    status, content = request_json(
-        url, headers=headers, cache=cache is True and language is None
-    )
-    content = normalize_keys(content)
-    if status == 401:
-        raise MnamerException("invalid token")
-    elif status == 404 or not content.get("data"):
-        raise MnamerNotFoundException
-    elif status != 200:  # pragma: no cover
-        raise MnamerNetworkException("TVDb down or unavailable?")
-    elif content["data"]["id"] == 0:
-        raise MnamerNotFoundException
-    return cast(TvdbSeriesResponse, content)
-
-
-def tvdb_series_id_episodes(
-    token: str,
-    id_tvdb: str,
-    page: int = 1,
-    language: Language | None = None,
-    cache: bool = True,
-) -> TvdbEpisodesResponse:
-    """
-    All episodes for a given series.
-
-    Note: Paginated with 100 results per page.
-    Online docs: api.thetvdb.com/swagger#!/Series/get_series_id_episodes.
-    """
-    Language.ensure_valid_for_tvdb(language)
-    url = f"https://api.thetvdb.com/series/{id_tvdb}/episodes"
-    headers = _tvdb_headers(token, language)
-    parameters: dict[str, Any] = {"page": page}
-    status, content = request_json(
-        url, parameters, headers=headers, cache=cache is True and language is None
-    )
-    content = normalize_keys(content)
-    if status == 401:
-        raise MnamerException("invalid token")
-    elif status == 404 or not content.get("data"):
-        raise MnamerNotFoundException
-    elif status != 200:  # pragma: no cover
-        raise MnamerNetworkException("TVDb down or unavailable?")
-    return cast(TvdbEpisodesResponse, content)
-
-
-def tvdb_series_id_episodes_query(
-    token: str,
-    id_tvdb: str,
-    episode: int | None = None,
-    season: int | None = None,
-    page: int = 1,
-    language: Language | None = None,
-    cache: bool = True,
-) -> TvdbEpisodesResponse:
-    """
-    Allows the user to query against episodes for the given series.
-
-    Note: Paginated with 100 results per page; omitted imdbId-- when would you
-    ever need to query against both tvdb and imdb series ids?
-    Online docs: api.thetvdb.com/swagger#!/Series/get_series_id_episodes_query.
-    """
-    Language.ensure_valid_for_tvdb(language)
-    url = f"https://api.thetvdb.com/series/{id_tvdb}/episodes/query"
-    headers = _tvdb_headers(token, language)
-    parameters: dict[str, Any] = {
-        "airedSeason": season,
-        "airedEpisode": episode,
-        "page": page,
-    }
-    status, content = request_json(
-        url,
-        parameters,
-        headers=headers,
-        cache=cache is True and language is None,
-    )
-    content = normalize_keys(content)
-    if status == 401:
-        raise MnamerException("invalid token")
-    elif status == 404 or not content.get("data"):
-        raise MnamerNotFoundException
-    elif status != 200:  # pragma: no cover
-        raise MnamerNetworkException("TVDb down or unavailable?")
-    return cast(TvdbEpisodesResponse, content)
-
-
-def tvdb_search_series(
-    token: str,
-    series: str | None = None,
-    id_imdb: str | None = None,
-    id_zap2it: str | None = None,
-    language: Language | None = None,
-    cache: bool = True,
-) -> TvdbSearchResponse:
-    """
-    Allows the user to search for a series based on the following parameters.
-
-    Online docs: https://api.thetvdb.com/swagger#!/Search/get_search_series
-    Note: results a maximum of 100 entries per page, no option for pagination.
-    """
-    Language.ensure_valid_for_tvdb(language)
-    url = "https://api.thetvdb.com/search/series"
-    parameters: dict[str, Any] = {
-        "name": series,
-        "imdbId": id_imdb,
-        "zap2itId": id_zap2it,
-    }
-    headers = _tvdb_headers(token, language)
-    status, content = request_json(
-        url, parameters, headers=headers, cache=cache is True and language is None
-    )
-    content = normalize_keys(content)
-    if status == 401:
-        raise MnamerException("invalid token")
-    elif status == 405:
-        raise MnamerException(
-            "series, id_imdb, id_zap2it parameters are mutually exclusive"
-        )
-    elif status == 404 or not content.get("data"):
-        raise MnamerNotFoundException
-    elif status != 200:  # pragma: no cover
-        raise MnamerNetworkException("TVDb down or unavailable?")
-    return cast(TvdbSearchResponse, content)
-
-
 def tvmaze_show(
     id_tvmaze: str,
     embed_episodes: bool = False,
@@ -601,24 +356,23 @@ def tvmaze_show_single_search(
 
 def tvmaze_show_lookup(
     id_imdb: str | None = None,
-    id_tvdb: str | None = None,
     cache: bool = True,
     attempt: int = 1,
 ) -> TvMazeShow:
     """
-    If you already know a show's tvrage, thetvdb or IMDB ID, you can use this
+    If you already know a show's IMDb ID, you can use this
     endpoint to find this exact show on TVmaze.
 
     Online docs: https://www.tvmaze.com/api#show-lookup
     """
-    if not [id_imdb, id_tvdb].count(None) == 1:
-        raise MnamerException("id_imdb and id_tvdb are mutually exclusive")
+    if id_imdb is None:
+        raise MnamerException("id_imdb is required")
     url = "http://api.tvmaze.com/lookup/shows"
-    parameters: dict[str, Any] = {"imdb": id_imdb, "thetvdb": id_tvdb}
+    parameters: dict[str, Any] = {"imdb": id_imdb}
     status, content = request_json(url, parameters, cache=cache)
     if status == 443 and attempt <= MAX_RETRIES:  # pragma: no cover
         sleep(attempt * 2)
-        return tvmaze_show_lookup(id_imdb, id_tvdb, cache, attempt + 1)
+        return tvmaze_show_lookup(id_imdb, cache, attempt + 1)
     elif status == 404:
         raise MnamerNotFoundException
     elif status != 200 or not content:  # pragma: no cover
