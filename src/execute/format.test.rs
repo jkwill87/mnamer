@@ -304,6 +304,26 @@ fn title_case_recognizes_additional_minor_words() {
 }
 
 #[test]
+fn title_case_preserves_dotted_acronyms_and_lowercases_standalone_articles() {
+    for (input, expected) in [
+        ("S.W.A.T.", "S.W.A.T."),
+        ("M.A.S.H.", "M.A.S.H."),
+        ("s.w.a.t.", "S.W.A.T."),
+        ("the m.a.s.h. story", "The M.A.S.H. Story"),
+        ("team s.a. returns", "Team S.A. Returns"),
+        ("the a.b.c. story", "The A.B.C. Story"),
+        ("the u.s.a today", "The U.S.A Today"),
+        ("élan: (m.a.s.h.) — again", "Élan: (M.A.S.H.) — Again"),
+        ("Once.Upon.a.Time", "Once.Upon.a.Time"),
+        ("once.upon.a.time", "Once.Upon.a.Time"),
+        ("of.mice.and.men", "Of.Mice.and.Men"),
+        ("part.2.a.sequel", "Part.2.a.Sequel"),
+    ] {
+        assert_eq!(title_case(input), expected, "{input}");
+    }
+}
+
+#[test]
 fn title_case_recognizes_additional_initialisms_and_roman_numerals() {
     for word in [
         "a24", "abc", "ac", "ai", "aids", "amc", "cbs", "cnn", "diy", "dna", "dvd", "eu", "gps",

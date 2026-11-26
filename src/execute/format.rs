@@ -589,6 +589,28 @@ fn template_text(value: Option<&str>, title: bool) -> String {
 
 /// Applies media-aware title casing.
 fn title_case(value: &str) -> String {
+    let mut output = String::with_capacity(value.len());
+    let mut start = 0;
+    let mut first_word = true;
+    let last_word_end = value.trim_end_matches(is_title_separator).len();
+
+    for part in value.split_inclusive(is_title_separator) {
+        let word = part.trim_end_matches(is_title_separator);
+        if !word.is_empty() {
+            let end = start + word.len();
+            let at_title_edge = first_word || end == last_word_end;
+            let dotted_acronym = is_dotted_acronym_letter(word, &value[..start], &value[end..]);
+            output.push_str(&case_title_word(word, at_title_edge, dotted_acronym));
+            first_word = false;
+        }
+        output.push_str(&part[word.len()..]);
+        start += part.len();
+    }
+    output
+}
+
+/// Capitalizes one title word according to its role and position.
+fn case_title_word(word: &str, at_title_edge: bool, dotted_acronym: bool) -> String {
     const LOWERCASE_WORDS: &[&str] = &[
         "a", "an", "and", "as", "at", "but", "by", "de", "des", "du", "en", "for", "from", "if",
         "in", "is", "le", "nor", "of", "on", "or", "per", "the", "to", "un", "une", "via", "vs",
@@ -605,39 +627,40 @@ fn title_case(value: &str) -> String {
         "wtf", "wwe", "wwi", "wwii", "xxx", "yolo",
     ];
 
-    let word_count = value
-        .split(|ch: char| !ch.is_alphanumeric() && ch != '\'' && ch != '’')
-        .filter(|word| !word.is_empty())
-        .count();
-    let mut word_index = 0;
-    let mut output = String::with_capacity(value.len());
-    let mut token = String::new();
-    for ch in value.chars().chain(std::iter::once('\0')) {
-        if ch.is_alphanumeric() || matches!(ch, '\'' | '’') {
-            token.push(ch);
-            continue;
-        }
-        if !token.is_empty() {
-            let lowercase = token.to_lowercase();
-            let transformed = if UPPERCASE_WORDS.contains(&lowercase.as_str()) {
-                lowercase.to_uppercase()
-            } else if word_index > 0
-                && word_index + 1 < word_count
-                && LOWERCASE_WORDS.contains(&lowercase.as_str())
-            {
-                lowercase
-            } else {
-                uppercase_initial(&lowercase)
-            };
-            output.push_str(&transformed);
-            token.clear();
-            word_index += 1;
-        }
-        if ch != '\0' {
-            output.push(ch);
-        }
+    let lowercase = word.to_lowercase();
+    if dotted_acronym || UPPERCASE_WORDS.contains(&lowercase.as_str()) {
+        lowercase.to_uppercase()
+    } else if !at_title_edge && LOWERCASE_WORDS.contains(&lowercase.as_str()) {
+        lowercase
+    } else {
+        uppercase_initial(&lowercase)
     }
-    output
+}
+
+/// Identifies characters that separate words in a title.
+fn is_title_separator(ch: char) -> bool {
+    !ch.is_alphanumeric() && !matches!(ch, '\'' | '’')
+}
+
+/// Checks whether a letter is separated from another single letter by a dot.
+fn is_dotted_acronym_letter(word: &str, before: &str, after: &str) -> bool {
+    if !is_single_letter(word) {
+        return false;
+    }
+
+    let left = before
+        .strip_suffix('.')
+        .and_then(|prefix| prefix.rsplit(is_title_separator).next());
+    let right = after
+        .strip_prefix('.')
+        .and_then(|suffix| suffix.split(is_title_separator).next());
+    left.is_some_and(is_single_letter) || right.is_some_and(is_single_letter)
+}
+
+/// Checks whether a word consists of one alphabetic character.
+fn is_single_letter(word: &str) -> bool {
+    let mut chars = word.chars();
+    chars.next().is_some_and(char::is_alphabetic) && chars.next().is_none()
 }
 
 /// Uppercases the first character of a value.
