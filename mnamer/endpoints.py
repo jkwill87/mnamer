@@ -9,7 +9,7 @@ always-present per the API contract are required; partial/optional fields use `N
 import datetime
 from re import match
 from time import sleep
-from typing import Any, NotRequired, TypedDict, cast
+from typing import Any, NotRequired, ReadOnly, TypedDict, cast
 
 from mnamer.exceptions import (
     MnamerException,
@@ -24,7 +24,7 @@ MAX_RETRIES = 5
 
 
 class OmdbSearchEntry(TypedDict):
-    imdb_id: str
+    imdb_id: ReadOnly[str]
     year: str
     type: str
     title: NotRequired[str]
@@ -37,7 +37,7 @@ class OmdbTitleResponse(TypedDict):
     type: str
     released: NotRequired[str]
     plot: NotRequired[str]
-    imdb_id: str
+    imdb_id: ReadOnly[str]
     error: NotRequired[str]
 
 
@@ -48,7 +48,7 @@ class OmdbSearchResponse(TypedDict):
 
 
 class TmdbSearchEntry(TypedDict):
-    id: int
+    id: ReadOnly[int]
     title: str
     original_title: str
     release_date: NotRequired[str]
@@ -56,11 +56,11 @@ class TmdbSearchEntry(TypedDict):
 
 
 class TmdbMovieResponse(TypedDict):
-    id: int
+    id: ReadOnly[int]
     title: str
     release_date: NotRequired[str]
     overview: NotRequired[str]
-    imdb_id: NotRequired[str]
+    imdb_id: NotRequired[ReadOnly[str]]
 
 
 class TmdbSearchResponse(TypedDict):
@@ -70,11 +70,11 @@ class TmdbSearchResponse(TypedDict):
 
 
 class TvMazeExternals(TypedDict):
-    imdb: NotRequired[str | None]
+    imdb: NotRequired[ReadOnly[str | None]]
 
 
 class TvMazeShow(TypedDict):
-    id: int
+    id: ReadOnly[int]
     name: str
     externals: TvMazeExternals
 
@@ -84,7 +84,7 @@ class TvMazeSearchEntry(TypedDict):
 
 
 class TvMazeEpisode(TypedDict):
-    id: int
+    id: ReadOnly[int]
     airdate: str | None
     number: int | None
     season: int

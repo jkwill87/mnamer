@@ -116,3 +116,22 @@ def test_arg_parser__missing_help():
     spec = SettingSpec(group=SettingType.DIRECTIVE, flags=["-f"])
     with pytest.raises(RuntimeError):
         ArgLoader(spec)
+
+
+def test_arg_parser__suggests_choices_when_supported(
+    capsys: pytest.CaptureFixture[str],
+):
+    spec = SettingSpec(
+        group=SettingType.DIRECTIVE,
+        flags=["--media"],
+        choices=["episode", "movie"],
+        help="override media detection",
+    )
+
+    with pytest.raises(SystemExit) as exc:
+        ArgLoader(spec).parse_args(["--media", "movi"])
+
+    assert exc.value.code == 2
+    assert ("maybe you meant 'movie'" in capsys.readouterr().err) == (
+        sys.version_info >= (3, 14)
+    )

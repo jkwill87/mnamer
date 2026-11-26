@@ -193,7 +193,7 @@ def json_loads(path: str) -> dict[str, Any]:
     path = expanduser(path)
     path = expandvars(path)
     if exists(path):
-        with open(path) as fp:
+        with open(path, encoding="utf-8") as fp:
             json_data = fp.read()
     return json.loads(json_data) if json_data else {}
 

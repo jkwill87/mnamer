@@ -2,6 +2,10 @@ name: Init
 description: Sets up the environment for build, lint, and test jobs
 
 inputs:
+  python-version:
+    description: Python minor version to install
+    required: false
+    default: "3.14"
   save-cache:
     description: Whether to save the uv cache after the job
     required: false
@@ -11,8 +15,15 @@ runs:
   using: composite
   steps:
     - uses: actions/setup-python@v6.2.0
+      id: python
       with:
-        python-version: "3.12"
+        python-version: ${{ inputs.python-version }}
+
+    - name: Select the interpreter for uv
+      shell: sh
+      env:
+        PYTHON_PATH: ${{ steps.python.outputs.python-path }}
+      run: printf "UV_PYTHON=%s\n" "$PYTHON_PATH" >> "$GITHUB_ENV"
 
     - name: Install uv
       uses: astral-sh/setup-uv@v8.1.0
@@ -25,4 +36,4 @@ runs:
 
     - name: Install dependencies
       shell: sh
-      run: uv sync --python 3.12 --locked --dev
+      run: uv sync --locked --dev

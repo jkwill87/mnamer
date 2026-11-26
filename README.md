@@ -23,6 +23,8 @@ Check out the [wiki page](https://github.com/jkwill87/mnamer/wiki) for more deta
 
 💾 [**Installation**](https://github.com/jkwill87/mnamer/wiki/Installation)
 
+mnamer requires Python 3.13 or newer. CI tests Python 3.13, 3.14, and 3.15.
+
 `$ uv tool install mnamer` or `$ pip3 install --user mnamer`
 
 🤖 [**Automation**](https://github.com/jkwill87/mnamer/wiki/Automation)

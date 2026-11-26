@@ -2,7 +2,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from requests import Session
+from requests import Request, Session
+from requests_cache import CachedSession
 
 from mnamer.const import CURRENT_YEAR, SUBTITLE_CONTAINERS
 from mnamer.types import MediaType
@@ -18,6 +19,7 @@ from mnamer.utils import (
     format_exception,
     format_iter,
     is_subtitle,
+    json_loads,
     normalize_container,
     parse_date,
     request_json,
@@ -898,3 +900,20 @@ def test_year_range_parse__unexpected(t: int, s: str):
     expected = (1900 - t, CURRENT_YEAR + t)
     actual = year_range_parse(s, t)
     assert actual == expected
+
+
+def test_json_loads__utf8(tmp_path: Path):
+    config_path = tmp_path / ".mnamer-v2.json"
+    config_path.write_text('{"movie_directory": "/media/Cinéma"}', encoding="utf-8")
+
+    assert json_loads(str(config_path)) == {"movie_directory": "/media/Cinéma"}
+
+
+def test_cache_key__normalizes_provider_url():
+    with CachedSession(backend="memory") as session:
+        url = "https://api.tvmaze.com/search/shows"
+        request = Request("GET", url, params={"q": "example", "page": 1})
+        reordered = Request("GET", url, params={"page": 1, "q": "example"})
+        assert session.cache.create_key(request.prepare()) == session.cache.create_key(
+            reordered.prepare()
+        )

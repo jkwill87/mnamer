@@ -1,4 +1,5 @@
 import argparse
+import sys
 from typing import Any, final, override
 
 from mnamer.const import USAGE
@@ -43,6 +44,8 @@ class ArgLoader(argparse.ArgumentParser):
             usage=USAGE,
             argument_default=argparse.SUPPRESS,
         )
+        if sys.version_info >= (3, 14):
+            self.suggest_on_error = True  # pyright: ignore[reportUnreachable]
         self._positional_group = self.add_argument_group()
         self._parameter_group = self.add_argument_group()
         self._directive_group = self.add_argument_group()
