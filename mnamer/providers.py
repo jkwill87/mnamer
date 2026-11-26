@@ -304,7 +304,7 @@ class Tmdb(Provider[MetadataMovie]):
                         result_year,
                         len(candidates),
                     )
-                    if rank[0] == 0 and rank[2] == 0:
+                    if rank[0] == 0 and rank[1] == 0:
                         has_exact_match = True
                     candidates.append((rank, movie))
                 except (AttributeError, KeyError, TypeError, ValueError):

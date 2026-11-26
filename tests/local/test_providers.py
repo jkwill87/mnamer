@@ -295,6 +295,43 @@ def test_tmdb_search__name_fetches_later_page_until_exact_match_found(mocker):
     assert mock_search.call_count == 2
 
 
+def test_tmdb_search__name_continues_paging_past_original_title_only_match(mocker):
+    mock_search = mocker.patch(
+        "mnamer.providers.tmdb_search_movies",
+        side_effect=[
+            {
+                "results": [
+                    {
+                        "id": 1001,
+                        "title": "Translated Title",
+                        "original_title": "Leave",
+                        "release_date": "2022-05-01",
+                    }
+                ],
+                "total_pages": 2,
+                "total_results": 2,
+            },
+            {
+                "results": [
+                    {
+                        "id": 1002,
+                        "title": "Leave",
+                        "original_title": "Leave",
+                        "release_date": "2022-10-28",
+                    }
+                ],
+                "total_pages": 2,
+                "total_results": 2,
+            },
+        ],
+    )
+
+    ranked = list(Tmdb("key").search(MetadataMovie(name="Leave", year="2022")))
+
+    assert [movie.id_tmdb for movie in ranked] == ["1002", "1001"]
+    assert mock_search.call_count == 2
+
+
 def test_tmdb_search__no_hits(mocker):
     mocker.patch(
         "mnamer.providers.tmdb_search_movies",
