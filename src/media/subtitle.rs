@@ -1,5 +1,6 @@
 //! Parses subtitle filenames and directory naming conventions.
 
+use super::inspect::build_filename_inspector;
 use mediakit::inspect::{FilenameInspector, Inspector};
 use mediakit::meta::Tag;
 pub use mediakit::meta::fields::SubtitleDisposition;
@@ -33,7 +34,7 @@ pub struct SubtitleFilename {
 impl SubtitleFilename {
     /// Parses subtitle sidecar semantics from the shared filename inspector.
     pub fn parse(path: &Path) -> Option<Self> {
-        let inspector = FilenameInspector::new(path).analyze();
+        let inspector = build_filename_inspector(path, None);
         Self::from_inspector(&inspector)
     }
 

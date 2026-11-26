@@ -189,6 +189,30 @@ fn inspects_movie_and_episode_metadata() {
     assert_eq!(episode.episode, Some(2));
 }
 
+#[cfg(unix)]
+#[test]
+fn inspects_metadata_in_non_utf8_filenames() {
+    use std::ffi::OsStr;
+    use std::os::unix::ffi::OsStrExt;
+
+    let path = Path::new(OsStr::from_bytes(b"Aladdin.2019.\xff.avi"));
+    let metadata = Metadata::inspect_with_file_content(path, None, false);
+
+    assert_eq!(metadata.media_type, MediaKind::Movie);
+    assert_eq!(metadata.name.as_deref(), Some("Aladdin"));
+    assert_eq!(metadata.year, Some(2019));
+    assert_eq!(metadata.extension.as_deref(), Some("avi"));
+
+    let subtitle = Path::new(OsStr::from_bytes(b"Aladdin.2019.\xff.en.srt"));
+    let metadata = Metadata::inspect_with_file_content(subtitle, None, false);
+    assert_eq!(metadata.name.as_deref(), Some("Aladdin"));
+    assert_eq!(metadata.language_sub.as_deref(), Some("en"));
+    assert_eq!(
+        SubtitleFilename::parse(subtitle).unwrap().association_key(),
+        Some("aladdin2019")
+    );
+}
+
 #[test]
 fn alternative_series_titles_are_preserved_in_provider_metadata() {
     let anime = Metadata::inspect(

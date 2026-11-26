@@ -397,3 +397,77 @@ async fn application_context_runs_cli_config_discovery_test_and_move_offline() {
             .all(|item| item.destination.as_ref().is_some_and(|path| path.exists()))
     );
 }
+
+#[cfg(unix)]
+#[tokio::test]
+async fn moves_media_with_non_utf8_filenames_and_renders_valid_utf8() {
+    use std::ffi::OsStr;
+    use std::os::unix::ffi::OsStrExt;
+
+    let temporary = tempfile::tempdir().unwrap();
+    let video = temporary
+        .path()
+        .join(OsStr::from_bytes(b"Aladdin.2019.\xff.avi"));
+    let subtitle = temporary
+        .path()
+        .join(OsStr::from_bytes(b"Aladdin.2019.\xff.en.srt"));
+    let write_result = fs::write(&video, b"video contents");
+    // Darwin reports EILSEQ for filenames rejected by APFS.
+    #[cfg(target_vendor = "apple")]
+    const EILSEQ: i32 = 92;
+    #[cfg(target_vendor = "apple")]
+    if write_result
+        .as_ref()
+        .is_err_and(|error| error.raw_os_error() == Some(EILSEQ))
+    {
+        eprintln!("skipping test: temporary filesystem rejects non-UTF-8 filenames");
+        return;
+    }
+    write_result.unwrap();
+    fs::write(&subtitle, b"subtitle contents").unwrap();
+
+    let calls = Arc::new(AtomicUsize::new(0));
+    let context = ApplicationContext::new(ConfigLoader::new(ConfigPaths::new(
+        temporary.path(),
+        None,
+        None,
+    )))
+    .with_candidate_source(Arc::new(FixedSource {
+        candidate: movie_candidate("Aladdin", 2019),
+        calls: Arc::clone(&calls),
+    }));
+    let cli = Cli::try_parse_validated_from([
+        OsStr::new("mnamer"),
+        OsStr::new("move"),
+        OsStr::new("--batch"),
+        OsStr::new("--no-cache"),
+        temporary.path().as_os_str(),
+    ])
+    .unwrap();
+
+    let output = run_with_context(&cli, &context).await.unwrap();
+
+    assert_eq!(output.exit_code(), 0);
+    assert_eq!(calls.load(Ordering::Relaxed), 1);
+    for (source, destination, contents) in [
+        (video, "Aladdin (2019).avi", b"video contents".as_slice()),
+        (
+            subtitle,
+            "Aladdin (2019).en.srt",
+            b"subtitle contents".as_slice(),
+        ),
+    ] {
+        assert!(!source.exists());
+        assert_eq!(
+            fs::read(temporary.path().join(destination)).unwrap(),
+            contents
+        );
+    }
+    for color in [false, true] {
+        let mut rendered = Vec::new();
+        output.render(false, color, &mut rendered).unwrap();
+        let rendered = String::from_utf8(rendered).unwrap();
+        assert!(rendered.contains("Aladdin.2019.�.avi"));
+        assert!(rendered.contains("Aladdin.2019.�.en.srt"));
+    }
+}

@@ -4,6 +4,8 @@ use super::subtitle::{detect_language_from_content, subtitle_directory_context};
 use super::{MediaKind, Metadata, SubtitleFilename};
 use mediakit::inspect::{FileInspector, FilenameInspector, Inspector};
 use mediakit::meta::{Tag, fields::MediaType};
+use std::borrow::Cow;
+use std::ffi::OsStr;
 use std::path::Path;
 
 impl Metadata {
@@ -121,15 +123,21 @@ fn inspect_filename_parts(
 }
 
 /// Builds a filename inspector with an optional media hint.
-fn build_filename_inspector(path: &Path, media_override: Option<MediaKind>) -> FilenameInspector {
+pub(super) fn build_filename_inspector(
+    path: &Path,
+    media_override: Option<MediaKind>,
+) -> FilenameInspector {
     let media_hint = media_override.map_or(MediaType::Unknown, |media| match media {
         MediaKind::Movie => MediaType::Movie,
         MediaKind::Episode => MediaType::Television,
         MediaKind::Unknown => MediaType::Unknown,
     });
-    FilenameInspector::new(path)
-        .with_media_type_hint(media_hint)
-        .analyze()
+    // The inspector requires UTF-8 for tokenization. Keep the original path for filesystem access.
+    let inspector = match path.file_name().map(OsStr::to_string_lossy) {
+        Some(Cow::Owned(filename)) => FilenameInspector::new(filename),
+        _ => FilenameInspector::new(path),
+    };
+    inspector.with_media_type_hint(media_hint).analyze()
 }
 
 /// Converts a completed filename inspection into naming metadata.
