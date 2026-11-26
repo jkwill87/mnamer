@@ -5,7 +5,7 @@ from pathlib import Path
 from shutil import move
 from typing import Any, ClassVar, Self, override
 
-from guessit import guessit  # type: ignore
+from guessit import guessit
 
 from mnamer.exceptions import MnamerException
 from mnamer.language import Language
@@ -18,7 +18,6 @@ from mnamer.utils import (
     filename_replace,
     filter_blacklist,
     filter_containers,
-    is_subtitle,
     str_replace,
     str_sanitize,
     str_scenify,
@@ -151,33 +150,26 @@ class Target:
         return str_sanitize(value)
 
     def _parse(self, file_path: Path):
-        path_data: dict[str, Any] = {"language": self._settings.language}
-        if is_subtitle(self.source):
-            try:
-                path_data["language"] = Language.parse(self.source.stem[-2:])
-                file_path = Path(self.source.parent, self.source.stem[:-2])
-            except MnamerException:
-                pass
-        options = {"type": self._settings.media, "language": path_data["language"]}
-        raw_data = dict(guessit(str(file_path), options))
+        media_type = self._settings.media
+        options = {"type": media_type.value if media_type else None}
+        raw_data = guessit(file_path, options)
         if isinstance(raw_data.get("season"), list):
-            raw_data = dict(guessit(str(file_path.parts[-1]), options))
+            raw_data = guessit(file_path.name, options)
+        path_data: dict[str, Any] = {}
         for k, v in raw_data.items():
-            if hasattr(v, "alpha3"):
+            if k in ("language", "subtitle_language"):
+                if not (isinstance(v, str) or hasattr(v, "alpha3")):
+                    continue
                 try:
                     path_data[k] = Language.parse(v)
                 except MnamerException:
                     continue
             elif isinstance(v, int | str | dt.date):
                 path_data[k] = v
-            elif isinstance(v, list) and all(isinstance(_, int | str) for _ in v):
+            elif isinstance(v, list) and v and all(isinstance(_, int | str) for _ in v):
                 path_data[k] = v[0]
-        if self._settings.media:
-            media_type = self._settings.media
-        elif path_data.get("type"):
+        if media_type is None and path_data.get("type"):
             media_type = MediaType(path_data["type"])
-        else:
-            media_type = None
         meta_cls = {
             MediaType.EPISODE: MetadataEpisode,
             MediaType.MOVIE: MetadataMovie,
@@ -200,20 +192,10 @@ class Target:
             )
             or None
         )
-        if self._settings.language:
-            path_data["language"] = self._settings.language
-        self.metadata.language = path_data.get("language")
+        self.metadata.language = self._settings.language or path_data.get("language")
         self.metadata.group = path_data.get("release_group")
         self.metadata.container = file_path.suffix or None
-        if not self.metadata.language:
-            try:
-                self.metadata.language = path_data.get("language")
-            except MnamerException:
-                pass
-        try:
-            self.metadata.language_sub = path_data.get("subtitle_language")
-        except MnamerException:
-            pass
+        self.metadata.language_sub = path_data.get("subtitle_language")
         if isinstance(self.metadata, MetadataMovie):
             self.metadata.name = path_data.get("title")
             self.metadata.year = path_data.get("year")
@@ -221,10 +203,16 @@ class Target:
             self.metadata.date = path_data.get("date")
             self.metadata.episode = path_data.get("episode")
             self.metadata.season = path_data.get("season")
-            self.metadata.series = path_data.get("title")
-            alternative_title = path_data.get("alternative_title")
-            if alternative_title:
-                self.metadata.series = f"{self.metadata.series} {alternative_title}"
+            # GuessIt returns matches in filename order. In v4 an alternate
+            # title can precede the primary title.
+            self.metadata.series = (
+                " ".join(
+                    value
+                    for key, value in path_data.items()
+                    if key in ("title", "alternative_title")
+                )
+                or None
+            )
             # adding year to title can reduce false positives
             # year = path_data.get("year")
             # if year:

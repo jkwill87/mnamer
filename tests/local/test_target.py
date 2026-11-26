@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from mnamer.language import Language
 from mnamer.metadata import MetadataEpisode, MetadataMovie
 from mnamer.setting_store import SettingStore
 from mnamer.target import Target
@@ -68,6 +69,19 @@ def test_parse__series():
     assert target.metadata.series == "Ninja Turtles"
 
 
+@pytest.mark.parametrize(
+    ("filename", "series"),
+    [
+        ("進撃の巨人 Attack on Titan S01E02.mkv", "進撃の巨人 Attack on Titan"),
+        ("Show Name - Alternate Name - 01.mkv", "Show Name Alternate Name"),
+    ],
+)
+def test_parse__series_preserves_title_order(filename: str, series: str):
+    target = Target(Path(filename), SettingStore())
+    assert isinstance(target.metadata, MetadataEpisode)
+    assert target.metadata.series == series
+
+
 def test_parse__year():
     file_path = Path("the.goonies.1985")
     target = Target(file_path, SettingStore())
@@ -86,6 +100,12 @@ def testparse__name():
 def test_media__override(media: MediaType):
     target = Target(Path(), SettingStore(media=media))
     assert target.metadata.to_media_type() == media
+
+
+def test_media__movie_override_preserves_title_number():
+    target = Target(Path("Rocky 123.mkv"), SettingStore(media=MediaType.MOVIE))
+    assert isinstance(target.metadata, MetadataMovie)
+    assert target.metadata.name == "Rocky 123"
 
 
 def test_directory__movie():
@@ -110,6 +130,26 @@ def test_ambiguous_subtitle_language():
         Path("Subs/Nancy.Drew.S01E01.WEBRip.x264-ION10.srt"), SettingStore()
     )
     assert target.metadata.language is None
+    assert target.metadata.language_sub is None
+
+
+@pytest.mark.parametrize("extension", ["srt", "idx", "sub"])
+def test_parse__subtitle_suffix(extension: str):
+    target = Target(
+        Path(f"The.Show.S01E02.en.{extension}"),
+        SettingStore(language=Language.parse("fr")),
+    )
+    assert target.metadata.language == Language.parse("fr")
+    assert target.metadata.language_sub == Language.parse("en")
+    assert target.destination.name == f"The Show - S01E02.en.{extension}"
+
+
+def test_parse__subtitle_title_ending_in_language_code():
+    target = Target(Path("It.srt"), SettingStore())
+    assert isinstance(target.metadata, MetadataMovie)
+    assert target.metadata.name == "It"
+    assert target.metadata.language_sub is None
+    assert target.destination.name == "It.srt"
 
 
 def test_destination__simple():
