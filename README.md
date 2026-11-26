@@ -13,7 +13,7 @@
 
 mnamer (**m**edia re**namer**) is an intelligent and highly configurable media organization utility. It parses media filenames for metadata, searches the web to fill in the blanks, and then renames and moves them.
 
-Currently it has integration support with [TVDb](https://thetvdb.com) and [TvMaze](https://www.tvmaze.com) for television episodes and [TMDb](https://www.themoviedb.org/) and [OMDb](https://www.omdbapi.com) for movies.
+Currently it has integration support with [TvMaze](https://www.tvmaze.com) for television episodes and [TMDb](https://www.themoviedb.org/) and [OMDb](https://www.omdbapi.com) for movies.
 
 <img src="https://github.com/jkwill87/mnamer/raw/main/assets/screenshot.png" width="750"/>
 
@@ -22,6 +22,8 @@ Currently it has integration support with [TVDb](https://thetvdb.com) and [TvMaz
 Check out the [wiki page](https://github.com/jkwill87/mnamer/wiki) for more details.
 
 💾 [**Installation**](https://github.com/jkwill87/mnamer/wiki/Installation)
+
+mnamer requires Python 3.13 or newer. CI tests Python 3.13, 3.14, and 3.15.
 
 `$ uv tool install mnamer` or `$ pip3 install --user mnamer`
 
@@ -35,7 +37,7 @@ Using the **episode-directory**, **episode-format**, **movie-directory**, or **m
 
 🌐 [**Internationalization**](https://github.com/jkwill87/mnamer/wiki/Internationalization)
 
-Language is supported by the default TMDb and TVDb providers. You can use the `--language` setting to set the language used for templating.
+Language is supported by the default TMDb provider. You can use the `--language` setting to set the language used for templating.
 
 mnamer also supports subtitle files (.srt, .idx, .sub). It will use the format pattern used for movie or episode media files with its extension prefixed by its 2-letter language code.
 
@@ -67,7 +69,7 @@ PARAMETERS:
   --movie-api={*tmdb,omdb}: set movie api provider
   --movie-directory: set movie relocation directory
   --movie-format: set movie renaming format specification
-  --episode-api={tvdb,*tvmaze}: set episode api provider
+  --episode-api={tvmaze}: set episode api provider
   --episode-directory: set episode relocation directory
   --episode-format: set episode renaming format specification
 
@@ -82,7 +84,6 @@ DIRECTIVES:
   --config-path=<PATH>: specifies configuration path to load
   --id-imdb=<ID>: specify an IMDb movie id override
   --id-tmdb=<ID>: specify a TMDb movie id override
-  --id-tvdb=<ID>: specify a TVDb series id override
   --id-tvmaze=<ID>: specify a TvMaze series id override
   --no-cache: disable request cache
   --media={movie,episode}: override media detection

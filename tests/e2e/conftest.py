@@ -15,11 +15,6 @@ from mnamer.endpoints import (
     TmdbMovieResponse,
     TmdbSearchEntry,
     TmdbSearchResponse,
-    TvdbEpisodeEntry,
-    TvdbEpisodesResponse,
-    TvdbSearchEntry,
-    TvdbSearchResponse,
-    TvdbSeriesResponse,
     TvMazeEpisode,
     TvMazeSearchEntry,
     TvMazeShow,
@@ -31,9 +26,6 @@ from mnamer.target import Target
 from tests import (
     E2E_MOVIE_FIXTURES,
     E2E_MOVIE_TITLE_ALIASES,
-    E2E_TVDB_EPISODE_FIXTURES,
-    E2E_TVDB_SERIES_ALIASES,
-    E2E_TVDB_SERIES_FIXTURES,
     E2E_TVMAZE_EPISODE_FIXTURES,
     E2E_TVMAZE_SERIES_ALIASES,
     E2E_TVMAZE_SHOW_FIXTURES,
@@ -140,13 +132,6 @@ def _tvmaze_episode(id_tvmaze: object, season: int, episode: int) -> TvMazeEpiso
         raise MnamerNotFoundException from e
 
 
-def _tvdb_episode(id_tvdb: object, season: int, episode: int) -> TvdbEpisodeEntry:
-    try:
-        return E2E_TVDB_EPISODE_FIXTURES[(str(id_tvdb), season, episode)]
-    except KeyError as e:
-        raise MnamerNotFoundException from e
-
-
 @pytest.fixture(autouse=True)
 def mock_provider_endpoints(mocker: MockerFixture) -> None:
     """Mocks provider endpoint calls so E2E tests do not use network APIs."""
@@ -218,52 +203,6 @@ def mock_provider_endpoints(mocker: MockerFixture) -> None:
             "total_results": str(len(movies)),
         }
 
-    def tvdb_search_series(
-        _token: str, series: str | None = None, **_kwargs: object
-    ) -> TvdbSearchResponse:
-        try:
-            ids = E2E_TVDB_SERIES_ALIASES[_key(series)]
-        except KeyError as e:
-            raise MnamerNotFoundException from e
-        data: list[TvdbSearchEntry] = [
-            {"id": int(id_tvdb), "series_name": E2E_TVDB_SERIES_FIXTURES[id_tvdb]}
-            for id_tvdb in ids
-        ]
-        return {"data": data}
-
-    def tvdb_series_id(
-        _token: str, id_tvdb: object, **_kwargs: object
-    ) -> TvdbSeriesResponse:
-        try:
-            series_name = E2E_TVDB_SERIES_FIXTURES[str(id_tvdb)]
-        except KeyError as e:
-            raise MnamerNotFoundException from e
-        return {"data": {"id": int(str(id_tvdb)), "series_name": series_name}}
-
-    def tvdb_series_id_episodes_query(
-        _token: str,
-        id_tvdb: object,
-        episode: int | None = None,
-        season: int | None = None,
-        page: int = 1,
-        **_kwargs: object,
-    ) -> TvdbEpisodesResponse:
-        if page > 1:
-            raise MnamerNotFoundException
-        if season is None or episode is None:
-            data = [
-                entry
-                for (
-                    entry_id,
-                    _entry_season,
-                    _entry_episode,
-                ), entry in E2E_TVDB_EPISODE_FIXTURES.items()
-                if entry_id == str(id_tvdb)
-            ]
-        else:
-            data = [_tvdb_episode(id_tvdb, season, episode)]
-        return {"data": data, "links": {"last": 1, "next": None, "prev": None}}
-
     def tvmaze_show_search(series: str, **_kwargs: object) -> list[TvMazeSearchEntry]:
         show = _tvmaze_show_by_query(series)
         return [{"show": show}]
@@ -275,14 +214,6 @@ def mock_provider_endpoints(mocker: MockerFixture) -> None:
 
     def tvmaze_show(id_tvmaze: object, **_kwargs: object) -> TvMazeShow:
         return _tvmaze_show_by_id(id_tvmaze)
-
-    def tvmaze_show_lookup(**kwargs: object) -> TvMazeShow:
-        id_tvdb = str(kwargs.get("id_tvdb"))
-        for show in E2E_TVMAZE_SHOW_FIXTURES.values():
-            externals = show["externals"]
-            if str(externals.get("thetvdb")) == id_tvdb:
-                return show
-        raise MnamerNotFoundException
 
     def tvmaze_show_episodes_list(
         id_tvmaze: object, **_kwargs: object
@@ -316,20 +247,12 @@ def mock_provider_endpoints(mocker: MockerFixture) -> None:
     mocker.patch("mnamer.providers.tmdb_search_movies", side_effect=tmdb_search_movies)
     mocker.patch("mnamer.providers.omdb_title", side_effect=omdb_title)
     mocker.patch("mnamer.providers.omdb_search", side_effect=omdb_search)
-    mocker.patch("mnamer.providers.tvdb_login", return_value="token")
-    mocker.patch("mnamer.providers.tvdb_search_series", side_effect=tvdb_search_series)
-    mocker.patch("mnamer.providers.tvdb_series_id", side_effect=tvdb_series_id)
-    mocker.patch(
-        "mnamer.providers.tvdb_series_id_episodes_query",
-        side_effect=tvdb_series_id_episodes_query,
-    )
     mocker.patch("mnamer.providers.tvmaze_show_search", side_effect=tvmaze_show_search)
     mocker.patch(
         "mnamer.providers.tvmaze_episode_by_number",
         side_effect=tvmaze_episode_by_number,
     )
     mocker.patch("mnamer.providers.tvmaze_show", side_effect=tvmaze_show)
-    mocker.patch("mnamer.providers.tvmaze_show_lookup", side_effect=tvmaze_show_lookup)
     mocker.patch(
         "mnamer.providers.tvmaze_show_episodes_list",
         side_effect=tvmaze_show_episodes_list,

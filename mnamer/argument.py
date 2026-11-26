@@ -1,7 +1,9 @@
 import argparse
+import sys
 from typing import Any, final, override
 
 from mnamer.const import USAGE
+from mnamer.exceptions import MnamerException
 from mnamer.setting_spec import SettingSpec
 from mnamer.types import SettingType
 
@@ -42,6 +44,8 @@ class ArgLoader(argparse.ArgumentParser):
             usage=USAGE,
             argument_default=argparse.SUPPRESS,
         )
+        if sys.version_info >= (3, 14):
+            self.suggest_on_error = True  # pyright: ignore[reportUnreachable]
         self._positional_group = self.add_argument_group()
         self._parameter_group = self.add_argument_group()
         self._directive_group = self.add_argument_group()
@@ -72,6 +76,14 @@ class ArgLoader(argparse.ArgumentParser):
 
     def load(self) -> dict[str, Any]:
         load_arguments, unknowns = self.parse_known_args()
+        if any(
+            arg.partition("=")[0] in {"--id-tvdb", "--id_tvdb", "--idtvdb"}
+            for arg in unknowns
+        ):
+            raise MnamerException(
+                "TVDb IDs are no longer supported. "
+                "Use --id-tvmaze with a TVmaze series ID."
+            )
         if unknowns:
             raise RuntimeError(f"invalid arguments: {','.join(unknowns)}")
         return vars(load_arguments)

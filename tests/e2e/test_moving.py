@@ -224,32 +224,17 @@ def test_format_id(e2e_run, setup_test_files):
     assert "Aladdin (tt0103639).avi" in result.out
 
 
-@pytest.mark.tvdb
+@pytest.mark.tvmaze
 @pytest.mark.usefixtures("setup_test_dir")
-def test_format_id__tvdb(e2e_run, setup_test_files):
+def test_format_id__tvmaze(e2e_run, setup_test_files):
     setup_test_files("archer.2009.s10e07.webrip.x264-lucidtv.mp4")
     result = e2e_run(
         "--batch",
-        "--episode-api=tvdb",
-        "--episode-format='{id_tvdb}.{season}x{episode}.{extension}'",
+        "--episode-format='{id_tvmaze}.{season}x{episode}.{extension}'",
         ".",
     )
     assert result.code == 0
-    assert "110381.10x7" in result.out
-
-
-@pytest.mark.tvmaze
-@pytest.mark.usefixtures("setup_test_dir")
-def test_format_season0(e2e_run, setup_test_files):
-    setup_test_files("south.park.s00e01.mp4")
-    result = e2e_run(
-        "--batch",
-        "--episode-api=tvdb",
-        "--episode-format='{series} {season:02}x{episode:02}.{extension}'",
-        ".",
-    )
-    assert result.code == 0
-    assert "South Park 00x01.mp4" in result.out
+    assert "315.10x7" in result.out
 
 
 @pytest.mark.usefixtures("setup_test_dir")

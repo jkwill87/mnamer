@@ -2,7 +2,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-from requests import Session
+from requests import Request, Session
+from requests_cache import CachedSession
 
 from mnamer.const import CURRENT_YEAR, SUBTITLE_CONTAINERS
 from mnamer.types import MediaType
@@ -18,6 +19,7 @@ from mnamer.utils import (
     format_exception,
     format_iter,
     is_subtitle,
+    json_loads,
     normalize_container,
     parse_date,
     request_json,
@@ -720,6 +722,34 @@ def test_str_title_case__lower__only_whole_words(s: str):
     assert actual == expected
 
 
+@pytest.mark.parametrize(
+    ("s", "expected"),
+    (
+        ("S.W.A.T.", "S.W.A.T."),
+        ("M.A.S.H.", "M.A.S.H."),
+        ("s.w.a.t.", "S.W.A.T."),
+    ),
+)
+def test_str_title_case__lower__dotted_acronym(s: str, expected: str):
+    # a run of single letters between dots is an acronym, not standalone words
+    actual = str_title_case(s)
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ("s", "expected"),
+    (
+        ("Once.Upon.a.Time", "Once.Upon.a.Time"),
+        ("once.upon.a.time", "Once.Upon.a.Time"),
+        ("of.mice.and.men", "Of.Mice.and.Men"),
+    ),
+)
+def test_str_title_case__lower__dotted_words(s: str, expected: str):
+    # a single letter between dotted words is a standalone word, not an acronym
+    actual = str_title_case(s)
+    assert actual == expected
+
+
 @pytest.mark.parametrize("s", ("world war ii", "WORLD WAR II"))
 def test_str_title_case__upper(s: str):
     expected = "World War II"
@@ -870,3 +900,20 @@ def test_year_range_parse__unexpected(t: int, s: str):
     expected = (1900 - t, CURRENT_YEAR + t)
     actual = year_range_parse(s, t)
     assert actual == expected
+
+
+def test_json_loads__utf8(tmp_path: Path):
+    config_path = tmp_path / ".mnamer-v2.json"
+    config_path.write_text('{"movie_directory": "/media/Cinéma"}', encoding="utf-8")
+
+    assert json_loads(str(config_path)) == {"movie_directory": "/media/Cinéma"}
+
+
+def test_cache_key__normalizes_provider_url():
+    with CachedSession(backend="memory") as session:
+        url = "https://api.tvmaze.com/search/shows"
+        request = Request("GET", url, params={"q": "example", "page": 1})
+        reordered = Request("GET", url, params={"page": 1, "q": "example"})
+        assert session.cache.create_key(request.prepare()) == session.cache.create_key(
+            reordered.prepare()
+        )

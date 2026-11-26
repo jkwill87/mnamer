@@ -1,3 +1,4 @@
+import json
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -50,14 +51,12 @@ def test_id__tmdb(e2e_run, setup_test_files):
 
 
 @pytest.mark.usefixtures("setup_test_dir")
-def test_id__tvdb(e2e_run, setup_test_files):
+def test_id__tvmaze(e2e_run, setup_test_files):
     setup_test_files("game.of.thrones.01x05-eztv.mp4")
     result = e2e_run(
         "--batch",
-        "--episode_api",
-        "tvdb",
-        "--id-tvdb",
-        "79349",
+        "--id-tvmaze",
+        "161",
         ".",
     )
     assert result.code == 0
@@ -84,3 +83,37 @@ def test_test(e2e_run):
     result = e2e_run("--batch", "--test", ".")
     assert result.code == 0
     assert "testing mode" in result.out
+
+
+@pytest.mark.parametrize(
+    ("args", "guidance"),
+    [
+        (("--episode-api=tvdb",), "Use --episode-api=tvmaze"),
+        (("--episode_api", "tvdb"), "Use --episode-api=tvmaze"),
+        (("--id-tvdb=79349",), "Use --id-tvmaze"),
+        (("--id_tvdb", "79349"), "Use --id-tvmaze"),
+        (("--idtvdb", "79349"), "Use --id-tvmaze"),
+        (("--episode-format={id_tvdb}.{extension}",), "Use {id_tvmaze}"),
+    ],
+)
+def test_removed_tvdb_arguments(args, guidance, e2e_run):
+    result = e2e_run(*args)
+    assert result.code == 2
+    assert guidance in result.out
+
+
+@pytest.mark.parametrize(
+    ("config", "guidance"),
+    [
+        ({"episode_api": "tvdb"}, "set episode_api to tvmaze"),
+        ({"api_key_tvdb": None}, "Remove api_key_tvdb"),
+        ({"id_tvdb": "79349"}, "Remove id_tvdb"),
+        ({"episode_directory": "/media/{id_tvdb}"}, "Use {id_tvmaze}"),
+    ],
+)
+def test_removed_tvdb_config(config, guidance, tmp_path, e2e_run):
+    path = tmp_path / ".mnamer-v2.json"
+    path.write_text(json.dumps(config))
+    result = e2e_run("--config-path", str(path))
+    assert result.code == 2
+    assert guidance in result.out

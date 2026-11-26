@@ -4,11 +4,11 @@ This file provides guidance to LLMs when working with code in this repository.
 
 ## Project Overview
 
-mnamer (media renamer) is a command-line utility for organizing media files. It parses filenames for metadata using guessit, queries metadata providers (TMDb, OMDb, TVDb, TvMaze), and intelligently renames/moves files based on configurable templates.
+mnamer (media renamer) is a command-line utility for organizing media files. It parses filenames for metadata using guessit, queries metadata providers (TMDb, OMDb, TvMaze), and intelligently renames/moves files based on configurable templates.
 
 ## Development Setup
 
-This project requires Python 3.12+ and uses `uv` as the package manager:
+This project requires Python 3.13 or newer. CI tests Python 3.13, 3.14, and 3.15. Use `uv` to install dependencies and run the CLI:
 
 ```bash
 # Install dependencies
@@ -47,7 +47,7 @@ uv run pytest tests/local/test_metadata.py::test_function_name
 ```
 
 Registered markers are declared in `pytest.ini`: `local`, `network`, `e2e`,
-plus provider markers `omdb`, `tmdb`, `tvdb`, and `tvmaze`.
+plus provider markers `omdb`, `tmdb`, and `tvmaze`.
 
 ### Linting and Formatting
 
@@ -71,10 +71,10 @@ uv run mypy mnamer tests
 3. **Target** (`target.py:Target`): Represents a media file, manages its metadata and relocation
 4. **Metadata** (`metadata.py`): Dataclasses for storing parsed and enriched metadata
    - `MetadataMovie`: Movie-specific fields (name, year, id_imdb, id_tmdb)
-   - `MetadataEpisode`: TV episode fields (series, season, episode, id_tvdb, id_tvmaze)
+   - `MetadataEpisode`: TV episode fields (series, season, episode, id_tvmaze)
 5. **Providers** (`providers.py`): High-level interface for querying metadata APIs
    - `Tmdb`, `Omdb`: Movie providers
-   - `Tvdb`, `Tvmaze`: TV episode providers
+   - `TvMaze`: TV episode provider
 6. **Endpoints** (`endpoints.py`): Low-level API request functions and response TypedDicts
 
 ### Key Architectural Patterns
@@ -111,13 +111,13 @@ uv run mypy mnamer tests
 - **Config File**: `.mnamer-v2.json` in the current or parent directories, or the explicit path from `--config-path`
 - **Settings Precedence**: CLI arguments > config file > defaults
 - **Directives vs Parameters**: Directives (like `--test`, `--id-tmdb`) are one-time overrides not stored in config files
-- **Config-only Fields**: `api_key_omdb`, `api_key_tmdb`, `api_key_tvdb`, `api_key_tvmaze`, `replace_before`, and `replace_after` are only loaded from config/defaults, not CLI flags
+- **Config-only Fields**: `api_key_omdb`, `api_key_tmdb`, `api_key_tvmaze`, `replace_before`, and `replace_after` are only loaded from config/defaults, not CLI flags
 
 ## API Keys
 
 Providers load API keys through `Provider.from_settings()` using config-only
 fields named `api_key_<provider>`. If unset, provider classes fall back to
-environment variables (`API_KEY_OMDB`, `API_KEY_TMDB`, `API_KEY_TVDB`,
+environment variables (`API_KEY_OMDB`, `API_KEY_TMDB`,
 `API_KEY_TVMAZE`) and then bundled defaults where present.
 
 Check provider classes in `providers.py` for API key handling via `from_settings()` class method.

@@ -1,5 +1,6 @@
 import dataclasses
 import json
+import re
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, override
@@ -12,6 +13,15 @@ from mnamer.metadata import Metadata
 from mnamer.setting_spec import SettingSpec
 from mnamer.types import MediaType, ProviderType, SettingType
 from mnamer.utils import crawl_out, json_loads, normalize_containers
+
+
+def _episode_provider(value: str) -> str:
+    if value.lower() == "tvdb":
+        raise MnamerException(
+            "The TVDb episode provider was removed. "
+            "Use --episode-api=tvmaze or set episode_api to tvmaze in your config."
+        )
+    return value
 
 
 @dataclasses.dataclass
@@ -191,11 +201,12 @@ class SettingStore:
     episode_api: ProviderType | str = dataclasses.field(
         default=ProviderType.TVMAZE,
         metadata=SettingSpec(
-            choices=[ProviderType.TVDB.value, ProviderType.TVMAZE.value],
+            choices=[ProviderType.TVMAZE.value],
             dest="episode_api",
             flags=["--episode_api", "--episode-api", "--episodeapi"],
             group=SettingType.PARAMETER,
-            help="--episode-api={tvdb,*tvmaze}: set episode api provider",
+            help="--episode-api={tvmaze}: set episode api provider",
+            typevar=_episode_provider,
         ).as_dict(),
     )
     episode_directory: Path | None = dataclasses.field(
@@ -286,14 +297,6 @@ class SettingStore:
             help="--id-tmdb=<ID>: specify a TMDb movie id override",
         ).as_dict(),
     )
-    id_tvdb: str | None = dataclasses.field(
-        default=None,
-        metadata=SettingSpec(
-            flags=["--id_tvdb", "--id-tvdb", "--idtvdb"],
-            group=SettingType.DIRECTIVE,
-            help="--id-tvdb=<ID>: specify a TVDb series id override",
-        ).as_dict(),
-    )
     id_tvmaze: str | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(
@@ -341,10 +344,6 @@ class SettingStore:
         default=None,
         metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
     )
-    api_key_tvdb: str | None = dataclasses.field(
-        default=None,
-        metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
-    )
     api_key_tvmaze: str | None = dataclasses.field(
         default=None,
         metadata=SettingSpec(group=SettingType.CONFIGURATION).as_dict(),
@@ -368,6 +367,19 @@ class SettingStore:
 
     @override
     def __setattr__(self, key: str, value: Any):
+        if key == "episode_api" and isinstance(value, str):
+            _episode_provider(value)
+        if key in {
+            "episode_format",
+            "episode_directory",
+            "movie_format",
+            "movie_directory",
+        }:
+            if re.search(r"{\s*id_tvdb\b", str(value)):
+                raise MnamerException(
+                    f"The {{id_tvdb}} template field was removed from {key}. "
+                    "Use {id_tvmaze} for a TVmaze series ID or remove the field."
+                )
         converter_map: dict[str, Callable[[Any], Any]] = {
             "episode_api": ProviderType,
             "episode_directory": Path,
@@ -428,6 +440,16 @@ class SettingStore:
         config_path = arguments.get("config_path", crawl_out(".mnamer-v2.json"))
         config = json_loads(str(config_path)) if config_path else {}
         if not self.config_ignore and not arguments.get("config_ignore"):
+            if "api_key_tvdb" in config:
+                raise MnamerException(
+                    "The TVDb provider was removed. Remove api_key_tvdb from your config. "
+                    "TVmaze does not require an API key."
+                )
+            if "id_tvdb" in config:
+                raise MnamerException(
+                    "TVDb IDs are no longer supported. Remove id_tvdb from your config "
+                    "and use --id-tvmaze with a TVmaze series ID."
+                )
             self.bulk_apply(config)
         if arguments:
             self.bulk_apply(arguments)
