@@ -47,7 +47,7 @@ Run commands through mise so the pinned Rust 1.97.0 toolchain is used:
 
 ## Credentials and repository notes
 
-- Runtime API key precedence is `mnamer.toml`, then `API_KEY_TMDB`/`API_KEY_OMDB`/`API_KEY_TVDB`,
+- Runtime API key precedence is `mnamer.toml`, then `API_KEY_TMDB`/`API_KEY_OMDB`,
   then embedded application fallbacks. TVmaze requires no key.
 - Personal local keys belong in gitignored `mise.local.toml`; never print or commit them.
 - GitHub Actions injects live-test credentials from repository secrets.

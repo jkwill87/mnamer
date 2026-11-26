@@ -71,7 +71,6 @@ pub struct Country {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Externals {
     pub tvrage: Option<u64>,
-    pub thetvdb: Option<u64>,
     pub imdb: Option<String>,
 }
 

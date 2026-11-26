@@ -62,6 +62,11 @@ pub enum FormatError {
     /// A configured directory template was empty.
     #[error("directory template must not be empty")]
     EmptyDirectory,
+    /// A template refers to a retired metadata field.
+    #[error(
+        "the id_tvdb template field was removed. Use id_tvmaze for a TVmaze show ID or remove the field."
+    )]
+    RemovedTemplateField,
 }
 
 /// Compiles templates and renders deterministic destinations.
@@ -87,6 +92,18 @@ impl DestinationFormatter {
         .any(|path| path.as_os_str().is_empty())
         {
             return Err(FormatError::EmptyDirectory);
+        }
+        if uses_removed_field(&options.movie_format)
+            || uses_removed_field(&options.episode_format)
+            || [
+                options.movie_directory.as_ref(),
+                options.episode_directory.as_ref(),
+            ]
+            .into_iter()
+            .flatten()
+            .any(|directory| uses_removed_field(&directory.to_string_lossy()))
+        {
+            return Err(FormatError::RemovedTemplateField);
         }
         let mut engine = Engine::new();
         engine.add_function("first", |value: &str| {
@@ -278,7 +295,6 @@ impl DestinationFormatter {
             synopsis: Some("Example synopsis".into()),
             id_imdb: Some("tt1".into()),
             id_tmdb: Some("1".into()),
-            id_tvdb: Some("2".into()),
             id_tvmaze: Some("3".into()),
         });
         for name in [MOVIE_TEMPLATE, EPISODE_TEMPLATE] {
@@ -306,6 +322,51 @@ impl DestinationFormatter {
         }
         Ok(())
     }
+}
+
+/// Detects the retired field in template tags, ignoring literal text and comments.
+fn uses_removed_field(mut source: &str) -> bool {
+    while let Some((_, tail)) = source.split_once('{') {
+        source = tail;
+        if let Some(comment) = source.strip_prefix('#') {
+            let Some((_, rest)) = comment.split_once("#}") else {
+                break;
+            };
+            source = rest;
+            continue;
+        }
+        let (body, end) = if let Some(body) = source.strip_prefix('{') {
+            (body, "}}")
+        } else if let Some(body) = source.strip_prefix('%') {
+            (body, "%}")
+        } else {
+            continue;
+        };
+        source = "";
+        let mut previous = None;
+        let mut quoted = false;
+        let mut token_start = 0;
+        for (index, ch) in body.char_indices() {
+            if quoted {
+                if ch == '"' && previous != Some('\\') {
+                    quoted = false;
+                    token_start = index + 1;
+                }
+            } else if !(ch.is_alphanumeric() || ch == '_') {
+                if &body[token_start..index] == "id_tvdb" {
+                    return true;
+                }
+                if body[index..].starts_with(end) {
+                    source = &body[index + end.len()..];
+                    break;
+                }
+                quoted = ch == '"';
+                token_start = index + ch.len_utf8();
+            }
+            previous = Some(ch);
+        }
+    }
+    false
 }
 
 /// Normalizes a subtitle language or preserves Mediakit's aggregate `multi` marker.
@@ -362,8 +423,6 @@ struct TemplateContext {
     id_imdb: String,
     /// Stores the TMDb identifier.
     id_tmdb: String,
-    /// Stores the TVDb identifier.
-    id_tvdb: String,
     /// Stores the TVmaze identifier.
     id_tvmaze: String,
 }
@@ -398,7 +457,6 @@ impl From<&Metadata> for TemplateContext {
             synopsis: template_text(value.synopsis.as_deref(), true),
             id_imdb: template_text(value.id_imdb.as_deref(), false),
             id_tmdb: template_text(value.id_tmdb.as_deref(), false),
-            id_tvdb: template_text(value.id_tvdb.as_deref(), false),
             id_tvmaze: template_text(value.id_tvmaze.as_deref(), false),
         }
     }

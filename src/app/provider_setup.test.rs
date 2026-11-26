@@ -41,14 +41,6 @@ fn configured_registry_reports_sources_without_configuring_tvmaze() {
         sources[&ProviderKind::Omdb],
         Some(CredentialSource::Embedded)
     );
-    assert_eq!(
-        sources[&ProviderKind::Tvdb],
-        Some(CredentialSource::Embedded)
-    );
     assert_eq!(sources[&ProviderKind::Tvmaze], None);
-    assert_eq!(
-        ProviderKind::Tvdb.api_key_environment_variable(),
-        Some("API_KEY_TVDB")
-    );
     assert_eq!(ProviderKind::Tvmaze.api_key_environment_variable(), None);
 }

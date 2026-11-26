@@ -153,11 +153,6 @@ impl ApiClient {
         self.inner.get(url)
     }
 
-    /// Creates an HTTP POST request builder.
-    pub(super) fn post(&self, url: impl reqwest::IntoUrl) -> RequestBuilder {
-        self.inner.post(url)
-    }
-
     /// Sends a cache-aware GET request.
     pub(super) async fn send_get(
         &self,

@@ -4,8 +4,7 @@ use super::result::ApplicationError;
 use crate::config::{Config, ConfigLoader};
 use crate::net::endpoint::ApiClient;
 use crate::net::provider::{
-    EMBEDDED_OMDB_API_KEY, EMBEDDED_TMDB_API_KEY, EMBEDDED_TVDB_API_KEY, ProviderKind,
-    ProviderRegistry,
+    EMBEDDED_OMDB_API_KEY, EMBEDDED_TMDB_API_KEY, ProviderKind, ProviderRegistry,
 };
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -96,7 +95,6 @@ const fn embedded_api_key(provider: ProviderKind) -> Option<&'static str> {
     match provider {
         ProviderKind::Tmdb => Some(EMBEDDED_TMDB_API_KEY),
         ProviderKind::Omdb => Some(EMBEDDED_OMDB_API_KEY),
-        ProviderKind::Tvdb => Some(EMBEDDED_TVDB_API_KEY),
         ProviderKind::Tvmaze => None,
     }
 }

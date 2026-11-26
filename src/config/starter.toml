@@ -37,4 +37,3 @@ ttl_days = 6
 [api_keys]
 # tmdb = "..."
 # omdb = "..."
-# tvdb = "..."

@@ -83,28 +83,10 @@ pub async fn tvmaze_show_single_search(
     parse_response(&response)
 }
 
-/// Look up a show by external ID (IMDb or TVDb).
-pub async fn tvmaze_show_lookup(
-    client: &ApiClient,
-    id_imdb: Option<&str>,
-    id_tvdb: Option<u64>,
-) -> Result<Show, EndpointError> {
-    if id_imdb.is_some() == id_tvdb.is_some() {
-        return Err(EndpointError::InvalidRequest {
-            message: "exactly one IMDb or TVDb ID is required".into(),
-            status: 0,
-        });
-    }
-    let mut parameters = Vec::new();
-    if let Some(id_imdb) = id_imdb {
-        parameters.push(("imdb", id_imdb.to_owned()));
-    }
-    if let Some(id_tvdb) = id_tvdb {
-        parameters.push(("thetvdb", id_tvdb.to_string()));
-    }
-    let key = SemanticCacheKey::new("tvmaze", "show-lookup")
-        .optional("imdb_id", id_imdb)
-        .optional("tvdb_id", id_tvdb);
+/// Look up a show by IMDb ID.
+pub async fn tvmaze_show_lookup(client: &ApiClient, id_imdb: &str) -> Result<Show, EndpointError> {
+    let parameters = [("imdb", id_imdb)];
+    let key = SemanticCacheKey::new("tvmaze", "show-lookup").parameter("imdb_id", id_imdb);
     let response = client
         .send_get(
             client

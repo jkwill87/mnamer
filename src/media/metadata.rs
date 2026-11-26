@@ -52,8 +52,6 @@ pub struct Metadata {
     pub id_imdb: Option<String>,
     /// TMDb identifier.
     pub id_tmdb: Option<String>,
-    /// TVDb identifier.
-    pub id_tvdb: Option<String>,
     /// TVmaze identifier.
     pub id_tvmaze: Option<String>,
 }
@@ -73,7 +71,7 @@ impl Metadata {
         }
         overlay!(
             name, series, title, year, season, episode, date, synopsis, language, id_imdb, id_tmdb,
-            id_tvdb, id_tvmaze
+            id_tvmaze
         );
         if !other.episodes.is_empty() {
             self.episodes.clone_from(&other.episodes);

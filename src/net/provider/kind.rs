@@ -11,22 +11,19 @@ pub enum ProviderKind {
     Tmdb,
     /// The Open Movie Database.
     Omdb,
-    /// TheTVDB v3 API.
-    Tvdb,
     /// TVmaze.
     Tvmaze,
 }
 
 impl ProviderKind {
     /// All supported providers in stable display order.
-    pub const ALL: [Self; 4] = [Self::Tmdb, Self::Omdb, Self::Tvdb, Self::Tvmaze];
+    pub const ALL: [Self; 3] = [Self::Tmdb, Self::Omdb, Self::Tvmaze];
 
     /// Returns the API-key environment variable for an authenticated provider.
     pub const fn api_key_environment_variable(self) -> Option<&'static str> {
         match self {
             Self::Tmdb => Some("API_KEY_TMDB"),
             Self::Omdb => Some("API_KEY_OMDB"),
-            Self::Tvdb => Some("API_KEY_TVDB"),
             Self::Tvmaze => None,
         }
     }
@@ -40,8 +37,7 @@ impl ProviderKind {
     pub const fn supports(self, media: MediaKind) -> bool {
         matches!(
             (self, media),
-            (Self::Tmdb | Self::Omdb, MediaKind::Movie)
-                | (Self::Tvdb | Self::Tvmaze, MediaKind::Episode)
+            (Self::Tmdb | Self::Omdb, MediaKind::Movie) | (Self::Tvmaze, MediaKind::Episode)
         )
     }
 }
@@ -53,7 +49,7 @@ impl std::str::FromStr for ProviderKind {
         match value.to_ascii_lowercase().as_str() {
             "tmdb" => Ok(Self::Tmdb),
             "omdb" => Ok(Self::Omdb),
-            "tvdb" => Ok(Self::Tvdb),
+            "tvdb" => Err("The TVDb provider was removed. Use tvmaze for episodes.".into()),
             "tvmaze" => Ok(Self::Tvmaze),
             _ => Err(format!("unsupported provider: {value}")),
         }
@@ -65,7 +61,6 @@ impl std::fmt::Display for ProviderKind {
         formatter.write_str(match self {
             Self::Tmdb => "tmdb",
             Self::Omdb => "omdb",
-            Self::Tvdb => "tvdb",
             Self::Tvmaze => "tvmaze",
         })
     }

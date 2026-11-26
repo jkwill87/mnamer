@@ -25,8 +25,6 @@ pub enum ExternalIdSource {
     Imdb,
     /// TMDb movie identifier.
     Tmdb,
-    /// TVDb series or episode identifier.
-    Tvdb,
     /// TVmaze show or episode identifier.
     Tvmaze,
 }
@@ -36,7 +34,6 @@ impl fmt::Display for ExternalIdSource {
         f.write_str(match self {
             Self::Imdb => "imdb",
             Self::Tmdb => "tmdb",
-            Self::Tvdb => "tvdb",
             Self::Tvmaze => "tvmaze",
         })
     }
@@ -49,10 +46,10 @@ impl FromStr for ExternalIdSource {
         match value.to_ascii_lowercase().as_str() {
             "imdb" => Ok(Self::Imdb),
             "tmdb" => Ok(Self::Tmdb),
-            "tvdb" => Ok(Self::Tvdb),
+            "tvdb" => Err("TVDb IDs are no longer supported. Use --id tvmaze:ID with a TVmaze show ID or --id imdb:ID.".into()),
             "tvmaze" => Ok(Self::Tvmaze),
             _ => Err(format!(
-                "unsupported ID source {value:?}; expected imdb, tmdb, tvdb, or tvmaze"
+                "unsupported ID source {value:?}; expected imdb, tmdb, or tvmaze"
             )),
         }
     }
@@ -92,7 +89,7 @@ impl FromStr for ExternalId {
             ExternalIdSource::Imdb => id.strip_prefix("tt").is_some_and(|digits| {
                 !digits.is_empty() && digits.chars().all(|ch| ch.is_ascii_digit())
             }),
-            ExternalIdSource::Tmdb | ExternalIdSource::Tvdb | ExternalIdSource::Tvmaze => {
+            ExternalIdSource::Tmdb | ExternalIdSource::Tvmaze => {
                 id.chars().all(|ch| ch.is_ascii_digit())
                     && id.parse::<u64>().is_ok_and(|value| value > 0)
             }

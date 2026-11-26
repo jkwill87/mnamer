@@ -25,19 +25,10 @@ pub(super) async fn search(
             None,
             endpoints::tvmaze::tvmaze_show(client, id, false).await?,
         )]
-    } else if query.id_tvdb.is_some() || query.id_imdb.is_some() {
-        let id_tvdb = query
-            .id_tvdb
-            .as_deref()
-            .map(|id| parse_id(ProviderKind::Tvdb, id))
-            .transpose()?;
-        let id_imdb = id_tvdb
-            .is_none()
-            .then_some(query.id_imdb.as_deref())
-            .flatten();
+    } else if let Some(id) = &query.id_imdb {
         vec![(
             None,
-            endpoints::tvmaze::tvmaze_show_lookup(client, id_imdb, id_tvdb).await?,
+            endpoints::tvmaze::tvmaze_show_lookup(client, id).await?,
         )]
     } else {
         let series = query
@@ -125,11 +116,6 @@ fn candidate_from_episode(show: &Show, episode: Episode, score: Option<f64>) -> 
             date: episode.airdate,
             synopsis: episode.summary.map(|summary| strip_html(&summary)),
             id_imdb: show.externals.as_ref().and_then(|ids| ids.imdb.clone()),
-            id_tvdb: show
-                .externals
-                .as_ref()
-                .and_then(|ids| ids.thetvdb)
-                .map(|id| id.to_string()),
             id_tvmaze: Some(show.id.to_string()),
             ..Metadata::default()
         },

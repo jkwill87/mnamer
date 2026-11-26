@@ -1,12 +1,11 @@
 //! Dispatches provider searches and manages provider credentials.
 
-use super::{Candidate, CandidateError, CandidateSource, ProviderKind, omdb, tmdb, tvdb, tvmaze};
+use super::{Candidate, CandidateError, CandidateSource, ProviderKind, omdb, tmdb, tvmaze};
 use crate::media::{MediaKind, Metadata};
-use crate::net::endpoint::{self as endpoints, ApiClient, EndpointError};
+use crate::net::endpoint::{ApiClient, EndpointError};
 use async_trait::async_trait;
 use serde::Serialize;
 use std::collections::HashMap;
-use tokio::sync::Mutex;
 
 /// Static capability details for one provider.
 #[derive(Debug, Clone, Serialize)]
@@ -38,14 +37,6 @@ pub enum ProviderError {
     /// Parsed metadata lacks fields needed to build a provider query.
     #[error("insufficient metadata for a {0} query")]
     InvalidQuery(ProviderKind),
-    /// A language is not accepted by a selected provider API.
-    #[error("language {language:?} is not supported by {provider}")]
-    UnsupportedLanguage {
-        /// Provider rejecting the language.
-        provider: ProviderKind,
-        /// Requested language identifier.
-        language: String,
-    },
     /// The asynchronous endpoint layer rejected the request or response.
     #[error(transparent)]
     Endpoint(#[from] EndpointError),
@@ -57,8 +48,6 @@ pub struct ProviderRegistry {
     client: ApiClient,
     /// Stores the provider API keys.
     api_keys: HashMap<ProviderKind, String>,
-    /// Stores the cached TVDb authentication token.
-    tvdb_token: Mutex<Option<String>>,
 }
 
 impl std::fmt::Debug for ProviderRegistry {
@@ -77,7 +66,6 @@ impl ProviderRegistry {
         Self {
             client,
             api_keys: HashMap::new(),
-            tvdb_token: Mutex::new(None),
         }
     }
 
@@ -95,7 +83,7 @@ impl ProviderRegistry {
             .map(|provider| {
                 let media_types = match provider {
                     ProviderKind::Tmdb | ProviderKind::Omdb => vec![MediaKind::Movie],
-                    ProviderKind::Tvdb | ProviderKind::Tvmaze => vec![MediaKind::Episode],
+                    ProviderKind::Tvmaze => vec![MediaKind::Episode],
                 };
                 let authentication_required = provider.requires_authentication();
                 ProviderDescriptor {
@@ -118,7 +106,6 @@ impl ProviderRegistry {
         match provider {
             ProviderKind::Tmdb => tmdb::check(self).await,
             ProviderKind::Omdb => omdb::check(self).await,
-            ProviderKind::Tvdb => tvdb::check(self).await,
             ProviderKind::Tvmaze => tvmaze::check(self).await,
         }
     }
@@ -134,7 +121,6 @@ impl ProviderRegistry {
         let result = match provider {
             ProviderKind::Tmdb => tmdb::search(self, query, max_results).await,
             ProviderKind::Omdb => omdb::search(self, query, max_results).await,
-            ProviderKind::Tvdb => tvdb::search(self, query, max_results).await,
             ProviderKind::Tvmaze => tvmaze::search(self, query, max_results).await,
         };
         match result {
@@ -155,16 +141,6 @@ impl ProviderRegistry {
             .map(String::as_str)
             .filter(|key| !key.is_empty())
             .ok_or(ProviderError::MissingCredential(provider))
-    }
-
-    /// Returns a cached or freshly authenticated TVDb token.
-    pub(super) async fn tvdb_token(&self) -> Result<String, ProviderError> {
-        let mut token = self.tvdb_token.lock().await;
-        if token.is_none() {
-            let key = self.credential(ProviderKind::Tvdb)?;
-            *token = Some(endpoints::tvdb_v3::tvdb_login(&self.client, key).await?);
-        }
-        Ok(token.clone().unwrap_or_default())
     }
 }
 

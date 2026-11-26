@@ -49,6 +49,12 @@ pub async fn tmdb_find(
     external_source: &str,
     language: Option<Language>,
 ) -> Result<FindResponse, EndpointError> {
+    if external_source.eq_ignore_ascii_case("tvdb_id") {
+        return Err(EndpointError::InvalidRequest {
+            message: "TVDb IDs are no longer supported. Use imdb_id with an IMDb title ID.".into(),
+            status: 0,
+        });
+    }
     let url = format!("{BASE_URL}/find/{external_id}");
     let mut parameters = vec![
         ("api_key", api_key.to_owned()),

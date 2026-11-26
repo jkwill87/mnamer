@@ -123,14 +123,12 @@ fn parses_plain_provider_api_keys() {
         [api_keys]
         tmdb = "tmdb-key"
         omdb = "omdb-key"
-        tvdb = "tvdb-key"
         "#,
     )
     .unwrap();
 
     assert_eq!(config.api_keys.tmdb.as_deref(), Some("tmdb-key"));
     assert_eq!(config.api_keys.omdb.as_deref(), Some("omdb-key"));
-    assert_eq!(config.api_keys.tvdb.as_deref(), Some("tvdb-key"));
     assert_eq!(config.api_keys.get(ProviderKind::Tvmaze), None);
     assert!(format!("{config:?}").contains("tmdb-key"));
     assert!(serde_json::to_string(&config).unwrap().contains("omdb-key"));
@@ -143,4 +141,18 @@ fn rejects_unknown_upon_functions_during_config_validation() {
             .unwrap_err();
 
     assert!(matches!(error, ConfigError::InvalidValue { .. }));
+}
+
+
+#[test]
+fn retired_provider_settings_explain_migration() {
+    for (source, guide) in [
+        ("[episode]\nprovider = \"tvdb\"", "set episode.provider to tvmaze"),
+        ("[api_keys]\ntvdb = \"test-key\"", "Remove api_keys.tvdb"),
+        ("[episode]\nformat = \"{{ id_tvdb }}\"", "Use id_tvmaze"),
+    ] {
+        let error = Config::parse_toml(source).unwrap_err();
+        assert!(error.to_string().contains(guide), "{error}");
+        assert!(!error.to_string().contains("test-key"), "{error}");
+    }
 }

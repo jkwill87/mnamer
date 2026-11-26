@@ -18,7 +18,6 @@ fn configured_registry_reports_resolved_credential_sources() {
 
     assert!(sources[&ProviderKind::Tmdb].is_some());
     assert!(sources[&ProviderKind::Omdb].is_some());
-    assert!(sources[&ProviderKind::Tvdb].is_some());
     assert_eq!(sources[&ProviderKind::Tvmaze], None);
 }
 
