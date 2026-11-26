@@ -720,6 +720,34 @@ def test_str_title_case__lower__only_whole_words(s: str):
     assert actual == expected
 
 
+@pytest.mark.parametrize(
+    ("s", "expected"),
+    (
+        ("S.W.A.T.", "S.W.A.T."),
+        ("M.A.S.H.", "M.A.S.H."),
+        ("s.w.a.t.", "S.W.A.T."),
+    ),
+)
+def test_str_title_case__lower__dotted_acronym(s: str, expected: str):
+    # a run of single letters between dots is an acronym, not standalone words
+    actual = str_title_case(s)
+    assert actual == expected
+
+
+@pytest.mark.parametrize(
+    ("s", "expected"),
+    (
+        ("Once.Upon.a.Time", "Once.Upon.a.Time"),
+        ("once.upon.a.time", "Once.Upon.a.Time"),
+        ("of.mice.and.men", "Of.Mice.and.Men"),
+    ),
+)
+def test_str_title_case__lower__dotted_words(s: str, expected: str):
+    # a single letter between dotted words is a standalone word, not an acronym
+    actual = str_title_case(s)
+    assert actual == expected
+
+
 @pytest.mark.parametrize("s", ("world war ii", "WORLD WAR II"))
 def test_str_title_case__upper(s: str):
     expected = "World War II"
