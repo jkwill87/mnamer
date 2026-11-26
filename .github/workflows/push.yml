@@ -25,19 +25,25 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.13", "3.14", "3.15"]
 
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/init
+        with:
+          python-version: ${{ matrix.python-version }}
       - name: Testing
         uses: ./.github/actions/test
         env:
           API_KEY_OMDB: ${{ secrets.API_KEY_OMDB }}
         with:
           local: true
-          network: ${{ github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+          network: ${{ matrix.python-version == '3.14' && (github.event_name == 'schedule' || (github.event_name == 'push' && github.ref == 'refs/heads/main')) }}
           e2e: true
-          coverage: true
+          coverage: ${{ matrix.python-version == '3.14' }}
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
   publish-pypi:

@@ -35,6 +35,7 @@ runs:
       run: >-
         uv run pytest
         -m "local"
+        -W error
         --durations=10
         --cov=./
         --cov-append
@@ -60,6 +61,7 @@ runs:
       run: >-
         uv run pytest
         -m e2e
+        -W error
         --reruns 3
         --durations=10
         --cov=./

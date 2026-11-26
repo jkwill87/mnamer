@@ -8,7 +8,7 @@ mnamer (media renamer) is a command-line utility for organizing media files. It 
 
 ## Development Setup
 
-This project requires Python 3.12+ and uses `uv` as the package manager:
+This project requires Python 3.13 or newer. CI tests Python 3.13, 3.14, and 3.15. Use `uv` to install dependencies and run the CLI:
 
 ```bash
 # Install dependencies
